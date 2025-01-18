@@ -1,0 +1,6 @@
+^ragnar\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^scratch.*
+^examples$
+^vignettes/articles$
