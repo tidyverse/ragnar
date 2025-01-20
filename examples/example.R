@@ -30,7 +30,7 @@ for (file in files) {
 ragnar_store_build_index(store)
 
 prompt <- "How can I subset a dataframe with a vector of booleans?"
-relevent_chunks <- ragnar_retreive_vss(store, prompt, top_k = 3)
+relevent_chunks <- ragnar_retrieve_vss(store, prompt, top_k = 3)
 
 relevent_chunks$text |> cat(sep = "\n-------\n")
 

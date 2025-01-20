@@ -1,6 +1,6 @@
 
 #' @export
-ragnar_retreive_vss <- function(store, prompt, top_k = 3L) {
+ragnar_retrieve_vss <- function(store, prompt, top_k = 3L) {
   check_string(prompt)
   check_number_whole(top_k)
   store <- ragnar_store_connect(store)
@@ -10,6 +10,7 @@ ragnar_retreive_vss <- function(store, prompt, top_k = 3L) {
   prompt_embedding <- ragnar_embed_ollama(prompt, model = model)
   embedding_size <- ncol(prompt_embedding)
 
+  # TODO: support specifying a minimum distance threshold too, in addition to `top_k`.
   query <- glue(r"---(
     SELECT id, text
     FROM chunks
@@ -23,9 +24,9 @@ ragnar_retreive_vss <- function(store, prompt, top_k = 3L) {
 }
 
 # TODO:
-# ragnar_retreive_search <- function(...) {}
-# ragnar_retreive_bm25 <- function(...) {}
+# ragnar_retrieve_search <- function(...) {}
+# ragnar_retrieve_bm25 <- function(...) {}
 # Consider consolidating into:
-#   ragnar_retreive(..., method = c("vss", "text_search", "bm25"))
+#   ragnar_retrieve(..., method = c("vss", "text_search", "bm25"))
 # once we have a way to do re-ranking.
 

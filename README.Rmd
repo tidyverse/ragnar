@@ -1,0 +1,123 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# ragnar
+
+🚧 Under active development 🚧
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`ragnar` is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over all the steps. We don't believe that you can fully automate the creation of a good RAG, so it's important that ragnar is not a black box; `ragnar` is designed to be transparent—you can inspect outputs at intermediate steps to understand what’s happening.
+
+
+## Installation
+```r
+pak::pak("t-kalinowski/ragnar")
+```
+
+## Key Steps
+
+### 1. Document Processing
+
+Ragnar starts with a directory of markdown or HTML files. In the long term, we plan to offer tools for building this directory, such as [web scraping](https://github.com/r-lib/httr2/pull/584) or markdown processing. We also intend to add tools for simplifying HTML using readability techniques or a pandoc AST walker to remove extraneous attributes.
+
+### 2. Text Chunking
+
+Next we divide each document into multiple chunks. We default to a strategy that preserves some of the semantics of the document, but provide plenty of options to tweak the approach.
+
+### 3. (Optionally) Context augmentation
+
+Add needed context to the chunk. The goal it to support a variety of workflows for attaching context to chunked text, ranging from
+templating strings `glue()` to sophisticated workflows that involve calling out to LLMs to generate relevant contextualized summaries.
+
+### 4. Embedding
+
+Support computing an embedding for each chunk. The goal is for `ragnar` to provide access to embeddings from popular LLM providers. Currently, only support for `ollama` is implemented.
+
+### 5. Storage
+
+Store all processed data in a format optimized for efficient searching, using `duckdb` as a default.
+The goal is for the API to be extensible, so additional packages to implement support for different store providers.
+
+### 6. Retrieval
+
+Retrieve related chunks based on cosine similarity of embeddings. In the near future we intend also support retrieval using BM25 ranking and regular text search. 
+
+- **Vector similarity search:** [`vss` DuckDB extension](https://duckdb.org/docs/extensions/vss.html)
+- **Text search:** [`full-text search extension`](https://duckdb.org/docs/extensions/full_text_search.html)
+
+### 7. (Optional) Re-ranking
+
+Rerank retreived chunks. (Not yet implemented)
+
+### 8. Prompt generation
+
+Ragnar will provide a set of tools for helping to incorporate the retrieved chunks into an LLM prompt.
+
+
+## Usage
+
+Below is an example of using `ragnar` to store and retrieve chunks from the *R for Data Science (2e)* book.
+
+```{r}
+# Create a local copy of the rendered book
+if (!dir.exists("~/github/hadley/r4ds")) {
+  # Clone https://r4ds.hadley.nz/base-r locally
+  system2("git", c("clone",
+    shQuote("https://github.com/hadley/r4ds/"),
+    shQuote(normalizePath("~/github/hadley/r4ds"))
+  ))
+  pak::local_install_dev_deps("~/github/hadley/r4ds")
+  system("quarto render ~/github/hadley/r4ds")
+}
+```
+
+```{r}
+library(ragnar)
+
+store <- ragnar_store_connect(":memory:")
+
+files <- Sys.glob("~/github/hadley/r4ds/_book/*.html")
+for (file in files) {
+  message("Ingesting: ", file)
+  chunks <- file |>
+    ragnar_read_document(frame_by_tags = c("h1", "h2")) |>
+    ragnar_chunk(max_size = 500, boundaries = c("paragraph", "sentence")) |>
+    # augment chunks with context
+    dplyr::mutate(text = glue::glue(r"---(
+      # Excerpt from *R for Data Science (2e)*
+      Chapter: {h1}
+      Section: {h2}
+      Content: {text}
+      )---"))
+
+  chunks <- ragnar_embed_ollama(chunks)
+  ragnar_store_insert(store, chunks)
+}
+
+ragnar_store_build_index(store)
+```
+
+### Retrieving Chunks
+
+Once the store is set up, retrieve the most relevant text chunks:
+
+```{r}
+prompt <- "How can I subset a dataframe with a vector of booleans?"
+relevant_chunks <- ragnar_retrieve_vss(store, prompt, top_k = 3)
+
+relevant_chunks$text |> cat(sep = "\n-------\n")
+```
