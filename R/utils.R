@@ -53,6 +53,7 @@ last <- function(x) x[[length(x)]]
 `add<-` <- function(x, value) x + value
 drop_last <- function(x) x[-length(x)]
 drop_first <- function(x) x[-1L]
+drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
 
 
 #' @importFrom rvest html_text html_text2 html_elements read_html
@@ -62,7 +63,7 @@ drop_first <- function(x) x[-1L]
 #' @importFrom dplyr bind_rows
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_locate_matches vec_fill_missing vec_unique vec_slice vec_c
-#' @importFrom httr2 request req_url_path_append req_body_json req_perform resp_body_json
+#' @importFrom httr2 request req_url_path_append req_body_json req_perform resp_body_json req_retry req_auth_bearer_token
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
 #' @importFrom glue glue glue_data
 #' @importFrom methods is
