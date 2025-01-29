@@ -1,9 +1,12 @@
 
 
-
 str_chunk1 <- function(string,
                        candidate_cutpoints,
-                       max_size = 1000L,
+                       # assuming:
+                       #   1 token ~ 4 characters
+                       #   one page ~ 400 tokens
+                       #   target chunk size ~ 1 page
+                       max_size = 1600L,
                        trim = TRUE) {
 
   check_string(string)
@@ -100,8 +103,8 @@ str_chunk <- function(x, max_size,
 #' overlap.
 #'
 #' @param x A character vector, list of character vectors, or data frame containing a `text` column.
-#' @param max_size Integer. The maximum size of each chunk in characters.
-#'   Default: `1000`.
+#' @param max_size Integer. The maximum number of characters in each chunk.
+#'   Default: `1600`. This is typically approximately 400 tokens, or 1 page of text.
 #' @param boundaries A sequence of boundary types to use in order until
 #'   `max_size` is satisfied. Valid values are `"sentence"`, `"word"`,
 #'   `"line_break"`, `"character"`, `"paragraph"`, or a `stringr_pattern` object
@@ -126,7 +129,7 @@ str_chunk <- function(x, max_size,
 #' - extracting slices: extracting substrings using the candidate boundaries to produce chunks that
 #'   match the requested `chunk_size` and `chunk_overlap`
 #'
-#' `ragnar_chunk()` is a higher-level function that does both, identifys boundaries and extracts slices.
+#' `ragnar_chunk()` is a higher-level function that does both, identifies boundaries and extracts slices.
 #'
 #' If you need lower-level control, you can alternatively use the lower-level functions
 #' `ragnar_segment()` in combination with `ragnar_chunk_segments()`.
@@ -191,7 +194,7 @@ str_chunk <- function(x, max_size,
 #' @name ragnar_chunk
 #' @rdname ragnar_chunk
 #' @export
-ragnar_chunk <- function(x, max_size,
+ragnar_chunk <- function(x, max_size = 1600L,
                          boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
                          ..., trim = TRUE, simplify = TRUE) {
   if (is.data.frame(x)) {

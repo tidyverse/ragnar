@@ -8,7 +8,7 @@
 \usage{
 ragnar_chunk(
   x,
-  max_size,
+  max_size = 1600L,
   boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
   ...,
   trim = TRUE,
@@ -22,8 +22,8 @@ ragnar_chunk_segments(x, max_size = 1000, ..., simplify = TRUE, trim = TRUE)
 \arguments{
 \item{x}{A character vector, list of character vectors, or data frame containing a \code{text} column.}
 
-\item{max_size}{Integer. The maximum size of each chunk in characters.
-Default: \code{1000}.}
+\item{max_size}{Integer. The maximum number of characters in each chunk.
+Default: \code{1600}. This is typically approximately 400 tokens, or 1 page of text.}
 
 \item{boundaries}{A sequence of boundary types to use in order until
 \code{max_size} is satisfied. Valid values are \code{"sentence"}, \code{"word"},
@@ -65,7 +65,7 @@ Chunking is the combination of two fundamental operations:
 match the requested \code{chunk_size} and \code{chunk_overlap}
 }
 
-\code{ragnar_chunk()} is a higher-level function that does both, identifys boundaries and extracts slices.
+\code{ragnar_chunk()} is a higher-level function that does both, identifies boundaries and extracts slices.
 
 If you need lower-level control, you can alternatively use the lower-level functions
 \code{ragnar_segment()} in combination with \code{ragnar_chunk_segments()}.
