@@ -12,11 +12,15 @@ ragnar_retrieve_vss <- function(store, prompt, top_k = 3L) {
 
   # TODO: support specifying a minimum distance threshold too, in addition to `top_k`.
   query <- glue(r"---(
-    SELECT id, text
+    SELECT
+      id,
+      text,
+      array_distance(
+        embedding,
+        [{stri_flatten(prompt_embedding, ", ")}]::FLOAT[{embedding_size}]
+      ) as distance
     FROM chunks
-    ORDER BY array_distance(
-      embedding,
-      [{stri_flatten(prompt_embedding, ", ")}]::FLOAT[{embedding_size}])
+    ORDER BY distance
     LIMIT {top_k};
     )---")
 
