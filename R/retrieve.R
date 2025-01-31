@@ -14,11 +14,11 @@ ragnar_retrieve_vss <- function(store, prompt, top_k = 3L) {
   query <- glue(r"---(
     SELECT
       id,
-      text,
       array_distance(
         embedding,
         [{stri_flatten(prompt_embedding, ", ")}]::FLOAT[{embedding_size}]
-      ) as distance
+      ) as distance,
+      text
     FROM chunks
     ORDER BY distance
     LIMIT {top_k};
@@ -33,4 +33,3 @@ ragnar_retrieve_vss <- function(store, prompt, top_k = 3L) {
 # Consider consolidating into:
 #   ragnar_retrieve(..., method = c("vss", "text_search", "bm25"))
 # once we have a way to do re-ranking.
-
