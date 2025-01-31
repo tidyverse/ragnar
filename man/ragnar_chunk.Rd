@@ -112,11 +112,13 @@ df <- data.frame(
   id = 1:2,
   text = c("First sentence. Second sentence.", "Another sentence here.")
 )
-ragnar_chunk(df, max_size = 20)
-ragnar_chunk(df$text, max_size = 20)
+ragnar_chunk(df, max_size = 20, boundaries = "sentence")
+ragnar_chunk(df$text, max_size = 20, boundaries = "sentence")
 
 # Chunking pre-segmented text
 segments <- c("First segment. ", "Second segment. ", "Third segment. ", "Fourth segment. ")
+ragnar_chunk_segments(segments, max_size = 20)
 ragnar_chunk_segments(segments, max_size = 40)
+ragnar_chunk_segments(segments, max_size = 60)
 
 }

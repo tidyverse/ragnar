@@ -69,4 +69,6 @@ drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
 #' @importFrom methods is
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
 #' @import rlang
+#' @useDynLib ragnar, .registration = TRUE
 NULL
+
