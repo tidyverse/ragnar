@@ -24,6 +24,12 @@ ragnar_embed_ollama <- function(x,
                                 base_url = "http://localhost:11434",
                                 model = "all-minilm",
                                 batch_size = 10L) {
+  if (missing(x)) {
+    args <- capture_args()
+    fn <- partial(quote(ragnar::embed_ollama), alist(x = ), args)
+    return(fn)
+  }
+
   if (is.data.frame(x)) {
     x[["embedding"]] <- Recall(x[["text"]],
                                base_url = base_url,
@@ -31,6 +37,7 @@ ragnar_embed_ollama <- function(x,
                                batch_size = batch_size)
     return(x)
   }
+
   check_character(x)
 
   starts <- seq.int(from = 1L, to = length(x), by = batch_size)
@@ -47,6 +54,10 @@ ragnar_embed_ollama <- function(x,
 
   vctrs::vec_c(!!!embeddings)
 }
+
+
+#' @export
+embed_ollama <- ragnar_embed_ollama
 
 
 #' Embed text via OpenAI API
@@ -68,6 +79,12 @@ ragnar_embed_openai <- function(x,
                                 dims = NULL,
                                 user = get_ragnar_username(),
                                 batch_size = 20) {
+
+  if (missing(x)) {
+    args <- capture_args()
+    fn <- partial(quote(ragnar::ragnar_embed_openai), alist(x = ), args)
+    return(fn)
+  }
 
   if (is.data.frame(x)) {
     x[["embedding"]] <- Recall(
@@ -108,7 +125,27 @@ ragnar_embed_openai <- function(x,
       req_body_json(data)
 
     resp <- req_perform(req)
+
+    # embeddings is a list of length(text), of double vectors
+
+    # > resp_body_json(resp, simplifyVector = TRUE) |> str()
+    # List of 4
+    #  $ object: chr "list"
+    #  $ data  :'data.frame':	89 obs. of  3 variables:
+    #   ..$ object   : chr [1:89] "embedding" "embedding" "embedding" "embedding" ...
+    #   ..$ index    : int [1:89] 0 1 2 3 4 5 6 7 8 9 ...
+    #   ..$ embedding:List of 89
+    #   .. ..$ : num [1:1536] -0.01258 0.03318 0.00534 -0.04137 0.00282 ...
+    #   .. ..$ : num [1:1536] -0.0191 0.0215 0.0508 -0.0391 0.0168 ...
+    #   .. ..$ : num [1:1536] -0.0235 0.0288 0.0298 -0.0365 0.0191 ...
+    #   .. ..$ : num [1:1536] -0.000126 -0.005694 0.021306 -0.018764 -0.012051 ...
+    #   .. ..$ : num [1:1536] 0.02475 -0.00438 0.01781 -0.00192 0.01195 ...
+    #  $ model : chr "text-embedding-3-small"
+    #  $ usage :List of 2
+    #   ..$ prompt_tokens: int 12436
+    #   ..$ total_tokens : int 12436
     resp_body_json(resp, simplifyVector = TRUE)$data$embedding
+
 
   })
 
@@ -135,5 +172,41 @@ get_envvar <- function(name, error_call = caller_env()) {
 }
 
 get_ragnar_username <- function() {
-  paste0(Sys.info()[["user"]], " via ragnar")
+  sprintf("'%s' via ragnar", Sys.info()[["user"]])
+}
+
+
+capture_args <- function(omit_default_values = TRUE) {
+  ## modified copy of keras3:::capture_args()
+  envir <- parent.frame(1L)
+  fn <- sys.function(-1L)
+  call <- sys.call(-1L)
+  call <- match.call(fn, call, expand.dots = TRUE, envir = parent.frame(2L))
+
+  fn_arg_nms <- names(formals(fn))
+  known_args <- intersect(names(call), fn_arg_nms)
+  names(known_args) <- known_args
+
+  call <- as.call(c(
+    list,
+    lapply(known_args, as.symbol),
+    if ("..." %in% fn_arg_nms) quote(...)
+  ))
+  args <- eval(call, envir)
+
+  if (omit_default_values) {
+    default_args <- as.list(formals(fn))
+    for (nm in names(args)) {
+      if (identical(default_args[[nm]], args[[nm]]))
+        args[[nm]] <- NULL
+    }
+  }
+
+  args
+
+}
+
+partial <- function(.fn, .sig, ...) {
+  body <- as.call(c(.fn, lapply(names(.sig), as.symbol),  ...))
+  as.function.default(c(.sig, body), envir = environment(.fn) %||% globalenv())
 }
