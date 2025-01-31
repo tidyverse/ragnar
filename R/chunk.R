@@ -1,5 +1,11 @@
 
 
+pick_cut_positions <- function(candidates, chunk_size) {
+  .Call(pick_cut_positions_,
+        as.integer(candidates),
+        as.integer(chunk_size))
+}
+
 str_chunk1 <- function(string,
                        candidate_cutpoints,
                        # assuming:
@@ -13,17 +19,14 @@ str_chunk1 <- function(string,
   string_len <- stri_length(string)
   if (string_len <= max_size)
     return(string)
-  ideal_cutpoints <- seq.int(1L, string_len-1L, by = max_size)
-  matches <- vec_locate_matches(
-    ideal_cutpoints,
-    candidate_cutpoints,
-    condition = ">=",
-    filter = "max",
-    no_match = "drop",
-    multiple = "any"
-  )
-  cutpoints <- unique(candidate_cutpoints[matches$haystack])
-  chunks <- stri_sub(string, c(1L, cutpoints + 1L), c(cutpoints, string_len))
+
+  candidate_cutpoints <- sort.int(unique(c(
+    1L, as.integer(candidate_cutpoints), string_len
+  )))
+
+  cut_points <- pick_cut_positions(candidate_cutpoints, max_size)
+  chunks <- stri_sub(string, drop_last(cut_points), drop_first(cut_points),
+                     use_matrix = FALSE)
 
   if (trim)
     chunks <- stri_trim_both(chunks)
