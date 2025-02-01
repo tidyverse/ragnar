@@ -4,27 +4,38 @@
 
 #' Embedd Text
 #'
-#' @param x A character vector, or a data frame with a column named `"text"`
-#' @param base_url url where the ollama service is available
+#' @param x x can be:
+#'  - A character vector, in which case a matrix of embeddings is returned.
+#'  - A data frame with a column named `text`, in which case the dataframe is
+#'    returned with an additional column named `embedding`.
+#'  - Missing or `NULL`, in which case a function is returned that can be called
+#'    to get embeddings. This is a convenient way to partial in additional arguments like `model`,
+#'    and is the most convenient way to produce a function that can be passed to the `embed` argument of `ragnar_store_create()`.
+#' @param base_url string, url where the service is available.
 #' @param model string; model name
-#' @param batch_size split `x` into batches when embedding.
+#' @param batch_size split `x` into batches when embedding. Integer, limit of
+#'   strings to include in a single request.
 #'
 #' @returns If `x` is a character vector, then a numeric matrix is returned,
-#' where `nrow = length(x)` and `ncol = <model-embedding-size>`.
-#' If `x` is a data.frame, then a new `embedding` matrix "column" is added,
-#' containing the matrix described in the previous sentence.
-#' @export
-#'
+#'   where `nrow = length(x)` and `ncol = <model-embedding-size>`. If `x` is a
+#'   data.frame, then a new `embedding` matrix "column" is added, containing the
+#'   matrix described in the previous sentence.
+#' @name embed
 #' @examples
 #' text <- c("a chunk of text", "another chunk of text", "one more chunk of text")
 #' text |>
 #'   ragnar_embed_ollama() |>
 #'   str()
-ragnar_embed_ollama <- function(x,
-                                base_url = "http://localhost:11434",
-                                model = "all-minilm",
-                                batch_size = 10L) {
-  if (missing(x)) {
+NULL
+
+#' @export
+#' @rdname embed
+embed_ollama <- function(x,
+                         base_url = "http://localhost:11434",
+                         model = "all-minilm",
+                         batch_size = 10L) {
+
+  if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::embed_ollama), alist(x = ), args)
     return(fn)
@@ -56,31 +67,23 @@ ragnar_embed_ollama <- function(x,
 }
 
 
-#' @export
-embed_ollama <- ragnar_embed_ollama
 
-
-#' Embed text via OpenAI API
-#'
-#' @param x character vector, or a dataframe with a column named `text`.
-#' @param model string
-#' @param base_url api url
 #' @param api_key resolved using env var `OPENAI_API_KEY`
 #' @param dims An integer, can be used to truncate the embedding to a specific size.
 #' @param user User name passed via the API.
-#' @param batch_size Integer, limit of strings to include in a single request.
 #'
 #' @returns A matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
 #' @export
-ragnar_embed_openai <- function(x,
-                                model = "text-embedding-3-small",
-                                base_url = "https://api.openai.com/v1",
-                                api_key = openai_key(),
-                                dims = NULL,
-                                user = get_ragnar_username(),
-                                batch_size = 20) {
+#' @rdname embed
+embed_openai <- function(x,
+                         model = "text-embedding-3-small",
+                         base_url = "https://api.openai.com/v1",
+                         api_key = openai_key(),
+                         dims = NULL,
+                         user = get_ragnar_username(),
+                         batch_size = 20L) {
 
-  if (missing(x)) {
+  if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::ragnar_embed_openai), alist(x = ), args)
     return(fn)
@@ -107,7 +110,7 @@ ragnar_embed_openai <- function(x,
   data <- list(model = model, input = NULL)
   data$user <- user
   if (!is.null(dims)) {
-    check_number_whole(dims, min = 1)
+    check_number_whole(dims, min = 1L)
     data$dimensions <- as.integer(dims)
   }
 
@@ -121,7 +124,7 @@ ragnar_embed_openai <- function(x,
     req <- request(base_url) |>
       req_url_path_append("/embeddings") |>
       req_auth_bearer_token(api_key) |>
-      req_retry(max_tries = 2) |>
+      req_retry(max_tries = 2L) |>
       req_body_json(data)
 
     resp <- req_perform(req)
@@ -175,38 +178,3 @@ get_ragnar_username <- function() {
   sprintf("'%s' via ragnar", Sys.info()[["user"]])
 }
 
-
-capture_args <- function(omit_default_values = TRUE) {
-  ## modified copy of keras3:::capture_args()
-  envir <- parent.frame(1L)
-  fn <- sys.function(-1L)
-  call <- sys.call(-1L)
-  call <- match.call(fn, call, expand.dots = TRUE, envir = parent.frame(2L))
-
-  fn_arg_nms <- names(formals(fn))
-  known_args <- intersect(names(call), fn_arg_nms)
-  names(known_args) <- known_args
-
-  call <- as.call(c(
-    list,
-    lapply(known_args, as.symbol),
-    if ("..." %in% fn_arg_nms) quote(...)
-  ))
-  args <- eval(call, envir)
-
-  if (omit_default_values) {
-    default_args <- as.list(formals(fn))
-    for (nm in names(args)) {
-      if (identical(default_args[[nm]], args[[nm]]))
-        args[[nm]] <- NULL
-    }
-  }
-
-  args
-
-}
-
-partial <- function(.fn, .sig, ...) {
-  body <- as.call(c(.fn, lapply(names(.sig), as.symbol),  ...))
-  as.function.default(c(.sig, body), envir = environment(.fn) %||% globalenv())
-}
