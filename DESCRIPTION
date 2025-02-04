@@ -15,14 +15,15 @@ Imports:
     glue,
     rlang (>= 1.1.0),
     dplyr,
-    httr2, 
-    rvest, 
-    stringi, 
-    tibble, 
+    httr2,
+    rvest,
+    stringi,
+    tibble,
     vctrs,
     tidyr,
     xml2,
-    methods
+    methods,
+    S7
 Suggests: 
     knitr,
     rmarkdown,

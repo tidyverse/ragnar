@@ -12,6 +12,7 @@
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
+#'   dbWriteTable
 #' @importFrom glue glue glue_data
 #' @importFrom methods is
 #' @useDynLib ragnar, .registration = TRUE
@@ -19,6 +20,8 @@ NULL
 
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
 #' @import rlang
+#' @import S7
+
 NULL
 
 `%empty%` <- function(x, y) if (length(x)) x else y
@@ -96,7 +99,7 @@ capture_args <- function(omit_default_values = TRUE) {
   args <- eval(call, envir)
 
   if (omit_default_values) {
-    default_args <- as.list(formals(fn))
+    default_args <- as.list(formals(fn))[names(args)]
     default_args <- lapply(default_args, eval,
                            envir = new.env(parent = environment(fn)))
     for (nm in names(args)) {

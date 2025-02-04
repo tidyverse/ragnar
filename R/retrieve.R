@@ -3,11 +3,9 @@
 ragnar_retrieve_vss <- function(store, prompt, top_k = 3L) {
   check_string(prompt)
   check_number_whole(top_k)
-  store <- ragnar_store_connect(store)
 
   # TODO: retrieve model and embedding_size from store. Hardcoded for now.
-  model <- "all-minilm"
-  prompt_embedding <- ragnar_embed_ollama(prompt, model = model)
+  prompt_embedding <- store@embed(prompt)
   embedding_size <- ncol(prompt_embedding)
 
   # TODO: support specifying a minimum distance threshold too, in addition to `top_k`.
@@ -24,7 +22,7 @@ ragnar_retrieve_vss <- function(store, prompt, top_k = 3L) {
     LIMIT {top_k};
     )---")
 
-  as_tibble(dbGetQuery(store, query))
+  as_tibble(dbGetQuery(store@.con, query))
 }
 
 # TODO:

@@ -54,7 +54,7 @@ The goal is for the API to be extensible, so additional packages to implement su
 
 ### 6. Retrieval
 
-Retrieve related chunks based on cosine similarity of embeddings. In the near future we intend also support retrieval using BM25 ranking and regular text search. 
+Retrieve related chunks based on cosine similarity of embeddings. In the near future we intend also support retrieval using BM25 ranking and regular text search.
 
 - **Vector similarity search:** [`vss` DuckDB extension](https://duckdb.org/docs/extensions/vss.html)
 - **Text search:** [`full-text search extension`](https://duckdb.org/docs/extensions/full_text_search.html)
@@ -72,52 +72,19 @@ Ragnar will provide a set of tools for helping to incorporate the retrieved chun
 
 Below is an example of using `ragnar` to store and retrieve chunks from the *R for Data Science (2e)* book.
 
-```{r}
-# Create a local copy of the rendered book
-if (!dir.exists("~/github/hadley/r4ds")) {
-  # Clone https://r4ds.hadley.nz/base-r locally
-  system2("git", c("clone",
-    shQuote("https://github.com/hadley/r4ds/"),
-    shQuote(normalizePath("~/github/hadley/r4ds"))
-  ))
-  pak::local_install_dev_deps("~/github/hadley/r4ds")
-  system("quarto render ~/github/hadley/r4ds")
-}
+
+```{r, code = readLines("examples/example.R")}
 ```
 
-```{r}
-library(ragnar)
-
-store <- ragnar_store_connect(":memory:")
-
-files <- Sys.glob("~/github/hadley/r4ds/_book/*.html")
-for (file in files) {
-  message("Ingesting: ", file)
-  chunks <- file |>
-    ragnar_read_document(frame_by_tags = c("h1", "h2")) |>
-    ragnar_chunk(max_size = 500, boundaries = c("paragraph", "sentence")) |>
-    # augment chunks with context
-    dplyr::mutate(text = glue::glue(r"---(
-      # Excerpt from *R for Data Science (2e)*
-      Chapter: {h1}
-      Section: {h2}
-      Content: {text}
-      )---"))
-
-  chunks <- ragnar_embed_ollama(chunks)
-  ragnar_store_insert(store, chunks)
-}
-
-ragnar_store_build_index(store)
-```
-
-### Retrieving Chunks
-
-Once the store is set up, retrieve the most relevant text chunks:
-
-```{r}
-prompt <- "How can I subset a dataframe with a vector of booleans?"
-relevant_chunks <- ragnar_retrieve_vss(store, prompt, top_k = 3)
-
-relevant_chunks$text |> cat(sep = "\n-------\n")
-```
+<!-- ```{r, eval = FALSE} -->
+<!-- # Create a local copy of the rendered book -->
+<!-- if (!dir.exists("~/github/hadley/r4ds")) { -->
+<!--   # Clone https://r4ds.hadley.nz/base-r locally -->
+<!--   system2("git", c("clone", -->
+<!--     shQuote("https://github.com/hadley/r4ds/"), -->
+<!--     shQuote(normalizePath("~/github/hadley/r4ds")) -->
+<!--   )) -->
+<!--   pak::local_install_dev_deps("~/github/hadley/r4ds") -->
+<!--   system("quarto render ~/github/hadley/r4ds") -->
+<!-- } -->
+<!-- ``` -->
