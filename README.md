@@ -170,11 +170,11 @@ if (!file.exists(store_location)) {
 
 # Once the store is set up, retrieve the most relevant text chunks:
 
-
+# store_location <- "r4ds.ragnar.duckdb"
 store <- ragnar_store_connect(store_location, read_only = TRUE)
-prompt <- "How can I subset a dataframe with a logical vector?"
+text <- "How can I subset a dataframe with a logical vector?"
 
-embedding_near_chunks <- ragnar_retrieve_vss(store, prompt, top_k = 3)
+embedding_near_chunks <- ragnar_retrieve_vss(store, text, top_k = 3)
 embedding_near_chunks
 #> # A tibble: 3 × 3
 #>      id l2sq_distance text                                                      
@@ -299,7 +299,7 @@ embedding_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 #> 
 #> This can make for a useful shortcut:
 
-bm25_near_chunks <- ragnar_retrieve_bm25(store, prompt, top_k = 3)
+bm25_near_chunks <- ragnar_retrieve_bm25(store, text, top_k = 3)
 bm25_near_chunks
 #> # A tibble: 3 × 3
 #>      id bm25_score text                                                         
@@ -411,6 +411,21 @@ bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 #> This works, but what if we wanted to also compute the average delay for flights that arrived early? We’d need to perform a separate filter step, and then figure out how to combine the two data frames together3. Instead you could use [ to perform an inline filtering: arr_delay[arr_delay > 0] will yield only the positive arrival delays.
 #> 
 #> This leads to:
+
+# get both vss and bm26
+(relevant_chunks <- ragnar_retrieve(
+  store, text, top_k = 3,
+  methods = c("vss", "bm25")
+))
+#> # A tibble: 6 × 4
+#>      id l2sq_distance bm25_score text                                           
+#>   <int>         <dbl>      <dbl> <chr>                                          
+#> 1    69         0.876       4.28 "# Excerpt from the book \"R for Data Science …
+#> 2   642         0.946       3.67 "# Excerpt from the book \"R for Data Science …
+#> 3   652         0.967       2.75 "# Excerpt from the book \"R for Data Science …
+#> 4    68         1.09        6.08 "# Excerpt from the book \"R for Data Science …
+#> 5   641         1.06        5.47 "# Excerpt from the book \"R for Data Science …
+#> 6   656         1.10        5.44 "# Excerpt from the book \"R for Data Science …
 ```
 
 <!-- ```{r, eval = FALSE} -->

@@ -115,3 +115,11 @@ partial <- function(.fn, .sig, ...) {
   body <- as.call(c(.fn, lapply(names(.sig), as.symbol),  ...))
   as.function.default(c(.sig, body), envir = baseenv())
 }
+
+
+reorder_names <- function(..., last = NULL) {
+  x <- unique(c(...))
+  if (!is.null(last))
+    x <- unique(c(x, last), fromLast = TRUE)
+  x
+}
