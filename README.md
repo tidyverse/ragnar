@@ -88,21 +88,31 @@ the *R for Data Science (2e)* book.
 library(ragnar)
 
 # local clone copy of https://r4ds.hadley.nz/base-r
-# system2("git", c("clone", shQuote("https://github.com/hadley/r4ds/"), shQuote(normalizePath("~/github/hadley/r4ds"))))
+# system2("git", c("clone",
+#    shQuote("https://github.com/hadley/r4ds/"),
+#    shQuote(normalizePath("~/github/hadley/r4ds"))))
 # remotes::install_local("~/github/hadley/r4ds", dependencies = TRUE)
 # system("quarto render ~/github/hadley/r4ds")
 
-store <- ragnar_store_create(":memory:")
+store_location <- "r4ds.ragnar.duckdb"
+unlink(store_location)
 
-files <- Sys.glob("~/github/hadley/r4ds/_book/*.html")
-# file <- files[1]
-for (file in files) {
-  message("ingesting: ", file)
-  chunks <- file |>
-    ragnar_read_document(frame_by_tags = c("h1", "h2")) |>
-    ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
-    # add context to chunks
-    dplyr::mutate(text = glue::glue(r"---(
+if (!file.exists(store_location)) {
+
+  store <- ragnar_store_create(
+    store_location,
+    embed = embed_ollama(model = "all-minilm")
+  )
+
+  files <- Sys.glob("~/github/hadley/r4ds/_book/*.html")
+
+  for (file in files) {
+    message("ingesting: ", file)
+    chunks <- file |>
+      ragnar_read_document(frame_by_tags = c("h1", "h2")) |>
+      ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
+      # add context to chunks
+      dplyr::mutate(text = glue::glue(r"---(
       # Excerpt from the book "R for Data Science (2e)"
       chapter: {h1}
       section: {h2}
@@ -110,8 +120,12 @@ for (file in files) {
 
       )---"))
 
-  # chunks <- embed_ollama(chunks)
-  ragnar_store_insert(store, chunks)
+    # chunks <- embed_ollama(chunks)
+    ragnar_store_insert(store, chunks)
+  }
+
+  ragnar_store_build_index(store)
+
 }
 #> ingesting: /Users/tomasz/github/hadley/r4ds/_book/EDA.html
 #> ingesting: /Users/tomasz/github/hadley/r4ds/_book/arrow.html
@@ -152,17 +166,23 @@ for (file in files) {
 #> ingesting: /Users/tomasz/github/hadley/r4ds/_book/workflow-scripts.html
 #> ingesting: /Users/tomasz/github/hadley/r4ds/_book/workflow-style.html
 
-ragnar_store_build_index(store)
-
-
 ### Retrieving Chunks
 
 # Once the store is set up, retrieve the most relevant text chunks:
 
-prompt <- "How can I subset a dataframe with a logical vector?"
-relevent_chunks <- ragnar_retrieve_vss(store, prompt, top_k = 3)
 
-relevent_chunks$text |> cat(sep = "\n-------\n")
+store <- ragnar_store_connect(store_location, read_only = TRUE)
+prompt <- "How can I subset a dataframe with a logical vector?"
+
+embedding_near_chunks <- ragnar_retrieve_vss(store, prompt, top_k = 3)
+embedding_near_chunks
+#> # A tibble: 3 × 3
+#>      id l2sq_distance text                                                      
+#>   <int>         <dbl> <chr>                                                     
+#> 1    69         0.876 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 2   642         0.946 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 3   652         0.967 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+embedding_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 #> # Excerpt from the book "R for Data Science (2e)"
 #> chapter: 27 A field guide to base R
 #> section: 27.2 Selecting multiple elements with [
@@ -213,7 +233,7 @@ relevent_chunks$text |> cat(sep = "\n-------\n")
 #> 
 #> We’ll come back to $ shortly, but you should be able to guess what df$x does from the context: it extracts the x variable from df. We need to use it here because [ doesn’t use tidy evaluation, so you need to be explicit about the source of the x variable.
 #> 
-#> -------
+#> ~~~~~~~~
 #> # Excerpt from the book "R for Data Science (2e)"
 #> chapter: 12 Logical vectors
 #> section: 12.1 Introduction
@@ -236,7 +256,7 @@ relevent_chunks$text |> cat(sep = "\n-------\n")
 #> 
 #> This makes it easier to explain individual functions at the cost of making it harder to see how it might apply to your data problems. Just remember that any manipulation we do to a free-floating vector, you can do to a variable inside a data frame with mutate() and friends.
 #> 
-#> -------
+#> ~~~~~~~~
 #> # Excerpt from the book "R for Data Science (2e)"
 #> chapter: 12 Logical vectors
 #> section: 12.3 Boolean algebra
@@ -278,6 +298,119 @@ relevent_chunks$text |> cat(sep = "\n-------\n")
 #> #> [1] FALSE FALSE  TRUE
 #> 
 #> This can make for a useful shortcut:
+
+bm25_near_chunks <- ragnar_retrieve_bm25(store, prompt, top_k = 3)
+bm25_near_chunks
+#> # A tibble: 3 × 3
+#>      id bm25_score text                                                         
+#>   <int>      <dbl> <chr>                                                        
+#> 1    68       6.08 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 2   641       5.47 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 3   656       5.44 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
+#> # Excerpt from the book "R for Data Science (2e)"
+#> chapter: 27 A field guide to base R
+#> section: 27.2 Selecting multiple elements with [
+#> content: [ is used to extract sub-components from vectors and data frames, and is called like x[i] or x[i, j]. In this section, we’ll introduce you to the power of [, first showing you how you can use it with vectors, then how the same principles extend in a straightforward way to two-dimensional (2d) structures like data frames. We’ll then help you cement that knowledge by showing how various dplyr verbs are special cases of [.
+#> 
+#> 27.2.1 Subsetting vectors
+#> 
+#> There are five main types of things that you can subset a vector with, i.e., that can be the i in x[i]:
+#> 
+#> A vector of positive integers. Subsetting with positive integers keeps the elements at those positions:
+#> 
+#> x <- c("one", "two", "three", "four", "five")
+#> x[c(3, 2, 5)]
+#> #> [1] "three" "two"   "five"
+#> 
+#> By repeating a position, you can actually make a longer output than input, making the term “subsetting” a bit of a misnomer.
+#> 
+#> x[c(1, 1, 5, 5, 5, 2)]
+#> #> [1] "one"  "one"  "five" "five" "five" "two"
+#> 
+#> A vector of negative integers. Negative values drop the elements at the specified positions:
+#> 
+#> x[c(-1, -3, -5)]
+#> #> [1] "two"  "four"
+#> 
+#> A logical vector. Subsetting with a logical vector keeps all values corresponding to a TRUE value. This is most often useful in conjunction with the comparison functions.
+#> 
+#> x <- c(10, 3, NA, 5, 8, 1, NA)
+#> 
+#> # All non-missing values of x
+#> x[!is.na(x)]
+#> #> [1] 10  3  5  8  1
+#> 
+#> # All even (or missing!) values of x
+#> x[x %% 2 == 0]
+#> #> [1] 10 NA  8 NA
+#> 
+#> Unlike filter(), NA indices will be included in the output as NAs.
+#> 
+#> A character vector. If you have a named vector, you can subset it with a character vector:
+#> 
+#> ~~~~~~~~
+#> # Excerpt from the book "R for Data Science (2e)"
+#> chapter: NA
+#> section: Table of contents
+#> content: 12.1 Introduction
+#> 12.1.1 Prerequisites
+#> 12.2 Comparisons
+#> 12.2.1 Floating point comparison
+#> 12.2.2 Missing values
+#> 12.2.3 is.na()
+#> 12.2.4 Exercises
+#> 12.3 Boolean algebra
+#> 12.3.1 Missing values
+#> 12.3.2 Order of operations
+#> 12.3.3 %in%
+#> 12.3.4 Exercises
+#> 12.4 Summaries
+#> 12.4.1 Logical summaries
+#> 12.4.2 Numeric summaries of logical vectors
+#> 12.4.3 Logical subsetting
+#> 12.4.4 Exercises
+#> 12.5 Conditional transformations
+#> 12.5.1 if_else()
+#> 12.5.2 case_when()
+#> 12.5.3 Compatible types
+#> 12.5.4 Exercises
+#> 12.6 Summary
+#> Edit this page
+#> Report an issue
+#> Transform
+#> 12 Logical vectors
+#> 
+#> ~~~~~~~~
+#> # Excerpt from the book "R for Data Science (2e)"
+#> chapter: 12 Logical vectors
+#> section: 12.4 Summaries
+#> content: There’s one final use for logical vectors in summaries: you can use a logical vector to filter a single variable to a subset of interest. This makes use of the base [ (pronounced subset) operator, which you’ll learn more about in Section 27.2.
+#> 
+#> Imagine we wanted to look at the average delay just for flights that were actually delayed. One way to do so would be to first filter the flights and then calculate the average delay:
+#> 
+#> flights |> 
+#>   filter(arr_delay > 0) |> 
+#>   group_by(year, month, day) |> 
+#>   summarize(
+#>     behind = mean(arr_delay),
+#>     n = n(),
+#>     .groups = "drop"
+#>   )
+#> #> # A tibble: 365 × 5
+#> #>    year month   day behind     n
+#> #>   <int> <int> <int>  <dbl> <int>
+#> #> 1  2013     1     1   32.5   461
+#> #> 2  2013     1     2   32.0   535
+#> #> 3  2013     1     3   27.7   460
+#> #> 4  2013     1     4   28.3   297
+#> #> 5  2013     1     5   22.6   238
+#> #> 6  2013     1     6   24.4   381
+#> #> # ℹ 359 more rows
+#> 
+#> This works, but what if we wanted to also compute the average delay for flights that arrived early? We’d need to perform a separate filter step, and then figure out how to combine the two data frames together3. Instead you could use [ to perform an inline filtering: arr_delay[arr_delay > 0] will yield only the positive arrival delays.
+#> 
+#> This leads to:
 ```
 
 <!-- ```{r, eval = FALSE} -->

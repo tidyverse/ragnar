@@ -56,7 +56,7 @@ ragnar_store_create <- function(
 ragnar_store_connect <- function(location = ":memory:",
                                  ...,
                                  read_only = FALSE,
-                                 build_index = read_only) {
+                                 build_index = FALSE) {
   check_dots_empty()
   # mode = c("retreive", "insert")
   # mode <- match.arg(mode)
@@ -64,9 +64,15 @@ ragnar_store_connect <- function(location = ":memory:",
 
   con <- dbConnect(duckdb::duckdb(), dbdir = location, read_only = read_only)
 
-  if (!dbExistsTable(con, "chunks") || !dbExistsTable("metadata")) {
+  # can't use dbExistsTable() because internally it runs:
+  # > dbGetQuery(conn, sqlInterpolate(conn, "SELECT * FROM ? WHERE FALSE", dbQuoteIdentifier(conn, name)))
+  # which fails with:
+  # > Error in dbSendQuery(conn, statement, ...) :
+  # >  rapi_prepare: Unknown column type for prepare: FLOAT[384]
+  if (!all(c("chunks", "metadata") %in% dbListTables(con))) {
     stop("Store must be created with ragnar_store_create()")
   }
+  dbExecute(con, "LOAD fts; LOAD vss;")
 
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
@@ -81,6 +87,7 @@ ragnar_store_connect <- function(location = ":memory:",
 
 #' @export
 ragnar_store_insert <- function(store, df) {
+  # ?? swap arg order? piping in df will be more common...
   if (!S7_inherits(store, RagnarStore)) {
     stop("store must be a RagnarStore")
   }
@@ -105,13 +112,11 @@ ragnar_store_insert <- function(store, df) {
   # https://github.com/duckdb/duckdb-r/issues/102 is resolved.
   # TODO: insert in batches?
   rows <- sprintf(
-    # "(DEFAULT, array_value(%s), %s)",
     "(array_value(%s), %s)",
     df$embedding |> asplit(1) |> map_chr(stri_flatten, ", "),
     DBI::dbQuoteString(store@.con, df$text)
   ) |> paste0(collapse = ",\n")
 
-  # INSERT INTO tbl (s) VALUES ('hello'), ('world');
   stmt <- sprintf("INSERT INTO chunks (embedding, text) VALUES \n%s;", rows)
   dbExecute(store@.con, stmt)
   invisible(store)
@@ -119,16 +124,35 @@ ragnar_store_insert <- function(store, df) {
 
 
 #' @export
-ragnar_store_build_index <- function(store) {
-  stopifnot(S7_inherits(store, DuckDBRagnarStore))
-  con <- store@.con
+ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
+  if(S7_inherits(store, DuckDBRagnarStore))
+    con <- store@.con
+  else if (methods::is(store, "DBIConnection"))
+    con <- store
+  else
+    stop("`store` must be a RagnarStore")
 
-  dbExecute(con, "INSTALL vss")
-  dbExecute(con, "LOAD vss")
-  dbExecute(con, paste(
-    "DROP INDEX IF EXISTS my_hnsw_index;",
-    "CREATE INDEX my_hnsw_index ON chunks USING HNSW (embedding);"
-  ))
+  if ("vss" %in% type) {
+    # TODO: duckdb has support for three different distance metrics that can be
+    # selected when building the index: l2sq, cosine, and ip. Expose these as options
+    # in the R interface. https://duckdb.org/docs/extensions/vss.html#usage
+    dbExecute(con, "INSTALL vss;")
+    dbExecute(con, "LOAD vss;")
+    dbExecute(con, paste(
+      "SET hnsw_enable_experimental_persistence = true;",
+      "DROP INDEX IF EXISTS my_hnsw_index;",
+      "CREATE INDEX my_hnsw_index ON chunks USING HNSW (embedding);"
+    ))
+  }
+
+  if ("fts" %in% type) {
+    dbExecute(con, "INSTALL fts;")
+    dbExecute(con, "LOAD fts;")
+    # fts index builder takes many options, e.g., stemmer, stopwords, etc.
+    # Expose a way to pass along args. https://duckdb.org/docs/extensions/full_text_search.html
+    dbExecute(con, "PRAGMA create_fts_index('chunks', 'id', 'text', overwrite = 1);")
+  }
+
   invisible(con)
 }
 

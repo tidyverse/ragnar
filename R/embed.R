@@ -177,4 +177,3 @@ get_envvar <- function(name, error_call = caller_env()) {
 get_ragnar_username <- function() {
   sprintf("'%s' via ragnar", Sys.info()[["user"]])
 }
-

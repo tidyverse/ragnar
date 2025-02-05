@@ -12,7 +12,7 @@
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
-#'   dbWriteTable
+#'   dbWriteTable dbListTables dbReadTable
 #' @importFrom glue glue glue_data
 #' @importFrom methods is
 #' @useDynLib ragnar, .registration = TRUE
