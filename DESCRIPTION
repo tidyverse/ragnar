@@ -23,7 +23,8 @@ Imports:
     tidyr,
     xml2,
     methods,
-    S7
+    S7,
+    reticulate (>= 1.40.0.9000)
 Suggests: 
     knitr,
     rmarkdown,
@@ -32,3 +33,5 @@ Suggests:
 VignetteBuilder: knitr
 Config/Needs/website: rmarkdown
 Config/testthat/edition: 3
+Remotes:  
+    rstudio/reticulate
