@@ -243,5 +243,5 @@ ragnar_read_document <- function(x, ...,
   if (base::setequal(split_by_tags, frame_by_tags))
     frame[["tag"]] <- NULL
 
-  frame
+  as_tibble(frame)
 }
