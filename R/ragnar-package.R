@@ -6,5 +6,6 @@
 
 .onLoad <- function(libname, pkgname) {
   reticulate::py_require("markitdown")
+  Sys.setenv(RETICULATE_PYTHON = "managed")
 }
 
