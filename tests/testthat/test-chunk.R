@@ -9,6 +9,9 @@ test_that("pick_cut_positions_ works", {
   expect_equal(pick_cut_positions(1L, 5L), 1L)
   expect_equal(pick_cut_positions(1L:2L, 5L), 1L:2L)
   expect_equal(pick_cut_positions(1L:3L, 5L), c(1L, 3L))
+  expect_equal(pick_cut_positions(c(1L, 1L:3L), 5L), c(1L, 3L))
+  expect_equal(pick_cut_positions(c(1L, 1L), 5L), c(1L))
+  expect_equal(pick_cut_positions(c(1L, 2L), 5L), c(1L, 2L))
   expect_equal(length(pick_cut_positions(integer(0), 5L)), 0L)
 
 

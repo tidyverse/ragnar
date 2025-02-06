@@ -41,8 +41,8 @@ SEXP pick_cut_positions_(SEXP candidate_positions, SEXP max_chunk_size_sexp) {
   }
 
   R_xlen_t n_candidates = Rf_xlength(candidate_positions);
-  if (n_candidates == 0) {
-    return Rf_allocVector(INTSXP, 0);
+  if (n_candidates <= 1) {
+    return candidate_positions;
   }
 
   int *candidates = INTEGER(candidate_positions);

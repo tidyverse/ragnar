@@ -20,9 +20,9 @@ str_chunk1 <- function(string,
   if (string_len <= max_size)
     return(string)
 
-  candidate_cutpoints <- sort.int(unique(c(
+  candidate_cutpoints <- c(
     1L, as.integer(candidate_cutpoints), string_len
-  )))
+  )
 
   cut_points <- pick_cut_positions(candidate_cutpoints, max_size)
   chunks <- stri_sub(string, drop_last(cut_points), drop_first(cut_points),
