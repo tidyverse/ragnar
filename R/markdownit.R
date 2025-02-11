@@ -18,7 +18,7 @@ markitdown <- function(x, ...) {
   # url
   convert <- .globals$markitdown$convert %||% init_markitdown()$convert
   res <- convert(x, ...)
-  c(title = res$title, content = res$text_content)
+  glue::as_glue(res)
 }
 
 
