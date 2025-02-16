@@ -1,5 +1,5 @@
 
-html_markdown <- function(node, table = TRUE) {
+html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empty_splits = TRUE, convert_table = TRUE) {
 
   markdown_contents <- function(node, text = flatten, flatten = TRUE) {
     contents <- xml_contents(node)
@@ -86,7 +86,7 @@ html_markdown <- function(node, table = TRUE) {
         markdown_contents(node)
       },
       table = {
-        if(table) {
+        if (convert_table) {
           markdown_contents(node, text = FALSE) |> stri_c("\n")
         } else {
           stri_c("\n", as.character(node), "\n")
@@ -132,10 +132,40 @@ html_markdown <- function(node, table = TRUE) {
         lapply(xml_contents(node), markdown) |> stri_flatten()
       }
     )
+    if(xml_name(node) %in% split_tags) {
+      text <- stri_c(
+        "____RAGNAR_SPLIT____",
+        "____RAGNAR_TAG_NAME____", xml_name(node), "__",
+        text,
+        "____RAGNAR_SPLIT____"
+      )
+    }
     text
   }
 
-  markdown(node) |> stri_replace_all_regex("[ \t\r]*\n", "\n") # trim trailing ws
+  text <- markdown(node) |> stri_replace_all_regex("[ \t\r]*\n", "\n") # trim trailing ws
+
+  if(length(split_tags)) {
+    text <- stri_split_fixed(text, "____RAGNAR_SPLIT____")[[1L]]
+
+    is_named_tag <- stri_startswith_fixed(text, "____RAGNAR_TAG_NAME____")
+    x <- stri_match_first_regex(text[is_named_tag], "____RAGNAR_TAG_NAME____(.+)__(?s:(.+))")
+
+    text[is_named_tag] <- x[, 3L] # remove  ____RAGNAR_TAG_NAME___<name>__ prefix
+
+    if (trim_splits)
+      text <- stri_trim_both(text)
+
+    # now attach tag names. Content in between tags has name `""`
+    nms <- character(length(text))
+    nms[is_named_tag] <- x[, 2L]
+    names(text) <- nms
+
+    # drop empty entries
+    if (omit_empty_splits)
+      text <- text[nzchar(text) | nzchar(names(text))]
+  }
+  text
 }
 
 
@@ -145,8 +175,19 @@ if(FALSE) {
 
 # md <- markitdown("https://r4ds.hadley.nz/base-r")
 # writeLines(md, "base-r.md")
+library(stringi)
+library(xml2)
 
-# md <- readLines("base-r.md")
+md <- readLines("base-r.md")
+# writeLines(md)
+md |>
+  # commonmark::markdown_xml(normalize = TRUE, extensions = TRUE) |> cat()
+  commonmark::markdown_html(normalize = TRUE, extensions = TRUE) |>
+  # read_html() |> as.character() |> cat()
+  # html_markdown(split_tags = c("h2", "h3", "p", "pre", "table", "ul", "li")) |>
+  html_markdown(split_tags = c("h2", "h3", "p", "pre", "table")) |>
+  tibble::enframe() |> print(n = Inf)
+
 
 md <- r"---(
 
