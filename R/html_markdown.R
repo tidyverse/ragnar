@@ -31,7 +31,7 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
       br = { "\n" },
       code = { stri_c("`", markdown_contents(node), "`") },
       strong = { stri_c("**", markdown_contents(node), "**") },
-      em = { stri_c("_", markdown_contents(node), "_") },
+      i = , em = { stri_c("_", markdown_contents(node), "_") },
       h1 = { stri_c("# ", markdown_contents(node), "\n") },
       h2 = { stri_c("## ", markdown_contents(node), "\n") },
       h3 = { stri_c("### ", markdown_contents(node), "\n") },
@@ -39,7 +39,11 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
       h5 = { stri_c("##### ", markdown_contents(node), "\n") },
       h6 = { stri_c("###### ", markdown_contents(node), "\n") },
       p = { stri_c(stri_trim_both(markdown_contents(node)), "\n") },
-      a = { stri_c("[", markdown_contents(node), "](", xml_attr(node, "href"), ")") },
+      a = {
+        link <- xml_attr(node, "href", default = "")
+        if(nzchar(link))
+          link <- stri_c("[", markdown_contents(node), "](", link, ")")
+        },
       blockquote = {
         lines <-  markdown_contents(node, text = FALSE, flatten = FALSE) |>
           unlist() |>
@@ -129,7 +133,7 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
       doctype = {},
       {
         # Default case - process all children
-        lapply(xml_contents(node), markdown) |> stri_flatten()
+        lapply(xml_contents(node), markdown) |> unlist() |> stri_flatten()
       }
     )
     if(xml_name(node) %in% split_tags) {
