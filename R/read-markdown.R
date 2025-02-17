@@ -17,18 +17,9 @@ read_markdown <- function(x, ...) {
   # file_extension
   # url
   convert <- .globals$markitdown$convert %||% init_markitdown()$convert
-  res <- convert(x, ...)
-  glue::as_glue(res)
+  as_glue(convert(x, ...))
 }
 
-
-markdown_text <- function(md, split_by = c("h1", "h2", "h3", "pre", "p")) {
-  tmp_html <- tempfile(fileext = ".html")
-  on.exit(unlink(tmp_html))
-  pandoc::pandoc_convert(text = md, to = "html", output = tmp_html)
-  html_text3(doc = read_html(tmp_html, encoding = "UTF-8"),
-             split_tags = split_by)
-}
 
 markdown_split <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_empty = TRUE) {
 
@@ -59,17 +50,19 @@ markdown_split <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_e
   line_numbytes <- stri_numbytes(lines)
   line_startbyte <- c(1L, 1L + drop_last(cumsum(line_numbytes)))
 
-  bytes <- charToRaw(text)
+  # position of start byte and end byte, inclusive
+  start <- line_startbyte[position[, "start_line"]] + position[, "start_byte"] - 1L
+  end <- line_startbyte[position[, "end_line"]] + position[, "end_byte"] - 1L
 
-  start <- line_startbyte[position[, "start_line"]] + position[, "start_byte"] - 1L # position of start byte, inclusive
-  end <- line_startbyte[position[, "end_line"]] + position[, "end_byte"] - 1L # position of end byte, inclusive
   cuts <- sort(unique(c(rbind(start, end + 1L))))
 
   nms <- c("", df$tag[match(cuts, start)])
   nms[is.na(nms)] <- ""
 
+  bytes <- charToRaw(text)
+
   # if(FALSE) {
-  #   np <- reticulate::import("numpy", convert = F)
+  #   np <- reticulate::import("numpy", convert = FALSE)
   #   splits <- np$split(
   #     as.array(charToRaw(text)),
   #     as.array(cuts - 1L)
@@ -95,7 +88,7 @@ markdown_split <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_e
 
 
 markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), split_by = c("p", "pre")) {
-  md <- split_markdown(md, split_by = unique(c(frame_by, split_by)))
+  md <- markdown_split(md, split_by = unique(c(frame_by, split_by)))
   frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
   if (base::setequal(split_by, frame_by))
     frame[["tag"]] <- NULL

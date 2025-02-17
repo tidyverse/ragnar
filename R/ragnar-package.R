@@ -4,7 +4,7 @@
 
 .globals <- new.env(parent = emptyenv())
 
-# ' @exportS3Method reticulate::py_to_r
+# Not exported via NAMESPACE because the S3 class of DocumentConverterResult is not stable
 py_to_r.markitdown.DocumentConverterResult <- function(x) {
   text <- x$text_content
   if(!is.null(x$title))
