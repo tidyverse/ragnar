@@ -103,9 +103,42 @@ markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), split_by = c("p",
 }
 
 
-if(FALSE) {
-  markitdown("https://r4ds.hadley.nz/base-r") |>
-    # unname() |>
-    frame_markdown() |>
-    print(n = Inf)
+markdown_split_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p")) {
+  ## Uses pandoc to convert md to html, then html_text3() to read and split.
+  ## Returns a character vector. Note, the returned text does not have
+  ## markdown formatting like ``` fences. Currently unused.
+  ## TOOD: probably better to use commonmark instead of pandoc here.
+  tmp_html <- tempfile(fileext = ".html")
+  on.exit(unlink(tmp_html))
+  pandoc::pandoc_convert(text = md, to = "html", output = tmp_html)
+  html_text3(doc = read_html(tmp_html, encoding = "UTF-8"),
+             split_tags = split_by)
+}
+
+
+ragnar_read <- function(x, ...,
+                        split_by_tags  = NULL,
+                        frame_by_tags = NULL) {
+
+  text <- read_as_markdown(x, ...)
+  if (is.null(frame_by_tags) && is.null(split_by_tags)) {
+    return(text)
+  }
+
+  text <- markdown_split(text, tags = unique(c(split_by_tags, frame_by_tags)))
+  if (is.null(frame_by_tags)) {
+    # TODO?: Return a 2 col tibble, instead of a named vector.
+    # return(enframe(text, "tag", "text"))
+    return(text)
+  }
+
+  frame <- vec_frame_flattened_tree(text, frame_by_tags,
+    names = "tag", leaves = "text"
+  )
+
+  if (base::setequal(split_by_tags, frame_by_tags)) {
+    frame[["tag"]] <- NULL
+  }
+
+  as_tibble(frame)
 }
