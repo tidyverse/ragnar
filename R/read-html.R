@@ -245,3 +245,39 @@ ragnar_read_document <- function(x, ...,
 
   as_tibble(frame)
 }
+
+
+#' @export
+html_find_links <- function(x, type = c("all", "relative", "external"), absolute = TRUE) {
+  if(is.character(x)) {
+    doc <- rvest::read_html(x)
+    base_url <- x
+  } else if (inherits(x, "xml_node")) {
+    doc <- x
+    base_url <- xml2::xml_url(doc)
+  }
+
+  links <- doc |>
+    html_elements("a") |>
+    html_attr("href")
+
+  # canonicalize links
+  links <- links[!is.na(links)]
+  links <- stringi::stri_extract_first_regex(links, "^[^#]*")
+  links <- links[!links %in% c("", "/", "./")]
+  links <- links |> stringi::stri_replace_last_regex("/$", "")
+  links <- unique(links)
+
+  is_relative <- stringi::stri_startswith_charclass(links, "[./]")
+
+  if (absolute)
+    links <- links |> url_absolute(base_url)
+
+
+  # TODO: allow filtering child or sibling links only?
+  switch(match.arg(type),
+         all = links,
+         relative = links[is_relative],
+         external = links[!is_relative]
+  )
+}

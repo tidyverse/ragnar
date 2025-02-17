@@ -3,6 +3,7 @@
 export(RagnarStore)
 export(embed_ollama)
 export(embed_openai)
+export(html_find_links)
 export(ragnar_chunk)
 export(ragnar_chunk_segments)
 export(ragnar_read)
