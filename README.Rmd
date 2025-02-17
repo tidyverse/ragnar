@@ -45,7 +45,7 @@ templating strings `glue()` to sophisticated workflows that involve calling out 
 
 ### 4. Embedding
 
-Support computing an embedding for each chunk. The goal is for `ragnar` to provide access to embeddings from popular LLM providers. Currently, only support for `ollama` is implemented.
+Support computing an embedding for each chunk. The goal is for `ragnar` to provide access to embeddings from popular LLM providers. Currently, only support for `ollama` and `openai` is implemented.
 
 ### 5. Storage
 

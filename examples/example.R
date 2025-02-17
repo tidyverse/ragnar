@@ -14,7 +14,7 @@ if (!file.exists(store_location)) {
 
   store <- ragnar_store_create(
     store_location,
-    embed = embed_ollama(model = "all-minilm")
+    embed = \(x) ragnar::embed_ollama(x, model = "all-minilm")
   )
 
   files <- Sys.glob("~/github/hadley/r4ds/_book/*.html")

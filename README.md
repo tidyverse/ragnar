@@ -6,6 +6,7 @@
 🚧 Under active development 🚧
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 `ragnar` is an R package that helps implement Retrieval-Augmented
@@ -50,7 +51,7 @@ LLMs to generate relevant contextualized summaries.
 
 Support computing an embedding for each chunk. The goal is for `ragnar`
 to provide access to embeddings from popular LLM providers. Currently,
-only support for `ollama` is implemented.
+only support for `ollama` and `openai` is implemented.
 
 ### 5. Storage
 
@@ -101,7 +102,7 @@ if (!file.exists(store_location)) {
 
   store <- ragnar_store_create(
     store_location,
-    embed = embed_ollama(model = "all-minilm")
+    embed = \(x) ragnar::embed_ollama(x, model = "all-minilm")
   )
 
   files <- Sys.glob("~/github/hadley/r4ds/_book/*.html")
@@ -429,14 +430,25 @@ bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 ```
 
 <!-- ```{r, eval = FALSE} -->
+
 <!-- # Create a local copy of the rendered book -->
+
 <!-- if (!dir.exists("~/github/hadley/r4ds")) { -->
+
 <!--   # Clone https://r4ds.hadley.nz/base-r locally -->
+
 <!--   system2("git", c("clone", -->
+
 <!--     shQuote("https://github.com/hadley/r4ds/"), -->
+
 <!--     shQuote(normalizePath("~/github/hadley/r4ds")) -->
+
 <!--   )) -->
+
 <!--   pak::local_install_dev_deps("~/github/hadley/r4ds") -->
+
 <!--   system("quarto render ~/github/hadley/r4ds") -->
+
 <!-- } -->
+
 <!-- ``` -->

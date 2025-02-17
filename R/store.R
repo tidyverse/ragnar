@@ -100,9 +100,8 @@ ragnar_store_insert <- function(store, df) {
     is.character(df$text)
   )
 
-  if(is.null(df$embedding)) {
+  if(!"embedding" %in% names(df))
     df$embedding <- store@embed(df$text)
-  }
 
   stopifnot(
     is.matrix(df$embedding),
