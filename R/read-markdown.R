@@ -7,7 +7,14 @@ init_markitdown <- function(...) {
   .globals$markitdown <- reticulate::import("markitdown")$MarkItDown(...)
 }
 
-read_markdown <- function(x, ...) {
+cli_markitdown <- function(...) {
+  reticulate::uv_run_tool(
+    "markitdown", c(...),
+    from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown"
+  )
+}
+
+read_as_markdown <- function(x, ...) {
   # ... kwargs that can be passed down. These can be supplied to
   # MarkItDown.__init__() or passed on to individual convert() kwargs:
   # llm_client
