@@ -7,7 +7,7 @@ init_markitdown <- function(...) {
   .globals$markitdown <- reticulate::import("markitdown")$MarkItDown(...)
 }
 
-markitdown <- function(x, ...) {
+read_markdown <- function(x, ...) {
   # ... kwargs that can be passed down. These can be supplied to
   # MarkItDown.__init__() or passed on to individual convert() kwargs:
   # llm_client
@@ -22,7 +22,7 @@ markitdown <- function(x, ...) {
 }
 
 
-split_markdown <- function(md, split_by = c("h1", "h2", "h3", "pre", "p")) {
+markdown_text <- function(md, split_by = c("h1", "h2", "h3", "pre", "p")) {
   tmp_html <- tempfile(fileext = ".html")
   on.exit(unlink(tmp_html))
   pandoc::pandoc_convert(text = md, to = "html", output = tmp_html)
@@ -93,6 +93,8 @@ markdown_split <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_e
 
 }
 
+
+markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), split_by = c("p", "pre")) {
   md <- split_markdown(md, split_by = unique(c(frame_by, split_by)))
   frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
   if (base::setequal(split_by, frame_by))
