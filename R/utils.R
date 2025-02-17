@@ -3,7 +3,8 @@
 #' @importFrom stringi stri_length stri_locate_all_boundaries stri_split_fixed
 #'   stri_startswith_fixed stri_sub stri_trim_both stri_flatten
 #'   stri_match_first_regex stri_locate_all_fixed stri_detect_fixed stri_flatten
-#' @importFrom xml2 xml_add_sibling
+#'   stri_c stri_split_lines stri_numbytes
+#' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @importFrom tidyr unchop
@@ -13,7 +14,7 @@
 #'   resp_body_json req_retry req_auth_bearer_token
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
 #'   dbWriteTable dbListTables dbReadTable
-#' @importFrom glue glue glue_data
+#' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @useDynLib ragnar, .registration = TRUE
 NULL

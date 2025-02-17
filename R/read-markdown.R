@@ -116,6 +116,91 @@ markdown_split_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p")
 }
 
 
+#' Read a document as Markdown
+#'
+#' `ragnar_read()` uses [markitdown](https://github.com/microsoft/markitdown) to
+#' convert a document to markdown. If `frame_by_tags` or `split_by_tags` is
+#' provided, the converted markdown content is then split and converted to a
+#' data frame, otherwise, the markdown is returned as a string.
+#'
+#' @param x file path or url.
+#' @param ... passed on `markitdown.convert`.
+#' @param split_by_tags character vector of html tag names used to split the
+#'   returned text
+#' @param frame_by_tags character vector of html tag names used to create a
+#'   dataframe of the returned content
+#'
+#' @returns If `frame_by_tags` is not `NULL`, then a data frame is returned,
+#'   with column names `c("frame_by_tags", "text")`.
+#'
+#'   If `frame_by_tags` is `NULL` but `split_by_tags` is not `NULL`, then a
+#'   named character vector is returned.
+#'
+#'   If both `frame_by_tags` and `split_by_tags` are `NULL`, then a string
+#'   (length-1 character vector) is returned.
+#' @export
+#'
+#' @examples
+#' file <- tempfile(fileext = ".html")
+#' download.file("https://r4ds.hadley.nz/base-r", file, quiet = TRUE)
+#'
+#' # with no arguments, returns a single string of the text.
+#' file |> ragnar_read() |> str()
+#'
+#' # use `split_by_tags` to get a named character vector of length > 1
+#' file |>
+#'   ragnar_read(split_by_tags = c("h1", "h2", "h3")) |>
+#'   tibble::enframe("tag", "text")
+#'
+#' # use `frame_by_tags` to get a dataframe where the
+#' # headings associated with each text chunk are easily accessible
+#' file |>
+#'   ragnar_read(frame_by_tags = c("h1", "h2", "h3"))
+#'
+#' # use `split_by_tags` and `frame_by_tags` together to further break up `text`.
+#' file |>
+#'   ragnar_read(
+#'     split_by_tags = c("p"),
+#'     frame_by_tags = c("h1", "h2", "h3")
+#'   )
+#'
+#' # Example workflow adding context to each chunk
+#' file |>
+#'   ragnar_read(frame_by_tags = c("h1", "h2", "h3")) |>
+#'   glue::glue_data(r"--(
+#'     ## Excerpt from the book "R for Data Science (2e)"
+#'     chapter: {h1}
+#'     section: {h2}
+#'     content: {text}
+#'
+#'     )--") |>
+#'   # inspect
+#'   _[6:7] |> cat(sep = "\n~~~~~~~~~~~\n")
+#'
+#' # Advanced example of postprocessing the output of ragnar_read()
+#' # to add language to code blocks, markdown style
+#' library(dplyr, warn.conflicts = FALSE)
+#' library(stringr)
+#' library(rvest)
+#' library(xml2)
+#' file |>
+#'   ragnar_read(frame_by_tags = c("h1", "h2", "h3"),
+#'               split_by_tags = c("p", "pre")) |>
+#'   mutate(
+#'     is_code = tag == "pre",
+#'     text = ifelse(is_code, str_replace(text, "```", "```r"), text)
+#'   ) |>
+#'   group_by(h1, h2, h3) |>
+#'   summarise(text = str_flatten(text, "\n\n"), .groups = "drop") |>
+#'   glue::glue_data(r"--(
+#'     # Excerpt from the book "R for Data Science (2e)"
+#'     chapter: {h1}
+#'     section: {h2}
+#'     content: {text}
+#'
+#'     )--") |>
+#'   # inspect
+#'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
 ragnar_read <- function(x, ...,
                         split_by_tags  = NULL,
                         frame_by_tags = NULL) {
