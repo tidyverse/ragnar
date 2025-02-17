@@ -27,6 +27,9 @@ ragnar_store_create <- function(
   check_number_whole(embedding_size, min = 1)
   embedding_size <- as.integer(embedding_size)
 
+  # TODO: use carrier.
+  environment(embed) <- globalenv()
+
   metadata <- tibble::tibble(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),

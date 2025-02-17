@@ -85,7 +85,7 @@ embed_openai <- function(x,
 
   if (missing(x) || is.null(x)) {
     args <- capture_args()
-    fn <- partial(quote(ragnar::ragnar_embed_openai), alist(x = ), args)
+    fn <- partial(quote(ragnar::embed_openai), alist(x = ), args)
     return(fn)
   }
 
