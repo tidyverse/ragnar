@@ -44,9 +44,21 @@ str_locate_boundaries1 <- function(string, boundary) {
     check_string(boundary)
     locations <- switch(
       boundary,
+      ## TODO: we might need to a specialized markdown <p> tag detector here,
+      ## since this will false positive on code chunks and non-compact lists
+      ## (<pre> <ul> or <ol>) in markdown.
       paragraph = stri_locate_all_fixed(string, "\n\n", omit_no_match = TRUE)[[1L]][, "end"],
+
+      # Note, stri_opts_brkiter 'type = line_break' is really about finding
+      # candidates line break for the purpose of line wrapping a string, not
+      # about finding actual new line boundaries. `type = line_break` might be
+      # more suitable than `type = word` for our purpose here.
+      # stri_split_lines() does more comprehensive identification of line
+      # breaks, but isn't exported as a boundary detector. Most text passing
+      # through here is expected to have been normalized as markdown already...
+      line_break = stri_locate_all_fixed(string, "\n", omit_no_match = TRUE)[[1L]][, "end"],
+
       sentence = ,
-      line_break = ,
       word = ,
       character = stri_locate_all_boundaries(string, type = boundary, locale = "@ss=standard")[[1L]][, "end"],
       stop(
