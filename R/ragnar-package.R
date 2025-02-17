@@ -6,13 +6,18 @@
 
 # ' @exportS3Method reticulate::py_to_r
 py_to_r.markitdown.DocumentConverterResult <- function(x) {
-  c(title = x$title, text = x$text_content)
+  text <- x$text_content
+  if(!is.null(x$title))
+    text <- stri_c("# ", x$title, "\n\n", text)
+  text
 }
 
 
 .onLoad <- function(libname, pkgname) {
   Sys.setenv(RETICULATE_PYTHON = "managed")
-  reticulate::py_require(c("markitdown" = "git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown"))
+  reticulate::py_require(
+    "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown"
+  )
 
   reticulate:::py_register_load_hook("markitdown", function() {
 
