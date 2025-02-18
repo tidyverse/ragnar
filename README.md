@@ -65,7 +65,7 @@ Key functions:
 - `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags` arguments
   to associate text chunks with their document position.
 - `markdown_frame()`: Convert markdown text into a dataframe.
-- `markdown_split()`: Split markdown text into a character vector using
+- `markdown_segment()`: Segment markdown text into a character vector using
   semantic tags (e.g., headings, paragraphs, or code chunks).
 
 ### 4. Embedding

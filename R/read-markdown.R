@@ -28,7 +28,7 @@ read_as_markdown <- function(x, ...) {
 }
 
 
-markdown_split <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_empty = TRUE) {
+markdown_segment <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_empty = TRUE) {
 
   lines <- text |> stri_split_lines() |> unlist() |> stri_c("\n")
   text <- lines |> stri_flatten()
@@ -95,7 +95,7 @@ markdown_split <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_e
 
 
 markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), split_by = c("p", "pre")) {
-  md <- markdown_split(md, split_by = unique(c(frame_by, split_by)))
+  md <- markdown_segment(md, split_by = unique(c(frame_by, split_by)))
   frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
   if (base::setequal(split_by, frame_by))
     frame[["tag"]] <- NULL
@@ -103,7 +103,7 @@ markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), split_by = c("p",
 }
 
 
-markdown_split_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p")) {
+markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p")) {
   ## Uses pandoc to convert md to html, then html_text3() to read and split.
   ## Returns a character vector. Note, the returned text does not have
   ## markdown formatting like ``` fences. Currently unused.
