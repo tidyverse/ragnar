@@ -247,34 +247,54 @@ ragnar_read_document <- function(x, ...,
 }
 
 
+#' Find links on a page
+#'
+#' @param x A URL, a path to an HTML file, or an XML document. If you have
+#'   Markdown, you can convert it to HTML using [`commonmark::markdown_html()`].
+#'
+#' @param external Logical. Whether to include links to external pages. If
+#'   `FALSE` (the default), only relative links found in `x` are returned.
+#'
+#' @return A character vector of links on the page.
 #' @export
+#'
+#' @examples
+#' ragnar_find_links("https://r4ds.hadley.nz/base-r")
+ragnar_find_links <- function(x, external = FALSE) {
+  if (!inherits(x, "xml_node")) {
+    x <- read_html(x)
+  }
+  html_find_links(x, type = if (external) "all" else "relative")
+}
+
+
 html_find_links <- function(x, type = c("all", "relative", "external"), absolute = TRUE) {
-  if(is.character(x)) {
-    doc <- rvest::read_html(x)
+  if (is.character(x)) {
+    doc <- read_html(x)
     base_url <- x
   } else if (inherits(x, "xml_node")) {
     doc <- x
-    base_url <- xml2::xml_url(doc)
+    base_url <- xml_url(doc)
   }
 
   links <- doc |>
     html_elements("a") |>
     html_attr("href")
 
-  # canonicalize links
+  # Canonicalize links
   links <- links[!is.na(links)]
-  links <- stringi::stri_extract_first_regex(links, "^[^#]*")
+  links <- stri_extract_first_regex(links, "^[^#]*")
   links <- links[!links %in% c("", "/", "./")]
-  links <- links |> stringi::stri_replace_last_regex("/$", "")
-  links <- unique(links)
+  links <- stri_replace_last_regex(links, "/$", "")
+  links <- sort(unique(links))
 
-  is_relative <- stringi::stri_startswith_charclass(links, "[./]")
+  is_relative <- stri_startswith_charclass(links, "[./]")
 
-  if (absolute)
-    links <- links |> url_absolute(base_url)
+  if (absolute) {
+    links <- url_absolute(links, base_url)
+  }
 
-
-  # TODO: allow filtering child or sibling links only?
+  # TODO: Allow filtering for child or sibling links only?
   switch(match.arg(type),
          all = links,
          relative = links[is_relative],

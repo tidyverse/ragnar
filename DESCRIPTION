@@ -25,7 +25,8 @@ Imports:
     methods,
     S7,
     reticulate (>= 1.40.0.9000),
-    pandoc
+    pandoc,
+    commonmark
 Suggests:
     knitr,
     rmarkdown,

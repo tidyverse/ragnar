@@ -3,8 +3,10 @@
 #' @importFrom stringi stri_length stri_locate_all_boundaries stri_split_fixed
 #'   stri_startswith_fixed stri_sub stri_trim_both stri_flatten
 #'   stri_match_first_regex stri_locate_all_fixed stri_detect_fixed stri_flatten
-#'   stri_c stri_split_lines stri_numbytes
+#'   stri_c stri_split_lines stri_numbytes stri_extract_first_regex
+#'   stri_extract_last_regex stri_startswith_charclass stri_replace_last_regex
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
+#'   xml_url url_absolute
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @importFrom tidyr unchop
