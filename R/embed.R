@@ -20,7 +20,7 @@
 #'   where `nrow = length(x)` and `ncol = <model-embedding-size>`. If `x` is a
 #'   data.frame, then a new `embedding` matrix "column" is added, containing the
 #'   matrix described in the previous sentence.
-#' @name embed
+#' @name embed_ollama
 #' @examples
 #' text <- c("a chunk of text", "another chunk of text", "one more chunk of text")
 #' text |>
@@ -29,7 +29,7 @@
 NULL
 
 #' @export
-#' @rdname embed
+#' @rdname embed_ollama
 embed_ollama <- function(x,
                          base_url = "http://localhost:11434",
                          model = "all-minilm",
@@ -74,7 +74,7 @@ embed_ollama <- function(x,
 #'
 #' @returns A matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
 #' @export
-#' @rdname embed
+#' @rdname embed_ollama
 embed_openai <- function(x,
                          model = "text-embedding-3-small",
                          base_url = "https://api.openai.com/v1",

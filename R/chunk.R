@@ -119,7 +119,7 @@ str_chunk <- function(x, max_size,
 #'
 #' @param x A character vector, list of character vectors, or data frame containing a `text` column.
 #' @param max_size Integer. The maximum number of characters in each chunk.
-#'   Default: `1600`. This is typically approximately 400 tokens, or 1 page of text.
+#'   Defaults to `1600`, which typically is approximately 400 tokens, or 1 page of text.
 #' @param boundaries A sequence of boundary types to use in order until
 #'   `max_size` is satisfied. Valid values are `"sentence"`, `"word"`,
 #'   `"line_break"`, `"character"`, `"paragraph"`, or a `stringr_pattern` object
@@ -278,7 +278,7 @@ ragnar_segment <- function(x,
 
 #' @export
 #' @rdname ragnar_chunk
-ragnar_chunk_segments <- function(x, max_size = 1000, ..., simplify = TRUE, trim = TRUE) {
+ragnar_chunk_segments <- function(x, max_size = 1600L, ..., simplify = TRUE, trim = TRUE) {
   sep <- ""
   if(is.data.frame(x)) {
     stopifnot(is.list(x[["text"]]), all(map_chr(x[["text"]]), is.character))
