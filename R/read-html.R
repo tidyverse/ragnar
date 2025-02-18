@@ -269,23 +269,19 @@ ragnar_find_links <- function(x, external = FALSE) {
 
 
 html_find_links <- function(x, type = c("all", "relative", "external"), absolute = TRUE) {
-  if (is.character(x)) {
-    doc <- read_html(x)
-    base_url <- x
-  } else if (inherits(x, "xml_node")) {
-    doc <- x
-    base_url <- xml_url(doc)
+  if (!inherits(x, "xml_node")) {
+    x <- read_html(x)
   }
+  base_url <- xml_url(doc)
 
-  links <- doc |>
-    html_elements("a") |>
-    html_attr("href")
+  links <- x |>
+    xml_find_all(".//a[@href]") |>
+    xml_attr("href", default = "")
 
   # Canonicalize links
-  links <- links[!is.na(links)]
-  links <- stri_extract_first_regex(links, "^[^#]*")
-  links <- links[!links %in% c("", "/", "./")]
-  links <- stri_replace_last_regex(links, "/$", "")
+  links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
+  links <- links[!links %in% c("", "/", "./")]       # remove self links
+  links <- stri_replace_last_regex(links, "/$", "")  # strip trailing /
   links <- sort(unique(links))
 
   is_relative <- stri_startswith_charclass(links, "[./]")
