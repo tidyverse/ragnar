@@ -20,10 +20,10 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-`ragnar` is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over all the steps. We don't believe that you can fully automate the creation of a good RAG, so it's important that ragnar is not a black box; `ragnar` is designed to be transparent—you can inspect outputs at intermediate steps to understand what’s happening.
-
+`ragnar` is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each steps. We don't believe that you can fully automate the creation of a good RAG system, so it's important that `ragnar` is not a black box. `ragnar` is designed to be transparent—you can inspect easily outputs at intermediate steps to understand what's happening.
 
 ## Installation
+
 ```r
 pak::pak("t-kalinowski/ragnar")
 ```
@@ -32,59 +32,73 @@ pak::pak("t-kalinowski/ragnar")
 
 ### 1. Document Processing
 
-Ragnar starts with a directory of markdown or HTML files. In the long term, we plan to offer tools for building this directory, such as [web scraping](https://github.com/r-lib/httr2/pull/584) or markdown processing. We also intend to add tools for simplifying HTML using readability techniques or a pandoc AST walker to remove extraneous attributes.
+`ragnar` works with a wide variety of document types, using [MarkItDown](https://github.com/microsoft/markitdown) to convert content to Markdown.
+
+Key functions:
+
+- `ragnar_find_links()`: Find all links in a webpage
+- `ragnar_read()`: Convert a file or URL to markdown
 
 ### 2. Text Chunking
 
-Next we divide each document into multiple chunks. We default to a strategy that preserves some of the semantics of the document, but provide plenty of options to tweak the approach.
+Next we divide each document into multiple chunks. Ragnar defaults to a strategy that preserves some of the semantics of the document, but provide plenty of options to tweak the approach.
 
-### 3. (Optionally) Context augmentation
+Key functions:
 
-Add needed context to the chunk. The goal it to support a variety of workflows for attaching context to chunked text, ranging from
-templating strings `glue()` to sophisticated workflows that involve calling out to LLMs to generate relevant contextualized summaries.
+- `ragnar_chunk()`: Higher-level function that both identifies semantic boundaries and chunks text.
+- `ragnar_segment()`: Lower-level function that identifies semantic boundaries.
+- `ragnar_chunk_segments()`: Lower-level function that chunks pre-segmented text.
+
+### 3. Context Augmentation (Optional)
+
+RAG applications benefit from augmenting text chunks with additional context, such as document headings and subheadings. While `ragnar` doesn't directly export functions for this, it supports template-based augmentation through `ragnar_read(frame_by_tags, split_by_tags)`. Future versions will support generating context summaries via LLM calls.
+
+Key functions:
+
+- `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags` arguments to associate text chunks with their document position.
+- `markdown_frame()`: Convert markdown text into a dataframe.
+- `markdown_split()`: Split markdown text into a character vector using semantic tags (e.g., headings, paragraphs, or code chunks).
 
 ### 4. Embedding
 
-Support computing an embedding for each chunk. The goal is for `ragnar` to provide access to embeddings from popular LLM providers. Currently, only support for `ollama` and `openai` is implemented.
+`ragnar` can help compute embeddings for each chunk. The goal is for `ragnar` to provide access to embeddings from popular LLM providers. Currently only `ollama` and `openai` providers.
+
+Key functions:
+
+- `embed_ollama()`
+- `embed_openai()`
 
 ### 5. Storage
 
-Store all processed data in a format optimized for efficient searching, using `duckdb` as a default.
-The goal is for the API to be extensible, so additional packages to implement support for different store providers.
+Processed data is stored in a format optimized for efficient searching, using `duckdb` by default. The API is designed to be extensible, allowing additional packages to implement support for different storage providers.
+
+Key functions:
+
+- `ragnar_store_create()`
+- `ragnar_store_connect()`
+- `ragnar_store_insert()`
 
 ### 6. Retrieval
 
-Retrieve related chunks based on cosine similarity of embeddings. In the near future we intend also support retrieval using BM25 ranking and regular text search.
+Given a prompt, retrieve related chunks based on embedding distance or bm25 text search.
 
-- **Vector similarity search:** [`vss` DuckDB extension](https://duckdb.org/docs/extensions/vss.html)
-- **Text search:** [`full-text search extension`](https://duckdb.org/docs/extensions/full_text_search.html)
+Key functions:
 
-### 7. (Optional) Re-ranking
+- `ragnar_retrieve()`
+- `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB extension](https://duckdb.org/docs/extensions/vss.html)
+- `ragnar_retrieve_bm25()`: Retrieve using [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
 
-Rerank retreived chunks. (Not yet implemented)
+### 7. Re-ranking (Optional)
 
-### 8. Prompt generation
+Re-ranking of retrieved chunks is planned for future releases.
 
-Ragnar will provide a set of tools for helping to incorporate the retrieved chunks into an LLM prompt.
+### 8. Prompt Generation
 
+`ragnar` will provide tools for incorporating retrieved chunks into LLM prompts.
 
 ## Usage
 
-Below is an example of using `ragnar` to store and retrieve chunks from the *R for Data Science (2e)* book.
-
+Here's an example of using `ragnar` to store and retrieve chunks from the *R for Data Science (2e)* book:
 
 ```{r, code = readLines("examples/example.R")}
 ```
-
-<!-- ```{r, eval = FALSE} -->
-<!-- # Create a local copy of the rendered book -->
-<!-- if (!dir.exists("~/github/hadley/r4ds")) { -->
-<!--   # Clone https://r4ds.hadley.nz/base-r locally -->
-<!--   system2("git", c("clone", -->
-<!--     shQuote("https://github.com/hadley/r4ds/"), -->
-<!--     shQuote(normalizePath("~/github/hadley/r4ds")) -->
-<!--   )) -->
-<!--   pak::local_install_dev_deps("~/github/hadley/r4ds") -->
-<!--   system("quarto render ~/github/hadley/r4ds") -->
-<!-- } -->
-<!-- ``` -->

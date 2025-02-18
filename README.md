@@ -12,10 +12,11 @@
 `ragnar` is an R package that helps implement Retrieval-Augmented
 Generation (RAG) workflows. It focuses on providing a complete solution
 with sensible defaults, while still giving the knowledgeable user
-precise control over all the steps. We don’t believe that you can fully
-automate the creation of a good RAG, so it’s important that ragnar is
-not a black box; `ragnar` is designed to be transparent—you can inspect
-outputs at intermediate steps to understand what’s happening.
+precise control over each steps. We don’t believe that you can fully
+automate the creation of a good RAG system, so it’s important that
+`ragnar` is not a black box. `ragnar` is designed to be transparent—you
+can inspect easily outputs at intermediate steps to understand what’s
+happening.
 
 ## Installation
 
@@ -27,63 +28,96 @@ pak::pak("t-kalinowski/ragnar")
 
 ### 1. Document Processing
 
-Ragnar starts with a directory of markdown or HTML files. In the long
-term, we plan to offer tools for building this directory, such as [web
-scraping](https://github.com/r-lib/httr2/pull/584) or markdown
-processing. We also intend to add tools for simplifying HTML using
-readability techniques or a pandoc AST walker to remove extraneous
-attributes.
+`ragnar` works with a wide variety of document types, using
+[MarkItDown](https://github.com/microsoft/markitdown) to convert content
+to Markdown.
+
+Key functions:
+
+- `ragnar_find_links()`: Find all links in a webpage
+- `ragnar_read()`: Convert a file or URL to markdown
 
 ### 2. Text Chunking
 
-Next we divide each document into multiple chunks. We default to a
+Next we divide each document into multiple chunks. Ragnar defaults to a
 strategy that preserves some of the semantics of the document, but
 provide plenty of options to tweak the approach.
 
-### 3. (Optionally) Context augmentation
+Key functions:
 
-Add needed context to the chunk. The goal it to support a variety of
-workflows for attaching context to chunked text, ranging from templating
-strings `glue()` to sophisticated workflows that involve calling out to
-LLMs to generate relevant contextualized summaries.
+- `ragnar_chunk()`: Higher-level function that both identifies semantic
+  boundaries and chunks text.
+- `ragnar_segment()`: Lower-level function that identifies semantic
+  boundaries.
+- `ragnar_chunk_segments()`: Lower-level function that chunks
+  pre-segmented text.
+
+### 3. Context Augmentation (Optional)
+
+RAG applications benefit from augmenting text chunks with additional
+context, such as document headings and subheadings. While `ragnar`
+doesn’t directly export functions for this, it supports template-based
+augmentation through `ragnar_read(frame_by_tags, split_by_tags)`. Future
+versions will support generating context summaries via LLM calls.
+
+Key functions:
+
+- `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags` arguments
+  to associate text chunks with their document position.
+- `markdown_frame()`: Convert markdown text into a dataframe.
+- `markdown_split()`: Split markdown text into a character vector using
+  semantic tags (e.g., headings, paragraphs, or code chunks).
 
 ### 4. Embedding
 
-Support computing an embedding for each chunk. The goal is for `ragnar`
-to provide access to embeddings from popular LLM providers. Currently,
-only support for `ollama` and `openai` is implemented.
+`ragnar` can help compute embeddings for each chunk. The goal is for
+`ragnar` to provide access to embeddings from popular LLM providers.
+Currently only `ollama` and `openai` providers.
+
+Key functions:
+
+- `embed_ollama()`
+- `embed_openai()`
 
 ### 5. Storage
 
-Store all processed data in a format optimized for efficient searching,
-using `duckdb` as a default. The goal is for the API to be extensible,
-so additional packages to implement support for different store
+Processed data is stored in a format optimized for efficient searching,
+using `duckdb` by default. The API is designed to be extensible,
+allowing additional packages to implement support for different storage
 providers.
+
+Key functions:
+
+- `ragnar_store_create()`
+- `ragnar_store_connect()`
+- `ragnar_store_insert()`
 
 ### 6. Retrieval
 
-Retrieve related chunks based on cosine similarity of embeddings. In the
-near future we intend also support retrieval using BM25 ranking and
-regular text search.
+Given a prompt, retrieve related chunks based on embedding distance or
+bm25 text search.
 
-- **Vector similarity search:** [`vss` DuckDB
+Key functions:
+
+- `ragnar_retrieve()`
+- `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
   extension](https://duckdb.org/docs/extensions/vss.html)
-- **Text search:**
-  [`full-text search extension`](https://duckdb.org/docs/extensions/full_text_search.html)
+- `ragnar_retrieve_bm25()`: Retrieve using
+  [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
 
-### 7. (Optional) Re-ranking
+### 7. Re-ranking (Optional)
 
-Rerank retreived chunks. (Not yet implemented)
+Re-ranking of retrieved chunks is planned for future releases.
 
-### 8. Prompt generation
+### 8. Prompt Generation
 
-Ragnar will provide a set of tools for helping to incorporate the
-retrieved chunks into an LLM prompt.
+`ragnar` will provide tools for incorporating retrieved chunks into LLM
+prompts.
 
 ## Usage
 
-Below is an example of using `ragnar` to store and retrieve chunks from
-the *R for Data Science (2e)* book.
+Here’s an example of using `ragnar` to store and retrieve chunks from
+the *R for Data Science (2e)* book:
 
 ``` r
 library(ragnar)
@@ -119,43 +153,44 @@ for (page in pages) {
 
   ragnar_store_insert(store, chunks)
 }
-#> ingesting: https://r4ds.hadley.nz/arrow
-#> ingesting: https://r4ds.hadley.nz/base-r
-#> ingesting: https://r4ds.hadley.nz/communicate
-#> ingesting: https://r4ds.hadley.nz/communication
-#> ingesting: https://r4ds.hadley.nz/data-import
-#> ingesting: https://r4ds.hadley.nz/data-tidy
-#> ingesting: https://r4ds.hadley.nz/data-transform
-#> ingesting: https://r4ds.hadley.nz/data-visualize
-#> ingesting: https://r4ds.hadley.nz/databases
-#> ingesting: https://r4ds.hadley.nz/datetimes
-#> ingesting: https://r4ds.hadley.nz/eda
-#> ingesting: https://r4ds.hadley.nz/factors
-#> ingesting: https://r4ds.hadley.nz/functions
-#> ingesting: https://r4ds.hadley.nz/import
-#> ingesting: https://r4ds.hadley.nz/intro
-#> ingesting: https://r4ds.hadley.nz/iteration
-#> ingesting: https://r4ds.hadley.nz/joins
-#> ingesting: https://r4ds.hadley.nz/layers
-#> ingesting: https://r4ds.hadley.nz/logicals
-#> ingesting: https://r4ds.hadley.nz/missing-values
-#> ingesting: https://r4ds.hadley.nz/numbers
-#> ingesting: https://r4ds.hadley.nz/preface-2e
-#> ingesting: https://r4ds.hadley.nz/program
-#> ingesting: https://r4ds.hadley.nz/quarto
-#> ingesting: https://r4ds.hadley.nz/quarto-formats
-#> ingesting: https://r4ds.hadley.nz/rectangling
-#> ingesting: https://r4ds.hadley.nz/regexps
-#> ingesting: https://r4ds.hadley.nz/spreadsheets
-#> ingesting: https://r4ds.hadley.nz/strings
-#> ingesting: https://r4ds.hadley.nz/transform
-#> ingesting: https://r4ds.hadley.nz/visualize
-#> ingesting: https://r4ds.hadley.nz/webscraping
-#> ingesting: https://r4ds.hadley.nz/whole-game
-#> ingesting: https://r4ds.hadley.nz/workflow-basics
-#> ingesting: https://r4ds.hadley.nz/workflow-help
-#> ingesting: https://r4ds.hadley.nz/workflow-scripts
-#> ingesting: https://r4ds.hadley.nz/workflow-style
+#> ingesting: https://r4ds.hadley.nz/arrow.html
+#> ingesting: https://r4ds.hadley.nz/base-R.html
+#> ingesting: https://r4ds.hadley.nz/communicate.html
+#> ingesting: https://r4ds.hadley.nz/communication.html
+#> ingesting: https://r4ds.hadley.nz/data-import.html
+#> ingesting: https://r4ds.hadley.nz/data-tidy.html
+#> ingesting: https://r4ds.hadley.nz/data-transform.html
+#> ingesting: https://r4ds.hadley.nz/data-visualize.html
+#> ingesting: https://r4ds.hadley.nz/databases.html
+#> ingesting: https://r4ds.hadley.nz/datetimes.html
+#> ingesting: https://r4ds.hadley.nz/EDA.html
+#> ingesting: https://r4ds.hadley.nz/factors.html
+#> ingesting: https://r4ds.hadley.nz/functions.html
+#> ingesting: https://r4ds.hadley.nz/import.html
+#> ingesting: https://r4ds.hadley.nz/index.html
+#> ingesting: https://r4ds.hadley.nz/intro.html
+#> ingesting: https://r4ds.hadley.nz/iteration.html
+#> ingesting: https://r4ds.hadley.nz/joins.html
+#> ingesting: https://r4ds.hadley.nz/layers.html
+#> ingesting: https://r4ds.hadley.nz/logicals.html
+#> ingesting: https://r4ds.hadley.nz/missing-values.html
+#> ingesting: https://r4ds.hadley.nz/numbers.html
+#> ingesting: https://r4ds.hadley.nz/preface-2e.html
+#> ingesting: https://r4ds.hadley.nz/program.html
+#> ingesting: https://r4ds.hadley.nz/quarto-formats.html
+#> ingesting: https://r4ds.hadley.nz/quarto.html
+#> ingesting: https://r4ds.hadley.nz/rectangling.html
+#> ingesting: https://r4ds.hadley.nz/regexps.html
+#> ingesting: https://r4ds.hadley.nz/spreadsheets.html
+#> ingesting: https://r4ds.hadley.nz/strings.html
+#> ingesting: https://r4ds.hadley.nz/transform.html
+#> ingesting: https://r4ds.hadley.nz/visualize.html
+#> ingesting: https://r4ds.hadley.nz/webscraping.html
+#> ingesting: https://r4ds.hadley.nz/whole-game.html
+#> ingesting: https://r4ds.hadley.nz/workflow-basics.html
+#> ingesting: https://r4ds.hadley.nz/workflow-help.html
+#> ingesting: https://r4ds.hadley.nz/workflow-scripts.html
+#> ingesting: https://r4ds.hadley.nz/workflow-style.html
 
 
 ragnar_store_build_index(store)
@@ -174,9 +209,9 @@ embedding_near_chunks
 #> # A tibble: 3 × 3
 #>      id l2sq_distance text                                                      
 #>   <int>         <dbl> <chr>                                                     
-#> 1    29         0.929 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
-#> 2   606         0.933 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
-#> 3    30         0.960 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 1    31         0.929 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 2   631         0.933 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 3    32         0.960 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
 embedding_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 ```
 
@@ -270,9 +305,9 @@ bm25_near_chunks
 #> # A tibble: 3 × 3
 #>      id bm25_score text                                                         
 #>   <int>      <dbl> <chr>                                                        
-#> 1    27       5.56 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
-#> 2   626       5.41 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
-#> 3   605       5.15 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 1    29       5.62 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 2   651       5.45 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 3   630       5.17 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
 bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 ```
 
@@ -331,7 +366,7 @@ bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
     #> chapter: # 12  Logical vectors
     #> section: ## 12.4 Summaries
     #> subsection: ### 12.4.3 Logical subsetting
-    #> content: There’s one final use for logical vectors in summaries: you can use a logical vector to filter a single variable to a subset of interest. This makes use of the base `[` (pronounced subset) operator, which you’ll learn more about in [Section 27.2](/base-r#sec-subset-many).
+    #> content: There’s one final use for logical vectors in summaries: you can use a logical vector to filter a single variable to a subset of interest. This makes use of the base `[` (pronounced subset) operator, which you’ll learn more about in [Section 27.2](base-R.html#sec-subset-many).
     #> 
     #> Imagine we wanted to look at the average delay just for flights that were actually delayed. One way to do so would be to first filter the flights and then calculate the average delay:
     #> 
@@ -392,8 +427,8 @@ bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
     #> * [Edit this page](https://github.com/hadley/r4ds/edit/main/logicals.qmd)
     #> * [Report an issue](https://github.com/hadley/r4ds/issues/new)
     #> 
-    #> 1. [Transform](/transform)
-    #> 2. [12  Logical vectors](/logicals)
+    #> 1. [Transform](./transform.html)
+    #> 2. [12  Logical vectors](./logicals.html)
 
 ``` r
 
@@ -405,34 +440,10 @@ bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 #> # A tibble: 6 × 4
 #>      id l2sq_distance bm25_score text                                           
 #>   <int>         <dbl>      <dbl> <chr>                                          
-#> 1    29         0.929       2.90 "# Excerpt from the book \"R for Data Science …
-#> 2   606         0.933       3.51 "# Excerpt from the book \"R for Data Science …
-#> 3    30         0.960       2.38 "# Excerpt from the book \"R for Data Science …
-#> 4    27         0.965       5.56 "# Excerpt from the book \"R for Data Science …
-#> 5   626         1.01        5.41 "# Excerpt from the book \"R for Data Science …
-#> 6   605         1.15        5.15 "# Excerpt from the book \"R for Data Science …
+#> 1    31         0.929       2.92 "# Excerpt from the book \"R for Data Science …
+#> 2   631         0.933       3.55 "# Excerpt from the book \"R for Data Science …
+#> 3    32         0.960       2.40 "# Excerpt from the book \"R for Data Science …
+#> 4    29         0.965       5.62 "# Excerpt from the book \"R for Data Science …
+#> 5   651         1.01        5.45 "# Excerpt from the book \"R for Data Science …
+#> 6   630         1.15        5.17 "# Excerpt from the book \"R for Data Science …
 ```
-
-<!-- ```{r, eval = FALSE} -->
-
-<!-- # Create a local copy of the rendered book -->
-
-<!-- if (!dir.exists("~/github/hadley/r4ds")) { -->
-
-<!--   # Clone https://r4ds.hadley.nz/base-r locally -->
-
-<!--   system2("git", c("clone", -->
-
-<!--     shQuote("https://github.com/hadley/r4ds/"), -->
-
-<!--     shQuote(normalizePath("~/github/hadley/r4ds")) -->
-
-<!--   )) -->
-
-<!--   pak::local_install_dev_deps("~/github/hadley/r4ds") -->
-
-<!--   system("quarto render ~/github/hadley/r4ds") -->
-
-<!-- } -->
-
-<!-- ``` -->
