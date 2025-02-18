@@ -272,7 +272,7 @@ html_find_links <- function(x, type = c("all", "relative", "external"), absolute
   if (!inherits(x, "xml_node")) {
     x <- read_html(x)
   }
-  base_url <- xml_url(doc)
+  base_url <- xml_url(x)
 
   links <- x |>
     xml_find_all(".//a[@href]") |>
