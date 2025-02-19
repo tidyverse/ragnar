@@ -64,9 +64,9 @@ Key functions:
 
 - `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags` arguments
   to associate text chunks with their document position.
+- `markdown_segment()`: Segment markdown text into a character vector
+  using semantic tags (e.g., headings, paragraphs, or code chunks).
 - `markdown_frame()`: Convert markdown text into a dataframe.
-- `markdown_segment()`: Segment markdown text into a character vector using
-  semantic tags (e.g., headings, paragraphs, or code chunks).
 
 ### 4. Embedding
 
@@ -126,7 +126,6 @@ base_url <- "https://r4ds.hadley.nz"
 
 pages <- ragnar_find_links(base_url)
 
-
 store_location <- "r4ds.ragnar.duckdb"
 unlink(store_location)
 
@@ -167,7 +166,6 @@ for (page in pages) {
 #> ingesting: https://r4ds.hadley.nz/factors.html
 #> ingesting: https://r4ds.hadley.nz/functions.html
 #> ingesting: https://r4ds.hadley.nz/import.html
-#> ingesting: https://r4ds.hadley.nz/index.html
 #> ingesting: https://r4ds.hadley.nz/intro.html
 #> ingesting: https://r4ds.hadley.nz/iteration.html
 #> ingesting: https://r4ds.hadley.nz/joins.html
@@ -195,9 +193,9 @@ for (page in pages) {
 
 ragnar_store_build_index(store)
 
-### Retrieving Chunks
+#' ## Retrieving Chunks
 
-# Once the store is set up, retrieve the most relevant text chunks:
+#' Once the store is set up, retrieve the most relevant text chunks:
 
 # store_location <- "r4ds.ragnar.duckdb"
 store <- ragnar_store_connect(store_location, read_only = TRUE)
@@ -210,7 +208,7 @@ embedding_near_chunks
 #>      id l2sq_distance text                                                      
 #>   <int>         <dbl> <chr>                                                     
 #> 1    31         0.929 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
-#> 2   631         0.933 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 2   625         0.933 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
 #> 3    32         0.960 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
 embedding_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 ```
@@ -306,8 +304,8 @@ bm25_near_chunks
 #>      id bm25_score text                                                         
 #>   <int>      <dbl> <chr>                                                        
 #> 1    29       5.62 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
-#> 2   651       5.45 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
-#> 3   630       5.17 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 2   645       5.45 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 3   624       5.18 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
 bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 ```
 
@@ -441,9 +439,9 @@ bm25_near_chunks$text |> cat(sep = "\n~~~~~~~~\n")
 #>      id l2sq_distance bm25_score text                                           
 #>   <int>         <dbl>      <dbl> <chr>                                          
 #> 1    31         0.929       2.92 "# Excerpt from the book \"R for Data Science …
-#> 2   631         0.933       3.55 "# Excerpt from the book \"R for Data Science …
+#> 2   625         0.933       3.55 "# Excerpt from the book \"R for Data Science …
 #> 3    32         0.960       2.40 "# Excerpt from the book \"R for Data Science …
 #> 4    29         0.965       5.62 "# Excerpt from the book \"R for Data Science …
-#> 5   651         1.01        5.45 "# Excerpt from the book \"R for Data Science …
-#> 6   630         1.15        5.17 "# Excerpt from the book \"R for Data Science …
+#> 5   645         1.01        5.45 "# Excerpt from the book \"R for Data Science …
+#> 6   624         1.15        5.18 "# Excerpt from the book \"R for Data Science …
 ```

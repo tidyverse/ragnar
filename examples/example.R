@@ -34,9 +34,9 @@ for (page in pages) {
 
 ragnar_store_build_index(store)
 
-### Retrieving Chunks
+#' ## Retrieving Chunks
 
-# Once the store is set up, retrieve the most relevant text chunks:
+#' Once the store is set up, retrieve the most relevant text chunks:
 
 # store_location <- "r4ds.ragnar.duckdb"
 store <- ragnar_store_connect(store_location, read_only = TRUE)
