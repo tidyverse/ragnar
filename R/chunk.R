@@ -48,6 +48,11 @@ str_locate_boundaries1 <- function(string, boundary) {
       ## TODO: we might need to a specialized markdown <p> tag detector here,
       ## since this will false positive on code chunks and non-compact lists
       ## (<pre> <ul> or <ol>) in markdown.
+      ## We can probably factor markdown_boundaries() out of markdown_segment() and
+      ## use it here. I.e., use commonmark::markdown_html() to extract sourcepos,
+      ## then split on raw vector.
+      ## ... or use stringi to convert byte to char indexes, e.g.,
+      ## stri_split_boundaries(x, type = "char")[[1]] |>  stri_numbytes()
       paragraph = stri_locate_all_fixed(string, "\n\n", omit_no_match = TRUE)[[1L]][, "end"],
 
       # Note, stri_opts_brkiter 'type = line_break' is really about finding
