@@ -159,14 +159,18 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
 }
 
 #' @export
-RagnarStore <- new_class("RagnarStore",
+RagnarStore <- new_class(
+  "RagnarStore",
   properties = list(
-    embed = class_function,
-    embedding_size = class_integer,
-    .con = methods::getClass("DBIConnection")
+    embed = class_function
   ),
   abstract = TRUE
 )
 
-
-DuckDBRagnarStore <- new_class("DuckDBRagnarStore", RagnarStore)
+DuckDBRagnarStore <- new_class(
+  "DuckDBRagnarStore",
+  RagnarStore,
+  properties = list(
+    .con = methods::getClass("DBIConnection")
+  )
+)
