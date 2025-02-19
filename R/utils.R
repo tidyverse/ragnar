@@ -13,7 +13,7 @@
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @importFrom tidyr unchop
-#' @importFrom vctrs data_frame vec_split vec_rbind vec_locate_matches
+#' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token
@@ -29,6 +29,8 @@ NULL
 #' @import S7
 
 NULL
+
+`%error%` <- rlang::zap_srcref(function(x, y) tryCatch(x, error = function(e) y))
 
 `%empty%` <- function(x, y) if (length(x)) x else y
 `add<-` <- function(x, value) x + value

@@ -69,10 +69,16 @@ html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_h
 
 #' Convert a vector that's a flattened tree into a dataframe
 #'
-#' @param vec named character vector, (e.g., returned by `html_text3()`) where `names()` correspond to `nodes`
-#' @param nodes character vector of names. `names(vec)` that match to `nodes` will are taken as nodes in the tree. These will become column names in the returned data frame.
-#' @param names string, name of column for any unmatched nodes, taken from `names(vec)`.
-#' @param leaves string, the name of the last column in the returned frame, corresponding to all the unmatched elements in `vec` that are implicitly children of the last entry in `nodes`.
+#' @param vec named character vector, (e.g., returned by `markdown_segment()` or
+#'   `html_text3()`) where `names()` correspond to `nodes`
+#' @param nodes character vector of names. `names(vec)` that match to `nodes`
+#'   will are taken as nodes in the tree. These will become column names in the
+#'   returned data frame.
+#' @param names string, name of column for any unmatched nodes, taken from
+#'   `names(vec)`.
+#' @param leaves string, the name of the last column in the returned frame,
+#'   corresponding to all the unmatched elements in `vec` that are implicitly
+#'   children of the last entry in `nodes`.
 #'
 #' @returns a data frame
 #' @noRd
@@ -95,20 +101,65 @@ vec_frame_flattened_tree <- function(vec, nodes, leaves = ".content", names = ".
   if (anyDuplicated(c(nodes, leaves, names)))
     stop("target names must be unique")
 
-  frame <- data_frame("{leaves}" := vec, "{names}" := base::names(vec))
-  for (name in nodes) {
-    is_node <- frame[[names]] == name
-    frame[[name]] <- ifelse(is_node, frame[[leaves]], NA) |> vec_fill_missing("down")
-    frame <- frame[!is_node, ]
-  }
+  frame <- vec_frame_flattened_tree_impl(vec, nodes, leaves, names)
 
-  # reorder
-  frame <- frame[c(nodes, names, leaves)]
-
-  frame
+  # reorder, drop names, normalize row.names
+  for (missing_node in setdiff(nodes, names(frame)))
+    frame[[missing_node]] <- NA_character_
+  frame <- as.list(frame)[c(nodes, names, leaves)]
+  frame <- lapply(frame, `names<-`, NULL)
+  vctrs::new_data_frame(frame)
 }
 
 
+vec_frame_flattened_tree_impl <-
+  function(vec, nodes, leaves = ".content", names = ".name") {
+
+    if (!length(vec)) {
+      return(NULL)
+    }
+
+    # If we've processed all parent nodes, create leaf node
+    if (!length(nodes)) {
+      # Remove empty/NA entries
+      vec <- vec[nzchar(vec) & !is.na(vec)]
+      return(data_frame("{names}" := names(vec), "{leaves}" := vec))
+    }
+
+    node_name <- nodes[1L]
+    nodes <- nodes[-1L]
+
+    # Find positions where current tag appears
+    is_node <- base::names(vec) == node_name
+
+    # If tag not found, skip to next level
+    if (!any(is_node)) {
+      return(vec_frame_flattened_tree_impl(vec, nodes, leaves, names))
+    }
+
+    # Get headers for this level
+    if (is_node[1]) {
+      parents <- vec[is_node]
+      children <- vec_split(vec, cumsum(is_node))$val |> lapply(`[`, -1L)
+    } else {
+      # first split has no parent node
+      parents <- c(NA, vec[is_node])
+      children <- vec_split(vec, cumsum(is_node))$val
+      children[-1L] <- children[-1L] |> lapply(`[`, -1L)
+    }
+    base::names(parents) <- NULL
+
+    # for each node,
+    # - recurse to frame the children,
+    # - attach this node as a column (with recycling)
+    frames <- map2(parents, children, function(node, vec) {
+      frame <- vec_frame_flattened_tree_impl(vec, nodes, leaves, names)
+      vctrs::vec_cbind("{node_name}" := node, frame)
+    })
+
+    # Combine all nodes into a single dataframe
+    vec_rbind(!!!frames)
+}
 
 #' Read an HTML document
 #'
@@ -280,7 +331,7 @@ html_find_links <- function(x, type = c("all", "relative", "external"), absolute
 
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
-  links <- links[!links %in% c("", "/", "./")]       # remove self links
+  links <- links[!links %in% c("", "/", "./", "./index.html")] # remove self links
   links <- stri_replace_last_regex(links, "/$", "")  # strip trailing /
   links <- sort(unique(links))
 

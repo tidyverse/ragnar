@@ -14,8 +14,9 @@ str_chunk1 <- function(string,
                        #   target chunk size ~ 1 page
                        max_size = 1600L,
                        trim = TRUE) {
-
-  check_string(string)
+  if(isTRUE(is.na(string)))
+    return(NA_character_)
+  check_string(string, allow_na = TRUE)
   string_len <- stri_length(string)
   if (string_len <= max_size)
     return(string)
@@ -90,7 +91,7 @@ str_chunk <- function(x, max_size,
     repeat {
       lens <- stri_length(chunks)
       is_over_size <- lens > max_size
-      if (!any(is_over_size))
+      if (!any(is_over_size, na.rm = TRUE))
         break
       boundaries <- boundaries[-1L]
       if (!length(boundaries))

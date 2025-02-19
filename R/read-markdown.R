@@ -210,7 +210,7 @@ ragnar_read <- function(x, ...,
     return(text)
   }
 
-  text <- markdown_split(text, tags = unique(c(split_by_tags, frame_by_tags)))
+  text <- markdown_segment(text, tags = unique(c(split_by_tags, frame_by_tags)))
   if (is.null(frame_by_tags)) {
     # TODO?: Return a 2 col tibble, instead of a named vector.
     # return(enframe(text, "tag", "text"))
