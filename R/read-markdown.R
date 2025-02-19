@@ -14,7 +14,46 @@ cli_markitdown <- function(...) {
   )
 }
 
-read_as_markdown <- function(x, ...) {
+
+#' Convert files to markdown
+#'
+#' @param x A filepath or url
+#' @param ... Passed on to `MarkItDown.convert()`
+#' @param canonical logical, whether to postprocess the output from MarkItDown with `commonmark::markdown_commonmark()`.
+#'
+#' @returns A single string of markdown
+#' @export
+#'
+#' @examples
+#' # convert html
+#' read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
+#'   substr(1, 5000) |> cat()
+#'
+#' read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
+#'   substr(1, 5000) |> cat()
+#'
+#' # convert pdf
+#' pdf <- file.path(R.home("doc"), "NEWS.pdf")
+#' read_as_markdown(pdf)
+#' # pdftools::pdf_text(pdf)
+#'
+#' # convert images
+#' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
+#' ## currently broken https://github.com/microsoft/markitdown/issues/1036
+#' if(FALSE) {
+#'   reticulate::py_require("openai")
+#'   llm_client <- reticulate::import("openai")$OpenAI()
+#'   read_as_markdown(jpg,
+#'     llm_client = llm_client,
+#'     llm_model = "gpt-4o"
+#'   )
+#' }
+#'
+#' Alternative image conversion:
+#' library(ellmer)
+#' chat <- chat_openai(echo = TRUE)
+#' chat$chat("Describe this image", content_image_file(jpg))
+read_as_markdown <- function(x, ..., canonical = FALSE) {
   # ... kwargs that can be passed down. These can be supplied to
   # MarkItDown.__init__() or passed on to individual convert() kwargs:
   # llm_client
@@ -24,7 +63,16 @@ read_as_markdown <- function(x, ...) {
   # file_extension
   # url
   convert <- .globals$markitdown$convert %||% init_markitdown()$convert
-  as_glue(convert(x, ...))
+  md <- convert(x, ...)
+  md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
+  if (canonical)
+    md <- commonmark::markdown_commonmark(md,
+      normalize = TRUE,
+      footnotes = TRUE,
+      width = 72L,
+      extensions = TRUE
+    )
+  md
 }
 
 
