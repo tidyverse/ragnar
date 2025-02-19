@@ -9,7 +9,7 @@
 #'   stri_replace_first_regex stri_replace_na stri_replace_first_fixed
 #'   stri_endswith_fixed
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
-#'   xml_url url_absolute
+#'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @importFrom tidyr unchop

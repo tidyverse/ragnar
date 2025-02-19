@@ -23,7 +23,6 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
         if (text) xml_text(node)
       },
       pre = {
-        # browser()
         lang <- xml_find_first(node, ".//code/@class") |>
           xml_text() |>
           stri_replace_first_fixed("sourceCode ", "") |>
@@ -32,20 +31,21 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
         txt <- xml_text(node)
 
         stri_c("```", lang, "\n", txt,
-               if(!stri_endswith_fixed(txt, "\n")) "\n", "```")
+               if(!stri_endswith_fixed(txt, "\n")) "\n", "```\n")
       },
       br = { "\n" },
       code = { stri_c("`", markdown_contents(node), "`") },
       strong = { stri_c("**", markdown_contents(node), "**") },
       i = , em = { stri_c("_", markdown_contents(node), "_") },
-      h1 = { stri_c("# ", markdown_contents(node, trim = TRUE), "\n") },
-      h2 = { stri_c("## ", markdown_contents(node, trim = TRUE), "\n") },
-      h3 = { stri_c("### ", markdown_contents(node, trim = TRUE), "\n") },
-      h4 = { stri_c("#### ", markdown_contents(node, trim = TRUE), "\n") },
-      h5 = { stri_c("##### ", markdown_contents(node, trim = TRUE), "\n") },
-      h6 = { stri_c("###### ", markdown_contents(node, trim = TRUE), "\n") },
+      header = ,
+      h1 = { stri_c("# ", markdown_contents(node, trim = TRUE), "\n\n") },
+      h2 = { stri_c("## ", markdown_contents(node, trim = TRUE), "\n\n") },
+      h3 = { stri_c("### ", markdown_contents(node, trim = TRUE), "\n\n") },
+      h4 = { stri_c("#### ", markdown_contents(node, trim = TRUE), "\n\n") },
+      h5 = { stri_c("##### ", markdown_contents(node, trim = TRUE), "\n\n") },
+      h6 = { stri_c("###### ", markdown_contents(node, trim = TRUE), "\n\n") },
       # squash + trim for <p>?
-      p = { stri_c(stri_trim_both(markdown_contents(node)), "\n") },
+      p = { stri_c(markdown_contents(node, trim = TRUE), "\n\n") },
       a = {
         link <- xml_attr(node, "href", default = "")
         if(nzchar(link)) {
@@ -80,7 +80,7 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
 
        items <- stri_replace_all_fixed(items, "\n", "\n  ")
        items <- stri_c("- ", items, sep) |> stri_flatten()
-       stri_c("  ", stri_split_lines1(items), "\n") |>
+       stri_c(stri_split_lines1(items), "\n") |>
          c(if (sep == "\n") "\n") |> stri_flatten()
       },
       ol = {
@@ -92,11 +92,11 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
         nums <- seq.int(from = start, along.with = items)
 
         items <- stri_c(nums, ". ", items, sep) |> stri_flatten()
-        stri_c("  ", stri_split_lines1(items), "\n") |>
+        stri_c(stri_split_lines1(items), "\n") |>
           c(if (sep == "\n") "\n") |> stri_flatten()
       },
       li = {
-        markdown_contents(node)
+        markdown_contents(node, trim = FALSE) |> stri_trim_both()
       },
       table = {
         if (convert_table) {
@@ -135,6 +135,13 @@ html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empt
       td = {
         markdown_contents(node)
       },
+      figcaption = xml_text(node) |> stri_trim_both() |> stri_c("\n\n"),
+      div = markdown_contents(node, text = FALSE, trim = TRUE) |> stri_c("\n\n"),
+      section = markdown_contents(node, text = FALSE, trim = TRUE) |> stri_c("\n\n"),
+      # span = ,
+      # section = ,
+      # footer = markdown_contents(node, trim = TRUE),
+      # head = {},
       script = {},
       style = {},
       noscript = {},
