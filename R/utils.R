@@ -34,6 +34,7 @@ NULL
 
 `%empty%` <- function(x, y) if (length(x)) x else y
 `add<-` <- function(x, value) x + value
+first <- function(x) x[[1L]]
 last <- function(x) x[[length(x)]]
 drop_last <- function(x) x[-length(x)]
 drop_first <- function(x) x[-1L]

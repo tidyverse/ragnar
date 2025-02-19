@@ -28,10 +28,9 @@ read_as_markdown <- function(x, ...) {
 }
 
 
-markdown_segment <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_empty = TRUE) {
-
-  lines <- text |> stri_split_lines() |> unlist() |> stri_c("\n")
-  text <- lines |> stri_flatten()
+markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
+  lines <- text |> stri_split_lines() |> unlist()
+  text <- lines |> stri_flatten("\n")
 
   doc <- text |>
     commonmark::markdown_html(sourcepos = TRUE, extensions = TRUE, normalize = TRUE) |>
@@ -41,11 +40,10 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit
 
   df <- tibble::tibble(
     tag = elements |> xml_name(),
-    source_position = elements |> xml_attr("data-sourcepos"),
-    text = elements |> xml_text()
+    source_position = elements |> xml_attr("data-sourcepos")
   )
-
-  df <- dplyr::filter(df, tag %in% unique(c(tags)))
+  if (length(tags))
+    df <- dplyr::filter(df, tag %in% unique(c(tags)))
 
   # common mark returns positions as line:byte-line:byte
   # e.g., 52:1-52:20
@@ -54,28 +52,132 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit
   storage.mode(position) <- "integer"
   colnames(position) <- c("start_line", "start_byte", "end_line", "end_byte")
 
-  line_numbytes <- stri_numbytes(lines)
+  line_numbytes <- stri_numbytes(lines) + 1L # +1 for \n
   line_startbyte <- c(1L, 1L + drop_last(cumsum(line_numbytes)))
 
-  # position of start byte and end byte, inclusive
   start <- line_startbyte[position[, "start_line"]] + position[, "start_byte"] - 1L
   end <- line_startbyte[position[, "end_line"]] + position[, "end_byte"] - 1L
 
-  cuts <- sort(unique(c(rbind(start, end + 1L))))
+  ## To convert byte to char index:
+  # char_byte_indexes <- stri_split_boundaries(text, type = "character")[[1L]] |> stri_numbytes() |> cumsum()
+  # start <- match(start, char_byte_indexes)
+  # end <- match(end, char_byte_indexes)
+  tibble::tibble(tag = df$tag, start = start, end = end)
+}
+
+
+#' Segment markdown text
+#'
+#' @param text Markdown string
+#' @param tags A character vector of html tag names, e.g., `c("h1", "h2", "h3", "pre")`
+#' @param trim logical, trim whitespace on segments
+#' @param omit_empty logical, whether to remove empty segments
+#'
+#' @returns A named character vector. Names will correspond to `tags`, or `""` for content inbetween tags.
+#' @export
+#'
+#' @examples
+#' md <- r"---(
+#'
+#' # Sample Markdown File
+#'
+#' ## Introduction
+#'
+#' This is a sample **Markdown** file for testing.
+#'
+#' ### Features
+#'
+#' - Simple **bold** text
+#' - _Italicized_ text
+#' - `Inline code`
+#' - A [link](https://example.com)
+#' - ‘Curly quotes are 3 bytes chars.’ Non-ascii text is fine.
+#'
+#' This is a paragraph with <p> tag.
+#'
+#' This next segment with code has a <pre> tag
+#'
+#' ```r
+#' hello_world <- function() {
+#'   cat("Hello, World!\n")
+#' }
+#' ```
+#'
+#' A table <table>:
+#'
+#'   | Name  | Age | City      |
+#'   |-------|----:|----------|
+#'   | Alice |  25 | New York |
+#'   | Bob   |  30 | London   |
+#'
+#'
+#' ## Conclusion
+#'
+#' Common tags:
+#'
+#' - h1, h2, h3, h4, h5, h6: section headings
+#' - p: paragraph (prose)
+#' - pre: pre-formatted text, meant to be displayed with monospace font. Typically code or code output
+#' - blockquote: A blockquote
+#' - table: A table
+#' - ul: Unordered list
+#' - ol: Ordered list
+#' - li: Individual list item in a <ul> or <ol>
+#'
+#'
+#' )---"
+#' markdown_segment(md, c("h1", "h2", "h3")) |> tibble::enframe()
+#' markdown_segment(md, c("li"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
+#' markdown_segment(md, c("table"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
+#' markdown_segment(md, c("ul"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
+markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALSE, omit_empty = FALSE) {
+  # normalize newlines
+  text <- text |> stri_split_lines() |> unlist() |> stri_flatten("\n")
+
+  # get cut positions
+  sourcepos <- markdown_locate_boundaries_bytes_index(text, tags = tags)
+  cut_byte_indices <- sort(unique(c(sourcepos$start, sourcepos$end+1L)))
+
+  # split
+  np <- reticulate::import("numpy")
+  splits <- np$split(
+    as.array(charToRaw(md)),
+    as.array(cut_byte_indices - 1L)
+  ) |> vapply(rawToChar, "")
+
+  if (trim)
+    splits <- stri_trim_both(splits) # drops names
+
+  # make names
+  split_tags <- sourcepos$tag[match(cut_byte_indices, sourcepos$start)]
+  split_tags[is.na(split_tags)] <- ""
+  if(first(cut_byte_indices) != 1L) {
+    split_tags <- c("", split_tags)
+  }
+  if(length(splits) != length(split_tags)){
+    # last(cuts_index) != stri_numbytes(text)
+    split_tags <- c(split_tags, "")
+  }
+  stopifnot(length(splits) == length(split_tags))
+  names(splits) <- split_tags
+
+  if(omit_empty)
+    splits <- splits[nzchar(splits) | nzchar(names(splits))]
+
+  splits
+}
+
+
+markdown_segment_v0 <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_empty = TRUE) {
+
+  sourcepos <- markdown_locate_boundaries_bytes_index(text, tags)
+
+  cuts <- sort(unique(c(sourcepos$start, sourcepos$end + 1L)))
 
   nms <- c("", df$tag[match(cuts, start)])
   nms[is.na(nms)] <- ""
 
   bytes <- charToRaw(text)
-
-  # if(FALSE) {
-  #   np <- reticulate::import("numpy", convert = FALSE)
-  #   splits <- np$split(
-  #     as.array(charToRaw(text)),
-  #     as.array(cuts - 1L)
-  #   ) |> py_to_r() |> vapply(rawToChar, "")
-  # }
-
   sizes <- c(cuts, length(bytes) + 1L) - c(1L, cuts)
   splits <- vctrs::vec_chop(bytes, sizes = sizes) |> vapply(rawToChar, "")
 
