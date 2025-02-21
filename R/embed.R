@@ -82,7 +82,7 @@ embed_ollama <- function(x,
 embed_openai <- function(x,
                          model = "text-embedding-3-small",
                          base_url = "https://api.openai.com/v1",
-                         api_key = openai_key(),
+                         api_key = get_envvar("OPENAI_API_KEY"),
                          dims = NULL,
                          user = get_ragnar_username(),
                          batch_size = 20L) {
@@ -159,15 +159,11 @@ embed_openai <- function(x,
   matrix(unlist(embeddings), nrow = length(text), byrow = TRUE)
 }
 
-openai_key <- function() {
-  get_envvar("OPENAI_API_KEY")
-}
-
 
 # ---- utils ----
 
 get_envvar <- function(name, error_call = caller_env()) {
-  val <- Sys.getenv(name, NA)
+  val <- Sys.getenv(name, NA_character_)
   if (is.na(val)) {
     if (is_testing()) {
       testthat::skip(sprintf("%s env var is not configured", name))
@@ -180,4 +176,8 @@ get_envvar <- function(name, error_call = caller_env()) {
 
 get_ragnar_username <- function() {
   sprintf("'%s' via ragnar", Sys.info()[["user"]])
+}
+
+is_testing <- function() {
+  identical(Sys.getenv("TESTTHAT"), "true")
 }

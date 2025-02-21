@@ -21,7 +21,7 @@ ragnar_store_create(
 \item{overwrite}{logical, what to do if \code{location} already exists}
 }
 \value{
-a \code{DuckDBRagnarStore} object, invisibly
+a \code{DuckDBRagnarStore} object
 }
 \description{
 Create and connect to a vector store

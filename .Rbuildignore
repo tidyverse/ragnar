@@ -4,3 +4,7 @@
 ^scratch.*
 ^examples$
 ^vignettes/articles$
+^\.github$
+^\.ruff_cache$
+^\.vscode$
+^.*ragnar\.duckdb$

@@ -1,4 +1,4 @@
-
+#' @rdname ragnar_retrieve
 #' @export
 ragnar_retrieve_vss <- function(store, text, top_k = 3L) {
   check_string(text)
@@ -26,6 +26,7 @@ ragnar_retrieve_vss <- function(store, text, top_k = 3L) {
 }
 
 #' @export
+#' @rdname ragnar_retrieve
 ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
   check_string(text)
   check_number_whole(top_k)
@@ -46,8 +47,21 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
 }
 
 
+
+#' Retreive chunks from a `RagnarStore`
+#'
+#' @param store A `RagnarStore` object.
+#' @param text A string to find the nearest match too
+#' @param top_k Integer, the number of nearest entries to find *per method*.
+#' @param methods A character vector of methods. `vss` and `bm25` are
+#'   implemented.
+#'
+#' @returns A dataframe of retrieved chunks. Each row corresponds to an
+#'   individual chunk in the store, and the last column in the dataframe is
+#'   always named 'text', and contains the chunks.
 #' @export
 ragnar_retrieve <- function(store, text, top_k = 3L, methods = c("vss", "bm25")) {
+
   check_string(text)
   check_number_whole(top_k)
 

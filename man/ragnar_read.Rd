@@ -35,7 +35,7 @@ data frame, otherwise, the markdown is returned as a string.
 }
 \examples{
 file <- tempfile(fileext = ".html")
-download.file("https://r4ds.hadley.nz/base-r", file, quiet = TRUE)
+download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 
 # with no arguments, returns a single string of the text.
 file |> ragnar_read() |> str()

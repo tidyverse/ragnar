@@ -17,7 +17,7 @@
 #' @noRd
 #'
 #' @examples
-#' html_text3("https://r4ds.hadley.nz/base-r") |>
+#' html_text3("https://r4ds.hadley.nz/base-R.html") |>
 #'   tibble::enframe()
 html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_html(file)) {
   if("p" %in% split_tags)
@@ -182,7 +182,7 @@ vec_frame_flattened_tree_impl <-
 #'
 #' @examples
 #' file <- tempfile(fileext = ".html")
-#' download.file("https://r4ds.hadley.nz/base-r", file, quiet = TRUE)
+#' download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 #'
 #' # with no arguments, returns a single string of the text.
 #' file |> ragnar_read_document() |> str()
@@ -310,7 +310,7 @@ ragnar_read_document <- function(x, ...,
 #' @export
 #'
 #' @examples
-#' ragnar_find_links("https://r4ds.hadley.nz/base-r")
+#' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 ragnar_find_links <- function(x, external = FALSE) {
   if (!inherits(x, "xml_node")) {
     x <- read_html(x)

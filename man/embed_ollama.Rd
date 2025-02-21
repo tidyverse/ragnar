@@ -16,7 +16,7 @@ embed_openai(
   x,
   model = "text-embedding-3-small",
   base_url = "https://api.openai.com/v1",
-  api_key = openai_key(),
+  api_key = get_envvar("OPENAI_API_KEY"),
   dims = NULL,
   user = get_ragnar_username(),
   batch_size = 20L

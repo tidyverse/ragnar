@@ -20,5 +20,5 @@ A character vector of links on the page.
 Find links on a page
 }
 \examples{
-ragnar_find_links("https://r4ds.hadley.nz/base-r")
+ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 }

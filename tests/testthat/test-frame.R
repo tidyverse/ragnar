@@ -100,12 +100,12 @@ test_that("vec_frame_flattened_tree works 3", {
     "h2" = "second Level 2 Heading",
     "lmn"
   )
-
   expected <- vctrs::data_frame(
-    h1 = c("Level 1 Heading", "Level 1 Heading", "Level 1 Heading", "Level 1 Heading"),
-    h2 = c(NA, "Level 2 Heading", "Level 2 Heading", "second Level 2 Heading"),
-    .name = c("", "some name", "some name", NA),
-    .content = c("abc", "def", "ghi", NA)
+    h1 = rep("Level 1 Heading", 5),
+    h2 = c(NA, rep("Level 2 Heading", 3), "second Level 2 Heading"),
+    h3 = c(NA, NA, NA, "level 3 heading", NA),
+    .name = c("", "some name", "some name", NA, ""),
+    .content = c("abc", "def", "ghi", NA, "lmn")
   )
 
   frame <- vec_frame_flattened_tree(vec, c("h1", "h2", "h3"))

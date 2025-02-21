@@ -45,8 +45,9 @@ if(FALSE) {
   )
 }
 
-Alternative image conversion:
-library(ellmer)
-chat <- chat_openai(echo = TRUE)
-chat$chat("Describe this image", content_image_file(jpg))
+# Alternative approach to image conversion:
+if (rlang::is_installed("magick")) {
+  chat <- ellmer::chat_openai(echo = TRUE)
+  chat$chat("Describe this image", content_image_file(jpg))
+}
 }

@@ -26,9 +26,13 @@ Imports:
     S7,
     reticulate (>= 1.40.0.9001),
     pandoc,
-    commonmark
+    commonmark,
+    blob,
+    cli
 Suggests:
+    ellmer,
     knitr,
+    readr,
     rmarkdown,
     stringr,
     testthat (>= 3.0.0)

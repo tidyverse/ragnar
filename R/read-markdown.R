@@ -44,10 +44,11 @@ init_markitdown <- function(...) {
 #'   )
 #' }
 #'
-#' Alternative image conversion:
-#' library(ellmer)
-#' chat <- chat_openai(echo = TRUE)
-#' chat$chat("Describe this image", content_image_file(jpg))
+#' # Alternative approach to image conversion:
+#' if (rlang::is_installed("magick")) {
+#'   chat <- ellmer::chat_openai(echo = TRUE)
+#'   chat$chat("Describe this image", content_image_file(jpg))
+#' }
 read_as_markdown <- function(x, ..., canonical = FALSE) {
   # from reading markitdown sources, here are some kwargs that can be passed down.
   # These can be supplied to MarkItDown.__init__() or passed on to individual convert() kwargs:
@@ -87,7 +88,7 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
     source_position = elements |> xml_attr("data-sourcepos")
   )
   if (length(tags))
-    df <- dplyr::filter(df, tag %in% unique(c(tags)))
+    df <- df[df$tag %in% unique(c(tags)), ]
 
   # common mark returns positions as line:byte-line:byte
   # e.g., 52:1-52:20
@@ -216,34 +217,6 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALS
 }
 
 
-markdown_segment_v0 <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, omit_empty = TRUE) {
-
-  sourcepos <- markdown_locate_boundaries_bytes_index(text, tags)
-
-  cuts <- sort(unique(c(sourcepos$start, sourcepos$end + 1L)))
-
-  nms <- c("", df$tag[match(cuts, start)])
-  nms[is.na(nms)] <- ""
-
-  bytes <- charToRaw(text)
-  sizes <- c(cuts, length(bytes) + 1L) - c(1L, cuts)
-  splits <- vec_chop(bytes, sizes = sizes) |> vapply(rawToChar, "")
-
-  if(trim)
-    splits <- stri_trim_both(splits)
-
-  names(splits) <- nms
-
-  if(omit_empty) {
-    splits <- splits[nzchar(splits) | nzchar(names(splits))]
-  } else if (cuts[1L] != 1L) {
-    splits <- splits[-1L]
-  }
-  splits
-
-}
-
-
 markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), segment_by = NULL) {
   md <- markdown_segment(md, unique(c(frame_by, segment_by)))
   frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
@@ -260,7 +233,7 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
   ## TOOD: probably better to use commonmark instead of pandoc here.
   tmp_html <- tempfile(fileext = ".html")
   on.exit(unlink(tmp_html))
-  pandoc::pandoc_convert(text = md, to = "html", output = tmp_html)
+  pandoc::pandoc_convert(text = text, to = "html", output = tmp_html)
   html_text3(doc = read_html(tmp_html, encoding = "UTF-8"),
              split_tags = split_by)
 }
@@ -292,7 +265,7 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #'
 #' @examples
 #' file <- tempfile(fileext = ".html")
-#' download.file("https://r4ds.hadley.nz/base-r", file, quiet = TRUE)
+#' download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 #'
 #' # with no arguments, returns a single string of the text.
 #' file |> ragnar_read() |> str()

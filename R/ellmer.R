@@ -22,13 +22,14 @@
 #' ragnar_register_tool_retrieve(chat, store)
 #' chat$chat("How can I subset a dataframe?")
 ragnar_register_tool_retrieve <- function(chat, store, store_description = "the knowledge store", ...) {
+  rlang::check_installed("ellmer")
   store; list(...)
 
   chat$register_tool(
     ellmer::tool(
       .name = "rag_retrieve_from_knowledge_store",
       function(text) {
-        ragnar_retrieve(store, text, top_k = top_k)$text |>
+        ragnar_retrieve(store, text, ...)$text |>
           stringi::stri_flatten("\n\n---\n\n")
       },
       glue::glue("Given a string, retreive the most relevent excerpts from {store_description}."),

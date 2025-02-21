@@ -136,6 +136,7 @@ reorder_names <- function(..., last = NULL) {
 
 
 ollama_ls <- function() {
+  rlang::check_installed("readr")
   tbl <- system2("ollama", "list", stdout = TRUE)
   header <- tbl[1]
   col_starts <- stringi::stri_locate_all_words(header)[[1]][, "start"]

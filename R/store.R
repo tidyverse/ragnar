@@ -6,7 +6,7 @@
 #' @param embedding_size integer
 #' @param overwrite logical, what to do if `location` already exists
 #'
-#' @returns a `DuckDBRagnarStore` object, invisibly
+#' @returns a `DuckDBRagnarStore` object
 #' @export
 ragnar_store_create <- function(
     location = ":memory:",
@@ -17,7 +17,7 @@ ragnar_store_create <- function(
 
   if (file.exists(location)) {
     if (overwrite) {
-      unlink(locations)
+      unlink(location)
     } else {
       stop("File already exists: ", location)
     }
@@ -51,11 +51,25 @@ ragnar_store_create <- function(
   DuckDBRagnarStore(embed = embed, .con = con)
 }
 
+
+#' Connect to `RagnarStore`
+#'
+#' @param location string, a filepath location.
+#' @param ... unused; must be empty.
+#' @param read_only logical, whether the returned connection can be used to
+#'   modify the store.
+#' @param build_index logical, whether to call `ragnar_store_build_index()` when
+#'   creating the connection
+#'
+#' @returns a `RagnarStore` object.
 #' @export
+#'
+#' @rdname rangar_store_create
 ragnar_store_connect <- function(location = ":memory:",
                                  ...,
                                  read_only = FALSE,
                                  build_index = FALSE) {
+
   check_dots_empty()
   # mode = c("retreive", "insert")
   # mode <- match.arg(mode)
@@ -84,23 +98,38 @@ ragnar_store_connect <- function(location = ":memory:",
 }
 
 
+
+#' Insert chunks into a `RagnarStore`
+#'
+#' @param store a `RagnarStore` object
+#' @param chunks a character vector or a dataframe with a `text` column, and
+#'   optionally, a pre-computed `embedding` matrix column. If `embedding` is not
+#'   present, then `store@embed()` is used. `chunks` can also be a character
+#'   vector.
+#'
+#' @returns `store`, invisibly.
 #' @export
-ragnar_store_insert <- function(store, df) {
+ragnar_store_insert <- function(store, chunks) {
+
   # ?? swap arg order? piping in df will be more common...
+  # -- can do df |> ragnar_store_insert(store = store)
   if (!S7_inherits(store, RagnarStore)) {
     stop("store must be a RagnarStore")
   }
 
+  if(is.character(chunks))
+    chunks <- data_frame(text = chunks)
+
   stopifnot(
-    is.data.frame(df),
-    is.character(df$text)
+    is.data.frame(chunks),
+    is.character(chunks$text)
   )
 
-  if(!"embedding" %in% names(df))
-    df$embedding <- store@embed(df$text)
+  if(!"embedding" %in% names(chunks))
+    chunks$embedding <- store@embed(chunks$text)
 
   stopifnot(
-    is.matrix(df$embedding)
+    is.matrix(chunks$embedding)
     # ncol(df$embedding) == store@embedding_size
   )
 
@@ -111,8 +140,8 @@ ragnar_store_insert <- function(store, df) {
   # TODO: insert in batches?
   rows <- sprintf(
     "(array_value(%s), %s)",
-    df$embedding |> asplit(1) |> map_chr(stri_flatten, ", "),
-    DBI::dbQuoteString(store@.con, df$text)
+    chunks$embedding |> asplit(1) |> map_chr(stri_flatten, ", "),
+    DBI::dbQuoteString(store@.con, chunks$text)
   ) |> paste0(collapse = ",\n")
 
   stmt <- sprintf("INSERT INTO chunks (embedding, text) VALUES \n%s;", rows)
@@ -121,8 +150,20 @@ ragnar_store_insert <- function(store, df) {
 }
 
 
+
+#' Build a Ragnar Store index
+#'
+#' A search index must be built before calling `ragnar_retrieve()`. If
+#' additional entries are added to the store with `ragnar_store_insert()`,
+#' `ragnar_store_build_index()` must be called again to rebuild the index.
+#'
+#' @param store a `RagnarStore` object
+#' @param type The retrieval search type to build an index for.
+#'
+#' @returns `store`, invisibly.
 #' @export
 ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
+
   if(S7_inherits(store, DuckDBRagnarStore))
     con <- store@.con
   else if (methods::is(store, "DBIConnection"))
@@ -151,10 +192,10 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
     dbExecute(con, "PRAGMA create_fts_index('chunks', 'id', 'text', overwrite = 1);")
   }
 
-  invisible(con)
+  invisible(store)
 }
 
-#' @export
+# @export
 RagnarStore <- new_class(
   "RagnarStore",
   properties = list(
