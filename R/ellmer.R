@@ -1,0 +1,39 @@
+
+#' Register a 'retrieve' tool with ellmer
+#'
+#' @param chat a `ellmer:::Chat` object.
+#' @param store a string of a store location, or a `RagnarStore` object.
+#' @param store_description Optional string, used for composing the tool description.
+#' @param ... arguments passed on to `ragnar_retrieve()`.
+#'
+#' @returns `chat`, invisibly.
+#' @export
+#'
+#' @examplesIf file.exists("r4ds.ragnar.duckdb")
+#'
+#' system_prompt <- stringr::str_squish("
+#'     You are an expert assistant on R programming.
+#'     You often respond by first direct quoting material from book or documentation,
+#'     then adding your own additional context and interpertation.
+#'     ")
+#' chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
+#'
+#' store <- ragnar_store_connect("r4ds.ragnar.duckdb", read_only = TRUE)
+#' ragnar_register_tool_retrieve(chat, store)
+#' chat$chat("How can I subset a dataframe?")
+ragnar_register_tool_retrieve <- function(chat, store, store_description = "the knowledge store", ...) {
+  store; list(...)
+
+  chat$register_tool(
+    ellmer::tool(
+      .name = "rag_retrieve_from_knowledge_store",
+      function(text) {
+        ragnar_retrieve(store, text, top_k = top_k)$text |>
+          stringi::stri_flatten("\n\n---\n\n")
+      },
+      glue::glue("Given a string, retreive the most relevent excerpts from {store_description}."),
+      text = ellmer::type_string("The text to find the most relevent matches for.")
+    )
+  )
+  invisible(chat)
+}
