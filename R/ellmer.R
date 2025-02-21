@@ -9,7 +9,7 @@
 #' @returns `chat`, invisibly.
 #' @export
 #'
-#' @examplesIf file.exists("r4ds.ragnar.duckdb")
+#' @examplesIf file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != ""
 #'
 #' system_prompt <- stringr::str_squish("
 #'     You are an expert assistant on R programming.

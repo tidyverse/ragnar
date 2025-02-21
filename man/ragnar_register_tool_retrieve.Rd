@@ -27,7 +27,7 @@ ragnar_register_tool_retrieve(
 Register a 'retrieve' tool with ellmer
 }
 \examples{
-\dontshow{if (file.exists("r4ds.ragnar.duckdb")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != "") (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 
 system_prompt <- stringr::str_squish("
     You are an expert assistant on R programming.

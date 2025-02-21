@@ -59,6 +59,7 @@ Embedd Text
 }
 \examples{
 text <- c("a chunk of text", "another chunk of text", "one more chunk of text")
+\dontrun{
 text |>
   embed_ollama() |>
   str()
@@ -66,4 +67,5 @@ text |>
 text |>
   embed_openai() |>
   str()
+}
 }

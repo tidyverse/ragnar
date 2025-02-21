@@ -46,7 +46,7 @@ if(FALSE) {
 }
 
 # Alternative approach to image conversion:
-if (rlang::is_installed("magick")) {
+if (rlang::is_installed("magick") && Sys.getenv("OPENAI_API_KEY") != "") {
   chat <- ellmer::chat_openai(echo = TRUE)
   chat$chat("Describe this image", content_image_file(jpg))
 }
