@@ -7,19 +7,14 @@ init_markitdown <- function(...) {
   .globals$markitdown <- reticulate::import("markitdown")$MarkItDown(...)
 }
 
-cli_markitdown <- function(...) {
-  reticulate::uv_run_tool(
-    "markitdown", c(...),
-    from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown"
-  )
-}
 
 
 #' Convert files to markdown
 #'
 #' @param x A filepath or url
 #' @param ... Passed on to `MarkItDown.convert()`
-#' @param canonical logical, whether to postprocess the output from MarkItDown with `commonmark::markdown_commonmark()`.
+#' @param canonical logical, whether to postprocess the output from MarkItDown
+#'   with `commonmark::markdown_commonmark()`.
 #'
 #' @returns A single string of markdown
 #' @export
@@ -54,8 +49,8 @@ cli_markitdown <- function(...) {
 #' chat <- chat_openai(echo = TRUE)
 #' chat$chat("Describe this image", content_image_file(jpg))
 read_as_markdown <- function(x, ..., canonical = FALSE) {
-  # ... kwargs that can be passed down. These can be supplied to
-  # MarkItDown.__init__() or passed on to individual convert() kwargs:
+  # from reading markitdown sources, here are some kwargs that can be passed down.
+  # These can be supplied to MarkItDown.__init__() or passed on to individual convert() kwargs:
   # llm_client
   # llm_model
   # style_map  (used for docx conversion)
@@ -65,6 +60,7 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   convert <- .globals$markitdown$convert %||% init_markitdown()$convert
   md <- convert(x, ...)
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
+  md <- unlist(stri_split_lines(md)) # normalize newlines
   if (canonical)
     md <- commonmark::markdown_commonmark(md,
       normalize = TRUE,
@@ -96,7 +92,7 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   # common mark returns positions as line:byte-line:byte
   # e.g., 52:1-52:20
   position <- df$source_position |>
-    stringi::stri_split_charclass("[-:]", n = 4L, simplify = TRUE)
+    stri_split_charclass("[-:]", n = 4L, simplify = TRUE)
   storage.mode(position) <- "integer"
   colnames(position) <- c("start_line", "start_byte", "end_line", "end_byte")
 
@@ -174,43 +170,47 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 #'
 #'
 #' )---"
-#' markdown_segment(md, c("h1", "h2", "h3")) |> tibble::enframe()
+#' markdown_segment(md) |> tibble::enframe()
+#' markdown_segment(md |> trimws()) |> tibble::enframe()
 #' markdown_segment(md, c("li"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 #' markdown_segment(md, c("table"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 #' markdown_segment(md, c("ul"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALSE, omit_empty = FALSE) {
   # normalize newlines
   text <- text |> stri_split_lines() |> unlist() |> stri_flatten("\n")
+  bytes <- charToRaw(text)
 
   # get cut positions
   sourcepos <- markdown_locate_boundaries_bytes_index(text, tags = tags)
-  cut_byte_indices <- sort(unique(c(sourcepos$start, sourcepos$end+1L)))
+  tag_boundaries <- sort(unique(c(sourcepos$start, sourcepos$end+1L)))
+  boundaries <- c(1L, tag_boundaries, length(bytes)+1L)
 
   # split
-  np <- reticulate::import("numpy")
-  splits <- np$split(
-    as.array(charToRaw(md)),
-    as.array(cut_byte_indices - 1L)
-  ) |> vapply(rawToChar, "")
+  # np <- reticulate::import("numpy")
+  # splits <- np$split(as.array(bytes), as.array(cuts - 1L)) |> vapply(rawToChar, "")
+  sizes <- drop_first(boundaries) - drop_last(boundaries)
+  splits <- vec_chop(bytes, sizes = sizes) |> vapply(rawToChar, "")
 
   if (trim)
     splits <- stri_trim_both(splits) # drops names
 
   # make names
-  split_tags <- sourcepos$tag[match(cut_byte_indices, sourcepos$start)]
+  split_tags <- c("", sourcepos$tag[match(tag_boundaries, sourcepos$start)])
   split_tags[is.na(split_tags)] <- ""
-  if(first(cut_byte_indices) != 1L) {
-    split_tags <- c("", split_tags)
-  }
-  if(length(splits) != length(split_tags)){
-    # last(cuts_index) != stri_numbytes(text)
-    split_tags <- c(split_tags, "")
-  }
   stopifnot(length(splits) == length(split_tags))
   names(splits) <- split_tags
 
-  if(omit_empty)
+  if (omit_empty) {
     splits <- splits[nzchar(splits) | nzchar(names(splits))]
+  } else {
+    empty_bookend <- c(
+      if (sizes[1L] == 0L) 1L,
+      if (last(sizes) == 0L) length(splits)
+    )
+    if (length(empty_bookend)) {
+      splits <- splits[-empty_bookend]
+    }
+  }
 
   splits
 }
@@ -227,7 +227,7 @@ markdown_segment_v0 <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, o
 
   bytes <- charToRaw(text)
   sizes <- c(cuts, length(bytes) + 1L) - c(1L, cuts)
-  splits <- vctrs::vec_chop(bytes, sizes = sizes) |> vapply(rawToChar, "")
+  splits <- vec_chop(bytes, sizes = sizes) |> vapply(rawToChar, "")
 
   if(trim)
     splits <- stri_trim_both(splits)
@@ -244,10 +244,10 @@ markdown_segment_v0 <- function(text, tags = c("h1", "h2", "h3"), trim = TRUE, o
 }
 
 
-markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), split_by = c("p", "pre")) {
-  md <- markdown_segment(md, split_by = unique(c(frame_by, split_by)))
+markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), segment_by = NULL) {
+  md <- markdown_segment(md, unique(c(frame_by, segment_by)))
   frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
-  if (base::setequal(split_by, frame_by))
+  if (!length(segment_by) || base::setequal(segment_by, frame_by))
     frame[["tag"]] <- NULL
   as_tibble(frame)
 }
@@ -376,4 +376,16 @@ ragnar_read <- function(x, ...,
   }
 
   as_tibble(frame)
+}
+
+
+
+
+# ------ utils
+
+cli_markitdown <- function(...) {
+  reticulate::uv_run_tool(
+    "markitdown", c(...),
+    from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown"
+  )
 }

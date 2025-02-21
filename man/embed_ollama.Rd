@@ -60,6 +60,10 @@ Embedd Text
 \examples{
 text <- c("a chunk of text", "another chunk of text", "one more chunk of text")
 text |>
-  ragnar_embed_ollama() |>
+  embed_ollama() |>
+  str()
+
+text |>
+  embed_openai() |>
   str()
 }

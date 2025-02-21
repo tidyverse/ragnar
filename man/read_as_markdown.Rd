@@ -11,7 +11,8 @@ read_as_markdown(x, ..., canonical = FALSE)
 
 \item{...}{Passed on to \code{MarkItDown.convert()}}
 
-\item{canonical}{logical, whether to postprocess the output from MarkItDown with \code{commonmark::markdown_commonmark()}.}
+\item{canonical}{logical, whether to postprocess the output from MarkItDown
+with \code{commonmark::markdown_commonmark()}.}
 }
 \value{
 A single string of markdown

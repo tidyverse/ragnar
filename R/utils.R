@@ -7,14 +7,15 @@
 #'   stri_extract_last_regex stri_startswith_charclass stri_replace_last_regex
 #'   stri_replace_all_regex stri_replace_all_fixed stri_split_lines1
 #'   stri_replace_first_regex stri_replace_na stri_replace_first_fixed
-#'   stri_endswith_fixed
+#'   stri_endswith_fixed stri_trim_both stri_split_charclass
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
-#'   vec_fill_missing vec_unique vec_slice vec_c
+#'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
+#'   vec_chop
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString

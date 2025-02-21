@@ -76,7 +76,8 @@ Common tags:
 
 
 )---"
-markdown_segment(md, c("h1", "h2", "h3")) |> tibble::enframe()
+markdown_segment(md) |> tibble::enframe()
+markdown_segment(md |> trimws()) |> tibble::enframe()
 markdown_segment(md, c("li"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 markdown_segment(md, c("table"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 markdown_segment(md, c("ul"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
