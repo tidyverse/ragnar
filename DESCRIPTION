@@ -35,7 +35,6 @@ Suggests:
     rmarkdown,
     stringr,
     testthat (>= 3.0.0)
-VignetteBuilder: knitr
 Config/Needs/website: rmarkdown
 Config/testthat/edition: 3
 Remotes:
