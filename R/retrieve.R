@@ -48,7 +48,7 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
 
 
 
-#' Retreive chunks from a `RagnarStore`
+#' Retrieve chunks from a `RagnarStore`
 #'
 #' @param store A `RagnarStore` object.
 #' @param text A string to find the nearest match too

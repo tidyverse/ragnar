@@ -32,7 +32,7 @@ ragnar_register_tool_retrieve <- function(chat, store, store_description = "the 
         ragnar_retrieve(store, text, ...)$text |>
           stringi::stri_flatten("\n\n---\n\n")
       },
-      glue::glue("Given a string, retreive the most relevent excerpts from {store_description}."),
+      glue::glue("Given a string, retrieve the most relevent excerpts from {store_description}."),
       text = ellmer::type_string("The text to find the most relevent matches for.")
     )
   )

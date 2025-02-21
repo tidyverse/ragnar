@@ -71,9 +71,9 @@ ragnar_store_connect <- function(location = ":memory:",
                                  build_index = FALSE) {
 
   check_dots_empty()
-  # mode = c("retreive", "insert")
+  # mode = c("retrieve", "insert")
   # mode <- match.arg(mode)
-  # read_only <- mode == "retreive"
+  # read_only <- mode == "retrieve"
 
   con <- dbConnect(duckdb::duckdb(), dbdir = location, read_only = read_only)
 

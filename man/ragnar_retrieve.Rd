@@ -4,7 +4,7 @@
 \alias{ragnar_retrieve_vss}
 \alias{ragnar_retrieve_bm25}
 \alias{ragnar_retrieve}
-\title{Retreive chunks from a \code{RagnarStore}}
+\title{Retrieve chunks from a \code{RagnarStore}}
 \usage{
 ragnar_retrieve_vss(store, text, top_k = 3L)
 
@@ -28,5 +28,5 @@ individual chunk in the store, and the last column in the dataframe is
 always named 'text', and contains the chunks.
 }
 \description{
-Retreive chunks from a \code{RagnarStore}
+Retrieve chunks from a \code{RagnarStore}
 }
