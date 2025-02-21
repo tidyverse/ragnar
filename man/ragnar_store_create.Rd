@@ -14,7 +14,12 @@ ragnar_store_create(
 \arguments{
 \item{location}{filepath, or \verb{:memory:}}
 
-\item{embed}{A function that is called with a character vector and returns a matrix of embeddings}
+\item{embed}{A function that is called with a character vector and returns a
+matrix of embeddings. Note this function will be serialized and then
+deserialized in new R sessions, so it cannot reference to any objects in
+the global or parent environments. Make sure to namespace all function
+calls with \code{::}. If additional R objects must be available in the function,
+you can optionally supply a \code{carrier::crate()} with packaged data.}
 
 \item{embedding_size}{integer}
 

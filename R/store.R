@@ -2,7 +2,12 @@
 #' Create and connect to a vector store
 #'
 #' @param location filepath, or `:memory:`
-#' @param embed A function that is called with a character vector and returns a matrix of embeddings
+#' @param embed A function that is called with a character vector and returns a
+#'   matrix of embeddings. Note this function will be serialized and then
+#'   deserialized in new R sessions, so it cannot reference to any objects in
+#'   the global or parent environments. Make sure to namespace all function
+#'   calls with `::`. If additional R objects must be available in the function,
+#'   you can optionally supply a `carrier::crate()` with packaged data.
 #' @param embedding_size integer
 #' @param overwrite logical, what to do if `location` already exists
 #'
@@ -27,8 +32,10 @@ ragnar_store_create <- function(
   check_number_whole(embedding_size, min = 1)
   embedding_size <- as.integer(embedding_size)
 
-  # TODO: use carrier.
-  environment(embed) <- globalenv()
+  if(!inherits(embed, "crate")) {
+    environment(embed) <- baseenv()
+    embed <- rlang::zap_srcref(embed)
+  }
 
   metadata <- tibble::tibble(
     embedding_size,
@@ -38,8 +45,6 @@ ragnar_store_create <- function(
 
   # duckdb R interface does not support array columns yet,
   # so we hand-write the sql.
-
-  # dbExecute(con, )
   dbExecute(con, glue("
     CREATE SEQUENCE id_sequence START 1;
     CREATE TABLE chunks (
@@ -47,6 +52,11 @@ ragnar_store_create <- function(
       embedding FLOAT[{embedding_size}],
       text VARCHAR
     )"))
+
+  # read back in embed, so any problems with an R function that doesn't serialize
+  # correctly flush out early.
+  metadata <- dbReadTable(con, "metadata")
+  embed <- unserialize(metadata$embed_func[[1L]])
 
   DuckDBRagnarStore(embed = embed, .con = con)
 }
@@ -89,7 +99,6 @@ ragnar_store_connect <- function(location = ":memory:",
 
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
-  embedding_size <- metadata$embedding_size
 
   if (build_index)
     ragnar_store_build_index(con)
