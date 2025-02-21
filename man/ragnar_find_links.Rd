@@ -4,7 +4,7 @@
 \alias{ragnar_find_links}
 \title{Find links on a page}
 \usage{
-ragnar_find_links(x, external = FALSE)
+ragnar_find_links(x, external = FALSE, depth = 0L, verbose = TRUE)
 }
 \arguments{
 \item{x}{A URL, a path to an HTML file, or an XML document. If you have
@@ -12,6 +12,11 @@ Markdown, you can convert it to HTML using \code{\link[commonmark:commonmark]{co
 
 \item{external}{Logical. Whether to include links to external pages. If
 \code{FALSE} (the default), only relative links found in \code{x} are returned.}
+
+\item{depth}{Integer, the number of times to recurse and find additional
+links.}
+
+\item{verbose}{Logical, emit a \code{message()} while recursing, if \code{depth > 0}.}
 }
 \value{
 A character vector of links on the page.
@@ -21,4 +26,6 @@ Find links on a page
 }
 \examples{
 ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
+ragnar_find_links("https://ellmer.tidyverse.org/")
+ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
 }

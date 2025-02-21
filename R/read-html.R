@@ -306,24 +306,68 @@ ragnar_read_document <- function(x, ...,
 #' @param external Logical. Whether to include links to external pages. If
 #'   `FALSE` (the default), only relative links found in `x` are returned.
 #'
+#' @param depth Integer, the number of times to recurse and find additional
+#'   links.
+#'
+#' @param verbose Logical, emit a `message()` while recursing, if `depth > 0`.
+#'
 #' @return A character vector of links on the page.
 #' @export
 #'
 #' @examples
 #' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
-ragnar_find_links <- function(x, external = FALSE) {
+#' ragnar_find_links("https://ellmer.tidyverse.org/")
+#' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
+ragnar_find_links <- function(x, external = FALSE, depth = 0L, verbose = TRUE) {
   if (!inherits(x, "xml_node")) {
+    check_string(x)
     x <- read_html(x)
   }
-  html_find_links(x, type = if (external) "all" else "relative")
+
+  type <- if (external) "all" else "relative"
+  links <- html_find_links(x, type = type)
+
+  depth <- as.integer(depth)
+  if (!depth) {
+    return(sort(unique(links)))
+  }
+
+  host <- url_host(xml_url(x))
+  visited <- xml_url(x)
+  ## it might make sense to use a hashmap here
+  ## probably fastmap::fastmap()
+
+  get_child_links <- function(links, depth) {
+    if (!depth || !length(links)) {
+      return(links)
+    }
+
+    links_to_follow <- links[url_host(links) == host]
+    links_to_follow <- setdiff(links_to_follow, visited)
+    child_links <- unique(unlist(lapply(links_to_follow, function(link) {
+      if (link %in% visited) {
+        return()
+      }
+      if (verbose)
+        message("Finding links on: ", link)
+      visited[[length(visited) + 1L]] <<- link
+      html_find_links(link, type = type)
+    })))
+
+    unique(c(links, child_links, get_child_links(child_links, depth - 1L)))
+  }
+
+  sort(unique(get_child_links(links, depth)))
 }
 
 
+
+
 html_find_links <- function(x, type = c("all", "relative", "external"), absolute = TRUE) {
+
   if (!inherits(x, "xml_node")) {
     x <- read_html(x)
   }
-  base_url <- xml_url(x)
 
   links <- x |>
     xml_find_all(".//a[@href]") |>
@@ -335,16 +379,17 @@ html_find_links <- function(x, type = c("all", "relative", "external"), absolute
   links <- stri_replace_last_regex(links, "/$", "")  # strip trailing /
   links <- sort(unique(links))
 
-  is_relative <- stri_startswith_charclass(links, "[./]")
-
-  if (absolute) {
-    links <- url_absolute(links, base_url)
-  }
+  if (absolute)
+    links <- url_absolute(links, xml_url(x))
 
   # TODO: Allow filtering for child or sibling links only?
   switch(match.arg(type),
-         all = links,
-         relative = links[is_relative],
-         external = links[!is_relative]
+    all = links,
+    relative = links[url_host(links) == url_host(xml_url(x))],
+    external = links[url_host(links) != url_host(xml_url(x))]
   )
+}
+
+url_host <- function(x, baseurl = NULL) {
+  map_chr(x, \(url) curl::curl_parse_url(url, baseurl)$host %||% NA_character_)
 }

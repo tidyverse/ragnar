@@ -42,6 +42,7 @@ drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
 
 map_chr <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = "", ...)
+map_lgl <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = TRUE, ...)
 
 map2 <- function (.x, .y, .f, ...) {
   out <- .mapply(.f, list(.x, .y), list(...))
