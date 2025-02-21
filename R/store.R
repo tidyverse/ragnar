@@ -48,11 +48,7 @@ ragnar_store_create <- function(
       text VARCHAR
     )"))
 
-  invisible(DuckDBRagnarStore(
-    .con = con,
-    embed = embed,
-    embedding_size = embedding_size
-  ))
+  DuckDBRagnarStore(embed = embed, .con = con)
 }
 
 #' @export
@@ -84,7 +80,7 @@ ragnar_store_connect <- function(location = ":memory:",
   if (build_index)
     ragnar_store_build_index(con)
 
-  DuckDBRagnarStore(embed = embed, embedding_size = embedding_size, .con = con)
+  DuckDBRagnarStore(embed = embed, .con = con)
 }
 
 
@@ -104,8 +100,8 @@ ragnar_store_insert <- function(store, df) {
     df$embedding <- store@embed(df$text)
 
   stopifnot(
-    is.matrix(df$embedding),
-    ncol(df$embedding) == store@embedding_size
+    is.matrix(df$embedding)
+    # ncol(df$embedding) == store@embedding_size
   )
 
   # duckdb-r does not support array columns yet.
