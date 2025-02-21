@@ -357,7 +357,7 @@ ragnar_find_links <- function(x, external = FALSE, depth = 0L, verbose = TRUE) {
     unique(c(links, child_links, get_child_links(child_links, depth - 1L)))
   }
 
-  sort(unique(get_child_links(links, depth)))
+  sort(unique(c(links, get_child_links(links, depth))))
 }
 
 

@@ -27,7 +27,8 @@ Imports:
     pandoc,
     commonmark,
     blob,
-    cli
+    cli,
+    curl
 Suggests:
     ellmer,
     knitr,
