@@ -300,14 +300,17 @@ ragnar_read_document <- function(x, ...,
 
 #' Find links on a page
 #'
-#' @param x A URL, a path to an HTML file, or an XML document. If you have
-#'   Markdown, you can convert it to HTML using [`commonmark::markdown_html()`].
+#' @param x URL, HTML file path, or XML document. For Markdown, convert to HTML
+#'   using [`commonmark::markdown_html()`] first.
 #'
-#' @param external Logical. Whether to include links to external pages. If
-#'   `FALSE` (the default), only relative links found in `x` are returned.
+#' @param depth Integer specifying how many levels deep to crawl for links. When
+#'   `depth > 0`, the function will follow child links (links with `x` as a
+#'   prefix) and collect links from those pages as well.
 #'
-#' @param depth Integer, the number of times to recurse and find additional
-#'   links.
+#' @param children_only Logical. If `TRUE`, returns only child links (those
+#'   having `x` as a prefix). If `FALSE`, returns all links found on the page.
+#'   Note that regardless of this setting, only child links are followed when
+#'   `depth > 0`.
 #'
 #' @param verbose Logical, emit a `message()` while recursing, if `depth > 0`.
 #'
@@ -318,13 +321,14 @@ ragnar_read_document <- function(x, ...,
 #' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 #' ragnar_find_links("https://ellmer.tidyverse.org/")
 #' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
-ragnar_find_links <- function(x, external = FALSE, depth = 0L, verbose = TRUE) {
+#' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2, children_only = FALSE)
+ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRUE) {
   if (!inherits(x, "xml_node")) {
     check_string(x)
     x <- read_html(x)
   }
 
-  type <- if (external) "all" else "relative"
+  type <- if (children_only) "children" else "all"
   links <- html_find_links(x, type = type)
 
   depth <- as.integer(depth)
@@ -332,7 +336,7 @@ ragnar_find_links <- function(x, external = FALSE, depth = 0L, verbose = TRUE) {
     return(sort(unique(links)))
   }
 
-  host <- url_host(xml_url(x))
+  parent_prefix <- url_normalize_stem(xml_url(x))
   visited <- xml_url(x)
   ## it might make sense to use a hashmap here
   ## probably fastmap::fastmap()
@@ -342,7 +346,7 @@ ragnar_find_links <- function(x, external = FALSE, depth = 0L, verbose = TRUE) {
       return(links)
     }
 
-    links_to_follow <- links[url_host(links) == host]
+    links_to_follow <- links[stri_startswith_fixed(links, parent_prefix)]
     links_to_follow <- setdiff(links_to_follow, visited)
     child_links <- unique(unlist(lapply(links_to_follow, function(link) {
       if (link %in% visited) {
@@ -363,7 +367,7 @@ ragnar_find_links <- function(x, external = FALSE, depth = 0L, verbose = TRUE) {
 
 
 
-html_find_links <- function(x, type = c("all", "relative", "external"), absolute = TRUE) {
+html_find_links <- function(x, type = c("all", "children", "external"), absolute = TRUE) {
 
   if (!inherits(x, "xml_node")) {
     x <- read_html(x)
@@ -385,11 +389,27 @@ html_find_links <- function(x, type = c("all", "relative", "external"), absolute
   # TODO: Allow filtering for child or sibling links only?
   switch(match.arg(type),
     all = links,
-    relative = links[url_host(links) == url_host(xml_url(x))],
-    external = links[url_host(links) != url_host(xml_url(x))]
+    children = links[stri_startswith_fixed(links, url_normalize_stem(xml_url(x)))],
+    external = links[!stri_startswith_fixed(links, url_host(xml_url(x)))]
   )
 }
 
 url_host <- function(x, baseurl = NULL) {
-  map_chr(x, \(url) curl::curl_parse_url(url, baseurl)$host %||% NA_character_)
+  map_chr(x, \(url) {
+    # tryCatch to guard against error from, e.g., "mailto:copilot-safety@github.com"
+    tryCatch(curl::curl_parse_url(url, baseurl)$host, error = \(e) NULL) %||% NA_character_
+  })
+}
+
+
+url_normalize_stem <- function(url) {
+  check_string(url)
+  # if (endsWith(url, "index.html")) {
+  #   dirname(dirname(url))
+  # } else
+  if (endsWith(url, ".html")) {
+    dirname(url)
+  } else {
+    url
+  }
 }

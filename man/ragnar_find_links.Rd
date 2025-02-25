@@ -4,17 +4,20 @@
 \alias{ragnar_find_links}
 \title{Find links on a page}
 \usage{
-ragnar_find_links(x, external = FALSE, depth = 0L, verbose = TRUE)
+ragnar_find_links(x, depth = 0L, children_only = TRUE, verbose = TRUE)
 }
 \arguments{
-\item{x}{A URL, a path to an HTML file, or an XML document. If you have
-Markdown, you can convert it to HTML using \code{\link[commonmark:commonmark]{commonmark::markdown_html()}}.}
+\item{x}{URL, HTML file path, or XML document. For Markdown, convert to HTML
+using \code{\link[commonmark:commonmark]{commonmark::markdown_html()}} first.}
 
-\item{external}{Logical. Whether to include links to external pages. If
-\code{FALSE} (the default), only relative links found in \code{x} are returned.}
+\item{depth}{Integer specifying how many levels deep to crawl for links. When
+\code{depth > 0}, the function will follow child links (links with \code{x} as a
+prefix) and collect links from those pages as well.}
 
-\item{depth}{Integer, the number of times to recurse and find additional
-links.}
+\item{children_only}{Logical. If \code{TRUE}, returns only child links (those
+having \code{x} as a prefix). If \code{FALSE}, returns all links found on the page.
+Note that regardless of this setting, only child links are followed when
+\code{depth > 0}.}
 
 \item{verbose}{Logical, emit a \code{message()} while recursing, if \code{depth > 0}.}
 }
@@ -28,4 +31,5 @@ Find links on a page
 ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 ragnar_find_links("https://ellmer.tidyverse.org/")
 ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
+ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2, children_only = FALSE)
 }
