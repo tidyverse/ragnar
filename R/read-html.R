@@ -307,7 +307,7 @@ ragnar_read_document <- function(x, ...,
 #'   `depth > 0`, the function will follow child links (links with `x` as a
 #'   prefix) and collect links from those pages as well.
 #'
-#' @param children_only Logical. If `TRUE`, returns only child links (those
+#' @param children_only Logical or string. If `TRUE`, returns only child links (those
 #'   having `x` as a prefix). If `FALSE`, returns all links found on the page.
 #'   Note that regardless of this setting, only child links are followed when
 #'   `depth > 0`.
@@ -322,21 +322,33 @@ ragnar_read_document <- function(x, ...,
 #' ragnar_find_links("https://ellmer.tidyverse.org/")
 #' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
 #' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2, children_only = FALSE)
+#' ragnar_find_links(
+#'   "https://github.com/Snowflake-Labs/sfquickstarts/tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection",
+#'   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
+#'   depth = 1
+#' )
 ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRUE) {
   if (!inherits(x, "xml_node")) {
     check_string(x)
     x <- read_html(x)
   }
 
-  type <- if (children_only) "children" else "all"
-  links <- html_find_links(x, type = type)
+  prefix <- if (isTRUE(children_only)) {
+    url_normalize_stem(xml_url(x))
+  } else if (is.character(children_only)) {
+    check_string(children_only)
+    children_only
+  } else {
+    NULL
+  }
+  links <- html_find_links(x, prefix = prefix)
 
   depth <- as.integer(depth)
   if (!depth) {
     return(sort(unique(links)))
   }
 
-  parent_prefix <- url_normalize_stem(xml_url(x))
+  recurse_root_prefix <- url_normalize_stem(xml_url(x))
   visited <- xml_url(x)
   ## it might make sense to use a hashmap here
   ## probably fastmap::fastmap()
@@ -346,7 +358,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRU
       return(links)
     }
 
-    links_to_follow <- links[stri_startswith_fixed(links, parent_prefix)]
+    links_to_follow <- stri_subset_startswith_fixed(links, recurse_root_prefix)
     links_to_follow <- setdiff(links_to_follow, visited)
     child_links <- unique(unlist(lapply(links_to_follow, function(link) {
       if (link %in% visited) {
@@ -355,7 +367,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRU
       if (verbose)
         message("Finding links on: ", link)
       visited[[length(visited) + 1L]] <<- link
-      html_find_links(link, type = type)
+      html_find_links(link, prefix = prefix)
     })))
 
     unique(c(links, child_links, get_child_links(child_links, depth - 1L)))
@@ -366,8 +378,10 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRU
 
 
 
-
-html_find_links <- function(x, type = c("all", "children", "external"), absolute = TRUE) {
+# E.g.,
+# for same site only: prefix = url_host(xml_url(x))
+# for child links only: prefix = url_normalize_stem(xml_url(x))
+html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
 
   if (!inherits(x, "xml_node")) {
     x <- read_html(x)
@@ -386,12 +400,10 @@ html_find_links <- function(x, type = c("all", "children", "external"), absolute
   if (absolute)
     links <- url_absolute(links, xml_url(x))
 
-  # TODO: Allow filtering for child or sibling links only?
-  switch(match.arg(type),
-    all = links,
-    children = links[stri_startswith_fixed(links, url_normalize_stem(xml_url(x)))],
-    external = links[!stri_startswith_fixed(links, url_host(xml_url(x)))]
-  )
+  if (!is.null(prefix))
+    links <- stri_subset_startswith_fixed(links, prefix)
+
+  links
 }
 
 url_host <- function(x, baseurl = NULL) {
@@ -412,4 +424,8 @@ url_normalize_stem <- function(url) {
   } else {
     url
   }
+}
+
+stri_subset_startswith_fixed <- function(str, pattern, ...) {
+  str[stri_startswith_fixed(str, pattern, ...)]
 }

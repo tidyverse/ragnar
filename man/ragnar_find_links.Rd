@@ -14,7 +14,7 @@ using \code{\link[commonmark:commonmark]{commonmark::markdown_html()}} first.}
 \code{depth > 0}, the function will follow child links (links with \code{x} as a
 prefix) and collect links from those pages as well.}
 
-\item{children_only}{Logical. If \code{TRUE}, returns only child links (those
+\item{children_only}{Logical or string. If \code{TRUE}, returns only child links (those
 having \code{x} as a prefix). If \code{FALSE}, returns all links found on the page.
 Note that regardless of this setting, only child links are followed when
 \code{depth > 0}.}
@@ -32,4 +32,9 @@ ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 ragnar_find_links("https://ellmer.tidyverse.org/")
 ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
 ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2, children_only = FALSE)
+ragnar_find_links(
+  "https://github.com/Snowflake-Labs/sfquickstarts/tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection",
+  children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
+  depth = 1
+)
 }
