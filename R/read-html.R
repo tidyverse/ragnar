@@ -307,12 +307,13 @@ ragnar_read_document <- function(x, ...,
 #'   `depth > 0`, the function will follow child links (links with `x` as a
 #'   prefix) and collect links from those pages as well.
 #'
-#' @param children_only Logical or string. If `TRUE`, returns only child links (those
-#'   having `x` as a prefix). If `FALSE`, returns all links found on the page.
-#'   Note that regardless of this setting, only child links are followed when
-#'   `depth > 0`.
+#' @param children_only Logical or string. If `TRUE`, returns only child links
+#'   (those having `x` as a prefix). If `FALSE`, returns all links found on the
+#'   page. Note that regardless of this setting, only child links are followed
+#'   when `depth > 0`.
 #'
-#' @param verbose Logical, emit a `message()` while recursing, if `depth > 0`.
+#' @param progress Logical, draw a progress bar if `depth > 0`. A separate
+#'   progress bar is drawn per recursion level.
 #'
 #' @return A character vector of links on the page.
 #' @export
@@ -327,7 +328,7 @@ ragnar_read_document <- function(x, ...,
 #'   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
 #'   depth = 1
 #' )
-ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRUE) {
+ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE) {
   if (!inherits(x, "xml_node")) {
     check_string(x)
     x <- read_html(x)
@@ -348,6 +349,8 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRU
     return(sort(unique(links)))
   }
 
+  # TODO: progress bar
+
   recurse_root_prefix <- url_normalize_stem(xml_url(x))
   visited <- xml_url(x)
   ## it might make sense to use a hashmap here
@@ -360,12 +363,20 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, verbose = TRU
 
     links_to_follow <- stri_subset_startswith_fixed(links, recurse_root_prefix)
     links_to_follow <- setdiff(links_to_follow, visited)
+    if(progress && length(links_to_follow)) {
+      msg <- if (depth > 1)
+          glue::glue("Following links... (recurse levels remaining: {depth-1})")
+      else
+        "Following links..."
+      progress_bar_id <-
+        cli::cli_progress_bar(msg, total = length(links_to_follow))
+    }
     child_links <- unique(unlist(lapply(links_to_follow, function(link) {
+      if (progress)
+        on.exit(cli::cli_progress_update(id = progress_bar_id), add = TRUE)
       if (link %in% visited) {
         return()
       }
-      if (verbose)
-        message("Finding links on: ", link)
       visited[[length(visited) + 1L]] <<- link
       html_find_links(link, prefix = prefix)
     })))

@@ -4,7 +4,7 @@
 \alias{ragnar_find_links}
 \title{Find links on a page}
 \usage{
-ragnar_find_links(x, depth = 0L, children_only = TRUE, verbose = TRUE)
+ragnar_find_links(x, depth = 0L, children_only = TRUE, progress = TRUE)
 }
 \arguments{
 \item{x}{URL, HTML file path, or XML document. For Markdown, convert to HTML
@@ -14,12 +14,13 @@ using \code{\link[commonmark:commonmark]{commonmark::markdown_html()}} first.}
 \code{depth > 0}, the function will follow child links (links with \code{x} as a
 prefix) and collect links from those pages as well.}
 
-\item{children_only}{Logical or string. If \code{TRUE}, returns only child links (those
-having \code{x} as a prefix). If \code{FALSE}, returns all links found on the page.
-Note that regardless of this setting, only child links are followed when
-\code{depth > 0}.}
+\item{children_only}{Logical or string. If \code{TRUE}, returns only child links
+(those having \code{x} as a prefix). If \code{FALSE}, returns all links found on the
+page. Note that regardless of this setting, only child links are followed
+when \code{depth > 0}.}
 
-\item{verbose}{Logical, emit a \code{message()} while recursing, if \code{depth > 0}.}
+\item{progress}{Logical, draw a progress bar if \code{depth > 0}. A separate
+progress bar is drawn per recursion level.}
 }
 \value{
 A character vector of links on the page.
