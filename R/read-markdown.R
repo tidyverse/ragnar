@@ -343,7 +343,8 @@ ragnar_read <- function(x, ...,
     return(text)
   }
 
-  text <- markdown_segment(text, tags = unique(c(split_by_tags, frame_by_tags)))
+  text <- markdown_segment(text, tags = unique(c(split_by_tags, frame_by_tags)),
+                           trim = TRUE, omit_empty = TRUE)
   if (is.null(frame_by_tags)) {
     # TODO?: Return a 2 col tibble, instead of a named vector.
     # return(enframe(text, "tag", "text"))
@@ -366,8 +367,15 @@ ragnar_read <- function(x, ...,
 
 # ------ utils
 
-cli_markitdown <- function(..., stdout = "", stderr = "",
-                           stdin = "", input = NULL, env = character(), wait = TRUE) {
+cli_markitdown <- function(...,
+                           stdout = "",
+                           stderr = "",
+                           stdin = "",
+                           input = NULL,
+                           env = character(),
+                           wait = TRUE) {
+  if (is.na(Sys.getenv("PYTHONIOENCODING", NA)))
+    withr::local_envvar("PYTHONIOENCODING" = "utf-8")
   reticulate::uv_run_tool(
     "markitdown", c(...),
     python_version = "3.11",

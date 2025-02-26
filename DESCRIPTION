@@ -28,7 +28,8 @@ Imports:
     commonmark,
     blob,
     cli,
-    curl
+    curl,
+    withr
 Suggests:
     ellmer,
     knitr,
