@@ -93,6 +93,11 @@ Key functions:
 -   `embed_ollama()`
 -   `embed_openai()`
 
+Note that calling the embedding function directly is typically not
+necessary. Instead, the embedding function is specified when a store is
+first created, and then automatically called when needed by
+`ragnar_retreive()` and `ragnar_store_insert()`.
+
 ### 5. Storage
 
 Processed data is stored in a format optimized for efficient searching,
@@ -125,8 +130,10 @@ Re-ranking of retrieved chunks is planned for future releases.
 
 ### 8. Prompt Generation
 
-`ragnar` will provide tools for incorporating retrieved chunks into LLM
-prompts.
+`ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
+enables an LLM to retreive content from a store on-demand.
+
+-   `ragnar_register_tool_retrieve(chat, store)`.
 
 ## Usage
 

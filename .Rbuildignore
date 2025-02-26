@@ -9,3 +9,6 @@
 ^\.vscode$
 ^.*ragnar\.duckdb$
 ^LICENSE\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

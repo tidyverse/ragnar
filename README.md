@@ -81,6 +81,11 @@ Key functions:
 - `embed_ollama()`
 - `embed_openai()`
 
+Note that calling the embedding function directly is typically not
+necessary. Instead, the embedding function is specified when a store is
+first created, and then automatically called when needed by
+`ragnar_retreive()` and `ragnar_store_insert()`.
+
 ### 5. Storage
 
 Processed data is stored in a format optimized for efficient searching,
@@ -113,8 +118,10 @@ Re-ranking of retrieved chunks is planned for future releases.
 
 ### 8. Prompt Generation
 
-`ragnar` will provide tools for incorporating retrieved chunks into LLM
-prompts.
+`ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
+enables an LLM to retreive content from a store on-demand.
+
+- `ragnar_register_tool_retrieve(chat, store)`.
 
 ## Usage
 
@@ -140,10 +147,12 @@ for (page in pages) {
   message("ingesting: ", page)
   chunks <- page |>
     ragnar_read(frame_by_tags = c("h1", "h2", "h3")) |>
+    dplyr::mutate(link = page) |>
     ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
     # add context to chunks
     dplyr::mutate(text = glue::glue(r"---(
     # Excerpt from the book "R for Data Science (2e)"
+    link: {link}
     chapter: {h1}
     section: {h2}
     subsection: {h3}
@@ -217,13 +226,14 @@ embedding_near_chunks
 #> # A tibble: 3 × 3
 #>      id l2sq_distance text                                                      
 #>   <int>         <dbl> <chr>                                                     
-#> 1    33         0.929 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
-#> 2   641         0.933 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
-#> 3    34         0.960 "# Excerpt from the book \"R for Data Science (2e)\"\ncha…
+#> 1    31         0.920 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…
+#> 2   625         0.941 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…
+#> 3   639         0.943 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…
 embedding_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 ```
 
     #> # Excerpt from the book "R for Data Science (2e)"
+    #> link: https://r4ds.hadley.nz/base-R.html
     #> chapter: # 27  A field guide to base R
     #> section: ## 27.2 Selecting multiple elements with `[`
     #> subsection: ### 27.2.2 Subsetting data frames
@@ -272,13 +282,14 @@ bm25_near_chunks
 #> # A tibble: 3 × 3
 #>      id bm25_score text                                                         
 #>   <int>      <dbl> <chr>                                                        
-#> 1    31       5.64 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
-#> 2   662       5.46 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
-#> 3   639       5.18 "# Excerpt from the book \"R for Data Science (2e)\"\nchapte…
+#> 1    29       5.62 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …
+#> 2   645       5.54 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …
+#> 3   624       5.07 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …
 bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 ```
 
     #> # Excerpt from the book "R for Data Science (2e)"
+    #> link: https://r4ds.hadley.nz/base-R.html
     #> chapter: # 27  A field guide to base R
     #> section: ## 27.2 Selecting multiple elements with `[`
     #> subsection: ### 27.2.1 Subsetting vectors
@@ -339,12 +350,12 @@ relevant_chunks
 #> # A tibble: 6 × 4
 #>      id l2sq_distance bm25_score text                                           
 #>   <int>         <dbl>      <dbl> <chr>                                          
-#> 1    33         0.929       2.92 "# Excerpt from the book \"R for Data Science …
-#> 2   641         0.933       3.57 "# Excerpt from the book \"R for Data Science …
-#> 3    34         0.960       2.39 "# Excerpt from the book \"R for Data Science …
-#> 4    31         0.965       5.64 "# Excerpt from the book \"R for Data Science …
-#> 5   662         1.01        5.46 "# Excerpt from the book \"R for Data Science …
-#> 6   639         1.15        5.18 "# Excerpt from the book \"R for Data Science …
+#> 1    31         0.920       2.91 "# Excerpt from the book \"R for Data Science …
+#> 2   625         0.941       3.58 "# Excerpt from the book \"R for Data Science …
+#> 3   639         0.943       2.58 "# Excerpt from the book \"R for Data Science …
+#> 4    29         0.980       5.62 "# Excerpt from the book \"R for Data Science …
+#> 5   645         0.971       5.54 "# Excerpt from the book \"R for Data Science …
+#> 6   624         1.22        5.07 "# Excerpt from the book \"R for Data Science …
 
 # Register ellmer tool
 ## You can register an ellmer tool to retrieve chunks as well.
@@ -362,62 +373,47 @@ ragnar_register_tool_retrieve(chat, store)
 chat$chat("How can I subset a dataframe?")
 ```
 
-    #> To subset a dataframe in R, you can use the `[` operator, which allows you to 
-    #> select rows and columns independently with `df[rows, cols]`. Here, `rows` and 
-    #> `cols` are vectors specifying the indices of the elements you want to retain. 
-    #> Here's a quick rundown based on "R for Data Science":
+    #> To subset a dataframe in R, you can use multiple methods depending on your 
+    #> needs. A common way to do this is with the square bracket `[` operator, which 
+    #> allows you to select rows and columns separately using a matrix-style indexing.
+    #> Here are some basic ways to subset a dataframe:
     #> 
-    #> 1. **Select specific rows and columns**: 
+    #> 1. **Select Specific Rows and Columns:**
+    #>    You can select specific rows and columns by specifying their indices inside 
+    #> the square brackets `df[rows, cols]`. Here's an example:
+    #> 
     #>    ```r
-    #>    df[1, 2] # Selects the first row and second column
+    #>    df <- data.frame(x = 1:3, y = c("a", "e", "f"), z = runif(3))
+    #> 
+    #>    df[1, 2]  # Selects the first row and second column.
+    #>    df[, c("x", "y")]  # Select all rows for columns x and y.
+    #>    df[df$x > 1, ]  # Select rows where x is greater than 1 with all columns.
     #>    ```
     #> 
-    #> 2. **Select all rows for specific columns**: 
+    #> 2. **Handling Tibbles vs. Data Frames:**
+    #>    It's important to understand the difference in behavior between tibbles and 
+    #> base data frames:
+    #> 
     #>    ```r
-    #>    df[, c("x" , "y")] # Selects all rows for columns 'x' and 'y'
+    #>    df1 <- data.frame(x = 1:3)
+    #>    df1[, "x"]  # Returns a vector.
+    #> 
+    #>    df2 <- tibble(x = 1:3)
+    #>    df2[, "x"]  # Always returns a tibble.
+    #> 
+    #>    # To avoid ambiguity in data.frames and ensure a dataframe output:
+    #>    df1[, "x", drop = FALSE]
     #>    ```
     #> 
-    #> 3. **Conditional selection**:
+    #> 3. **Logical Vectors:**
+    #>    Logical vectors are often used for conditional subsetting:
+    #> 
     #>    ```r
-    #>    df[df$x > 1, ] # Selects rows where `x` is greater than 1 and all columns
+    #>    x <- c(10, 3, NA, 5, 8, 1, NA)
+    #>    x[!is.na(x)]  # All non-missing values.
+    #>    x[x %% 2 == 0]  # All even values, including NA.
     #>    ```
     #> 
-    #> 4. **Dropping dimensions**:
-    #>    - For data frames, if you want to ensure the result is a data frame, 
-    #> especially when selecting a single column, you can specify `drop = FALSE`:
-    #>      ```r
-    #>      df1[, "x", drop = FALSE]
-    #>      ```
-    #> 
-    #> It's also important to note that tibbles, which are a tidyverse version of data
-    #> frames, always return a tibble and do not drop dimensions by default when 
-    #> subsetting.
-    #> 
-    #> Here's an example:
-    #> 
-    #> ```r
-    #> df <- tibble(
-    #>   x = 1:3,
-    #>   y = c("a", "e", "f"),
-    #>   z = runif(3)
-    #> )
-    #> 
-    #> # Selecting first row and second column
-    #> df[1, 2]
-    #> 
-    #> # Selecting all rows for columns x and y
-    #> df[, c("x", "y")]
-    #> 
-    #> # Selecting rows based on a condition
-    #> df[df$x > 1, ]
-    #> ```
-    #> 
-    #> You can subset vectors used as indices, as follows:
-    #> 
-    #> - **Positive integers** select elements at those positions.
-    #> - **Negative integers** exclude elements at specified positions.
-    #> - **Logical vectors** include elements where the index is `TRUE`.
-    #> - **Character vectors** can be used if your data frame has named columns.
-    #> 
-    #> This versatility in R's subsetting allows for precise and complex data 
-    #> manipulations effectively.
+    #> Each method has its specific use case and can be chosen based on the context of
+    #> what you're trying to achieve with your dataset. Understanding these subsetting
+    #> techniques provides flexibility in how you manipulate and analyze data frames.
