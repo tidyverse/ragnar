@@ -12,12 +12,12 @@ markdown_segment(
   omit_empty = FALSE
 )
 
-markdown_frame(md, frame_by = c("h1", "h2", "h3"), segment_by = NULL)
+markdown_frame(text, frame_by = c("h1", "h2", "h3"), segment_by = NULL)
 }
 \arguments{
 \item{text}{Markdown string}
 
-\item{tags}{A character vector of html tag names, e.g., \code{c("h1", "h2", "h3", "pre")}}
+\item{tags, segment_by}{A character vector of html tag names, e.g., \code{c("h1", "h2", "h3", "pre")}}
 
 \item{trim}{logical, trim whitespace on segments}
 

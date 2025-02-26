@@ -34,7 +34,8 @@ ragnar_find_links("https://ellmer.tidyverse.org/")
 ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
 ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2, children_only = FALSE)
 ragnar_find_links(
-  "https://github.com/Snowflake-Labs/sfquickstarts/tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection",
+  paste0("https://github.com/Snowflake-Labs/sfquickstarts/",
+         "tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection"),
   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
   depth = 1
 )

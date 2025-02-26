@@ -125,7 +125,7 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 #' Segment markdown text
 #'
 #' @param text Markdown string
-#' @param tags A character vector of html tag names, e.g., `c("h1", "h2", "h3", "pre")`
+#' @param tags,segment_by A character vector of html tag names, e.g., `c("h1", "h2", "h3", "pre")`
 #' @param trim logical, trim whitespace on segments
 #' @param omit_empty logical, whether to remove empty segments
 #'
@@ -230,9 +230,9 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALS
 #' @param frame_by Character vector of tags that will become columns in the returned dataframe.
 #' @export
 #' @rdname markdown_segment
-markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), segment_by = NULL) {
-  md <- markdown_segment(md, unique(c(frame_by, segment_by)))
-  frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
+markdown_frame <- function(text, frame_by = c("h1", "h2", "h3"), segment_by = NULL) {
+  text <- markdown_segment(text, unique(c(frame_by, segment_by)))
+  frame <- vec_frame_flattened_tree(text, frame_by, names = "tag", leaves = "text")
   if (!length(segment_by) || base::setequal(segment_by, frame_by))
     frame[["tag"]] <- NULL
   as_tibble(frame)
