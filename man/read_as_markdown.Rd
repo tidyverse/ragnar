@@ -9,7 +9,7 @@ read_as_markdown(x, ..., canonical = FALSE)
 \arguments{
 \item{x}{A filepath or url}
 
-\item{...}{Passed on to \code{MarkItDown.convert()}}
+\item{...}{These dots are for future extensions and must be empty.}
 
 \item{canonical}{logical, whether to postprocess the output from MarkItDown
 with \code{commonmark::markdown_commonmark()}.}
@@ -32,22 +32,4 @@ read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
 read_as_markdown(pdf)
 # pdftools::pdf_text(pdf)
-
-# convert images
-jpg <- file.path(R.home("doc"), "html", "logo.jpg")
-## currently broken https://github.com/microsoft/markitdown/issues/1036
-if(FALSE) {
-  reticulate::py_require("openai")
-  llm_client <- reticulate::import("openai")$OpenAI()
-  read_as_markdown(jpg,
-    llm_client = llm_client,
-    llm_model = "gpt-4o"
-  )
-}
-
-# Alternative approach to image conversion:
-if (rlang::is_installed("magick") && Sys.getenv("OPENAI_API_KEY") != "") {
-  chat <- ellmer::chat_openai(echo = TRUE)
-  chat$chat("Describe this image", content_image_file(jpg))
-}
 }

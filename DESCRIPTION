@@ -23,7 +23,7 @@ Imports:
     xml2,
     methods,
     S7,
-    reticulate (>= 1.40.0.9001),
+    reticulate (>= 1.41.0.9000),
     pandoc,
     commonmark,
     blob,

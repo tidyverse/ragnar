@@ -12,7 +12,8 @@ init_markitdown <- function(...) {
 #' Convert files to markdown
 #'
 #' @param x A filepath or url
-#' @param ... Passed on to `MarkItDown.convert()`
+#' @inheritParams rlang::args_dots_empty
+# ' @param ... Passed on to `MarkItDown.convert()`
 #' @param canonical logical, whether to postprocess the output from MarkItDown
 #'   with `commonmark::markdown_commonmark()`.
 #'
@@ -31,35 +32,43 @@ init_markitdown <- function(...) {
 #' pdf <- file.path(R.home("doc"), "NEWS.pdf")
 #' read_as_markdown(pdf)
 #' # pdftools::pdf_text(pdf)
-#'
-#' # convert images
-#' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
-#' ## currently broken https://github.com/microsoft/markitdown/issues/1036
-#' if(FALSE) {
-#'   reticulate::py_require("openai")
-#'   llm_client <- reticulate::import("openai")$OpenAI()
-#'   read_as_markdown(jpg,
-#'     llm_client = llm_client,
-#'     llm_model = "gpt-4o"
-#'   )
-#' }
-#'
-#' # Alternative approach to image conversion:
-#' if (rlang::is_installed("magick") && Sys.getenv("OPENAI_API_KEY") != "") {
-#'   chat <- ellmer::chat_openai(echo = TRUE)
-#'   chat$chat("Describe this image", content_image_file(jpg))
-#' }
+# '
+# ' # convert images
+# ' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
+# ' ## currently broken https://github.com/microsoft/markitdown/issues/1036
+# ' if(FALSE) {
+# '   reticulate::py_require("openai")
+# '   llm_client <- reticulate::import("openai")$OpenAI()
+# '   read_as_markdown(jpg,
+# '     llm_client = llm_client,
+# '     llm_model = "gpt-4o"
+# '   )
+# ' }
+# '
+# ' # Alternative approach to image conversion:
+# ' if (rlang::is_installed("magick") && Sys.getenv("OPENAI_API_KEY") != "") {
+# '   chat <- ellmer::chat_openai(echo = TRUE)
+# '   chat$chat("Describe this image", content_image_file(jpg))
+# ' }
 read_as_markdown <- function(x, ..., canonical = FALSE) {
-  # from reading markitdown sources, here are some kwargs that can be passed down.
-  # These can be supplied to MarkItDown.__init__() or passed on to individual convert() kwargs:
-  # llm_client
-  # llm_model
-  # style_map  (used for docx conversion)
-  # exiftool_path  (used for wav mp3 image conversion)
-  # file_extension
-  # url
-  convert <- .globals$markitdown$convert %||% init_markitdown()$convert
-  md <- convert(x, ...)
+
+  check_string(x)
+  check_dots_empty()
+
+  ## Ideally, we'd use the Python API for MarkitDown via reticulate. However,
+  ## there are some bugs in MarkitDown, and the simplest workaround is to set
+  ## `--exclude-newer`. But we don't want to apply that globally to all Python
+  ## modules in reticulate, only to MarkitDown. So, we use the CLI interface for
+  ## MarkitDown, where we can safely set a cutoff date within an isolated venv.
+  ## The CLI doesn't support generating image conversions via LLM calls, but
+  ## that's broken anyway. Related issues:
+  ## https://github.com/microsoft/markitdown/issues/1063
+  ## https://github.com/microsoft/markitdown/issues/1036
+
+  # convert <- .globals$markitdown$convert %||% init_markitdown()$convert
+  # md <- convert(x, ...)
+
+  md <- cli_markitdown(x, stdout = TRUE)
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
   if (canonical)
@@ -69,7 +78,8 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
       width = 72L,
       extensions = TRUE
     )
-  md
+  md <- stri_flatten(md, "\n")
+  glue::as_glue(md)
 }
 
 
@@ -356,9 +366,16 @@ ragnar_read <- function(x, ...,
 
 # ------ utils
 
-cli_markitdown <- function(...) {
+cli_markitdown <- function(..., stdout = "", stderr = "",
+                           stdin = "", input = NULL, env = character(), wait = TRUE) {
   reticulate::uv_run_tool(
     "markitdown", c(...),
-    from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown"
-  )
+    python_version = "3.11",
+    from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown",
+    exclude_newer = "2025-02-22", # https://github.com/microsoft/markitdown/issues/1063
+    stdout = stdout, stderr = stderr,
+    stdin = stdin, input = input,
+    env = env, wait = wait
+    )
+  # )
 }
