@@ -16,10 +16,12 @@ for (page in pages) {
   message("ingesting: ", page)
   chunks <- page |>
     ragnar_read(frame_by_tags = c("h1", "h2", "h3")) |>
+    dplyr::mutate(link = page) |>
     ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
     # add context to chunks
     dplyr::mutate(text = glue::glue(r"---(
     # Excerpt from the book "R for Data Science (2e)"
+    link: {link}
     chapter: {h1}
     section: {h2}
     subsection: {h3}

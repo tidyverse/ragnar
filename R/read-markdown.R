@@ -376,14 +376,21 @@ cli_markitdown <- function(...,
                            wait = TRUE) {
   if (is.na(Sys.getenv("PYTHONIOENCODING", NA)))
     withr::local_envvar("PYTHONIOENCODING" = "utf-8")
+
   reticulate::uv_run_tool(
     "markitdown", c(...),
-    python_version = "3.11",
+
+    # Use dev version until this patch is in release:
+    # https://github.com/microsoft/markitdown/pull/322
     from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown",
-    exclude_newer = "2025-02-22", # https://github.com/microsoft/markitdown/issues/1063
+
+    # pin package versions until this issue is resolved:
+    # https://github.com/microsoft/markitdown/issues/1063
+    exclude_newer = "2025-02-22",
+
+    python_version = "3.11",
     stdout = stdout, stderr = stderr,
     stdin = stdin, input = input,
     env = env, wait = wait
-    )
-  # )
+  )
 }

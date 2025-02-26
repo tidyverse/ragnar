@@ -27,13 +27,15 @@ ragnar_register_tool_retrieve(
 Register a 'retrieve' tool with ellmer
 }
 \examples{
+\dontshow{if ((file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != "")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{\}) # examplesIf}
 \dontshow{if (file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != "") (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 
 system_prompt <- stringr::str_squish("
-    You are an expert assistant on R programming.
-    You often respond by first direct quoting material from book or documentation,
-    then adding your own additional context and interpertation.
-    ")
+  You are an expert assistant in R programming.
+  When responding, you first quote relevant material from books or documentation,
+  provide links to the sources, and then add your own context and interpretation.
+")
 chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
 
 store <- ragnar_store_connect("r4ds.ragnar.duckdb", read_only = TRUE)
