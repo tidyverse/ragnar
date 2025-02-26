@@ -23,13 +23,14 @@ Convert files to markdown
 \examples{
 # convert html
 read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
-  substr(1, 5000) |> cat()
+  substr(1, 1000) |> cat()
 
 read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
-  substr(1, 5000) |> cat()
+  substr(1, 1000) |> cat()
 
 # convert pdf
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
-read_as_markdown(pdf)
-# pdftools::pdf_text(pdf)
+read_as_markdown(pdf) |> substr(1, 1000) |> cat()
+## alternative:
+# pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
 }

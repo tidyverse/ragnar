@@ -2,6 +2,7 @@
 
 export(embed_ollama)
 export(embed_openai)
+export(markdown_frame)
 export(markdown_segment)
 export(ragnar_chunk)
 export(ragnar_chunk_segments)

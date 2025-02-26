@@ -2,6 +2,7 @@
 % Please edit documentation in R/read-markdown.R
 \name{markdown_segment}
 \alias{markdown_segment}
+\alias{markdown_frame}
 \title{Segment markdown text}
 \usage{
 markdown_segment(
@@ -10,6 +11,8 @@ markdown_segment(
   trim = FALSE,
   omit_empty = FALSE
 )
+
+markdown_frame(md, frame_by = c("h1", "h2", "h3"), segment_by = NULL)
 }
 \arguments{
 \item{text}{Markdown string}
@@ -19,6 +22,8 @@ markdown_segment(
 \item{trim}{logical, trim whitespace on segments}
 
 \item{omit_empty}{logical, whether to remove empty segments}
+
+\item{frame_by}{Character vector of tags that will become columns in the returned dataframe.}
 }
 \value{
 A named character vector. Names will correspond to \code{tags}, or \code{""} for content inbetween tags.

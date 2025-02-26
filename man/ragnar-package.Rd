@@ -10,6 +10,13 @@
 
 What the package does (one paragraph).
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://t-kalinowski.github.io/ragnar/}
+}
+
+}
 \author{
 \strong{Maintainer}: Tomasz Kalinowski \email{tomasz@posit.co}
 

@@ -1,5 +1,6 @@
 
-html_markdown <- function(node, split_tags = NULL, trim_splits = TRUE, omit_empty_splits = TRUE, convert_table = TRUE) {
+html_markdown <-
+  function(node, split_tags = NULL, trim_splits = TRUE, omit_empty_splits = TRUE, convert_table = TRUE) {
 
   markdown_contents <- function(node, text = flatten, flatten = TRUE, trim = FALSE) {
     contents <- xml_contents(node)

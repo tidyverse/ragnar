@@ -23,15 +23,16 @@ init_markitdown <- function(...) {
 #' @examples
 #' # convert html
 #' read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
-#'   substr(1, 5000) |> cat()
+#'   substr(1, 1000) |> cat()
 #'
 #' read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
-#'   substr(1, 5000) |> cat()
+#'   substr(1, 1000) |> cat()
 #'
 #' # convert pdf
 #' pdf <- file.path(R.home("doc"), "NEWS.pdf")
-#' read_as_markdown(pdf)
-#' # pdftools::pdf_text(pdf)
+#' read_as_markdown(pdf) |> substr(1, 1000) |> cat()
+#' ## alternative:
+#' # pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
 # '
 # ' # convert images
 # ' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
@@ -226,7 +227,9 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALS
   splits
 }
 
-
+#' @param frame_by Character vector of tags that will become columns in the returned dataframe.
+#' @export
+#' @rdname markdown_segment
 markdown_frame <- function(md, frame_by = c("h1", "h2", "h3"), segment_by = NULL) {
   md <- markdown_segment(md, unique(c(frame_by, segment_by)))
   frame <- vec_frame_flattened_tree(md, frame_by, names = "tag", leaves = "text")
