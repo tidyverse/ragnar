@@ -444,13 +444,12 @@ stri_subset_startswith_fixed <- function(str, pattern, ...) {
 
 # workaround for https://github.com/r-lib/xml2/issues/453
 read_html2 <- function(url, ...) {
-  tryCatch({
-    handle <- curl::new_handle(followlocation = TRUE)
-    conn <- curl::curl(url, "rb", handle = handle)
-    out <- xml2::read_html(conn, ...)
-    attr(out, "resolved_url") <- curl::handle_data(handle)$url
-    out
-  }, finally = close(conn))
+  handle <- curl::new_handle(followlocation = TRUE)
+  conn <- curl::curl(url, "rb", handle = handle)
+  on.exit(tryCatch(close(conn), error = function(e) NULL))
+  out <- xml2::read_html(conn, ...)
+  attr(out, "resolved_url") <- curl::handle_data(handle)$url
+  out
 }
 
 xml_url2 <- function(x) {
