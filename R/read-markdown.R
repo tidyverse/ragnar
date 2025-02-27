@@ -69,7 +69,7 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   # convert <- .globals$markitdown$convert %||% init_markitdown()$convert
   # md <- convert(x, ...)
 
-  md <- cli_markitdown(x, stdout = TRUE)
+  md <- cli_markitdown(shQuote(x), stdout = TRUE)
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
   if (canonical)
