@@ -141,6 +141,11 @@ ragnar_store_insert <- function(store, chunks) {
     is.character(chunks$text)
   )
 
+  if (!nrow(chunks)) {
+    # warning("ragnar_store_insert() called empty `chunks`")
+    return(invisible(store))
+  }
+
   if(!"embedding" %in% names(chunks))
     chunks$embedding <- store@embed(chunks$text)
 
