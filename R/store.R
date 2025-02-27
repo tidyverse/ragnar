@@ -20,9 +20,9 @@ ragnar_store_create <- function(
     overwrite = FALSE
 ) {
 
-  if (file.exists(location)) {
+  if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
     if (overwrite) {
-      unlink(location)
+      unlink(c(location, location.wal), force = TRUE)
     } else {
       stop("File already exists: ", location)
     }
@@ -41,6 +41,13 @@ ragnar_store_create <- function(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),
   )
+  if (overwrite)
+    dbExecute(con, glue::trim("
+      DROP TABLE IF EXISTS metadata;
+      DROP TABLE IF EXISTS chunks;
+      DROP SEQUENCE IF EXISTS id_sequence;
+      "))
+
   dbWriteTable(con, "metadata", metadata)
 
   # duckdb R interface does not support array columns yet,
