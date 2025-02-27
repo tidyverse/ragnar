@@ -332,11 +332,11 @@ ragnar_read_document <- function(x, ...,
 ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE) {
   if (!inherits(x, "xml_node")) {
     check_string(x)
-    x <- read_html(x)
+    x <- read_html2(x)
   }
 
   prefix <- if (isTRUE(children_only)) {
-    url_normalize_stem(xml_url(x))
+    url_normalize_stem(xml_url2(x))
   } else if (is.character(children_only)) {
     check_string(children_only)
     children_only
@@ -352,8 +352,8 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 
   # TODO: progress bar
 
-  recurse_root_prefix <- url_normalize_stem(xml_url(x))
-  visited <- xml_url(x)
+  recurse_root_prefix <- url_normalize_stem(xml_url2(x))
+  visited <- xml_url2(x)
   ## it might make sense to use a hashmap here
   ## probably fastmap::fastmap()
 
@@ -396,7 +396,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
 
   if (!inherits(x, "xml_node")) {
-    x <- read_html(x)
+    x <- read_html2(x)
   }
 
   links <- x |>
@@ -410,7 +410,7 @@ html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
   links <- sort(unique(links))
 
   if (absolute)
-    links <- url_absolute(links, xml_url(x))
+    links <- url_absolute(links, xml_url2(x))
 
   if (!is.null(prefix))
     links <- stri_subset_startswith_fixed(links, prefix)
@@ -440,4 +440,19 @@ url_normalize_stem <- function(url) {
 
 stri_subset_startswith_fixed <- function(str, pattern, ...) {
   str[stri_startswith_fixed(str, pattern, ...)]
+}
+
+# workaround for https://github.com/r-lib/xml2/issues/453
+read_html2 <- function(url, ...) {
+  tryCatch({
+    handle <- curl::new_handle(followlocation = TRUE)
+    conn <- curl::curl(url, "rb", handle = handle)
+    out <- xml2::read_html(conn, ...)
+    attr(out, "resolved_url") <- curl::handle_data(handle)$url
+    out
+  }, finally = close(conn))
+}
+
+xml_url2 <- function(x) {
+  attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x)
 }
