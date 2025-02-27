@@ -146,7 +146,7 @@ ragnar_store_insert <- function(store, chunks) {
     return(invisible(store))
   }
 
-  if(!"embedding" %in% names(chunks))
+  if (!"embedding" %in% names(chunks))
     chunks$embedding <- store@embed(chunks$text)
 
   stopifnot(

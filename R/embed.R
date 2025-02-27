@@ -56,6 +56,11 @@ embed_ollama <- function(x,
   }
 
   check_character(x)
+  if (!length(x)) {
+    # ideally we'd return a 0-row matrix, but currently the correct
+    # embedding_size is not convenient to access in this context
+    return(NULL)
+  }
 
   starts <- seq.int(from = 1L, to = length(x), by = batch_size)
   ends <- c(starts[-1L] - 1L, length(x))
@@ -111,6 +116,12 @@ embed_openai <- function(x,
   text <- x
   check_character(text)
   check_string(model, allow_empty = FALSE)
+
+  if (!length(text)) {
+    # ideally we'd return a 0-row matrix, but currently the correct
+    # embedding_size is not convenient to access in this context
+    return(NULL)
+  }
 
   ## open ai models have max token length of 8191... what happens if too long?
   data <- list(model = model, input = NULL)
