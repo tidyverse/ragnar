@@ -66,6 +66,8 @@ with <code><a href="https://docs.ropensci.org/commonmark/reference/commonmark.ht
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># convert html</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/base-R.html"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R – R for Data Science (2e)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1. [Program](./program.html)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2. [27  A field guide to base R](./base-R.html)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -93,11 +95,12 @@ with <code><a href="https://docs.ropensci.org/commonmark/reference/commonmark.ht
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   + [12  Logical vectors](./logicals.html)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   + [13  Numbers](./numbers.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [14  Strings](./strings.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [15  Regular expressions](./regexp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   + [14  String</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/base-R.html"</span>, canonical <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R – R for Data Science (2e)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1.  [Program](./program.html)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2.  [27  A field guide to base R](./base-R.html)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -128,40 +131,50 @@ with <code><a href="https://docs.ropensci.org/commonmark/reference/commonmark.ht
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - [Transform](./transform.html)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [12  Logical vectors](./logicals.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [13  Numbers](./num</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       - [12  Logi</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># convert pdf</span></span></span>
 <span class="r-in"><span><span class="va">pdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Rhome.html" class="external-link">R.home</a></span><span class="op">(</span><span class="st">"doc"</span><span class="op">)</span>, <span class="st">"NEWS.pdf"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">pdf</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS for R version 4.4.2 (2024-10-31)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS for R version 4.4.3 (2025-02-28)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NEWS</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R News</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> CHANGES IN R 4.4.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CHANGES IN R 4.4.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> INSTALLATION:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) R can be installed using C23 (for example with ‘-std=gnu23’ or ‘-std=gnu2x’) with</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> recent compilers including gcc 12(cid:21)14, Apple clang 15(cid:21)16, LLVM clang 17(cid:21)20 and</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intel icx 2024.2.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> It can be installed with the upcoming (at the time of writing) gcc 15, which defaults</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> to C23.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> C-LEVEL FACILITIES:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) The S-compatibility macros F77_COM and F77_COMDECL de(cid:28)ned in header</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ‘R_ext/RS.h’ are deprecated and will be removed shortly. We could (cid:28)nd no record of</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> their use.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) The functions R_strtod and R_atof now allow hexadecimal constants without an</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> exponent, for compatibility with their C99 versions (PR#18805).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> UTILITIES:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) R CMD build and R CMD check now allow reference output</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> for demo scripts</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (‘demo/demo.Rout.save’ (cid:28)les) to be shipped with the package, as proposed by</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Torsten Hothorn in PR#18816.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> BUG FIXES:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Mathlib function lgammacor(x) no longer warns about under(cid:29)ow to zero for large x.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Text widths and heights were incorrectly reported by the Quartz device if the drawing</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> context didn’t exist yet (typically when drawing o(cid:27)-screen to a window that is yet to</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> appear, see PR#18591).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) kappa(A, exact=TRUE) for singular A returns Inf more generally, (cid:28)xing PR#18817</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) The Quartz device could segfault in cases where paths with spaces are used in the</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> reported by Mikael Jagan.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> new glyph drawing API. Thanks to Tomek Gieorgijewski (PR#18758).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Fixed URLs of the sun spots (sunspot.month etc) data sets and mention future</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) On macOS in R CRAN builds, it is again possible to read little-endian UTF-16 text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> with a BOM from a connection using encoding="UTF-16". Users building R from</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> source should avoid using the system libiconv in macOS 14.1 and late</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ch</span>
 <span class="r-in"><span><span class="co">## alternative:</span></span></span>
 <span class="r-in"><span><span class="co"># pdftools::pdf_text(pdf) |&gt; substr(1, 2000) |&gt; cat()</span></span></span>
 </code></pre></div>
