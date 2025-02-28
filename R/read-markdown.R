@@ -69,7 +69,20 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   # convert <- .globals$markitdown$convert %||% init_markitdown()$convert
   # md <- convert(x, ...)
 
-  md <- cli_markitdown(shQuote(x), stdout = TRUE)
+  outfile <- withr::local_tempfile(fileext = ".md")
+  exit_code <- cli_markitdown(c(shQuote(x), "-o", shQuote(outfile)))
+  if(!identical(exit_code, 0L) ||
+     (no_outfile_produced <- !file.exists(outfile))) {
+    # more useful output to stderr() should have been printed
+    # already by cli_markitdown() if we are here.
+    errmsg <- stri_flatten(c(
+      paste("markitdown exit code: ", exit_code),
+      if(no_outfile_produced) "No output file produced."
+    ), collapse = "\n")
+    stop(errmsg)
+  }
+
+  md <- stri_read_lines(outfile)
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
   if (canonical)
@@ -370,18 +383,13 @@ ragnar_read <- function(x, ...,
 
 # ------ utils
 
-cli_markitdown <- function(...,
-                           stdout = "",
-                           stderr = "",
-                           stdin = "",
-                           input = NULL,
-                           env = character(),
-                           wait = TRUE) {
+cli_markitdown <- function(args, ...) {
   if (is.na(Sys.getenv("PYTHONIOENCODING", NA)))
-    withr::local_envvar("PYTHONIOENCODING" = "utf-8")
+    withr::local_envvar("PYTHONIOENCODING" = "utf-8") # needed on windows
 
   reticulate::uv_run_tool(
-    "markitdown", c(...),
+    "markitdown",
+    args,
 
     # Use dev version until this patch is in release:
     # https://github.com/microsoft/markitdown/pull/322
@@ -392,8 +400,6 @@ cli_markitdown <- function(...,
     exclude_newer = "2025-02-22",
 
     python_version = "3.11",
-    stdout = stdout, stderr = stderr,
-    stdin = stdin, input = input,
-    env = env, wait = wait
+    ...
   )
 }
