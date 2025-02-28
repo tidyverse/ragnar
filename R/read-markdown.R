@@ -54,7 +54,6 @@ init_markitdown <- function(...) {
 read_as_markdown <- function(x, ..., canonical = FALSE) {
 
   check_string(x)
-  check_dots_empty()
 
   ## Ideally, we'd use the Python API for MarkitDown via reticulate. However,
   ## there are some bugs in MarkitDown, and the simplest workaround is to set
@@ -66,23 +65,31 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   ## https://github.com/microsoft/markitdown/issues/1063
   ## https://github.com/microsoft/markitdown/issues/1036
 
-  # convert <- .globals$markitdown$convert %||% init_markitdown()$convert
-  # md <- convert(x, ...)
 
-  outfile <- withr::local_tempfile(fileext = ".md")
-  exit_code <- cli_markitdown(c(shQuote(x), "-o", shQuote(outfile)))
-  if(!identical(exit_code, 0L) ||
-     (no_outfile_produced <- !file.exists(outfile))) {
-    # more useful output to stderr() should have been printed
-    # already by cli_markitdown() if we are here.
-    errmsg <- stri_flatten(c(
-      paste("markitdown exit code: ", exit_code),
-      if(no_outfile_produced) "No output file produced."
-    ), collapse = "\n")
-    stop(errmsg)
+  if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
+    # use the Python API, faster, more powerful
+    convert <- .globals$markitdown$convert %||% init_markitdown()$convert
+    md <- convert(x, ...)
+
+  } else {
+    # use the markitdown cli API, (much) slower, but easier to isolate
+    check_dots_empty()
+    outfile <- withr::local_tempfile(fileext = ".md")
+    exit_code <- cli_markitdown(c(shQuote(x), "-o", shQuote(outfile)))
+    if (!identical(exit_code, 0L) ||
+        (no_outfile_produced <- !file.exists(outfile))) {
+      # more useful output to stderr() should have been printed
+      # already by cli_markitdown() if we are here.
+      errmsg <- stri_flatten(c(
+        paste("markitdown exit code: ", exit_code),
+        if (no_outfile_produced) "No output file produced."
+      ), collapse = "\n")
+      stop(errmsg)
+    }
+
+    md <- stri_read_lines(outfile)
   }
 
-  md <- stri_read_lines(outfile)
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
   if (canonical)
