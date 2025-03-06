@@ -18,14 +18,20 @@ returned text}
 dataframe of the returned content}
 }
 \value{
-If \code{frame_by_tags} is not \code{NULL}, then a data frame is returned,
-with column names \code{c("frame_by_tags", "text")}.
+Always returns a data frame with the columns:
+\itemize{
+\item \code{origin}: the file path or url
+\item \code{hash}: a hash of the text content
+\item \code{text}: the markdown content
+}
 
-If \code{frame_by_tags} is \code{NULL} but \code{split_by_tags} is not \code{NULL}, then a
-named character vector is returned.
+If \code{split_by_tags} is not \code{NULL}, then a \code{tag} column is also included containing
+the corresponding tag for each text chunk. \code{""} is used for text chunks that
+are not associated with a tag.
 
-If both \code{frame_by_tags} and \code{split_by_tags} are \code{NULL}, then a string
-(length-1 character vector) is returned.
+If \code{frame_by_tags} is not \code{NULL}, then additional columns are included for each
+tag in \code{frame_by_tags}. The text chunks are associated with the tags in the
+order they appear in the markdown content.
 }
 \description{
 \code{ragnar_read()} uses \href{https://github.com/microsoft/markitdown}{markitdown} to
@@ -37,13 +43,14 @@ data frame, otherwise, the markdown is returned as a string.
 file <- tempfile(fileext = ".html")
 download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 
-# with no arguments, returns a single string of the text.
+# with no arguments, returns a single row data frame.
+# the markdown content is in the `text` column.
 file |> ragnar_read() |> str()
 
-# use `split_by_tags` to get a named character vector of length > 1
+# use `split_by_tags` to get a data frame where the text is split by the
+# specified tags (e.g., "h1", "h2", "h3")
 file |>
-  ragnar_read(split_by_tags = c("h1", "h2", "h3")) |>
-  tibble::enframe("tag", "text")
+  ragnar_read(split_by_tags = c("h1", "h2", "h3"))
 
 # use `frame_by_tags` to get a dataframe where the
 # headings associated with each text chunk are easily accessible
