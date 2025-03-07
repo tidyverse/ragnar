@@ -36,7 +36,8 @@ Suggests:
     readr,
     rmarkdown,
     stringr,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    paws.common
 Config/Needs/website: rmarkdown
 Config/testthat/edition: 3
 Remotes:
