@@ -286,27 +286,34 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #' @param frame_by_tags character vector of html tag names used to create a
 #'   dataframe of the returned content
 #'
-#' @returns If `frame_by_tags` is not `NULL`, then a data frame is returned,
-#'   with column names `c("frame_by_tags", "text")`.
-#'
-#'   If `frame_by_tags` is `NULL` but `split_by_tags` is not `NULL`, then a
-#'   named character vector is returned.
-#'
-#'   If both `frame_by_tags` and `split_by_tags` are `NULL`, then a string
-#'   (length-1 character vector) is returned.
+#' @returns 
+#' Always returns a data frame with the columns:
+#'   - `origin`: the file path or url
+#'   - `hash`: a hash of the text content
+#'   - `text`: the markdown content
+#' 
+#' If `split_by_tags` is not `NULL`, then a `tag` column is also included containing
+#' the corresponding tag for each text chunk. `""` is used for text chunks that
+#' are not associated with a tag.
+#' 
+#' If `frame_by_tags` is not `NULL`, then additional columns are included for each
+#' tag in `frame_by_tags`. The text chunks are associated with the tags in the
+#' order they appear in the markdown content.
+#' 
 #' @export
 #'
 #' @examples
 #' file <- tempfile(fileext = ".html")
 #' download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 #'
-#' # with no arguments, returns a single string of the text.
+#' # with no arguments, returns a single row data frame.
+#' # the markdown content is in the `text` column.
 #' file |> ragnar_read() |> str()
 #'
-#' # use `split_by_tags` to get a named character vector of length > 1
+#' # use `split_by_tags` to get a data frame where the text is split by the
+#' # specified tags (e.g., "h1", "h2", "h3")
 #' file |>
-#'   ragnar_read(split_by_tags = c("h1", "h2", "h3")) |>
-#'   tibble::enframe("tag", "text")
+#'   ragnar_read(split_by_tags = c("h1", "h2", "h3"))
 #'
 #' # use `frame_by_tags` to get a dataframe where the
 #' # headings associated with each text chunk are easily accessible
@@ -357,36 +364,45 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #'     )--") |>
 #'   # inspect
 #'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
-ragnar_read <- function(x, ...,
-                        split_by_tags  = NULL,
-                        frame_by_tags = NULL) {
+ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
 
   text <- read_as_markdown(x, ...)
+  hash <- rlang::hash(text)
+
   if (is.null(frame_by_tags) && is.null(split_by_tags)) {
-    return(text)
+    out <- tibble::tibble(
+      origin = x,
+      hash = hash,
+      text = text
+    )
+    return(out)
   }
-
-  text <- markdown_segment(text, tags = unique(c(split_by_tags, frame_by_tags)),
-                           trim = TRUE, omit_empty = TRUE)
-  if (is.null(frame_by_tags)) {
-    # TODO?: Return a 2 col tibble, instead of a named vector.
-    # return(enframe(text, "tag", "text"))
-    return(text)
-  }
-
-  frame <- vec_frame_flattened_tree(text, frame_by_tags,
-    names = "tag", leaves = "text"
+  
+  segmented <- markdown_segment(
+    text, 
+    tags = unique(c(split_by_tags, frame_by_tags)), 
+    trim = TRUE, 
+    omit_empty = TRUE
   )
 
-  if (base::setequal(split_by_tags, frame_by_tags)) {
+  frame <- vec_frame_flattened_tree(
+    segmented, 
+    frame_by_tags %||% character(), 
+    names = "tag", 
+    leaves = "text"
+  )
+
+  # The tags column only needs to be there if we segment additionally to framing.
+  if (is.null(split_by_tags) || base::setequal(split_by_tags, frame_by_tags)) {
     frame[["tag"]] <- NULL
   }
 
+  frame <- frame |> 
+    dplyr::mutate(origin = x, hash = hash) |> 
+    dplyr::select(origin, hash, text, dplyr::everything())
+
   as_tibble(frame)
 }
-
-
-
 
 # ------ utils
 
