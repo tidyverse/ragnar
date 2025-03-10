@@ -354,7 +354,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 
   recurse_root_prefix <- url_normalize_stem(xml_url2(x))
   visited <- xml_url2(x)
-  problems <- tibble::tibble(link = character(0), problem = character(0))
+  problems <- list()
   ## it might make sense to use a hashmap here
   ## probably fastmap::fastmap()
 
@@ -385,7 +385,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
         error = function(e) {
           # if there's an issue finding child links we log it into the `problems` table
           # which is included in the output as an attribute.
-          problems <<- dplyr::add_row(problems, link = link, problem = conditionMessage(e))
+          problems[[length(problems) + 1]] <<- list(link = link, problem = conditionMessage(e))
           character(0)
         }
       )
@@ -396,9 +396,9 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 
   out <- sort(unique(c(links, get_child_links(links, depth))))
 
-  if (nrow(problems)) {
-    cli::cli_warn("Some links could not be followed. Call {.code readr::problems()} to see the issues.")
-    attr(out, "problems") <- problems
+  if (length(problems)) {
+    cli::cli_warn("Some links could not be followed. Call {.code attr(.Last.value, 'problems')} to see the issues.")
+    attr(out, "problems") <- dplyr::bind_rows(!!!problems)
   }
   
   out
@@ -482,6 +482,7 @@ read_html2 <- function(url, ...) {
       error = function(err) {
         encoded_url <- utils::URLencode(url)
         if (url != encoded_url) {
+          handle <<- curl::new_handle(followlocation = TRUE)
           curl::curl(encoded_url, "rb", handle = handle)
         } else {
           stop(err)
