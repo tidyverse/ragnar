@@ -429,7 +429,7 @@ html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
     links <- url_absolute2(links, xml_url2(x))
 
   if (!is.null(prefix))
-    links <- stri_subset_startswith_fixed(links, prefix)  
+    links <- stri_subset_startswith_fixed(links, prefix)
 
   links
 }
