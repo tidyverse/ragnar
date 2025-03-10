@@ -398,7 +398,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 
   if (length(problems)) {
     cli::cli_warn("Some links could not be followed. Call {.code attr(.Last.value, 'problems')} to see the issues.")
-    attr(out, "problems") <- dplyr::bind_rows(!!!problems)
+    attr(out, "problems") <- dplyr::bind_rows(problems)
   }
   
   out
