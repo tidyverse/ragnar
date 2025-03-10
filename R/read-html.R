@@ -354,6 +354,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 
   recurse_root_prefix <- url_normalize_stem(xml_url2(x))
   visited <- xml_url2(x)
+  problems <- list()
   ## it might make sense to use a hashmap here
   ## probably fastmap::fastmap()
 
@@ -379,13 +380,28 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
         return()
       }
       visited[[length(visited) + 1L]] <<- link
-      html_find_links(link, prefix = prefix)
+      tryCatch(
+        html_find_links(link, prefix = prefix),
+        error = function(e) {
+          # if there's an issue finding child links we log it into the `problems` table
+          # which is included in the output as an attribute.
+          problems[[length(problems) + 1]] <<- list(link = link, problem = conditionMessage(e))
+          NULL
+        }
+      )
     })))
 
     unique(c(links, child_links, get_child_links(child_links, depth - 1L)))
   }
 
-  sort(unique(c(links, get_child_links(links, depth))))
+  out <- sort(unique(c(links, get_child_links(links, depth))))
+
+  if (length(problems)) {
+    cli::cli_warn("Some links could not be followed. Call {.code attr(.Last.value, 'problems')} to see the issues.")
+    attr(out, "problems") <- dplyr::bind_rows(problems)
+  }
+  
+  out
 }
 
 
@@ -410,7 +426,7 @@ html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
   links <- sort(unique(links))
 
   if (absolute)
-    links <- url_absolute(links, xml_url2(x))
+    links <- url_absolute2(links, xml_url2(x))
 
   if (!is.null(prefix))
     links <- stri_subset_startswith_fixed(links, prefix)
@@ -425,6 +441,17 @@ url_host <- function(x, baseurl = NULL) {
   })
 }
 
+url_absolute2 <- function(urls, baseurl) {
+  links <- url_absolute(urls, baseurl)
+  # It's possible that `url_absolute()` returns `NA` when some kind of invalid is used
+  # as input. In this case, we replace the `NA` with the original URL so we can report
+  # the problem later.
+  # For an example of failing url see:
+  # https://docs.posit.co/drivers/2024.03.0/pdf/Simba Teradata ODBC Connector Install and Configuration Guide.pdf
+  na_links <- is.na(links)
+  links[na_links] <- urls[na_links]
+  links
+}
 
 url_normalize_stem <- function(url) {
   check_string(url)
@@ -444,8 +471,25 @@ stri_subset_startswith_fixed <- function(str, pattern, ...) {
 
 # workaround for https://github.com/r-lib/xml2/issues/453
 read_html2 <- function(url, ...) {
-  handle <- curl::new_handle(followlocation = TRUE)
-  conn <- curl::curl(url, "rb", handle = handle)
+  # For some reason curl is both erroring and warning when the URL is invalid or
+  # returns 404. We don't really want the warnings, so we discard them.
+  suppressWarnings({
+    handle <- curl::new_handle(followlocation = TRUE)
+    # We first try the original URL, if some error occurs we retry with the
+    # URL encoded version. (If it's different from the original URL.)
+    conn <- tryCatch(
+      curl::curl(url, "rb", handle = handle),
+      error = function(err) {
+        encoded_url <- utils::URLencode(url)
+        if (url != encoded_url) {
+          handle <<- curl::new_handle(followlocation = TRUE)
+          curl::curl(encoded_url, "rb", handle = handle)
+        } else {
+          stop(err)
+        }
+      }
+    )
+  })
   on.exit(tryCatch(close(conn), error = function(e) NULL))
   out <- xml2::read_html(conn, ...)
   attr(out, "resolved_url") <- curl::handle_data(handle)$url
