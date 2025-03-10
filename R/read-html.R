@@ -386,7 +386,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
           # if there's an issue finding child links we log it into the `problems` table
           # which is included in the output as an attribute.
           problems[[length(problems) + 1]] <<- list(link = link, problem = conditionMessage(e))
-          character(0)
+          NULL
         }
       )
     })))
