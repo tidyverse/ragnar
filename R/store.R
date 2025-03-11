@@ -125,6 +125,7 @@ ragnar_store_connect <- function(location = ":memory:",
 #'   present, then `store@embed()` is used. `chunks` can also be a character
 #'   vector.
 #' @param update logical, whether to check for duplicated origins.
+#' @param ... unused; must be empty.
 #' 
 #' @details
 #' If `update` is `TRUE`, then:
@@ -140,6 +141,8 @@ ragnar_store_connect <- function(location = ":memory:",
 #' @returns `store`, invisibly.
 #' @export
 ragnar_store_insert <- function(store, chunks, ..., update = TRUE) {
+
+  rlang::check_dots_empty()
 
   # ?? swap arg order? piping in df will be more common...
   # -- can do df |> ragnar_store_insert(store = store)
