@@ -4,7 +4,7 @@
 \alias{ragnar_store_insert}
 \title{Insert chunks into a \code{RagnarStore}}
 \usage{
-ragnar_store_insert(store, chunks, ..., update = TRUE)
+ragnar_store_insert(store, chunks)
 }
 \arguments{
 \item{store}{a \code{RagnarStore} object}
@@ -13,25 +13,10 @@ ragnar_store_insert(store, chunks, ..., update = TRUE)
 optionally, a pre-computed \code{embedding} matrix column. If \code{embedding} is not
 present, then \code{store@embed()} is used. \code{chunks} can also be a character
 vector.}
-
-\item{...}{unused; must be empty.}
-
-\item{update}{logical, whether to check for duplicated origins.}
 }
 \value{
 \code{store}, invisibly.
 }
 \description{
 Insert chunks into a \code{RagnarStore}
-}
-\details{
-If \code{update} is \code{TRUE}, then:
-
-If \code{chunks} is a data frame containing \code{origin} and \code{hash} columns,
-then we first filter out chunks for which \code{origin} and \code{hash} are already in the store.
-If an \code{origin} is in the store, but with a different \code{hash}, we replace with the new chunks.
-If \code{origin} and \code{hash} are not provided, each chunk is assumed to come from a unique
-\code{Undefined} origin and a hash is computed from the text.
-
-If \code{update} is \code{FALSE}, then the chunks are inserted without checking duplicated origins.
 }

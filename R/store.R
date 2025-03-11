@@ -115,7 +115,56 @@ ragnar_store_connect <- function(location = ":memory:",
   DuckDBRagnarStore(embed = embed, .con = con)
 }
 
+#' Inserts or updates chunks in a `RagnarStore`
+#' 
+#' @inheritParams ragnar_store_insert
+#' @details
+#' If `chunks` is a data frame containing `origin` and `hash` columns,
+#' then we first filter out chunks for which `origin` and `hash` are already in the store.
+#' If an `origin` is in the store, but with a different `hash`, we replace with the new chunks.
+#' If `origin` and `hash` are not provided, each chunk is assumed to come from a unique 
+#' `NA` origin and a hash is computed from the text.
+#' 
+#' @returns `store`, invisibly. 
+#' @export
+ragnar_store_update <- function(store, chunks) {
+  # ?? swap arg order? piping in df will be more common...
+  # -- can do df |> ragnar_store_insert(store = store)
+  if (!S7_inherits(store, RagnarStore)) {
+    stop("store must be a RagnarStore")
+  }
 
+  chunks <- prepare_chunks(chunks)
+
+  # Before computing the embeddings, and inserting we want make sure we check
+  # if the the document is already in the store. If it's, we want to make sure
+  # it really changed.
+  # If the embedding is already computed this will be handled by the INSERT INTO
+  # statement that handles conflicts.
+  chunks <- filter_stored_chunks(store, chunks)
+  chunks <- ragnar_store_embed(store, chunks)
+
+  if (!nrow(chunks)) {
+    return(invisible(store))
+  }
+
+  # Now, we insert thhe new chunks into the store by:
+  # 1. Inserting the new chunks into a temporary table
+  # 2. Filtering out the chunks that are already in the store
+  # 3. Inserting the new chunks into the store
+  insert_statement <- make_insert_statement(chunks, "temp_chunks")
+  dbExecute(store@.con, glue("
+  BEGIN TRANSACTION;
+  CREATE OR REPLACE TABLE temp_chunks AS (SELECT * FROM chunks WHERE false);
+  ALTER TABLE temp_chunks ALTER COLUMN id SET DEFAULT nextval('id_sequence');
+  {insert_statement}
+  DELETE FROM chunks WHERE (origin) IN (SELECT origin FROM temp_chunks);
+  INSERT INTO chunks (SELECT * FROM temp_chunks);
+  COMMIT;
+  "))
+
+  invisible(store)
+}
 
 #' Insert chunks into a `RagnarStore`
 #'
@@ -124,47 +173,65 @@ ragnar_store_connect <- function(location = ":memory:",
 #'   optionally, a pre-computed `embedding` matrix column. If `embedding` is not
 #'   present, then `store@embed()` is used. `chunks` can also be a character
 #'   vector.
-#' @param update logical, whether to check for duplicated origins.
-#' @param ... unused; must be empty.
-#' 
-#' @details
-#' If `update` is `TRUE`, then:
-#' 
-#' If `chunks` is a data frame containing `origin` and `hash` columns,
-#' then we first filter out chunks for which `origin` and `hash` are already in the store.
-#' If an `origin` is in the store, but with a different `hash`, we replace with the new chunks.
-#' If `origin` and `hash` are not provided, each chunk is assumed to come from a unique 
-#' `Undefined` origin and a hash is computed from the text. 
-#' 
-#' If `update` is `FALSE`, then the chunks are inserted without checking duplicated origins.
-#' 
 #' @returns `store`, invisibly.
 #' @export
-ragnar_store_insert <- function(store, chunks, ..., update = TRUE) {
-
-  rlang::check_dots_empty()
-
+ragnar_store_insert <- function(store, chunks) {
   # ?? swap arg order? piping in df will be more common...
   # -- can do df |> ragnar_store_insert(store = store)
   if (!S7_inherits(store, RagnarStore)) {
     stop("store must be a RagnarStore")
   }
 
+  chunks <- prepare_chunks(chunks)
+  chunks <- ragnar_store_embed(store, chunks)
+
+  if (!nrow(chunks)) {
+    return(invisible(store))
+  }
+
+  insert_statement <- make_insert_statement(chunks, "chunks")
+  dbExecute(store@.con, insert_statement)
+
+  invisible(store)
+}
+
+ragnar_store_embed <- function(store, chunks) {
+  chunks <- prepare_chunks(chunks)
+
+  if (!nrow(chunks)) {
+    # No chunks to embed, nothing to do!
+    return(chunks)
+  }
+
+  if (!is.null(chunks$embedding)) {
+    # Embeddings are already computed, nothing to do!
+    return(chunks)
+  }
+
+  chunks$embedding <- store@embed(chunks$text)
+  stopifnot(
+    is.matrix(chunks$embedding)
+    # ncol(df$embedding) == store@embedding_size
+  )
+  chunks
+}
+
+prepare_chunks <- function(chunks) {
   if(is.character(chunks)) {
     chunks <- data_frame(text = chunks)
   }
 
   if (!nrow(chunks)) {
-    # warning("ragnar_store_insert() called empty `chunks`")
-    return(invisible(store))
+    # No chunks, just return them
+    return(chunks)
   }
 
   if (is.null(chunks$origin)) {
-    chunks$origin <- "Undefined"
+    chunks$origin <- NA_character_
   }
 
   if (is.null(chunks$hash)) {
-    chunks$hash <- vapply(chunks$text, rlang::hash, character())
+    chunks$hash <- vapply(chunks$text, rlang::hash, character(1))
   }
 
   stopifnot(
@@ -174,28 +241,10 @@ ragnar_store_insert <- function(store, chunks, ..., update = TRUE) {
     is.character(chunks$hash)
   )
 
-  if (!"embedding" %in% names(chunks)) {
-    # Before computing the embeddings, and inserting we want make sure we check
-    # if the the document is already in the store. If it's, we want to make sure
-    # it really changed.
-    # If the embedding is already computed this will be handled by the INSERT INTO
-    # statement that handles conflicts.
-    if (update) {
-      chunks <- filter_stored_chunks(store, chunks)
-    }
+  chunks
+}
 
-    if (!nrow(chunks)) {
-      return(invisible(store))
-    }
-
-    chunks$embedding <- store@embed(chunks$text)
-  }
-    
-  stopifnot(
-    is.matrix(chunks$embedding)
-    # ncol(df$embedding) == store@embedding_size
-  )
-
+make_insert_statement <- function(chunks, tbl) {
   # duckdb-r does not support array columns yet.
   # hand-write the SQL for now
   # hopefully replace all this with a DBI::dbAppendTable() once
@@ -208,25 +257,7 @@ ragnar_store_insert <- function(store, chunks, ..., update = TRUE) {
     chunks$embedding |> asplit(1) |> map_chr(stri_flatten, ", "),
     DBI::dbQuoteString(store@.con, chunks$text)
   ) |> paste0(collapse = ",\n")
-  stmt <- sprintf("INSERT INTO temp_chunks (origin, hash, embedding, text) VALUES \n%s;", rows)
-
-  # Create a temporary table with the values, then delete those that already exist and insert the new ones.
-  update_stmt <- if (update) {
-    "DELETE FROM chunks WHERE (origin) IN (SELECT origin FROM temp_chunks);"
-  } else {
-    ""
-  }
-  
-  dbExecute(store@.con, sprintf("
-  BEGIN TRANSACTION;
-  CREATE OR REPLACE TEMP TABLE temp_chunks AS SELECT * FROM chunks WHERE FALSE;
-  %s
-  %s
-  INSERT INTO chunks SELECT * FROM temp_chunks;
-  COMMIT;
-  ", stmt, update_stmt))
-
-  invisible(store)
+  sprintf("INSERT INTO %s (origin, hash, embedding, text) VALUES \n%s;", tbl, rows)
 }
 
 filter_stored_chunks <- function(store, chunks) {
