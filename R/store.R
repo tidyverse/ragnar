@@ -152,7 +152,7 @@ ragnar_store_update <- function(store, chunks) {
   # 1. Inserting the new chunks into a temporary table
   # 2. Filtering out the chunks that are already in the store
   # 3. Inserting the new chunks into the store
-  insert_statement <- make_insert_statement(chunks, "temp_chunks")
+  insert_statement <- make_insert_statement(store, chunks, "temp_chunks")
   dbExecute(store@.con, glue("
   BEGIN TRANSACTION;
   CREATE OR REPLACE TABLE temp_chunks AS (SELECT * FROM chunks WHERE false);
@@ -189,7 +189,7 @@ ragnar_store_insert <- function(store, chunks) {
     return(invisible(store))
   }
 
-  insert_statement <- make_insert_statement(chunks, "chunks")
+  insert_statement <- make_insert_statement(store, chunks, "chunks")
   dbExecute(store@.con, insert_statement)
 
   invisible(store)
@@ -244,7 +244,7 @@ prepare_chunks <- function(chunks) {
   chunks
 }
 
-make_insert_statement <- function(chunks, tbl) {
+make_insert_statement <- function(store, chunks, tbl) {
   # duckdb-r does not support array columns yet.
   # hand-write the SQL for now
   # hopefully replace all this with a DBI::dbAppendTable() once
