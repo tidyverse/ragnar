@@ -335,6 +335,8 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
     x <- read_html2(x)
   }
 
+  depth <- as.integer(depth)
+
   prefix <- if (isTRUE(children_only)) {
     url_normalize_stem(xml_url2(x))
   } else if (is.character(children_only)) {
@@ -343,64 +345,56 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
   } else {
     NULL
   }
-  links <- html_find_links(x, prefix = prefix)
 
-  depth <- as.integer(depth)
-  if (!depth) {
-    return(sort(unique(links)))
-  }
-
-  # TODO: progress bar
-
-  recurse_root_prefix <- url_normalize_stem(xml_url2(x))
-  visited <- xml_url2(x)
+  deque <- reticulate::import("collections")$deque()
+  visited <- reticulate::py_eval("set()")
   problems <- list()
-  ## it might make sense to use a hashmap here
-  ## probably fastmap::fastmap()
 
-  get_child_links <- function(links, depth) {
-    if (!depth || !length(links)) {
-      return(links)
-    }
+  deque$append(list(url = xml_url2(x), depth = 0))
 
-    links_to_follow <- stri_subset_startswith_fixed(links, recurse_root_prefix)
-    links_to_follow <- setdiff(links_to_follow, visited)
-    if(progress && length(links_to_follow)) {
-      msg <- if (depth > 1)
-          glue::glue("Following links... (recurse levels remaining: {depth-1})")
-      else
-        "Following links..."
-      progress_bar_id <-
-        cli::cli_progress_bar(msg, total = length(links_to_follow))
-    }
-    child_links <- unique(unlist(lapply(links_to_follow, function(link) {
-      if (progress)
-        on.exit(cli::cli_progress_update(id = progress_bar_id), add = TRUE)
-      if (link %in% visited) {
-        return()
+  pb <- cli::cli_progress_bar(
+    format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(deque)} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
+    total = NA
+  )
+
+  while(length(deque) > 0) {
+
+    item <- deque$popleft()
+    cli::cli_progress_update()
+
+    visited$add(item$url)
+
+    links <- tryCatch(
+      html_find_links(item$url, prefix = prefix),
+      error = function(e) {
+        # if there's an issue finding child links we log it into the `problems` table
+        # which is included in the output as an attribute.
+        problems[[length(problems) + 1]] <<- list(link = item$url, problem = conditionMessage(e))
+        character(0)
       }
-      visited[[length(visited) + 1L]] <<- link
-      tryCatch(
-        html_find_links(link, prefix = prefix),
-        error = function(e) {
-          # if there's an issue finding child links we log it into the `problems` table
-          # which is included in the output as an attribute.
-          problems[[length(problems) + 1]] <<- list(link = link, problem = conditionMessage(e))
-          NULL
+    )
+
+    # If depth still supports, we add items to the deque if they are not yet
+    # visited.
+    if (item$depth + 1 <= depth) {
+      for (link in links) {
+        if (!visited$`__contains__`(link)) {
+          deque$append(list(url = link, depth = item$depth + 1))
         }
-      )
-    })))
+      }
+    }
 
-    unique(c(links, child_links, get_child_links(child_links, depth - 1L)))
+    visited$update(links)
   }
+  cli::cli_progress_update(force = TRUE)
 
-  out <- sort(unique(c(links, get_child_links(links, depth))))
+  out <- sort(reticulate::import_builtins()$list(visited))
 
   if (length(problems)) {
     cli::cli_warn("Some links could not be followed. Call {.code attr(.Last.value, 'problems')} to see the issues.")
     attr(out, "problems") <- dplyr::bind_rows(problems)
   }
-  
+
   out
 }
 
