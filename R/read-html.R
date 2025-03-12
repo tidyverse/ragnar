@@ -357,35 +357,42 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
     total = NA
   )
 
-  while(length(deque) > 0) {
+  # This is wrapped into a try catch so users interrupts are captured and
+  # we are able to return the current set of visited pages.
+  tryCatch({
+    while(length(deque) > 0) {
 
-    item <- deque$popleft()
-    cli::cli_progress_update()
+      item <- deque$popleft()
+      cli::cli_progress_update()
 
-    visited$add(item$url)
+      visited$add(item$url)
 
-    links <- tryCatch(
-      html_find_links(item$url, prefix = prefix),
-      error = function(e) {
-        # if there's an issue finding child links we log it into the `problems` table
-        # which is included in the output as an attribute.
-        problems[[length(problems) + 1]] <<- list(link = item$url, problem = conditionMessage(e))
-        character(0)
-      }
-    )
+      links <- tryCatch(
+        html_find_links(item$url, prefix = prefix),
+        error = function(e) {
+          # if there's an issue finding child links we log it into the `problems` table
+          # which is included in the output as an attribute.
+          problems[[length(problems) + 1]] <<- list(link = item$url, problem = conditionMessage(e))
+          character(0)
+        }
+      )
 
-    # If depth still supports, we add items to the deque if they are not yet
-    # visited.
-    if (item$depth + 1 <= depth) {
-      for (link in links) {
-        if (!visited$`__contains__`(link)) {
-          deque$append(list(url = link, depth = item$depth + 1))
+      # If depth still supports, we add items to the deque if they are not yet
+      # visited.
+      if (item$depth + 1 <= depth) {
+        for (link in links) {
+          if (!visited$`__contains__`(link)) {
+            deque$append(list(url = link, depth = item$depth + 1))
+          }
         }
       }
-    }
 
-    visited$update(links)
-  }
+      visited$update(links)
+    }
+  },
+  interrupt = function(e) {
+    cli::cli_inform(c(i = "User interrupted. Returning the current set!"))
+  })
   cli::cli_progress_update(force = TRUE)
 
   out <- sort(reticulate::import_builtins()$list(visited))
