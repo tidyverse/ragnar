@@ -66,25 +66,27 @@ test_that("behavior when no hash/origin are provided", {
   chunks <- data.frame(
     text = "foo"
   )
-  ragnar_store_update(store, chunks)
+  # users must explicitly set origin and hash when updating!
+  expect_error(
+    ragnar_store_update(store, chunks),
+    "chunks` must have `origin` and `hash`"
+  )
+  # they can insert though
+  ragnar_store_insert(store, chunks)
   
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
   expect_equal(val, data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"))
 
-  # now try to update the store again - without changing the text
-  ragnar_store_update(store, chunks)
+  # if they insert again, even though the text has the same hash, we don't update anything
+  ragnar_store_insert(store, chunks)
 
   # Expect that the text is not updated, because the hash is the same
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
-  expect_equal(val, data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"))
-
-  # Now try to update changing the text
-  chunks <- data.frame(
-    text = "foo2"
+  expect_equal(
+    val, 
+    rbind(
+      data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"),
+      data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo")
+    )
   )
-  ragnar_store_update(store, chunks)
-
-  # Since the origin is not provided we just insert the new text
-  val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
-  expect_equal(nrow(val), 2)
 })

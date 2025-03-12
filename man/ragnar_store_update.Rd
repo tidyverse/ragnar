@@ -21,9 +21,10 @@ vector.}
 Inserts or updates chunks in a \code{RagnarStore}
 }
 \details{
-If \code{chunks} is a data frame containing \code{origin} and \code{hash} columns,
-then we first filter out chunks for which \code{origin} and \code{hash} are already in the store.
-If an \code{origin} is in the store, but with a different \code{hash}, we replace with the new chunks.
-If \code{origin} and \code{hash} are not provided, each chunk is assumed to come from a unique
-\code{NA} origin and a hash is computed from the text.
+\code{chunks} must be a data frame containing \code{origin} and \code{hash} columns.
+We first filter out chunks for which \code{origin} and \code{hash} are already in the store.
+If an \code{origin} is in the store, but with a different \code{hash}, we all of its chunks
+with the new chunks. Otherwise, a regular insert is performed.
+
+This can help spending less time computing embeddings for chunks that are already in the store.
 }
