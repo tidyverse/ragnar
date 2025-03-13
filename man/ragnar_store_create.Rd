@@ -8,7 +8,9 @@ ragnar_store_create(
   location = ":memory:",
   embed = embed_ollama(),
   embedding_size = ncol(embed("foo")),
-  overwrite = FALSE
+  overwrite = FALSE,
+  ...,
+  schema = NULL
 )
 }
 \arguments{
@@ -24,10 +26,33 @@ you can optionally supply a \code{carrier::crate()} with packaged data.}
 \item{embedding_size}{integer}
 
 \item{overwrite}{logical, what to do if \code{location} already exists}
+
+\item{...}{Unused. Must be empty.}
+
+\item{schema}{A schema that's used to declare the names and types of columns
+that will be created in the store. This allows users to specify additional
+columns to be stored. A schema is a 0-row data frame containing the columns
+that should be included. See the examples for more information.}
 }
 \value{
 a \code{DuckDBRagnarStore} object
 }
 \description{
 Create and connect to a vector store
+}
+\examples{
+# A store with a dummy embedding
+store <- ragnar_store_create(
+  embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+)
+ragnar_store_insert(store, data.frame(text = "hello"))
+
+# A store with a schema. When inserting into this store, users need to
+# provide a `area` column.
+store <- ragnar_store_create(
+  embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+  schema = data.frame(area = character()),
+)
+ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
+
 }
