@@ -10,7 +10,7 @@ ragnar_store_create(
   embedding_size = ncol(embed("foo")),
   overwrite = FALSE,
   ...,
-  schema = NULL
+  extra_cols = NULL
 )
 }
 \arguments{
@@ -29,10 +29,11 @@ you can optionally supply a \code{carrier::crate()} with packaged data.}
 
 \item{...}{Unused. Must be empty.}
 
-\item{schema}{A schema that's used to declare the names and types of columns
-that will be created in the store. This allows users to specify additional
-columns to be stored. A schema is a 0-row data frame containing the columns
-that should be included. See the examples for more information.}
+\item{extra_cols}{A zero row data frame used to specify additional columns that
+should be added to the store. Such columns can be used for adding additional
+context when retrieving. See the examples for more information.
+\code{\link[vctrs:vec_cast]{vctrs::vec_cast()}} is used to consistently perform type checks and casts
+when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.}
 }
 \value{
 a \code{DuckDBRagnarStore} object
@@ -51,8 +52,17 @@ ragnar_store_insert(store, data.frame(text = "hello"))
 # provide a `area` column.
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
-  schema = data.frame(area = character()),
+  extra_cols = data.frame(area = character()),
 )
 ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
+
+# If you already have a data.frame with chunks that will be inserted into
+# the store, you can quickly create a suitable store with:
+chunks <- data.frame(text = letters, area = "rag")
+store <- ragnar_store_create(
+  embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+  extra_cols = vctrs::vec_ptype(chunks),
+)
+ragnar_store_insert(store, chunks)
 
 }

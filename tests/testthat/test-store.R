@@ -94,7 +94,7 @@ test_that("behavior when no hash/origin are provided", {
 test_that("additional columns", {
   store <- ragnar_store_create(
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
-    schema = data.frame(h1 = character(0))
+    extra_cols = data.frame(h1 = character(0))
   )
 
   chunks <- data.frame(

@@ -11,10 +11,11 @@
 #' @param embedding_size integer
 #' @param overwrite logical, what to do if `location` already exists
 #' @param ... Unused. Must be empty.
-#' @param schema A schema that's used to declare the names and types of columns
-#'   that will be created in the store. This allows users to specify additional
-#'   columns to be stored. A schema is a 0-row data frame containing the columns
-#'   that should be included. See the examples for more information.
+#' @param extra_cols A zero row data frame used to specify additional columns that
+#'  should be added to the store. Such columns can be used for adding additional
+#'  context when retrieving. See the examples for more information.
+#'  [vctrs::vec_cast()] is used to consistently perform type checks and casts
+#'  when inserting with [ragnar_store_insert()].
 #'
 #' @examples
 #' # A store with a dummy embedding
@@ -27,9 +28,18 @@
 #' # provide a `area` column.
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
-#'   schema = data.frame(area = character()),
+#'   extra_cols = data.frame(area = character()),
 #' )
 #' ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
+#'
+#' # If you already have a data.frame with chunks that will be inserted into
+#' # the store, you can quickly create a suitable store with:
+#' chunks <- data.frame(text = letters, area = "rag")
+#' store <- ragnar_store_create(
+#'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+#'   extra_cols = vctrs::vec_ptype(chunks),
+#' )
+#' ragnar_store_insert(store, chunks)
 #'
 #' @returns a `DuckDBRagnarStore` object
 #' @export
@@ -39,7 +49,7 @@ ragnar_store_create <- function(
     embedding_size = ncol(embed("foo")),
     overwrite = FALSE,
     ...,
-    schema = NULL
+    extra_cols = NULL
 ) {
 
   rlang::check_dots_empty()
@@ -68,17 +78,15 @@ ragnar_store_create <- function(
     text = character(0)
   ))
 
-  if (is.null(schema)) {
+  if (is.null(extra_cols)) {
     schema <- default_schema
   } else {
 
     stopifnot(
-      is.data.frame(schema)
+      is.data.frame(extra_cols)
     )
 
-    if (nrow(schema)) {
-      schema <- vctrs::vec_ptype(schema)
-    }
+    schema <- vctrs::vec_ptype(extra_cols)
 
     # schema can't contain the default schema with different types.
     # It's fine if it doesn't contain all the columns from the default schema,
