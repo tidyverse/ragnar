@@ -146,7 +146,7 @@ ragnar_store_create <- function(
     CREATE SEQUENCE id_sequence START 1;
     CREATE TABLE chunks (
       id INTEGER DEFAULT nextval('id_sequence'),
-      {paste(columns, collapse = ',')}
+      {stri_c(columns, collapse = ',')}
     )"))
 
   DuckDBRagnarStore(embed = embed, schema = schema, .con = con)
@@ -266,7 +266,7 @@ ragnar_store_update <- function(store, chunks) {
   dbExecute(store@.con, "BEGIN TRANSACTION;")
   tryCatch({
     # Remove rows that have the same origin as those that will be included
-    origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |> paste(collapse = ", ")
+    origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |> stri_c(collapse = ", ")
     dbExecute(store@.con, glue("DELETE FROM chunks WHERE origin IN ({origins})"))
 
     # Insert the new chunks into the store
@@ -348,7 +348,7 @@ ragnar_store_insert <- function(store, chunks) {
     col <- vec_cast(chunks[[nm]], ptype, x_arg = glue::glue("chunks${nm}"))
 
     if (is.matrix(col) && is.numeric(col)) {
-      paste0("array_value(", col |> asplit(1) |> map_chr(stri_flatten, ", "), ")")
+      stri_c("array_value(", col |> asplit(1) |> map_chr(stri_flatten, ", "), ")")
     } else if (is.character(col)) {
       DBI::dbQuoteString(store@.con, col)
     } else if (is.numeric(col)) {
@@ -358,12 +358,12 @@ ragnar_store_insert <- function(store, chunks) {
     }
   })
 
-  rows <- paste0("(", do.call(\(...) paste(..., sep=","), cols), ")")
-  rows <- paste0(rows, collapse = ",\n")
+  rows <- stri_c("(", do.call(\(...) stri_c(..., sep=","), cols), ")")
+  rows <- stri_c(rows, collapse = ",\n")
 
   insert_statement <- sprintf(
     "INSERT INTO chunks (%s) VALUES \n%s;",
-    paste(names(schema), collapse = ", "),
+    stri_c(names(schema), collapse = ", "),
     rows
   )
 
