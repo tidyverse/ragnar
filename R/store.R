@@ -345,7 +345,7 @@ ragnar_store_insert <- function(store, chunks) {
   cols <- map2(names(schema), schema, function(nm, ptype) {
     # Ensures that the column in chunks has the expected ptype. (or at least
     # something that can be cast to the correct ptype with no loss)
-    col <- vec_cast(chunks[[nm]], ptype, x_arg = glue::glue("chunks${nm}"))
+    col <- vctrs::vec_cast(chunks[[nm]], ptype, x_arg = glue::glue("chunks${nm}"))
 
     if (is.matrix(col) && is.numeric(col)) {
       stri_c("array_value(", col |> asplit(1) |> map_chr(stri_flatten, ", "), ")")
