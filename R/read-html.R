@@ -347,7 +347,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
   }
 
   deque <- reticulate::import("collections")$deque()
-  visited <- reticulate::py_eval("set()")
+  visited <- reticulate::import_builtins()$set()
   problems <- list()
 
   deque$append(list(url = xml_url2(x), depth = 0))
