@@ -10,6 +10,36 @@
 #'   you can optionally supply a `carrier::crate()` with packaged data.
 #' @param embedding_size integer
 #' @param overwrite logical, what to do if `location` already exists
+#' @param ... Unused. Must be empty.
+#' @param extra_cols A zero row data frame used to specify additional columns that
+#'  should be added to the store. Such columns can be used for adding additional
+#'  context when retrieving. See the examples for more information.
+#'  [vctrs::vec_cast()] is used to consistently perform type checks and casts
+#'  when inserting with [ragnar_store_insert()].
+#'
+#' @examples
+#' # A store with a dummy embedding
+#' store <- ragnar_store_create(
+#'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+#' )
+#' ragnar_store_insert(store, data.frame(text = "hello"))
+#'
+#' # A store with a schema. When inserting into this store, users need to
+#' # provide a `area` column.
+#' store <- ragnar_store_create(
+#'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+#'   extra_cols = data.frame(area = character()),
+#' )
+#' ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
+#'
+#' # If you already have a data.frame with chunks that will be inserted into
+#' # the store, you can quickly create a suitable store with:
+#' chunks <- data.frame(text = letters, area = "rag")
+#' store <- ragnar_store_create(
+#'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+#'   extra_cols = vctrs::vec_ptype(chunks),
+#' )
+#' ragnar_store_insert(store, chunks)
 #'
 #' @returns a `DuckDBRagnarStore` object
 #' @export
@@ -17,8 +47,12 @@ ragnar_store_create <- function(
     location = ":memory:",
     embed = embed_ollama(),
     embedding_size = ncol(embed("foo")),
-    overwrite = FALSE
+    overwrite = FALSE,
+    ...,
+    extra_cols = NULL
 ) {
+
+  rlang::check_dots_empty()
 
   if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
     if (overwrite) {
@@ -37,10 +71,49 @@ ragnar_store_create <- function(
     embed <- rlang::zap_srcref(embed)
   }
 
+  default_schema <- vctrs::vec_ptype(data_frame(
+    origin = character(0),
+    hash = character(0),
+    embedding = matrix(numeric(0), nrow = 0, ncol = embedding_size),
+    text = character(0)
+  ))
+
+  if (is.null(extra_cols)) {
+    schema <- default_schema
+  } else {
+
+    stopifnot(
+      is.data.frame(extra_cols)
+    )
+
+    schema <- vctrs::vec_ptype(extra_cols)
+
+    # schema can't contain the default schema with different types.
+    # It's fine if it doesn't contain all the columns from the default schema,
+    # in this case we just add them.
+    cols <- names(schema)
+
+    if ("id" %in% cols) {
+      cli::cli_abort("{.arg schema} must not contain a column called {.arg id}")
+    }
+
+    for (nm in names(default_schema)) {
+      if (nm %in% cols) {
+        stopifnot(
+          identical(schema[[nm]], default_schema[[nm]])
+        )
+      } else {
+        schema[[nm]] <- default_schema[[nm]]
+      }
+    }
+  }
+
   metadata <- tibble::tibble(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),
+    schema = blob::blob(serialize(schema, NULL))
   )
+
   if (overwrite)
     dbExecute(con, glue::trim("
       DROP TABLE IF EXISTS metadata;
@@ -50,24 +123,41 @@ ragnar_store_create <- function(
 
   dbWriteTable(con, "metadata", metadata)
 
-  # duckdb R interface does not support array columns yet,
-  # so we hand-write the sql.
-  dbExecute(con, glue("
-    CREATE SEQUENCE id_sequence START 1;
-    CREATE TABLE chunks (
-      id INTEGER DEFAULT nextval('id_sequence'),
-      origin VARCHAR,
-      hash VARCHAR,
-      embedding FLOAT[{embedding_size}],
-      text VARCHAR
-    )"))
-
   # read back in embed, so any problems with an R function that doesn't serialize
   # correctly flush out early.
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
+  schema <- unserialize(metadata$schema[[1]])
 
-  DuckDBRagnarStore(embed = embed, .con = con)
+  # duckdb R interface does not support array columns yet,
+  # so we hand-write the sql.
+  columns <- map2(names(schema), schema, function(nm, type) {
+    # TODO add support for more data types!
+    dbtype <- if (is.character(type)) {
+      "VARCHAR"
+    } else if (is.matrix(type) && is.integer(type)) {
+      glue::glue("INTEGER[{ncol(type)}]")
+    } else if (is.matrix(type) && is.double(type)) {
+      glue::glue("FLOAT[{ncol(type)}]")
+    } else if (is.integer(type)) {
+      "INTEGER"
+    } else if (is.double(type)) {
+      "FLOAT"
+    } else {
+      cli::cli_abort("Unexpected type for column {.val {nm}}: {.cls {class(type)}} / {.cls {typeof(type)}}")
+    }
+
+    glue("{nm} {dbtype}")
+  })
+
+  dbExecute(con, glue("
+    CREATE SEQUENCE id_sequence START 1;
+    CREATE TABLE chunks (
+      id INTEGER DEFAULT nextval('id_sequence'),
+      {stri_c(columns, collapse = ',')}
+    )"))
+
+  DuckDBRagnarStore(embed = embed, schema = schema, .con = con)
 }
 
 
@@ -108,25 +198,26 @@ ragnar_store_connect <- function(location = ":memory:",
 
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
+  schema <- unserialize(metadata$schema[[1L]])
 
   if (build_index)
     ragnar_store_build_index(con)
 
-  DuckDBRagnarStore(embed = embed, .con = con)
+  DuckDBRagnarStore(embed = embed, schema = schema, .con = con)
 }
 
 #' Inserts or updates chunks in a `RagnarStore`
-#' 
+#'
 #' @inheritParams ragnar_store_insert
 #' @details
 #' `chunks` must be a data frame containing `origin` and `hash` columns.
 #' We first filter out chunks for which `origin` and `hash` are already in the store.
-#' If an `origin` is in the store, but with a different `hash`, we all of its chunks 
+#' If an `origin` is in the store, but with a different `hash`, we all of its chunks
 #' with the new chunks. Otherwise, a regular insert is performed.
-#' 
+#'
 #' This can help spending less time computing embeddings for chunks that are already in the store.
-#' 
-#' @returns `store`, invisibly. 
+#'
+#' @returns `store`, invisibly.
 #' @export
 ragnar_store_update <- function(store, chunks) {
   # ?? swap arg order? piping in df will be more common...
@@ -147,14 +238,14 @@ ragnar_store_update <- function(store, chunks) {
   # it really changed.
   # If the embedding is already computed this will be handled by the INSERT INTO
   # statement that handles conflicts.
-  
+
   tryCatch({
     # Insert the new chunks into a temporary table
     DBI::dbWriteTable(
-      store@.con, 
-      "tmp_chunks", 
-      chunks |> dplyr::select(origin, hash) |> dplyr::distinct(), 
-      temporary = TRUE, 
+      store@.con,
+      "tmp_chunks",
+      chunks |> dplyr::select(origin, hash) |> dplyr::distinct(),
+      temporary = TRUE,
       overwrite = TRUE
     )
 
@@ -164,7 +255,7 @@ ragnar_store_update <- function(store, chunks) {
       store@.con,
       "SELECT * FROM tmp_chunks
       EXCEPT
-      SELECT DISTINCT origin, hash FROM chunks" 
+      SELECT DISTINCT origin, hash FROM chunks"
     )
 
     # Only leave the chunks that will be inserted.
@@ -175,7 +266,7 @@ ragnar_store_update <- function(store, chunks) {
   error = function(e) {
     cli::cli_abort("Failed to filter chunks to insert", parent = e)
   })
-  
+
   if (!nrow(chunks)) {
     return(invisible(store))
   }
@@ -183,7 +274,7 @@ ragnar_store_update <- function(store, chunks) {
   dbExecute(store@.con, "BEGIN TRANSACTION;")
   tryCatch({
     # Remove rows that have the same origin as those that will be included
-    origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |> paste(collapse = ", ")
+    origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |> stri_c(collapse = ", ")
     dbExecute(store@.con, glue("DELETE FROM chunks WHERE origin IN ({origins})"))
 
     # Insert the new chunks into the store
@@ -238,7 +329,7 @@ ragnar_store_insert <- function(store, chunks) {
     is.character(chunks$origin),
     is.character(chunks$hash)
   )
-  
+
   if (!"embedding" %in% names(chunks)) {
     chunks$embedding <- store@embed(chunks$text)
     stopifnot(
@@ -247,14 +338,43 @@ ragnar_store_insert <- function(store, chunks) {
     )
   }
 
-  rows <- sprintf(
-    "(%s, %s, array_value(%s), %s)",
-    DBI::dbQuoteString(store@.con, chunks$origin),
-    DBI::dbQuoteString(store@.con, chunks$hash),
-    chunks$embedding |> asplit(1) |> map_chr(stri_flatten, ", "),
-    DBI::dbQuoteString(store@.con, chunks$text)
-  ) |> paste0(collapse = ",\n")
-  insert_statement <- sprintf("INSERT INTO chunks (origin, hash, embedding, text) VALUES \n%s;", rows)
+  # Validate that chunks share ptype with schema
+  # Its NOT OK for chunks to miss columns that don't match the schema
+  schema <- store@schema
+  if (!all(names(schema) %in% names(chunks))) {
+    cli::cli_abort(c(
+      "Columns in chunks do not match schema",
+      x = "Missing columns: {.val {setdiff(names(schema), names(chunks))}}"
+    ))
+  }
+
+  # Ideally this would use dbWriteTable, but we can't really because it currently
+  # doesn't support array columns.
+  cols <- map2(names(schema), schema, function(nm, ptype) {
+    # Ensures that the column in chunks has the expected ptype. (or at least
+    # something that can be cast to the correct ptype with no loss)
+    col <- vctrs::vec_cast(chunks[[nm]], ptype, x_arg = glue::glue("chunks${nm}"))
+
+    if (is.matrix(col) && is.numeric(col)) {
+      stri_c("array_value(", col |> asplit(1) |> map_chr(stri_flatten, ", "), ")")
+    } else if (is.character(col)) {
+      DBI::dbQuoteString(store@.con, col)
+    } else if (is.numeric(col)) {
+      DBI::dbQuoteLiteral(store@.con, col)
+    } else {
+      cli::cli_abort("Unsupported type {.cls {class(col)}")
+    }
+  })
+
+  rows <- stri_c("(", do.call(\(...) stri_c(..., sep=","), cols), ")")
+  rows <- stri_c(rows, collapse = ",\n")
+
+  insert_statement <- sprintf(
+    "INSERT INTO chunks (%s) VALUES \n%s;",
+    stri_c(names(schema), collapse = ", "),
+    rows
+  )
+
   dbExecute(store@.con, insert_statement)
 
   invisible(store)
@@ -308,7 +428,8 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
 RagnarStore <- new_class(
   "RagnarStore",
   properties = list(
-    embed = class_function
+    embed = class_function,
+    schema = class_data.frame
   ),
   abstract = TRUE
 )

@@ -1,6 +1,6 @@
 test_that("ragnar_store_update/insert", {
   store <- ragnar_store_create(embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)))
-  
+
   chunks <- data.frame(
     origin = "foo",
     hash = "foo",
@@ -30,7 +30,7 @@ test_that("ragnar_store_update/insert", {
     text = "bar"
   )
   ragnar_store_update(store, chunks2)
-  
+
   # Expect that the text is updated
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
   expect_equal(val, chunks2)
@@ -45,7 +45,7 @@ test_that("ragnar_store_update/insert", {
 
   # Expect the origin is added
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
-  expect_equal(nrow(val), 2)  
+  expect_equal(nrow(val), 2)
 
   # Try adding with insert
   chunks2 <- data.frame(
@@ -57,12 +57,12 @@ test_that("ragnar_store_update/insert", {
 
   # Since we used insert, there's no checking if the hash is the same
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
-  expect_equal(nrow(val), 3)  
+  expect_equal(nrow(val), 3)
 })
 
 test_that("behavior when no hash/origin are provided", {
   store <- ragnar_store_create(embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)))
-    
+
   chunks <- data.frame(
     text = "foo"
   )
@@ -73,7 +73,7 @@ test_that("behavior when no hash/origin are provided", {
   )
   # they can insert though
   ragnar_store_insert(store, chunks)
-  
+
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
   expect_equal(val, data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"))
 
@@ -83,10 +83,50 @@ test_that("behavior when no hash/origin are provided", {
   # Expect that the text is not updated, because the hash is the same
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
   expect_equal(
-    val, 
+    val,
     rbind(
       data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"),
       data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo")
     )
   )
+})
+
+test_that("additional columns", {
+  store <- ragnar_store_create(
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
+    extra_cols = data.frame(h1 = character(0))
+  )
+
+  chunks <- data.frame(
+    text = "foo"
+  )
+  # You can't insert chunks that miss the column
+  expect_error(ragnar_store_insert(store, chunks), regexp = "Missing columns:")
+
+  # Can't insert if they don't match types
+  chunks <- data.frame(
+    text = "foo",
+    h1 = 1
+  )
+  expect_error(ragnar_store_insert(store, chunks), regexp = "Can't convert")
+
+  # We should include if there's the correct data
+  chunks <- data.frame(
+    text = "foo",
+    h1 = "hello"
+  )
+  ragnar_store_insert(store, chunks)
+  val <- dbGetQuery(store@.con, "select text, h1 from chunks")
+  expect_equal(val, chunks)
+
+  # It's fine to insert a chunk if it has an additional column. It's
+  # simply ignored.
+  chunks <- data.frame(
+    text = "foo",
+    h1 = "hello",
+    h2 = "bye"
+  )
+  ragnar_store_insert(store, chunks)
+  val <- dbGetQuery(store@.con, "select text, h1 from chunks")
+  expect_equal(nrow(val), 2)
 })
