@@ -4,7 +4,14 @@
 \alias{ragnar_find_links}
 \title{Find links on a page}
 \usage{
-ragnar_find_links(x, depth = 0L, children_only = TRUE, progress = TRUE)
+ragnar_find_links(
+  x,
+  depth = 0L,
+  children_only = TRUE,
+  progress = TRUE,
+  ...,
+  url_filter = identity
+)
 }
 \arguments{
 \item{x}{URL, HTML file path, or XML document. For Markdown, convert to HTML
@@ -21,6 +28,12 @@ when \code{depth > 0}.}
 
 \item{progress}{Logical, draw a progress bar if \code{depth > 0}. A separate
 progress bar is drawn per recursion level.}
+
+\item{...}{Currently unused. Must be empty.}
+
+\item{url_filter}{A function that takes a character vector of URL's and may
+subset them to return a smaller list. This can be useful for filtering out
+URL's by rules different them \code{children_only} which only checks the prefix.}
 }
 \value{
 A character vector of links on the page.
