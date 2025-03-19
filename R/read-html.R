@@ -315,6 +315,12 @@ ragnar_read_document <- function(x, ...,
 #' @param progress Logical, draw a progress bar if `depth > 0`. A separate
 #'   progress bar is drawn per recursion level.
 #'
+#' @param ... Currently unused. Must be empty.
+#'
+#' @param url_filter A function that takes a character vector of URL's and may
+#'   subset them to return a smaller list. This can be useful for filtering out
+#'   URL's by rules different them `children_only` which only checks the prefix.
+#'
 #' @return A character vector of links on the page.
 #' @export
 #'
@@ -329,7 +335,11 @@ ragnar_read_document <- function(x, ...,
 #'   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
 #'   depth = 1
 #' )
-ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE) {
+ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE, ...,
+                              url_filter = identity) {
+
+  rlang::check_dots_empty()
+
   if (!inherits(x, "xml_node")) {
     check_string(x)
     x <- read_html2(x)
@@ -344,6 +354,12 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
     children_only
   } else {
     NULL
+  }
+
+  url_filter_fn <- if (!is.null(prefix)) {
+    \(urls) url_filter(stri_subset_startswith_fixed(urls, prefix))
+  } else {
+    url_filter
   }
 
   deque <- reticulate::import("collections")$deque()
@@ -368,7 +384,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
       visited$add(item$url)
 
       links <- tryCatch(
-        html_find_links(item$url, prefix = prefix),
+        html_find_links(item$url),
         error = function(e) {
           # if there's an issue finding child links we log it into the `problems` table
           # which is included in the output as an attribute.
@@ -376,6 +392,8 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
           character(0)
         }
       )
+
+      links <- url_filter_fn(links)
 
       # If depth still supports, we add items to the deque if they are not yet
       # visited.
@@ -410,7 +428,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 # E.g.,
 # for same site only: prefix = url_host(xml_url(x))
 # for child links only: prefix = url_normalize_stem(xml_url(x))
-html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
+html_find_links <- function(x, absolute = TRUE) {
 
   if (!inherits(x, "xml_node")) {
     x <- read_html2(x)
@@ -428,9 +446,6 @@ html_find_links <- function(x, prefix = NULL, absolute = TRUE) {
 
   if (absolute)
     links <- url_absolute2(links, xml_url2(x))
-
-  if (!is.null(prefix))
-    links <- stri_subset_startswith_fixed(links, prefix)
 
   links
 }
