@@ -405,7 +405,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
         }
       }
 
-      visited$update(links)
+      visited$update(as.list(links))
     }
   },
   interrupt = function(e) {
