@@ -194,6 +194,7 @@ ragnar_store_connect <- function(location = ":memory:",
   if (!all(c("chunks", "metadata") %in% dbListTables(con))) {
     stop("Store must be created with ragnar_store_create()")
   }
+  dbExecute(con, "INSTALL fts; INSTALL vss;")
   dbExecute(con, "LOAD fts; LOAD vss;")
 
   metadata <- dbReadTable(con, "metadata")
