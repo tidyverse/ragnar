@@ -8,6 +8,10 @@ ragnar_retrieve_vss <- function(store, text, top_k = 3L) {
   embedded_text <- store@embed(text)
   embedding_size <- ncol(embedded_text)
 
+  cols <- names(store@schema) |>
+    stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
+    stringi::stri_c(collapse=",")
+
   # TODO: support specifying a minimum distance threshold too, in addition to `top_k`.
   query <- glue(r"---(
     SELECT
@@ -16,7 +20,7 @@ ragnar_retrieve_vss <- function(store, text, top_k = 3L) {
         embedding,
         [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
       ) as l2sq_distance,
-      text
+      {cols}
     FROM chunks
     ORDER BY l2sq_distance
     LIMIT {top_k};
@@ -31,12 +35,16 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
   check_string(text)
   check_number_whole(top_k)
 
+  cols <- names(store@schema) |>
+    stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
+    stringi::stri_c(collapse=",")
+
   text <- dbQuoteString(store@.con, text)
   sql_query <- glue(r"---(
     SELECT
       id,
       fts_main_chunks.match_bm25(id, {text}) as bm25_score,
-      text
+      {cols}
     FROM chunks
     WHERE bm25_score IS NOT NULL
     ORDER BY bm25_score DESC
