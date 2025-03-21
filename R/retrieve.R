@@ -16,7 +16,7 @@ ragnar_retrieve_vss <- function(store, text, top_k = 3L) {
   query <- glue(r"---(
     SELECT
       id,
-      array_distance(
+      array_cosine_distance(
         embedding,
         [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
       ) as l2sq_distance,
