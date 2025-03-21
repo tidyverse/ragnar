@@ -62,12 +62,12 @@ calculate_vss <- function(store, text, method) {
 
   .[method_function, ..] <- method_to_info(method)
 
-  dplyr::sql(glue::glue(r"---(
+  glue::glue(r"---(
     {method_function}(
       embedding,
       [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
     )
-  )---"))
+  )---")
 }
 
 method_to_info <- function(method) {
@@ -116,7 +116,7 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
 
 calculate_bm25 <- function(store, text) {
   text <- dbQuoteString(store@.con, text)
-  dplyr::sql(glue::glue("fts_main_chunks.match_bm25(id, {text})"))
+  glue::glue("fts_main_chunks.match_bm25(id, {text})")
 }
 
 #' Retrieve VSS and BM25
