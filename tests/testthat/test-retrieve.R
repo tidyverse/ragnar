@@ -13,6 +13,11 @@ test_that("retrieving works as expected", {
   expect_in("metric_value", names(ret))
   expect_in("metric_name", names(ret))
   expect_equal(nrow(ret), 3)
+  # Expect that all columns from the schema (except for embedding)
+  # to be in the result set
+  expect_true(all(
+    setdiff(names(store@schema), "embedding") %in% names(ret)
+  ))
 
   # test edge case where top_k is larger than the number of entries
   # in the store
@@ -24,6 +29,11 @@ test_that("retrieving works as expected", {
   expect_in("metric_value", names(ret))
   expect_in("metric_name", names(ret))
   expect_equal(nrow(ret), 1)
+  # Expect that all columns from the schema (except for embedding)
+  # to be in the result set
+  expect_true(all(
+    setdiff(names(store@schema), "embedding") %in% names(ret)
+  ))
 
   # Can retrieve using the combined method
   ret <- ragnar_retrieve_vss_and_bm25(store, "foo")
