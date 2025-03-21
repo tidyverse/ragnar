@@ -29,7 +29,8 @@ Imports:
     blob,
     cli,
     curl,
-    withr
+    withr,
+    dotty
 Suggests:
     ellmer,
     knitr,
