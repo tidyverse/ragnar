@@ -12,6 +12,8 @@ py_to_r.markitdown.DocumentConverterResult <- function(x) {
   text
 }
 
+#' @importFrom dotty .
+dotty::.
 
 .onLoad <- function(libname, pkgname) {
   ## Commented out until these are fixed:
