@@ -140,10 +140,10 @@
 <ul>
 <li><code><a href="reference/ragnar_retrieve.html">ragnar_retrieve()</a></code></li>
 <li>
-<code><a href="reference/ragnar_retrieve.html">ragnar_retrieve_vss()</a></code>: Retrieve using <a href="https://duckdb.org/docs/extensions/vss.html" class="external-link"><code>vss</code> DuckDB extension</a>
+<code><a href="reference/ragnar_retrieve_vss.html">ragnar_retrieve_vss()</a></code>: Retrieve using <a href="https://duckdb.org/docs/extensions/vss.html" class="external-link"><code>vss</code> DuckDB extension</a>
 </li>
 <li>
-<code><a href="reference/ragnar_retrieve.html">ragnar_retrieve_bm25()</a></code>: Retrieve using <a href="https://duckdb.org/docs/extensions/full_text_search.html" class="external-link"><code>full-text search DuckDB extension</code></a>
+<code><a href="reference/ragnar_retrieve_bm25.html">ragnar_retrieve_bm25()</a></code>: Retrieve using <a href="https://duckdb.org/docs/extensions/full_text_search.html" class="external-link"><code>full-text search DuckDB extension</code></a>
 </li>
 </ul>
 </div>
@@ -255,7 +255,7 @@
 <span><span class="co">## Retrieving Chunks</span></span>
 <span><span class="co"># Once the store is set up, retrieve the most relevant text chunks like this</span></span>
 <span></span>
-<span><span class="va">embedding_near_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve.html">ragnar_retrieve_vss</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">embedding_near_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve_vss.html">ragnar_retrieve_vss</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">embedding_near_chunks</span></span>
 <span><span class="co">#&gt; # A tibble: 3 × 3</span></span>
 <span><span class="co">#&gt;      id l2sq_distance text                                                      </span></span>
@@ -308,7 +308,7 @@
 <span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a><span class="co">#&gt; We’ll come back to `$` shortly, but you should be able to guess what `df$x` does from the context: it extracts the `x` variable from `df`. We need to use it here because `[` doesn’t use tidy evaluation, so you need to be explicit about the source of the `x` variable.</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">bm25_near_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve.html">ragnar_retrieve_bm25</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">bm25_near_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve_bm25.html">ragnar_retrieve_bm25</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">bm25_near_chunks</span></span>
 <span><span class="co">#&gt; # A tibble: 3 × 3</span></span>
 <span><span class="co">#&gt;      id bm25_score text                                                         </span></span>
