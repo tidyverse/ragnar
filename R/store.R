@@ -8,6 +8,8 @@
 #'   the global or parent environments. Make sure to namespace all function
 #'   calls with `::`. If additional R objects must be available in the function,
 #'   you can optionally supply a `carrier::crate()` with packaged data.
+#'   It can also be `NULL` for stores that don't need to embed their texts, for example,
+#'   if only using FTS algorithms such as [ragnar_retrieve_bm25()].
 #' @param embedding_size integer
 #' @param overwrite logical, what to do if `location` already exists
 #' @param ... Unused. Must be empty.
@@ -71,20 +73,25 @@ ragnar_store_create <- function(
   }
   con <- dbConnect(duckdb::duckdb(), dbdir = location)
 
-  check_number_whole(embedding_size, min = 1)
-  embedding_size <- as.integer(embedding_size)
-
-  if(!inherits(embed, "crate")) {
-    environment(embed) <- baseenv()
-    embed <- rlang::zap_srcref(embed)
-  }
-
   default_schema <- vctrs::vec_ptype(data_frame(
     origin = character(0),
     hash = character(0),
-    embedding = matrix(numeric(0), nrow = 0, ncol = embedding_size),
     text = character(0)
   ))
+
+  if (is.null(embed)) {
+    embedding_size <- NULL
+  } else {
+    check_number_whole(embedding_size, min = 0)
+    embedding_size <- as.integer(embedding_size)
+
+    if(!inherits(embed, "crate")) {
+      environment(embed) <- baseenv()
+      embed <- rlang::zap_srcref(embed)
+    }
+
+    default_schema$embedding <- matrix(numeric(0), nrow = 0, ncol = embedding_size)
+  }
 
   if (is.null(extra_cols)) {
     schema <- default_schema
@@ -346,7 +353,7 @@ ragnar_store_insert <- function(store, chunks) {
     is.character(chunks$hash)
   )
 
-  if (!"embedding" %in% names(chunks)) {
+  if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
     chunks$embedding <- store@embed(chunks$text)
     stopifnot(
       is.matrix(chunks$embedding)
@@ -417,6 +424,10 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
     stop("`store` must be a RagnarStore")
 
   if ("vss" %in% type) {
+    if (is.null(store@embed)) {
+      cli::cli_abort("Store must have embeddings for using {.code type='vss'}")
+    }
+
     # TODO: duckdb has support for three different distance metrics that can be
     # selected when building the index: l2sq, cosine, and ip. Expose these as options
     # in the R interface. https://duckdb.org/docs/extensions/vss.html#usage
@@ -444,7 +455,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
 RagnarStore <- new_class(
   "RagnarStore",
   properties = list(
-    embed = class_function,
+    embed = S7::new_union(class_function, NULL),
     schema = class_data.frame,
     name = class_character
   ),
