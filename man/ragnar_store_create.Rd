@@ -10,7 +10,8 @@ ragnar_store_create(
   embedding_size = ncol(embed("foo")),
   overwrite = FALSE,
   ...,
-  extra_cols = NULL
+  extra_cols = NULL,
+  name = NULL
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ should be added to the store. Such columns can be used for adding additional
 context when retrieving. See the examples for more information.
 \code{\link[vctrs:vec_cast]{vctrs::vec_cast()}} is used to consistently perform type checks and casts
 when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.}
+
+\item{name}{A unique name for the store. Must match the \verb{^[a-zA-Z0-9_-]+$}
+regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}} for registering tools.}
 }
 \value{
 a \code{DuckDBRagnarStore} object

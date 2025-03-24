@@ -1,6 +1,6 @@
 
 #' Embed text using a Bedrock model
-#' 
+#'
 #' @inheritParams embed_ollama
 #' @inheritParams ellmer::chat_bedrock
 #' @param model Currently only Cohere.ai and Amazon Titan models are supported.
@@ -9,15 +9,15 @@
 #'   You may look for available models in the Bedrock Model Catalog
 #' @param api_args Additional arguments to pass to the Bedrock API. Dependending
 #'   on the `model`, you might be able to provide different parameters. Check
-#'   the documentation for the model you are using in the 
+#'   the documentation for the model you are using in the
 #'   [Bedrock user guide](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html).
-#' 
+#'
 #' @seealso [embed_ollama()]
-#' 
-#' @returns 
-#' If `x` is missing returns a function that can be called to get embeddings. 
+#'
+#' @returns
+#' If `x` is missing returns a function that can be called to get embeddings.
 #' If `x` is not missing, a matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
-#' 
+#'
 #' @export
 embed_bedrock <- function(x, model, profile, api_args = list()) {
 
@@ -99,14 +99,14 @@ embed_bedrock_cohere <- function(base_req, inputs, api_args, req_auth_bedrock) {
 
   out <- list()
   for (indices in chunk_list(seq_along(inputs), 20)) {
-    
+
     body <- rlang::list2(
       texts = as.list(inputs[indices]),
       !!!api_args
     )
-    
-    resp <- base_req |> 
-      httr2::req_body_json(body) |> 
+
+    resp <- base_req |>
+      httr2::req_body_json(body) |>
       req_auth_bedrock() |>
       httr2::req_perform()
 
@@ -131,15 +131,15 @@ embed_bedrock_titan <- function(base_req, inputs, api_args, req_auth_bedrock) {
       inputText = input,
       !!!api_args
     )
-    
-    resp <- base_req |> 
-      httr2::req_body_json(body) |> 
+
+    resp <- base_req |>
+      httr2::req_body_json(body) |>
       req_auth_bedrock() |>
       httr2::req_perform()
 
     httr2::resp_body_json(resp)$embedding
   })
-    
+
   matrix(unlist(out), nrow = length(inputs), ncol = length(out[[1]]), byrow = TRUE)
 }
 
@@ -180,6 +180,7 @@ aws_creds_cache <- function(profile) {
 
 the <- rlang::new_environment()
 the$credentials_cache <- rlang::new_environment()
+the$current_store_id <- NULL
 
 credentials_cache <- function(key) {
   list(

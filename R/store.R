@@ -16,6 +16,8 @@
 #'  context when retrieving. See the examples for more information.
 #'  [vctrs::vec_cast()] is used to consistently perform type checks and casts
 #'  when inserting with [ragnar_store_insert()].
+#' @param name A unique name for the store. Must match the `^[a-zA-Z0-9_-]+$`
+#'  regex. Used by [ragnar_register_tool_retrieve()] for registering tools.
 #'
 #' @examples
 #' # A store with a dummy embedding
@@ -49,10 +51,16 @@ ragnar_store_create <- function(
     embedding_size = ncol(embed("foo")),
     overwrite = FALSE,
     ...,
-    extra_cols = NULL
+    extra_cols = NULL,
+    name = NULL
 ) {
 
   rlang::check_dots_empty()
+
+  if (is.null(name)) {
+    name <- unique_store_name()
+  }
+  stopifnot(grepl("^[a-zA-Z0-9_-]+$", name))
 
   if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
     if (overwrite) {
@@ -111,7 +119,8 @@ ragnar_store_create <- function(
   metadata <- tibble::tibble(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),
-    schema = blob::blob(serialize(schema, NULL))
+    schema = blob::blob(serialize(schema, NULL)),
+    name = name
   )
 
   if (overwrite)
@@ -128,6 +137,7 @@ ragnar_store_create <- function(
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
   schema <- unserialize(metadata$schema[[1]])
+  name <- metadata$name
 
   # duckdb R interface does not support array columns yet,
   # so we hand-write the sql.
@@ -157,9 +167,13 @@ ragnar_store_create <- function(
       {stri_c(columns, collapse = ',')}
     )"))
 
-  DuckDBRagnarStore(embed = embed, schema = schema, .con = con)
+  DuckDBRagnarStore(embed = embed, schema = schema, .con = con, name = name)
 }
 
+unique_store_name <- function() {
+  the$current_store_id <- (the$current_store_id %||% 0) + 1
+  sprintf("store_%03d", the$current_store_id)
+}
 
 #' Connect to `RagnarStore`
 #'
@@ -200,11 +214,12 @@ ragnar_store_connect <- function(location = ":memory:",
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
   schema <- unserialize(metadata$schema[[1L]])
+  name <- metadata$name %||% unique_store_name()
 
   if (build_index)
     ragnar_store_build_index(con)
 
-  DuckDBRagnarStore(embed = embed, schema = schema, .con = con)
+  DuckDBRagnarStore(embed = embed, schema = schema, .con = con, name = name)
 }
 
 #' Inserts or updates chunks in a `RagnarStore`
@@ -430,7 +445,8 @@ RagnarStore <- new_class(
   "RagnarStore",
   properties = list(
     embed = class_function,
-    schema = class_data.frame
+    schema = class_data.frame,
+    name = class_character
   ),
   abstract = TRUE
 )

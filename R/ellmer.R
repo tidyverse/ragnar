@@ -29,7 +29,7 @@ function(chat, store, store_description = "the knowledge store", ...) {
 
   chat$register_tool(
     ellmer::tool(
-      .name = "rag_retrieve_from_knowledge_store",
+      .name = glue::glue("rag_retrieve_from_{store@name}"),
       function(text) {
         ragnar_retrieve(store, text, ...)$text |>
           stringi::stri_flatten("\n\n---\n\n")
