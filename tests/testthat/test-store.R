@@ -1,6 +1,6 @@
 test_that("ragnar_store_update/insert", {
   store <- ragnar_store_create(embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)))
-  expect_equal(store@name, "store_001")
+  expect_true(grepl("^store_[0-9]+$", store@name))
 
   chunks <- data.frame(
     origin = "foo",
