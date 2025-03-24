@@ -42,7 +42,8 @@
 <span>  embedding_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/embed.html" class="external-link">embed</a></span><span class="op">(</span><span class="st">"foo"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  extra_cols <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  extra_cols <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -81,6 +82,11 @@ should be added to the store. Such columns can be used for adding additional
 context when retrieving. See the examples for more information.
 <code><a href="https://vctrs.r-lib.org/reference/vec_cast.html" class="external-link">vctrs::vec_cast()</a></code> is used to consistently perform type checks and casts
 when inserting with <code><a href="ragnar_store_insert.html">ragnar_store_insert()</a></code>.</p></dd>
+
+
+<dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
+<dd><p>A unique name for the store. Must match the <code>^[a-zA-Z0-9_-]+$</code>
+regex. Used by <code><a href="ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code> for registering tools.</p></dd>
 
 </dl></div>
     <div class="section level2">
