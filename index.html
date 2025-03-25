@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>What the Package Does (One Line, Title Case) • ragnar</title>
+<title>Retrieval-Augmented Generation (RAG) Workflows • ragnar</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
@@ -16,10 +16,10 @@
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="What the Package Does (One Line, Title Case)">
-<meta name="description" content="What the package does (one paragraph).">
-<meta property="og:description" content="What the package does (one paragraph).">
-<meta property="og:image" content="https://t-kalinowski.github.io/ragnar/logo.png">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Retrieval-Augmented Generation (RAG) Workflows">
+<meta name="description" content="Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLMs). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers (Ollama, OpenAI), with DuckDB as the default storage backend. Integrates with the ellmer package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs.">
+<meta property="og:description" content="Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLMs). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers (Ollama, OpenAI), with DuckDB as the default storage backend. Integrates with the ellmer package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs.">
+<meta property="og:image" content="https://tidyverse.github.io/ragnar/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -56,7 +56,6 @@
 <img src="logo.png" class="logo" alt=""><h1 id="ragnar-">ragnar <a class="anchor" aria-label="anchor" href="#ragnar-"></a>
 </h1>
 </div>
-<p>🚧 Under active development 🚧</p>
 <!-- badges: start -->
 
 <!-- badges: end -->
@@ -65,7 +64,7 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"t-kalinowski/ragnar"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"tidyverse/ragnar"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="key-steps">Key Steps<a class="anchor" aria-label="anchor" href="#key-steps"></a>
@@ -167,7 +166,7 @@
 </h2>
 <p>Here’s an example of using <code>ragnar</code> to create a knowledge store from the <em>R for Data Science (2e)</em> book:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://t-kalinowski.github.io/ragnar/">ragnar</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.github.io/ragnar/">ragnar</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">base_url</span> <span class="op">&lt;-</span> <span class="st">"https://r4ds.hadley.nz"</span></span>
 <span><span class="va">pages</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_find_links.html">ragnar_find_links</a></span><span class="op">(</span><span class="va">base_url</span><span class="op">)</span></span>
@@ -245,7 +244,7 @@
 <code class="sourceCode R"><span></span>
 <span><span class="co">#' ## Retrieving Chunks</span></span>
 <span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://t-kalinowski.github.io/ragnar/">ragnar</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.github.io/ragnar/">ragnar</a></span><span class="op">)</span></span>
 <span><span class="va">store_location</span> <span class="op">&lt;-</span> <span class="st">"r4ds.ragnar.duckdb"</span></span>
 <span><span class="va">store</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rangar_store_create.html">ragnar_store_connect</a></span><span class="op">(</span><span class="va">store_location</span>, read_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
@@ -471,7 +470,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/t-kalinowski/ragnar/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/t-kalinowski/ragnar/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/tidyverse/ragnar/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/tidyverse/ragnar/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 
