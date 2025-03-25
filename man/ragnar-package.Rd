@@ -4,16 +4,16 @@
 \name{ragnar-package}
 \alias{ragnar}
 \alias{ragnar-package}
-\title{ragnar: What the Package Does (One Line, Title Case)}
+\title{ragnar: Retrieval-Augmented Generation (RAG) Workflows}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-What the package does (one paragraph).
+Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLMs). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers ('Ollama', 'OpenAI'), with 'DuckDB' as the default storage backend. Integrates with the 'ellmer' package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://t-kalinowski.github.io/ragnar/}
+  \item \url{https://tidyverse.github.io/ragnar/}
 }
 
 }

@@ -3,11 +3,9 @@
 
 # ragnar <img src="man/figures/logo.png" align="right" height="138"/>
 
-🚧 Under active development 🚧
-
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/t-kalinowski/ragnar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/t-kalinowski/ragnar/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/tidyverse/ragnar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tidyverse/ragnar/actions/workflows/R-CMD-check.yaml)
 
 <!-- badges: end -->
 
@@ -23,7 +21,7 @@ happening.
 ## Installation
 
 ``` r
-pak::pak("t-kalinowski/ragnar")
+pak::pak("tidyverse/ragnar")
 ```
 
 ## Key Steps
