@@ -57,6 +57,10 @@ ragnar_retrieve_vss <- function(
 # store |> dplyr::mutate(score = calculate_vss(store, text))
 # using dbplyr
 calculate_vss <- function(store, text, method) {
+  if (is.null(store@embed)) {
+    cli::cli_abort("Store must have an embed function but got {.code NULL}")
+  }
+
   embedded_text <- store@embed(text)
   embedding_size <- ncol(embedded_text)
 

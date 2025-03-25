@@ -22,7 +22,9 @@ matrix of embeddings. Note this function will be serialized and then
 deserialized in new R sessions, so it cannot reference to any objects in
 the global or parent environments. Make sure to namespace all function
 calls with \code{::}. If additional R objects must be available in the function,
-you can optionally supply a \code{carrier::crate()} with packaged data.}
+you can optionally supply a \code{carrier::crate()} with packaged data.
+It can also be \code{NULL} for stores that don't need to embed their texts, for example,
+if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
 
 \item{embedding_size}{integer}
 

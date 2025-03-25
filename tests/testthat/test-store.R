@@ -131,3 +131,19 @@ test_that("additional columns", {
   val <- dbGetQuery(store@.con, "select text, h1 from chunks")
   expect_equal(nrow(val), 2)
 })
+
+test_that("Allow a NULL embedding function", {
+  store <- ragnar_store_create(embed = NULL)
+  chunks <- data.frame(
+    origin = c("foo", "bar"),
+    hash = c("foo", "bar"),
+    text = c("foo", "bar")
+  )
+  ragnar_store_update(store, chunks)
+  # no error, vss is ignored
+  expect_error(ragnar_store_build_index(store), regexp = NA)
+
+  ragnar_store_build_index(store, type = "fts")
+  ragnar_retrieve_bm25(store, "bar")
+  expect_error(ragnar_retrieve(store, "bar"))
+})
