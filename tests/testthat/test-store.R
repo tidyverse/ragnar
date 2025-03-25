@@ -140,7 +140,8 @@ test_that("Allow a NULL embedding function", {
     text = c("foo", "bar")
   )
   ragnar_store_update(store, chunks)
-  expect_error(ragnar_store_build_index(store)) # must remove vss from embeddings
+  # no error, vss is ignored
+  expect_error(ragnar_store_build_index(store), regexp = NA)
 
   ragnar_store_build_index(store, type = "fts")
   ragnar_retrieve_bm25(store, "bar")

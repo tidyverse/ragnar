@@ -423,11 +423,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   else
     stop("`store` must be a RagnarStore")
 
-  if ("vss" %in% type) {
-    if (is.null(store@embed)) {
-      cli::cli_abort("Store must have embeddings for using {.code type='vss'}")
-    }
-
+  if ("vss" %in% type && !is.null(store@embed)) {
     # TODO: duckdb has support for three different distance metrics that can be
     # selected when building the index: l2sq, cosine, and ip. Expose these as options
     # in the R interface. https://duckdb.org/docs/extensions/vss.html#usage
