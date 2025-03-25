@@ -61,7 +61,9 @@ matrix of embeddings. Note this function will be serialized and then
 deserialized in new R sessions, so it cannot reference to any objects in
 the global or parent environments. Make sure to namespace all function
 calls with <code>::</code>. If additional R objects must be available in the function,
-you can optionally supply a <code>carrier::crate()</code> with packaged data.</p></dd>
+you can optionally supply a <code>carrier::crate()</code> with packaged data.
+It can also be <code>NULL</code> for stores that don't need to embed their texts, for example,
+if only using FTS algorithms such as <code><a href="ragnar_retrieve_bm25.html">ragnar_retrieve_bm25()</a></code>.</p></dd>
 
 
 <dt id="arg-embedding-size">embedding_size<a class="anchor" aria-label="anchor" href="#arg-embedding-size"></a></dt>
