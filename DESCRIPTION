@@ -38,7 +38,8 @@ Suggests:
     rmarkdown,
     stringr,
     testthat (>= 3.0.0),
-    paws.common
+    paws.common,
+    shiny
 Config/Needs/website: rmarkdown
 Config/testthat/edition: 3
 Remotes:
