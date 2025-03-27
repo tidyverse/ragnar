@@ -110,7 +110,6 @@ listDocumentsUI <- function(id) {
           if (x.length) {{
             const siblings = x.siblings().removeClass('border border-sky-500');
             x.addClass('border border-sky-500');
-            console.log(x.attr('data-document-id'));
             Shiny.setInputValue('{ns('selected_document')}', parseInt(x.attr('data-document-id')));
           }}
       }});
