@@ -51,7 +51,7 @@ init_markitdown <- function(...) {
 # '   chat <- ellmer::chat_openai(echo = TRUE)
 # '   chat$chat("Describe this image", content_image_file(jpg))
 # ' }
-read_as_markdown <- function(x, ..., canonical = FALSE) {
+read_as_markdown <- function(x, ..., canonical = FALSE, modify_request = identity) {
 
   check_string(x)
 
@@ -69,9 +69,33 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
     # use the Python API, faster, more powerful
     convert <- .globals$markitdown$convert %||% init_markitdown()$convert
-    md <- convert(x, ...)
 
+    # if `x` is a url, we use httr to retrieve it
+    x <- tryCatch({
+      curl::curl_parse_url(x)
+      httr2::request(x)
+    }, error = function(err) {
+      x
+    })
+
+    if (inherits(x, "httr2_request")) {
+      x <- x |>
+        modify_request() |>
+        httr2::req_perform() |>
+        r_to_py.httr2_response()
+    }
+
+    md <- convert(x, ...)
   } else {
+
+    if (!identical(modify_request, identity)) {
+      cli::cli_warn(
+        "The {.arg modify_request} argument is not supported when using the CLI interface.",
+        .frequency = "once",
+        .frequency_id = "read_as_markdown"
+      )
+    }
+
     # use the markitdown cli API, (much) slower, but easier to isolate
     check_dots_empty()
     outfile <- withr::local_tempfile(fileext = ".md")
@@ -103,6 +127,17 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   glue::as_glue(md)
 }
 
+r_to_py.httr2_response <- function(x, convert = FALSE) {
+  requests <- reticulate::import("requests")
+  io <- reticulate::import("io")
+  response <- requests$Response()
+  response$status_code <- httr2::resp_status(x)
+  response$url <- httr2::resp_url(x)
+  response$raw <- io$BytesIO(httr2::resp_body_raw(x))
+  response$headers <- httr2::resp_headers(x)
+  response$encoding <- httr2::resp_encoding(x)
+  response
+}
 
 markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   lines <- text |> stri_split_lines() |> unlist()
@@ -286,20 +321,20 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #' @param frame_by_tags character vector of html tag names used to create a
 #'   dataframe of the returned content
 #'
-#' @returns 
+#' @returns
 #' Always returns a data frame with the columns:
 #'   - `origin`: the file path or url
 #'   - `hash`: a hash of the text content
 #'   - `text`: the markdown content
-#' 
+#'
 #' If `split_by_tags` is not `NULL`, then a `tag` column is also included containing
 #' the corresponding tag for each text chunk. `""` is used for text chunks that
 #' are not associated with a tag.
-#' 
+#'
 #' If `frame_by_tags` is not `NULL`, then additional columns are included for each
 #' tag in `frame_by_tags`. The text chunks are associated with the tags in the
 #' order they appear in the markdown content.
-#' 
+#'
 #' @export
 #'
 #' @examples
@@ -364,9 +399,9 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #'     )--") |>
 #'   # inspect
 #'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
-ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
+ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL, modify_request = identity) {
 
-  text <- read_as_markdown(x, ...)
+  text <- read_as_markdown(x, ..., modify_request = identity)
   hash <- rlang::hash(text)
 
   if (is.null(frame_by_tags) && is.null(split_by_tags)) {
@@ -377,18 +412,18 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
     )
     return(out)
   }
-  
+
   segmented <- markdown_segment(
-    text, 
-    tags = unique(c(split_by_tags, frame_by_tags)), 
-    trim = TRUE, 
+    text,
+    tags = unique(c(split_by_tags, frame_by_tags)),
+    trim = TRUE,
     omit_empty = TRUE
   )
 
   frame <- vec_frame_flattened_tree(
-    segmented, 
-    frame_by_tags %||% character(), 
-    names = "tag", 
+    segmented,
+    frame_by_tags %||% character(),
+    names = "tag",
     leaves = "text"
   )
 
@@ -397,8 +432,8 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
     frame[["tag"]] <- NULL
   }
 
-  frame <- frame |> 
-    dplyr::mutate(origin = x, hash = hash) |> 
+  frame <- frame |>
+    dplyr::mutate(origin = x, hash = hash) |>
     dplyr::select(origin, hash, text, dplyr::everything())
 
   as_tibble(frame)

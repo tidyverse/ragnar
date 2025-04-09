@@ -336,13 +336,13 @@ ragnar_read_document <- function(x, ...,
 #'   depth = 1
 #' )
 ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE, ...,
-                              url_filter = identity) {
+                              url_filter = identity, modify_request = identity) {
 
   rlang::check_dots_empty()
 
   if (!inherits(x, "xml_node")) {
     check_string(x)
-    x <- read_html2(x)
+    x <- read_html2(x, modify_request = modify_request)
   }
 
   depth <- as.integer(depth)
@@ -384,7 +384,7 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
       visited$add(item$url)
 
       links <- tryCatch(
-        html_find_links(item$url),
+        html_find_links(item$url, modify_request = modify_request),
         error = function(e) {
           # if there's an issue finding child links we log it into the `problems` table
           # which is included in the output as an attribute.
@@ -428,10 +428,10 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 # E.g.,
 # for same site only: prefix = url_host(xml_url(x))
 # for child links only: prefix = url_normalize_stem(xml_url(x))
-html_find_links <- function(x, absolute = TRUE) {
+html_find_links <- function(x, absolute = TRUE, modify_request) {
 
   if (!inherits(x, "xml_node")) {
-    x <- read_html2(x)
+    x <- read_html2(x, modify_request = modify_request)
   }
 
   links <- x |>
@@ -486,29 +486,32 @@ stri_subset_startswith_fixed <- function(str, pattern, ...) {
 }
 
 # workaround for https://github.com/r-lib/xml2/issues/453
-read_html2 <- function(url, ...) {
-  # For some reason curl is both erroring and warning when the URL is invalid or
-  # returns 404. We don't really want the warnings, so we discard them.
-  suppressWarnings({
-    handle <- curl::new_handle(followlocation = TRUE)
-    # We first try the original URL, if some error occurs we retry with the
-    # URL encoded version. (If it's different from the original URL.)
-    conn <- tryCatch(
-      curl::curl(url, "rb", handle = handle),
-      error = function(err) {
-        encoded_url <- utils::URLencode(url)
-        if (url != encoded_url) {
-          handle <<- curl::new_handle(followlocation = TRUE)
-          curl::curl(encoded_url, "rb", handle = handle)
-        } else {
-          stop(err)
-        }
-      }
-    )
+read_html2 <- function(url, ..., modify_request) {
+
+  perform_request <- function(url) {
+    url |>
+      httr2::request() |>
+      modify_request() |>
+      httr2::req_perform()
+  }
+
+  resp <- tryCatch({
+    perform_request(url)
+  }, error = function(err) {
+    encoded_url <- utils::URLencode(url)
+    if (url != encoded_url) {
+      perform_request(url)
+    } else {
+      stop(err)
+    }
   })
+
+  raw <- httr2::resp_body_raw(resp)
+  conn <- rawConnection(raw, "rb")
   on.exit(tryCatch(close(conn), error = function(e) NULL))
+
   out <- xml2::read_html(conn, ...)
-  attr(out, "resolved_url") <- curl::handle_data(handle)$url
+  attr(out, "resolved_url") <- httr2::resp_url(resp)
   out
 }
 
