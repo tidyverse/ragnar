@@ -60,11 +60,15 @@ storeInspectorServer <- function(id, store) {
         return(data.frame())
       }
 
-      if (is_vss()) {
-        ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
-      } else {
-        ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
-      }
+      tryCatch({
+        if (is_vss()) {
+          ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
+        } else {
+          ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
+        }
+      }, error = function(err) {
+        structure(data.frame(), error = conditionMessage(err), class="error")
+      })
     })
 
     selectedDocumentId <- listDocumentsServer("document_list", documents)
@@ -149,12 +153,21 @@ listDocumentsServer <- function(id, documents) {
     }
 
     output$list <- shiny::renderUI({
+      if (inherits(documents(), "error")) {
+        updateSelectedDocument(NULL)
+        return(shiny::tags$div(
+          class = "flex flex-col text-sm text-center",
+          shiny::p("Error retrieving documents", class = "text-red-500 font-bold"),
+          shiny::tags$pre(attr(documents(), "error"))
+        ))
+      }
+
       if (nrow(documents()) == 0) {
+        updateSelectedDocument(NULL)
         return(shiny::tags$div(
           class = "text-sm text-center",
           "No documents found"
         ))
-        updateSelectedDocument(NULL)
       }
 
       updateSelectedDocument(head(documents(), 1)$id)
