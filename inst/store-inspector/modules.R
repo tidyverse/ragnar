@@ -56,6 +56,10 @@ storeInspectorServer <- function(id, store) {
     is_vss <- switchServer("search_type")
 
     documents <- shiny::reactive({
+      if (is.null(query()) || nchar(query()) <= 0) {
+        return(data.frame())
+      }
+
       if (is_vss()) {
         ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
       } else {
