@@ -30,8 +30,7 @@ Imports:
     xml2,
     methods,
     S7,
-    reticulate (>= 1.41.0.9001),
-    pandoc,
+    reticulate (>= 1.42.0),
     commonmark,
     blob,
     cli,
@@ -39,6 +38,7 @@ Imports:
     withr,
     dotty
 Suggests:
+    pandoc,
     ellmer,
     knitr,
     readr,
