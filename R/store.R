@@ -465,3 +465,20 @@ DuckDBRagnarStore <- new_class(
     .con = methods::getClass("DBIConnection")
   )
 )
+
+#' Launches the Ragnar Inspector Tool
+#'
+#' @param store A `RagnarStore` object that you want to inspect with the tool.
+#' @param ... Passed to [shiny::runApp()].
+#'
+#' @returns `NULL` invisibly
+#'
+#' @export
+ragnar_store_inspect <- function(store, ...) {
+  rlang::check_installed("shiny")
+  app_dir <- system.file("store-inspector", package = "ragnar")
+  withr::with_options(list(ragnar_inspector_store = store), {
+    shiny::runApp(app_dir, ...)
+  })
+  invisible(NULL)
+}

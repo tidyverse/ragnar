@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+
+.recalculating {
+  @apply animate-pulse;
+}
+
+@tailwind utilities;
+@import "tailwindcss";
