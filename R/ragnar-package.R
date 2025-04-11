@@ -31,6 +31,7 @@ dotty::.
     file <- tempfile(fileext = ".txt")
     on.exit(unlink(file))
     writeLines("hi", file)
+    (writeLines)("hi", file)
     convert <- init_markitdown()$convert
     DocumentConverterResult <- convert(file)
     if (inherits(DocumentConverterResult, "python.builtin.object")) {

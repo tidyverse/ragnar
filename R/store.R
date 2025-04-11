@@ -267,7 +267,7 @@ ragnar_store_update <- function(store, chunks) {
     DBI::dbWriteTable(
       store@.con,
       "tmp_chunks",
-      chunks |> dplyr::select(origin, hash) |> dplyr::distinct(),
+      chunks |> dplyr::select("origin", "hash") |> dplyr::distinct(),
       temporary = TRUE,
       overwrite = TRUE
     )

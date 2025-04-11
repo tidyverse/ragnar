@@ -272,6 +272,7 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
   ## TOOD: probably better to use commonmark instead of pandoc here.
   tmp_html <- tempfile(fileext = ".html")
   on.exit(unlink(tmp_html))
+  check_installed("pandoc")
   pandoc::pandoc_convert(text = text, to = "html", output = tmp_html)
   html_text3(doc = read_html(tmp_html, encoding = "UTF-8"),
              split_tags = split_by)
@@ -403,9 +404,11 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
     frame[["tag"]] <- NULL
   }
 
-  frame <- frame |>
-    dplyr::mutate(origin = x, hash = hash) |>
-    dplyr::select(origin, hash, text, dplyr::everything())
+  frame[["origin"]] <- x
+  frame[["hash"]] <- hash
+
+  # reorder columns
+  frame <- frame[unique(c("origin", "hash", names(frame), "text"))]
 
   as_tibble(frame)
 }
