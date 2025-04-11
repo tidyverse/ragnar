@@ -403,9 +403,11 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
     frame[["tag"]] <- NULL
   }
 
-  frame <- frame |>
-    dplyr::mutate(origin = x, hash = hash) |>
-    dplyr::select(origin, hash, text, dplyr::everything())
+  frame[["origin"]] <- x
+  frame[["hash"]] <- hash
+
+  # reorder columns
+  frame <- frame[unique(c("origin", "hash", names(frame), "text"))]
 
   as_tibble(frame)
 }

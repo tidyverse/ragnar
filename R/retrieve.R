@@ -150,8 +150,8 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   # pivot to wide format
   out <- tidyr::pivot_wider(
     out,
-    names_from = metric_name,
-    values_from = metric_value
+    names_from = "metric_name",
+    values_from = "metric_value"
   )
 
   # TODO: come up with a nice reordering that doesn't involve too much compute.
