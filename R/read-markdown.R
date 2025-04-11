@@ -33,46 +33,52 @@ init_markitdown <- function(...) {
 #' read_as_markdown(pdf) |> substr(1, 1000) |> cat()
 #' ## alternative:
 #' # pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
-# '
-# ' # convert images
-# ' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
-# ' ## currently broken https://github.com/microsoft/markitdown/issues/1036
-# ' if(FALSE) {
-# '   reticulate::py_require("openai")
-# '   llm_client <- reticulate::import("openai")$OpenAI()
-# '   read_as_markdown(jpg,
-# '     llm_client = llm_client,
-# '     llm_model = "gpt-4o"
-# '   )
-# ' }
-# '
-# ' # Alternative approach to image conversion:
-# ' if (rlang::is_installed("magick") && Sys.getenv("OPENAI_API_KEY") != "") {
-# '   chat <- ellmer::chat_openai(echo = TRUE)
-# '   chat$chat("Describe this image", content_image_file(jpg))
-# ' }
+#'
+#' # convert images
+#' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
+#' if (FALSE) {
+#'   # system("brew install ffmpeg")
+#'   reticulate::py_require("openai")
+#'   llm_client <- reticulate::import("openai")$OpenAI()
+#'   read_as_markdown(jpg,
+#'     llm_client = llm_client,
+#'     llm_model = "gpt-4o"
+#'   )
+#'   # # Description:
+#'   # The image features the official logo of the R programming language.
+#'   # Prominently displayed is a bold, blue letter "R," which serves as the
+#'   # centerpiece of the design. Encircling the "R" is a two-toned,
+#'   # stylized oval or ellipse with a gradient that transitions from dark
+#'   # gray to light gray, creating a sense of motion and dynamics. R is an
+#'   # open-source programming language widely used for statistical
+#'   # computing, data analysis, and graphical representation. The logo
+#'   # represents the language's focus on clarity, precision, and
+#'   # versatility in handling complex data tasks.
+#' }
+#'
+#' # Alternative approach to image conversion:
+#' if(FALSE) {
+#'   if (Sys.getenv("OPENAI_API_KEY") != "") {
+#'     rlang::check_installed(c("ellmer", "magick"))
+#'     chat <- ellmer::chat_openai(echo = TRUE)
+#'     chat$chat("Describe this image", ellmer::content_image_file(jpg))
+#'   }
+#' }
 read_as_markdown <- function(x, ..., canonical = FALSE) {
 
   check_string(x)
 
-  ## Ideally, we'd use the Python API for MarkitDown via reticulate. However,
-  ## there are some bugs in MarkitDown, and the simplest workaround is to set
-  ## `--exclude-newer`. But we don't want to apply that globally to all Python
-  ## modules in reticulate, only to MarkitDown. So, we use the CLI interface for
-  ## MarkitDown, where we can safely set a cutoff date within an isolated venv.
-  ## The CLI doesn't support generating image conversions via LLM calls, but
-  ## that's broken anyway. Related issues:
-  ## https://github.com/microsoft/markitdown/issues/1063
-  ## https://github.com/microsoft/markitdown/issues/1036
-
-
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
-    # use the Python API, faster, more powerful
+    # use the Python API, faster, more powerful, the default
+    # but we leave an escape hatch just in case there are other python
+    # dependencies that conflict
     convert <- .globals$markitdown$convert %||% init_markitdown()$convert
     md <- convert(x, ...)
 
   } else {
-    # use the markitdown cli API, (much) slower, but easier to isolate
+    # use the markitdown cli API, (much) slower, but can be isolated from
+    # reticulated python.
+
     check_dots_empty()
     outfile <- withr::local_tempfile(fileext = ".md")
     exit_code <- cli_markitdown(c(shQuote(x), "-o", shQuote(outfile)))
@@ -286,20 +292,20 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #' @param frame_by_tags character vector of html tag names used to create a
 #'   dataframe of the returned content
 #'
-#' @returns 
+#' @returns
 #' Always returns a data frame with the columns:
 #'   - `origin`: the file path or url
 #'   - `hash`: a hash of the text content
 #'   - `text`: the markdown content
-#' 
+#'
 #' If `split_by_tags` is not `NULL`, then a `tag` column is also included containing
 #' the corresponding tag for each text chunk. `""` is used for text chunks that
 #' are not associated with a tag.
-#' 
+#'
 #' If `frame_by_tags` is not `NULL`, then additional columns are included for each
 #' tag in `frame_by_tags`. The text chunks are associated with the tags in the
 #' order they appear in the markdown content.
-#' 
+#'
 #' @export
 #'
 #' @examples
@@ -377,18 +383,18 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
     )
     return(out)
   }
-  
+
   segmented <- markdown_segment(
-    text, 
-    tags = unique(c(split_by_tags, frame_by_tags)), 
-    trim = TRUE, 
+    text,
+    tags = unique(c(split_by_tags, frame_by_tags)),
+    trim = TRUE,
     omit_empty = TRUE
   )
 
   frame <- vec_frame_flattened_tree(
-    segmented, 
-    frame_by_tags %||% character(), 
-    names = "tag", 
+    segmented,
+    frame_by_tags %||% character(),
+    names = "tag",
     leaves = "text"
   )
 
@@ -397,8 +403,8 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
     frame[["tag"]] <- NULL
   }
 
-  frame <- frame |> 
-    dplyr::mutate(origin = x, hash = hash) |> 
+  frame <- frame |>
+    dplyr::mutate(origin = x, hash = hash) |>
     dplyr::select(origin, hash, text, dplyr::everything())
 
   as_tibble(frame)
@@ -414,13 +420,11 @@ cli_markitdown <- function(args, ...) {
     "markitdown",
     args,
 
-    # Use dev version until this patch is in release:
-    # https://github.com/microsoft/markitdown/pull/322
-    from = "markitdown@git+https://github.com/microsoft/markitdown.git@main#subdirectory=packages/markitdown",
+    # pin cli escape hatch to a known working version
+    # incase a future markitdown release breaks the default path.
+    from = "markitdown[all]==0.1.1",
 
-    # pin package versions until this issue is resolved:
-    # https://github.com/microsoft/markitdown/issues/1063
-    exclude_newer = "2025-02-22",
+    # exclude_newer = "2025-02-22",
 
     python_version = "3.11",
     ...
