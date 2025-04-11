@@ -325,6 +325,7 @@ ragnar_read_document <- function(x, ...,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 #' ragnar_find_links("https://ellmer.tidyverse.org/")
 #' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
@@ -335,6 +336,7 @@ ragnar_read_document <- function(x, ...,
 #'   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
 #'   depth = 1
 #' )
+#' }
 ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE, ...,
                               url_filter = identity) {
 

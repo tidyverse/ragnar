@@ -42,6 +42,7 @@ A character vector of links on the page.
 Find links on a page
 }
 \examples{
+\dontrun{
 ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 ragnar_find_links("https://ellmer.tidyverse.org/")
 ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
@@ -52,4 +53,5 @@ ragnar_find_links(
   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
   depth = 1
 )
+}
 }
