@@ -33,4 +33,35 @@ pdf <- file.path(R.home("doc"), "NEWS.pdf")
 read_as_markdown(pdf) |> substr(1, 1000) |> cat()
 ## alternative:
 # pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
+
+# convert images
+jpg <- file.path(R.home("doc"), "html", "logo.jpg")
+if (FALSE) {
+  # system("brew install ffmpeg")
+  reticulate::py_require("openai")
+  llm_client <- reticulate::import("openai")$OpenAI()
+  read_as_markdown(jpg,
+    llm_client = llm_client,
+    llm_model = "gpt-4o"
+  )
+  # # Description:
+  # The image features the official logo of the R programming language.
+  # Prominently displayed is a bold, blue letter "R," which serves as the
+  # centerpiece of the design. Encircling the "R" is a two-toned,
+  # stylized oval or ellipse with a gradient that transitions from dark
+  # gray to light gray, creating a sense of motion and dynamics. R is an
+  # open-source programming language widely used for statistical
+  # computing, data analysis, and graphical representation. The logo
+  # represents the language's focus on clarity, precision, and
+  # versatility in handling complex data tasks.
+}
+
+# Alternative approach to image conversion:
+if(FALSE) {
+  if (Sys.getenv("OPENAI_API_KEY") != "") {
+    rlang::check_installed(c("ellmer", "magick"))
+    chat <- ellmer::chat_openai(echo = TRUE)
+    chat$chat("Describe this image", ellmer::content_image_file(jpg))
+  }
+}
 }
