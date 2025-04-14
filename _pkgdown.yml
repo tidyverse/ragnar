@@ -1,4 +1,13 @@
-url: https://tidyverse.github.io/ragnar/
+url:  https://ragnar.tidyverse.org
+
 template:
+  package: ragnar
   bootstrap: 5
+
+  includes:
+    in_header: |
+      <script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
+
+development:
+  mode: auto
 
