@@ -80,7 +80,7 @@ method_to_info <- function(method) {
   switch(
     method,
     cosine_distance = c("array_cosine_distance", "ASC"),
-    eclidean_distance = c("array_distance", "ASC"),
+    euclidean_distance = c("array_distance", "ASC"),
     negative_dot_product = c("array_negative_dot_product", "ASC"),
     cosine_similarity = c("array_cosine_similarity", "DESC"),
     dot_product = c("array_dot_product", "DESC")
