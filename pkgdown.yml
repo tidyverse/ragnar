@@ -1,8 +1,8 @@
 pandoc: 3.1.11
-pkgdown: 2.1.1
+pkgdown: 2.1.2
 pkgdown_sha: ~
 articles: {}
-last_built: 2025-04-23T16:49Z
+last_built: 2025-05-06T14:18Z
 urls:
   reference: https://ragnar.tidyverse.org/reference
   article: https://ragnar.tidyverse.org/articles
