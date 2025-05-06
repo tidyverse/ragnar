@@ -1,7 +1,8 @@
 test_that("retrieving works as expected", {
-
   # Create a simple store and insert some chunks
-  store <- ragnar_store_create(embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)))
+  store <- ragnar_store_create(
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
   chunks <- data.frame(
     text = c("foo", "bar", "faz")
   )
@@ -43,4 +44,3 @@ test_that("retrieving works as expected", {
   ret <- ragnar_retrieve(store, "foo")
   expect_equal(nrow(ret), 3)
 })
-

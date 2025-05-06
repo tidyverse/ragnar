@@ -1,4 +1,3 @@
-
 #' @importFrom rvest html_text html_text2 html_elements read_html html_attr
 #' @importFrom stringi stri_length stri_locate_all_boundaries stri_split_fixed
 #'   stri_startswith_fixed stri_sub stri_trim_both stri_flatten
@@ -31,7 +30,9 @@ NULL
 
 NULL
 
-`%error%` <- rlang::zap_srcref(function(x, y) tryCatch(x, error = function(e) y))
+`%error%` <- rlang::zap_srcref(
+  function(x, y) tryCatch(x, error = function(e) y)
+)
 
 `%empty%` <- function(x, y) if (length(x)) x else y
 `add<-` <- function(x, value) x + value
@@ -44,17 +45,15 @@ drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
 map_chr <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = "", ...)
 map_lgl <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = TRUE, ...)
 
-map2 <- function (.x, .y, .f, ...) {
+map2 <- function(.x, .y, .f, ...) {
   out <- .mapply(.f, list(.x, .y), list(...))
-  if (length(.x) == length(out))
-    names(out) <- names(.x)
+  if (length(.x) == length(out)) names(out) <- names(.x)
   out
 }
 
-map3 <- function (.x, .y, .z, .f, ...) {
+map3 <- function(.x, .y, .z, .f, ...) {
   out <- .mapply(.f, list(.x, .y, .z), list(...))
-  if (length(.x) == length(out))
-    names(out) <- names(.x)
+  if (length(.x) == length(out)) names(out) <- names(.x)
   out
 }
 
@@ -77,16 +76,13 @@ map3 <- function (.x, .y, .z, .f, ...) {
 #  is_double2(x, c(NA, NA, NA)) # FALSE
 #  is_double2(x, 12)            # FALSE
 is_double2 <- function(x, dim = NULL) {
-  if (is.null(dim))
-    return(is_double(x))
+  if (is.null(dim)) return(is_double(x))
 
-  if (!is.double(x))
-    return(FALSE)
+  if (!is.double(x)) return(FALSE)
 
   actual_size <- base::dim(x)
   expected_size <- as.integer(dim)
-  if (length(actual_size) != length(expected_size))
-    return(FALSE)
+  if (length(actual_size) != length(expected_size)) return(FALSE)
 
   all(expected_size == actual_size, na.rm = TRUE)
 }
@@ -111,11 +107,13 @@ capture_args <- function(omit_default_values = TRUE) {
 
   if (omit_default_values) {
     default_args <- as.list(formals(fn))[names(args)]
-    default_args <- lapply(default_args, eval,
-                           envir = new.env(parent = environment(fn)))
+    default_args <- lapply(
+      default_args,
+      eval,
+      envir = new.env(parent = environment(fn))
+    )
     for (nm in names(args)) {
-      if (identical(default_args[[nm]], args[[nm]]))
-        args[[nm]] <- NULL
+      if (identical(default_args[[nm]], args[[nm]])) args[[nm]] <- NULL
     }
   }
 
@@ -123,15 +121,14 @@ capture_args <- function(omit_default_values = TRUE) {
 }
 
 partial <- function(.fn, .sig, ...) {
-  body <- as.call(c(.fn, lapply(names(.sig), as.symbol),  ...))
+  body <- as.call(c(.fn, lapply(names(.sig), as.symbol), ...))
   as.function.default(c(.sig, body), envir = baseenv())
 }
 
 
 reorder_names <- function(..., last = NULL) {
   x <- unique(c(...))
-  if (!is.null(last))
-    x <- unique(c(x, last), fromLast = TRUE)
+  if (!is.null(last)) x <- unique(c(x, last), fromLast = TRUE)
   x
 }
 
@@ -144,7 +141,8 @@ ollama_ls <- function() {
   col_positions <- readr::fwf_positions(
     start = col_starts,
     end = c(col_starts[-1L] - 1L, NA),
-    col_names = stringi::stri_extract_all_words(header)[[1]] |> stringi::stri_trans_tolower()
+    col_names = stringi::stri_extract_all_words(header)[[1]] |>
+      stringi::stri_trans_tolower()
   )
   col_types <- "cccc"
 

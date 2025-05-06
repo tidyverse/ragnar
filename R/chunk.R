@@ -1,36 +1,37 @@
-
-
 pick_cut_positions <- function(candidates, chunk_size) {
-  .Call(pick_cut_positions_,
-        as.integer(candidates),
-        as.integer(chunk_size))
+  .Call(pick_cut_positions_, as.integer(candidates), as.integer(chunk_size))
 }
 
-str_chunk1 <- function(string,
-                       candidate_cutpoints,
-                       # assuming:
-                       #   1 token ~ 4 characters
-                       #   one page ~ 400 tokens
-                       #   target chunk size ~ 1 page
-                       max_size = 1600L,
-                       trim = TRUE) {
-  if(isTRUE(is.na(string)))
-    return(NA_character_)
+str_chunk1 <- function(
+  string,
+  candidate_cutpoints,
+  # assuming:
+  #   1 token ~ 4 characters
+  #   one page ~ 400 tokens
+  #   target chunk size ~ 1 page
+  max_size = 1600L,
+  trim = TRUE
+) {
+  if (isTRUE(is.na(string))) return(NA_character_)
   check_string(string, allow_na = TRUE)
   string_len <- stri_length(string)
-  if (string_len <= max_size)
-    return(string)
+  if (string_len <= max_size) return(string)
 
   candidate_cutpoints <- c(
-    1L, as.integer(candidate_cutpoints), string_len
+    1L,
+    as.integer(candidate_cutpoints),
+    string_len
   )
 
   cut_points <- pick_cut_positions(candidate_cutpoints, max_size)
-  chunks <- stri_sub(string, drop_last(cut_points), drop_first(cut_points),
-                     use_matrix = FALSE)
+  chunks <- stri_sub(
+    string,
+    drop_last(cut_points),
+    drop_first(cut_points),
+    use_matrix = FALSE
+  )
 
-  if (trim)
-    chunks <- stri_trim_both(chunks)
+  if (trim) chunks <- stri_trim_both(chunks)
 
   chunks <- chunks[nzchar(chunks)]
 
@@ -53,7 +54,9 @@ str_locate_boundaries1 <- function(string, boundary) {
       ## then split on raw vector.
       ## ... or use stringi to convert byte to char indexes, e.g.,
       ## stri_split_boundaries(x, type = "char")[[1]] |>  stri_numbytes()
-      paragraph = stri_locate_all_fixed(string, "\n\n", omit_no_match = TRUE)[[1L]][, "end"],
+      paragraph = stri_locate_all_fixed(string, "\n\n", omit_no_match = TRUE)[[
+        1L
+      ]][, "end"],
 
       # Note, stri_opts_brkiter 'type = line_break' is really about finding
       # candidates line break for the purpose of line wrapping a string, not
@@ -62,11 +65,17 @@ str_locate_boundaries1 <- function(string, boundary) {
       # stri_split_lines() does more comprehensive identification of line
       # breaks, but isn't exported as a boundary detector. Most text passing
       # through here is expected to have been normalized as markdown already...
-      line_break = stri_locate_all_fixed(string, "\n", omit_no_match = TRUE)[[1L]][, "end"],
+      line_break = stri_locate_all_fixed(string, "\n", omit_no_match = TRUE)[[
+        1L
+      ]][, "end"],
 
       sentence = ,
       word = ,
-      character = stri_locate_all_boundaries(string, type = boundary, locale = "@ss=standard")[[1L]][, "end"],
+      character = stri_locate_all_boundaries(
+        string,
+        type = boundary,
+        locale = "@ss=standard"
+      )[[1L]][, "end"],
       stop(
         'boundaries values must be one of: "paragraph", "sentence", "line_break", "word", "character" or a stringr pattern'
       )
@@ -75,11 +84,13 @@ str_locate_boundaries1 <- function(string, boundary) {
   locations
 }
 
-str_chunk <- function(x, max_size,
-                      boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
-                      trim = TRUE,
-                      simplify = TRUE) {
-
+str_chunk <- function(
+  x,
+  max_size,
+  boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
+  trim = TRUE,
+  simplify = TRUE
+) {
   chunk1 <- function(string, boundary) {
     str_chunk1(
       string,
@@ -96,21 +107,22 @@ str_chunk <- function(x, max_size,
     repeat {
       lens <- stri_length(chunks)
       is_over_size <- lens > max_size
-      if (!any(is_over_size, na.rm = TRUE))
-        break
+      if (!any(is_over_size, na.rm = TRUE)) break
       boundaries <- boundaries[-1L]
-      if (!length(boundaries))
-        break
+      if (!length(boundaries)) break
       chunks <- as.list(chunks)
-      chunks[is_over_size] <- lapply(chunks[is_over_size], chunk1, boundaries[[1L]])
+      chunks[is_over_size] <- lapply(
+        chunks[is_over_size],
+        chunk1,
+        boundaries[[1L]]
+      )
       chunks <- unlist(chunks)
       # TODO: recurse and returned nested list of strings if simplify=FALSE
     }
     chunks
   })
 
-  if (simplify)
-    out <- unlist(out)
+  if (simplify) out <- unlist(out)
 
   out
 }
@@ -217,9 +229,14 @@ str_chunk <- function(x, max_size,
 #' @name ragnar_chunk
 #' @rdname ragnar_chunk
 #' @export
-ragnar_chunk <- function(x, max_size = 1600L,
-                         boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
-                         ..., trim = TRUE, simplify = TRUE) {
+ragnar_chunk <- function(
+  x,
+  max_size = 1600L,
+  boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
+  ...,
+  trim = TRUE,
+  simplify = TRUE
+) {
   if (is.data.frame(x)) {
     check_character(x[["text"]])
     x[["text"]] <- str_chunk(
@@ -230,8 +247,7 @@ ragnar_chunk <- function(x, max_size = 1600L,
       ...,
       simplify = FALSE
     )
-    if (simplify)
-      x <- tidyr::unchop(x, "text")
+    if (simplify) x <- tidyr::unchop(x, "text")
   } else {
     boundaries <- as_boundaries_list(boundaries)
     x <- str_chunk(
@@ -248,20 +264,23 @@ ragnar_chunk <- function(x, max_size = 1600L,
 
 #' @export
 #' @rdname ragnar_chunk
-ragnar_segment <- function(x,
-                           boundaries = "sentence",
-                           ...,
-                           trim = FALSE,
-                           simplify = TRUE) {
+ragnar_segment <- function(
+  x,
+  boundaries = "sentence",
+  ...,
+  trim = FALSE,
+  simplify = TRUE
+) {
   if (is.data.frame(x)) {
     check_character(x[["text"]])
-    x[["text"]] <- ragnar_segment(x[["text"]],
-                                  boundaries = boundaries,
-                                  trim = trim,
-                                  ...,
-                                  simplify = FALSE)
-    if (simplify)
-      x <- tidyr::unchop(x, "text")
+    x[["text"]] <- ragnar_segment(
+      x[["text"]],
+      boundaries = boundaries,
+      trim = trim,
+      ...,
+      simplify = FALSE
+    )
+    if (simplify) x <- tidyr::unchop(x, "text")
     return(x)
   }
 
@@ -269,24 +288,31 @@ ragnar_segment <- function(x,
   check_character(x)
   out <- lapply(x, function(string) {
     cutpoints <- lapply(boundaries, str_locate_boundaries1, string = string) |>
-      unlist() |> c(1L, stri_length(string)) |> sort() |> unique()
+      unlist() |>
+      c(1L, stri_length(string)) |>
+      sort() |>
+      unique()
     segments <- stri_sub(string, drop_last(cutpoints), drop_first(cutpoints))
-    if (trim)
-      segments <- stri_trim_both(segments)
+    if (trim) segments <- stri_trim_both(segments)
     segments
   })
 
-  if (simplify)
-    out <- unlist(out)
+  if (simplify) out <- unlist(out)
 
   out
 }
 
 #' @export
 #' @rdname ragnar_chunk
-ragnar_chunk_segments <- function(x, max_size = 1600L, ..., simplify = TRUE, trim = TRUE) {
+ragnar_chunk_segments <- function(
+  x,
+  max_size = 1600L,
+  ...,
+  simplify = TRUE,
+  trim = TRUE
+) {
   sep <- ""
-  if(is.data.frame(x)) {
+  if (is.data.frame(x)) {
     stopifnot(is.list(x[["text"]]), all(map_chr(x[["text"]]), is.character))
     x[["text"]] <- ragnar_chunk_segments(
       x[["text"]],
@@ -296,8 +322,7 @@ ragnar_chunk_segments <- function(x, max_size = 1600L, ..., simplify = TRUE, tri
       sep = sep,
       simplify = FALSE
     )
-    if (simplify)
-      x <- tidyr::unchop(x, "text")
+    if (simplify) x <- tidyr::unchop(x, "text")
     return(x)
   }
   check_string(sep)
@@ -311,8 +336,7 @@ ragnar_chunk_segments <- function(x, max_size = 1600L, ..., simplify = TRUE, tri
         ...
       )
     })
-    if (simplify)
-      out <- unlist(out)
+    if (simplify) out <- unlist(out)
 
     return(out)
   }

@@ -23,7 +23,11 @@ test_that("ragnar_read", {
   # We can do both, frame by tag and split by them
   frame_tags <- c("h1", "h2", "h3")
   split_tags <- c("p", "pre")
-  document <- ragnar_read(doc, frame_by_tags = frame_tags, split_by_tags = split_tags)
+  document <- ragnar_read(
+    doc,
+    frame_by_tags = frame_tags,
+    split_by_tags = split_tags
+  )
   expect_gt(nrow(document), 1)
   expect_in(frame_tags, colnames(document))
   expect_in("tag", colnames(document))

@@ -24,9 +24,16 @@
 #' @family ragnar_retrieve
 #' @export
 ragnar_retrieve_vss <- function(
-    store, text, top_k = 3L,
-    method = c("cosine_distance", "cosine_similarity", "euclidean_distance",
-               "dot_product", "negative_dot_product")
+  store,
+  text,
+  top_k = 3L,
+  method = c(
+    "cosine_distance",
+    "cosine_similarity",
+    "euclidean_distance",
+    "dot_product",
+    "negative_dot_product"
+  )
 ) {
   check_string(text)
   check_number_whole(top_k)
@@ -34,12 +41,13 @@ ragnar_retrieve_vss <- function(
 
   cols <- names(store@schema) |>
     stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
-    stringi::stri_c(collapse=",")
+    stringi::stri_c(collapse = ",")
 
   .[.., order_key] <- method_to_info(method)
 
   # TODO: support specifying a minimum distance threshold too, in addition to `top_k`.
-  query <- glue(r"---(
+  query <- glue(
+    r"---(
     SELECT
       id,
       '{method}' as metric_name,
@@ -48,7 +56,8 @@ ragnar_retrieve_vss <- function(
     FROM chunks
     ORDER BY metric_value {order_key}
     LIMIT {top_k};
-    )---")
+    )---"
+  )
 
   as_tibble(dbGetQuery(store@.con, query))
 }
@@ -66,12 +75,14 @@ calculate_vss <- function(store, text, method) {
 
   .[method_function, ..] <- method_to_info(method)
 
-  glue::glue(r"---(
+  glue::glue(
+    r"---(
     {method_function}(
       embedding,
       [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
     )
-  )---")
+  )---"
+  )
 }
 
 method_to_info <- function(method) {
@@ -100,10 +111,11 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
 
   cols <- names(store@schema) |>
     stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
-    stringi::stri_c(collapse=",")
+    stringi::stri_c(collapse = ",")
 
   text <- dbQuoteString(store@.con, text)
-  sql_query <- glue(r"---(
+  sql_query <- glue(
+    r"---(
     SELECT
       id,
       'bm25' as metric_name,
@@ -113,7 +125,8 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
     WHERE metric_value IS NOT NULL
     ORDER BY metric_value
     LIMIT {top_k};
-    )---")
+    )---"
+  )
 
   as_tibble(dbGetQuery(store@.con, sql_query))
 }
@@ -160,7 +173,6 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 }
 
 
-
 #' Retrieve chunks from a `RagnarStore`
 #'
 #' [ragnar_retrieve()] is a thin wrapper around [ragnar_retrieve_vss_and_bm25()]
@@ -181,4 +193,3 @@ ragnar_retrieve <- function(store, text, top_k = 3L) {
 }
 
 # TODO: re-ranking.
-

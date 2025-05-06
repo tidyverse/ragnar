@@ -14,7 +14,6 @@ test_that("pick_cut_positions_ works", {
   expect_equal(pick_cut_positions(c(1L, 2L), 5L), c(1L, 2L))
   expect_equal(length(pick_cut_positions(integer(0), 5L)), 0L)
 
-
   # Large gaps
   candidates <- c(1L, 100L, 200L, 300L)
   expect_equal(pick_cut_positions(candidates, 50L), candidates)

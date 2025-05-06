@@ -1,4 +1,3 @@
-
 set_markitdown_options <- function(...) {
   init_markitdown(...)
 }
@@ -6,7 +5,6 @@ set_markitdown_options <- function(...) {
 init_markitdown <- function(...) {
   .globals$markitdown <- reticulate::import("markitdown")$MarkItDown(...)
 }
-
 
 
 #' Convert files to markdown
@@ -65,7 +63,6 @@ init_markitdown <- function(...) {
 #'   }
 #' }
 read_as_markdown <- function(x, ..., canonical = FALSE) {
-
   check_string(x)
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
@@ -74,7 +71,6 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
     # dependencies that conflict
     convert <- .globals$markitdown$convert %||% init_markitdown()$convert
     md <- convert(x, ...)
-
   } else {
     # use the markitdown cli API, (much) slower, but can be isolated from
     # reticulated python.
@@ -82,14 +78,19 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
     check_dots_empty()
     outfile <- withr::local_tempfile(fileext = ".md")
     exit_code <- cli_markitdown(c(shQuote(x), "-o", shQuote(outfile)))
-    if (!identical(exit_code, 0L) ||
-        (no_outfile_produced <- !file.exists(outfile))) {
+    if (
+      !identical(exit_code, 0L) ||
+        (no_outfile_produced <- !file.exists(outfile))
+    ) {
       # more useful output to stderr() should have been printed
       # already by cli_markitdown() if we are here.
-      errmsg <- stri_flatten(c(
-        paste("markitdown exit code: ", exit_code),
-        if (no_outfile_produced) "No output file produced."
-      ), collapse = "\n")
+      errmsg <- stri_flatten(
+        c(
+          paste("markitdown exit code: ", exit_code),
+          if (no_outfile_produced) "No output file produced."
+        ),
+        collapse = "\n"
+      )
       stop(errmsg)
     }
 
@@ -99,7 +100,8 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
   if (canonical)
-    md <- commonmark::markdown_commonmark(md,
+    md <- commonmark::markdown_commonmark(
+      md,
       normalize = TRUE,
       footnotes = TRUE,
       width = 72L,
@@ -115,7 +117,11 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   text <- lines |> stri_flatten("\n")
 
   doc <- text |>
-    commonmark::markdown_html(sourcepos = TRUE, extensions = TRUE, normalize = TRUE) |>
+    commonmark::markdown_html(
+      sourcepos = TRUE,
+      extensions = TRUE,
+      normalize = TRUE
+    ) |>
     read_html(encoding = "UTF-8")
 
   elements <- doc |> xml_find_all(xpath = "//*[@data-sourcepos]")
@@ -124,8 +130,7 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
     tag = elements |> xml_name(),
     source_position = elements |> xml_attr("data-sourcepos")
   )
-  if (length(tags))
-    df <- df[df$tag %in% unique(c(tags)), ]
+  if (length(tags)) df <- df[df$tag %in% unique(c(tags)), ]
 
   # common mark returns positions as line:byte-line:byte
   # e.g., 52:1-52:20
@@ -137,7 +142,9 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   line_numbytes <- stri_numbytes(lines) + 1L # +1 for \n
   line_startbyte <- c(1L, 1L + drop_last(cumsum(line_numbytes)))
 
-  start <- line_startbyte[position[, "start_line"]] + position[, "start_byte"] - 1L
+  start <- line_startbyte[position[, "start_line"]] +
+    position[, "start_byte"] -
+    1L
   end <- line_startbyte[position[, "end_line"]] + position[, "end_byte"] - 1L
 
   ## To convert byte to char index:
@@ -213,15 +220,20 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 #' markdown_segment(md, c("li"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 #' markdown_segment(md, c("table"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 #' markdown_segment(md, c("ul"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
-markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALSE, omit_empty = FALSE) {
+markdown_segment <- function(
+  text,
+  tags = c("h1", "h2", "h3", "h4"),
+  trim = FALSE,
+  omit_empty = FALSE
+) {
   # normalize newlines
   text <- text |> stri_split_lines() |> unlist() |> stri_flatten("\n")
   bytes <- charToRaw(text)
 
   # get cut positions
   sourcepos <- markdown_locate_boundaries_bytes_index(text, tags = tags)
-  tag_boundaries <- sort(unique(c(sourcepos$start, sourcepos$end+1L)))
-  boundaries <- c(1L, tag_boundaries, length(bytes)+1L)
+  tag_boundaries <- sort(unique(c(sourcepos$start, sourcepos$end + 1L)))
+  boundaries <- c(1L, tag_boundaries, length(bytes) + 1L)
 
   # split
   # np <- reticulate::import("numpy")
@@ -229,8 +241,7 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALS
   sizes <- drop_first(boundaries) - drop_last(boundaries)
   splits <- vec_chop(bytes, sizes = sizes) |> vapply(rawToChar, "")
 
-  if (trim)
-    splits <- stri_trim_both(splits) # drops names
+  if (trim) splits <- stri_trim_both(splits) # drops names
 
   # make names
   split_tags <- c("", sourcepos$tag[match(tag_boundaries, sourcepos$start)])
@@ -256,16 +267,28 @@ markdown_segment <- function(text, tags = c("h1", "h2", "h3", "h4"), trim = FALS
 #' @param frame_by Character vector of tags that will become columns in the returned dataframe.
 #' @export
 #' @rdname markdown_segment
-markdown_frame <- function(text, frame_by = c("h1", "h2", "h3"), segment_by = NULL) {
+markdown_frame <- function(
+  text,
+  frame_by = c("h1", "h2", "h3"),
+  segment_by = NULL
+) {
   text <- markdown_segment(text, unique(c(frame_by, segment_by)))
-  frame <- vec_frame_flattened_tree(text, frame_by, names = "tag", leaves = "text")
+  frame <- vec_frame_flattened_tree(
+    text,
+    frame_by,
+    names = "tag",
+    leaves = "text"
+  )
   if (!length(segment_by) || base::setequal(segment_by, frame_by))
     frame[["tag"]] <- NULL
   as_tibble(frame)
 }
 
 
-markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p")) {
+markdown_segment_text <- function(
+  text,
+  split_by = c("h1", "h2", "h3", "pre", "p")
+) {
   ## Uses pandoc to convert md to html, then html_text3() to read and split.
   ## Returns a character vector. Note, the returned text does not have
   ## markdown formatting like ``` fences. Currently unused.
@@ -274,8 +297,10 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
   on.exit(unlink(tmp_html))
   check_installed("pandoc")
   pandoc::pandoc_convert(text = text, to = "html", output = tmp_html)
-  html_text3(doc = read_html(tmp_html, encoding = "UTF-8"),
-             split_tags = split_by)
+  html_text3(
+    doc = read_html(tmp_html, encoding = "UTF-8"),
+    split_tags = split_by
+  )
 }
 
 
@@ -372,7 +397,6 @@ markdown_segment_text <- function(text, split_by = c("h1", "h2", "h3", "pre", "p
 #'   # inspect
 #'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
 ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
-
   text <- read_as_markdown(x, ...)
   hash <- rlang::hash(text)
 

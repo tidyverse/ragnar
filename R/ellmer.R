@@ -1,4 +1,3 @@
-
 #' Register a 'retrieve' tool with ellmer
 #'
 #' @param chat a `ellmer:::Chat` object.
@@ -23,20 +22,25 @@
 #' ragnar_register_tool_retrieve(chat, store)
 #' chat$chat("How can I subset a dataframe?")
 ragnar_register_tool_retrieve <-
-function(chat, store, store_description = "the knowledge store", ...) {
-  rlang::check_installed("ellmer")
-  store; list(...)
+  function(chat, store, store_description = "the knowledge store", ...) {
+    rlang::check_installed("ellmer")
+    store
+    list(...)
 
-  chat$register_tool(
-    ellmer::tool(
-      .name = glue::glue("rag_retrieve_from_{store@name}"),
-      function(text) {
-        ragnar_retrieve(store, text, ...)$text |>
-          stringi::stri_flatten("\n\n---\n\n")
-      },
-      glue::glue("Given a string, retrieve the most relevent excerpts from {store_description}."),
-      text = ellmer::type_string("The text to find the most relevent matches for.")
+    chat$register_tool(
+      ellmer::tool(
+        .name = glue::glue("rag_retrieve_from_{store@name}"),
+        function(text) {
+          ragnar_retrieve(store, text, ...)$text |>
+            stringi::stri_flatten("\n\n---\n\n")
+        },
+        glue::glue(
+          "Given a string, retrieve the most relevent excerpts from {store_description}."
+        ),
+        text = ellmer::type_string(
+          "The text to find the most relevent matches for."
+        )
+      )
     )
-  )
-  invisible(chat)
-}
+    invisible(chat)
+  }

@@ -1,4 +1,3 @@
-
 #' ## Retrieving Chunks
 
 library(ragnar)
@@ -21,7 +20,9 @@ bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 
 # get both vss and bm26
 relevant_chunks <- ragnar_retrieve(
-  store, text, top_k = 3,
+  store,
+  text,
+  top_k = 3,
   methods = c("vss", "bm25")
 )
 relevant_chunks
@@ -29,11 +30,13 @@ relevant_chunks
 # Register ellmer tool
 ## You can register an ellmer tool to retrieve chunks as well.
 ## This enables the LLM model to make tool calls to retreive chunks.
-system_prompt <- stringr::str_squish(r"--(
-    You are an expert R programmer and mentor.
-    You often respond by first direct quoting material from book or documentation,
-    then adding your own additional context and interpertation.
-)--")
+system_prompt <- stringr::str_squish(
+  r"--(
+  You are an expert R programmer and mentor.
+  You often respond by first direct quoting material from book or documentation,
+  then adding your own additional context and interpertation.
+  )--"
+)
 chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
 # chat <- ellmer::chat_ollama(system_prompt, model = "llama3.2:1b")
 
