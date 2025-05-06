@@ -1,7 +1,3 @@
-
-
-
-
 #' Embedd Text
 #'
 #' @param x x can be:
@@ -36,11 +32,12 @@ NULL
 
 #' @export
 #' @rdname embed_ollama
-embed_ollama <- function(x,
-                         base_url = "http://localhost:11434",
-                         model = "all-minilm",
-                         batch_size = 10L) {
-
+embed_ollama <- function(
+  x,
+  base_url = "http://localhost:11434",
+  model = "all-minilm",
+  batch_size = 10L
+) {
   if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::embed_ollama), alist(x = ), args)
@@ -48,10 +45,12 @@ embed_ollama <- function(x,
   }
 
   if (is.data.frame(x)) {
-    x[["embedding"]] <- Recall(x[["text"]],
-                               base_url = base_url,
-                               model = model,
-                               batch_size = batch_size)
+    x[["embedding"]] <- Recall(
+      x[["text"]],
+      base_url = base_url,
+      model = model,
+      batch_size = batch_size
+    )
     return(x)
   }
 
@@ -78,7 +77,6 @@ embed_ollama <- function(x,
 }
 
 
-
 #' @param api_key resolved using env var `OPENAI_API_KEY`
 #' @param dims An integer, can be used to truncate the embedding to a specific size.
 #' @param user User name passed via the API.
@@ -86,14 +84,15 @@ embed_ollama <- function(x,
 #' @returns A matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
 #' @export
 #' @rdname embed_ollama
-embed_openai <- function(x,
-                         model = "text-embedding-3-small",
-                         base_url = "https://api.openai.com/v1",
-                         api_key = get_envvar("OPENAI_API_KEY"),
-                         dims = NULL,
-                         user = get_ragnar_username(),
-                         batch_size = 20L) {
-
+embed_openai <- function(
+  x,
+  model = "text-embedding-3-small",
+  base_url = "https://api.openai.com/v1",
+  api_key = get_envvar("OPENAI_API_KEY"),
+  dims = NULL,
+  user = get_ragnar_username(),
+  batch_size = 20L
+) {
   if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::embed_openai), alist(x = ), args)
@@ -165,8 +164,6 @@ embed_openai <- function(x,
     #   ..$ prompt_tokens: int 12436
     #   ..$ total_tokens : int 12436
     resp_body_json(resp, simplifyVector = TRUE)$data$embedding
-
-
   })
 
   matrix(unlist(embeddings), nrow = length(text), byrow = TRUE)

@@ -1,5 +1,4 @@
 test_that("vec_frame_flattened_tree works", {
-
   vec <- c(
     "h1" = "Level 1 Heading",
     "unnamed text",
@@ -19,17 +18,18 @@ test_that("vec_frame_flattened_tree works", {
   expect_equal(frame, expected)
 
   # check specifying names
-  frame <- vec_frame_flattened_tree(vec, c("h1", "h2"),
-    leaves = "text", names = "tag"
+  frame <- vec_frame_flattened_tree(
+    vec,
+    c("h1", "h2"),
+    leaves = "text",
+    names = "tag"
   )
   colnames(expected) <- c("h1", "h2", "tag", "text")
 
   expect_equal(frame, expected)
-
 })
 
 test_that("vec_frame_flattened_tree works 2", {
-
   vec <- c(
     "h1" = "Level 1 Heading",
     "abc",
@@ -41,7 +41,12 @@ test_that("vec_frame_flattened_tree works 2", {
   )
 
   expected <- vctrs::data_frame(
-    h1 = c("Level 1 Heading", "Level 1 Heading", "Level 1 Heading", "Level 1 Heading"),
+    h1 = c(
+      "Level 1 Heading",
+      "Level 1 Heading",
+      "Level 1 Heading",
+      "Level 1 Heading"
+    ),
     h2 = c(NA, "Level 2 Heading", "Level 2 Heading", "second Level 2 Heading"),
     .name = c("", "some name", "some name", ""),
     .content = c("abc", "def", "ghi", "lmn")
@@ -54,12 +59,10 @@ test_that("vec_frame_flattened_tree works 2", {
   expected$h3 <- NA_character_
   expected <- expected[c("h1", "h2", "h3", ".name", ".content")] # reorder
   expect_equal(frame, expected)
-
 })
 
 
 test_that("vec_frame_flattened_tree works 2", {
-
   vec <- c(
     "h1" = "Level 1 Heading",
     "abc",
@@ -70,7 +73,12 @@ test_that("vec_frame_flattened_tree works 2", {
   )
 
   expected <- vctrs::data_frame(
-    h1 = c("Level 1 Heading", "Level 1 Heading", "Level 1 Heading", "Level 1 Heading"),
+    h1 = c(
+      "Level 1 Heading",
+      "Level 1 Heading",
+      "Level 1 Heading",
+      "Level 1 Heading"
+    ),
     h2 = c(NA, "Level 2 Heading", "Level 2 Heading", "second Level 2 Heading"),
     .name = c("", "some name", "some name", NA),
     .content = c("abc", "def", "ghi", NA)
@@ -83,13 +91,10 @@ test_that("vec_frame_flattened_tree works 2", {
   expected$h3 <- NA_character_
   expected <- expected[c("h1", "h2", "h3", ".name", ".content")] # reorder
   expect_equal(frame, expected)
-
 })
 
 
-
 test_that("vec_frame_flattened_tree works 3", {
-
   vec <- c(
     "h1" = "Level 1 Heading",
     "abc",
@@ -111,5 +116,4 @@ test_that("vec_frame_flattened_tree works 3", {
   frame <- vec_frame_flattened_tree(vec, c("h1", "h2", "h3"))
   expect_equal(frame, expected)
   expect_true(is.na(last(frame$h3)))
-
 })

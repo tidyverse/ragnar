@@ -1,4 +1,3 @@
-
 #' Embed text using a Bedrock model
 #'
 #' @inheritParams embed_ollama
@@ -20,7 +19,6 @@
 #'
 #' @export
 embed_bedrock <- function(x, model, profile, api_args = list()) {
-
   if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::embed_bedrock), alist(x = ), args)
@@ -49,7 +47,9 @@ embed_bedrock <- function(x, model, profile, api_args = list()) {
   }
 
   req <- httr2::request(paste0(
-    "https://bedrock-runtime.", credentials$region, ".amazonaws.com"
+    "https://bedrock-runtime.",
+    credentials$region,
+    ".amazonaws.com"
   ))
 
   req <- httr2::req_url_path_append(
@@ -99,7 +99,6 @@ embed_bedrock_cohere <- function(base_req, inputs, api_args, req_auth_bedrock) {
 
   out <- list()
   for (indices in chunk_list(seq_along(inputs), 20)) {
-
     body <- rlang::list2(
       texts = as.list(inputs[indices]),
       !!!api_args
@@ -113,7 +112,12 @@ embed_bedrock_cohere <- function(base_req, inputs, api_args, req_auth_bedrock) {
     out[indices] <- httr2::resp_body_json(resp)$embeddings
   }
 
-  matrix(unlist(out), nrow = length(inputs), ncol = length(out[[1]]), byrow = TRUE)
+  matrix(
+    unlist(out),
+    nrow = length(inputs),
+    ncol = length(out[[1]]),
+    byrow = TRUE
+  )
 }
 
 
@@ -140,7 +144,12 @@ embed_bedrock_titan <- function(base_req, inputs, api_args, req_auth_bedrock) {
     httr2::resp_body_json(resp)$embedding
   })
 
-  matrix(unlist(out), nrow = length(inputs), ncol = length(out[[1]]), byrow = TRUE)
+  matrix(
+    unlist(out),
+    nrow = length(inputs),
+    ncol = length(out[[1]]),
+    byrow = TRUE
+  )
 }
 
 chunk_list <- function(lst, n) {
@@ -149,8 +158,11 @@ chunk_list <- function(lst, n) {
 
 # Helpers ---------------------------------------------------------------------
 
-paws_credentials <- function(profile, cache = aws_creds_cache(profile),
-                             reauth = FALSE) {
+paws_credentials <- function(
+  profile,
+  cache = aws_creds_cache(profile),
+  reauth = FALSE
+) {
   creds <- cache$get()
   if (reauth || is.null(creds) || creds$expiration < Sys.time()) {
     cache$clear()
@@ -189,4 +201,3 @@ credentials_cache <- function(key) {
     clear = function() env_unbind(the$credentials_cache, key)
   )
 }
-

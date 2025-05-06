@@ -14,18 +14,24 @@ storeInspectorUI <- function(id) {
       class = "flex flex-col max-h-screen min-h-screen h-full",
       shiny::div(
         class = "flex-none bg-blue-500 p-2 gap-2",
-        shiny::div("Ragnar Store Inspector", class = "flex-none text-lg text-white"),
+        shiny::div(
+          "Ragnar Store Inspector",
+          class = "flex-none text-lg text-white"
+        ),
       ),
       shiny::div(
         class = "flex flex-row flex-none bg-yellow p-2 justify-center text-sm gap-2 items-center",
         shiny::div(
           class = "flex grow max-w-96 shadow-md p-2 rounded-full bg-gray-100 items-center gap-2 focus-within:shadow-blue-500/50",
-          shiny::icon(name="magnifying-glass", class="flex flex-none text-gray-400"),
+          shiny::icon(
+            name = "magnifying-glass",
+            class = "flex flex-none text-gray-400"
+          ),
           shiny::tags$input(
             class = "flex-grow bg-transparent outline-none",
             id = ns("query"),
             type = "search",
-            placeholder="Search the store ..."
+            placeholder = "Search the store ..."
           )
         ),
         switchInput(ns("search_type"), "VSS", "BM25")
@@ -60,15 +66,22 @@ storeInspectorServer <- function(id, store) {
         return(data.frame())
       }
 
-      tryCatch({
-        if (is_vss()) {
-          ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
-        } else {
-          ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
+      tryCatch(
+        {
+          if (is_vss()) {
+            ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
+          } else {
+            ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
+          }
+        },
+        error = function(err) {
+          structure(
+            data.frame(),
+            error = conditionMessage(err),
+            class = "error"
+          )
         }
-      }, error = function(err) {
-        structure(data.frame(), error = conditionMessage(err), class="error")
-      })
+      )
     })
 
     selectedDocumentId <- listDocumentsServer("document_list", documents)
@@ -109,7 +122,8 @@ storeInspectorServer <- function(id, store) {
 listDocumentsUI <- function(id) {
   ns <- \(i) shiny::NS(id, i)
 
-  clickHandler <- shiny::tags$script(shiny::HTML(glue::glue("
+  clickHandler <- shiny::tags$script(shiny::HTML(glue::glue(
+    "
       // This handles clicks on the listing div and
       // 1. Make sure the clicked line get border, indicating it was clicked
       // 2. Updates the selected_document elemtn.
@@ -127,7 +141,8 @@ listDocumentsUI <- function(id) {
       Shiny.addCustomMessageHandler('update_selected_document', function(value) {{
         Shiny.setInputValue('{ns('selected_document')}', value);
       }});
-  ")))
+  "
+  )))
 
   shiny::tagList(
     clickHandler,
@@ -147,7 +162,6 @@ listDocumentsServer <- function(id, documents) {
   ns <- \(i) shiny::NS(id, i)
 
   shiny::moduleServer(id, function(input, output, session) {
-
     updateSelectedDocument <- function(value) {
       session$sendCustomMessage("update_selected_document", value)
     }
@@ -157,7 +171,10 @@ listDocumentsServer <- function(id, documents) {
         updateSelectedDocument(NULL)
         return(shiny::tags$div(
           class = "flex flex-col text-sm text-center",
-          shiny::p("Error retrieving documents", class = "text-red-500 font-bold"),
+          shiny::p(
+            "Error retrieving documents",
+            class = "text-red-500 font-bold"
+          ),
           shiny::tags$pre(attr(documents(), "error"))
         ))
       }
@@ -174,11 +191,14 @@ listDocumentsServer <- function(id, documents) {
       summaries <- documents() |>
         dplyr::mutate(.rn = dplyr::row_number()) |>
         dplyr::group_split(.rn) |>
-        lapply(function(d) documentSummaryUI(
-          ns(glue::glue("document-{d$id}")),
-          d,
-          active = d$.rn == 1
-        ))
+        lapply(
+          function(d)
+            documentSummaryUI(
+              ns(glue::glue("document-{d$id}")),
+              d,
+              active = d$.rn == 1
+            )
+        )
       shiny::tagList(!!!summaries)
     })
 
@@ -195,13 +215,16 @@ documentSummaryUI <- function(id, document, active = FALSE) {
   ns <- \(i) shiny::NS(id, i)
 
   origin <- document$origin
-  origin_uri <- tryCatch({
-    httr2::url_parse(origin)
-    origin
-  }, error = function(e) {
-    abs_path <- fs::path_abs(origin)
-    glue::glue("file://{abs_path}")
-  })
+  origin_uri <- tryCatch(
+    {
+      httr2::url_parse(origin)
+      origin
+    },
+    error = function(e) {
+      abs_path <- fs::path_abs(origin)
+      glue::glue("file://{abs_path}")
+    }
+  )
 
   n_char <- nchar(document$text)
 
@@ -249,7 +272,7 @@ documentSummaryUI <- function(id, document, active = FALSE) {
     div(
       class = "flex flex-rows items-center gap-1 py-1 px-2 font-mono text-gray 500",
       div(
-        class="flex-none font-bol",
+        class = "flex-none font-bol",
         "# characters:"
       ),
       div(
@@ -261,7 +284,7 @@ documentSummaryUI <- function(id, document, active = FALSE) {
         "|"
       ),
       div(
-        class="flex-none font-bol",
+        class = "flex-none font-bol",
         "# tokens:"
       ),
       div(
@@ -277,13 +300,15 @@ switchInput <- function(id, trueLabel, falseLabel) {
   ns <- \(i) shiny::NS(id, i)
 
   jsHandler <- function(val) {
-    glue::glue("(function() {{
+    glue::glue(
+      "(function() {{
         Shiny.setInputValue('{ns('value')}', {val});
         var $element = $('.{ns('btn')}');
         $element.
           toggleClass('bg-white disabled').
           prop('disabled', function(i, v) {{ return !v; }});
-    }})();")
+    }})();"
+    )
   }
 
   shiny::div(

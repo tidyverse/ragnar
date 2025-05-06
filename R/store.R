@@ -1,4 +1,3 @@
-
 #' Create and connect to a vector store
 #'
 #' @param location filepath, or `:memory:`
@@ -48,15 +47,14 @@
 #' @returns a `DuckDBRagnarStore` object
 #' @export
 ragnar_store_create <- function(
-    location = ":memory:",
-    embed = embed_ollama(),
-    embedding_size = ncol(embed("foo")),
-    overwrite = FALSE,
-    ...,
-    extra_cols = NULL,
-    name = NULL
+  location = ":memory:",
+  embed = embed_ollama(),
+  embedding_size = ncol(embed("foo")),
+  overwrite = FALSE,
+  ...,
+  extra_cols = NULL,
+  name = NULL
 ) {
-
   rlang::check_dots_empty()
 
   if (is.null(name)) {
@@ -85,18 +83,21 @@ ragnar_store_create <- function(
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
 
-    if(!inherits(embed, "crate")) {
+    if (!inherits(embed, "crate")) {
       environment(embed) <- baseenv()
       embed <- rlang::zap_srcref(embed)
     }
 
-    default_schema$embedding <- matrix(numeric(0), nrow = 0, ncol = embedding_size)
+    default_schema$embedding <- matrix(
+      numeric(0),
+      nrow = 0,
+      ncol = embedding_size
+    )
   }
 
   if (is.null(extra_cols)) {
     schema <- default_schema
   } else {
-
     stopifnot(
       is.data.frame(extra_cols)
     )
@@ -131,11 +132,16 @@ ragnar_store_create <- function(
   )
 
   if (overwrite)
-    dbExecute(con, glue::trim("
+    dbExecute(
+      con,
+      glue::trim(
+        "
       DROP TABLE IF EXISTS metadata;
       DROP TABLE IF EXISTS chunks;
       DROP SEQUENCE IF EXISTS id_sequence;
-      "))
+      "
+      )
+    )
 
   dbWriteTable(con, "metadata", metadata)
 
@@ -161,18 +167,25 @@ ragnar_store_create <- function(
     } else if (is.double(type)) {
       "FLOAT"
     } else {
-      cli::cli_abort("Unexpected type for column {.val {nm}}: {.cls {class(type)}} / {.cls {typeof(type)}}")
+      cli::cli_abort(
+        "Unexpected type for column {.val {nm}}: {.cls {class(type)}} / {.cls {typeof(type)}}"
+      )
     }
 
     glue("{nm} {dbtype}")
   })
 
-  dbExecute(con, glue("
+  dbExecute(
+    con,
+    glue(
+      "
     CREATE SEQUENCE id_sequence START 1;
     CREATE TABLE chunks (
       id INTEGER DEFAULT nextval('id_sequence'),
       {stri_c(columns, collapse = ',')}
-    )"))
+    )"
+    )
+  )
 
   DuckDBRagnarStore(embed = embed, schema = schema, .con = con, name = name)
 }
@@ -195,11 +208,12 @@ unique_store_name <- function() {
 #' @export
 #'
 #' @rdname rangar_store_create
-ragnar_store_connect <- function(location = ":memory:",
-                                 ...,
-                                 read_only = FALSE,
-                                 build_index = FALSE) {
-
+ragnar_store_connect <- function(
+  location = ":memory:",
+  ...,
+  read_only = FALSE,
+  build_index = FALSE
+) {
   check_dots_empty()
   # mode = c("retrieve", "insert")
   # mode <- match.arg(mode)
@@ -223,8 +237,7 @@ ragnar_store_connect <- function(location = ":memory:",
   schema <- unserialize(metadata$schema[[1L]])
   name <- metadata$name %||% unique_store_name()
 
-  if (build_index)
-    ragnar_store_build_index(con)
+  if (build_index) ragnar_store_build_index(con)
 
   DuckDBRagnarStore(embed = embed, schema = schema, .con = con, name = name)
 }
@@ -262,54 +275,66 @@ ragnar_store_update <- function(store, chunks) {
   # If the embedding is already computed this will be handled by the INSERT INTO
   # statement that handles conflicts.
 
-  tryCatch({
-    # Insert the new chunks into a temporary table
-    DBI::dbWriteTable(
-      store@.con,
-      "tmp_chunks",
-      chunks |> dplyr::select("origin", "hash") |> dplyr::distinct(),
-      temporary = TRUE,
-      overwrite = TRUE
-    )
+  tryCatch(
+    {
+      # Insert the new chunks into a temporary table
+      DBI::dbWriteTable(
+        store@.con,
+        "tmp_chunks",
+        chunks |> dplyr::select("origin", "hash") |> dplyr::distinct(),
+        temporary = TRUE,
+        overwrite = TRUE
+      )
 
-    # We want to insert into the chunks table all chunks whose origin and hash
-    # are not already in the chunks table.
-    chunks_to_insert <- DBI::dbGetQuery(
-      store@.con,
-      "SELECT * FROM tmp_chunks
+      # We want to insert into the chunks table all chunks whose origin and hash
+      # are not already in the chunks table.
+      chunks_to_insert <- DBI::dbGetQuery(
+        store@.con,
+        "SELECT * FROM tmp_chunks
       EXCEPT
       SELECT DISTINCT origin, hash FROM chunks"
-    )
+      )
 
-    # Only leave the chunks that will be inserted.
-    chunks <- dplyr::left_join(chunks_to_insert, chunks, by = c("origin", "hash"))
-    # We've already done everything we needed, we can simply throw out the transaction.
-    dbExecute(store@.con, "DROP TABLE tmp_chunks;")
-  },
-  error = function(e) {
-    cli::cli_abort("Failed to filter chunks to insert", parent = e)
-  })
+      # Only leave the chunks that will be inserted.
+      chunks <- dplyr::left_join(
+        chunks_to_insert,
+        chunks,
+        by = c("origin", "hash")
+      )
+      # We've already done everything we needed, we can simply throw out the transaction.
+      dbExecute(store@.con, "DROP TABLE tmp_chunks;")
+    },
+    error = function(e) {
+      cli::cli_abort("Failed to filter chunks to insert", parent = e)
+    }
+  )
 
   if (!nrow(chunks)) {
     return(invisible(store))
   }
 
   dbExecute(store@.con, "BEGIN TRANSACTION;")
-  tryCatch({
-    # Remove rows that have the same origin as those that will be included
-    origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |> stri_c(collapse = ", ")
-    dbExecute(store@.con, glue("DELETE FROM chunks WHERE origin IN ({origins})"))
+  tryCatch(
+    {
+      # Remove rows that have the same origin as those that will be included
+      origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |>
+        stri_c(collapse = ", ")
+      dbExecute(
+        store@.con,
+        glue("DELETE FROM chunks WHERE origin IN ({origins})")
+      )
 
-    # Insert the new chunks into the store
-    ragnar_store_insert(store, chunks)
+      # Insert the new chunks into the store
+      ragnar_store_insert(store, chunks)
 
-    # Finally commit
-    dbExecute(store@.con, "COMMIT;")
-  },
-  error = function(e) {
-    dbExecute(store@.con, "ROLLBACK;")
-    cli::cli_abort("Failed to update the store", parent = e)
-  })
+      # Finally commit
+      dbExecute(store@.con, "COMMIT;")
+    },
+    error = function(e) {
+      dbExecute(store@.con, "ROLLBACK;")
+      cli::cli_abort("Failed to update the store", parent = e)
+    }
+  )
   invisible(store)
 }
 
@@ -329,7 +354,7 @@ ragnar_store_insert <- function(store, chunks) {
     stop("store must be a RagnarStore")
   }
 
-  if(is.character(chunks)) {
+  if (is.character(chunks)) {
     chunks <- data_frame(text = chunks)
   }
 
@@ -376,10 +401,18 @@ ragnar_store_insert <- function(store, chunks) {
   cols <- map2(names(schema), schema, function(nm, ptype) {
     # Ensures that the column in chunks has the expected ptype. (or at least
     # something that can be cast to the correct ptype with no loss)
-    col <- vctrs::vec_cast(chunks[[nm]], ptype, x_arg = glue::glue("chunks${nm}"))
+    col <- vctrs::vec_cast(
+      chunks[[nm]],
+      ptype,
+      x_arg = glue::glue("chunks${nm}")
+    )
 
     if (is.matrix(col) && is.numeric(col)) {
-      stri_c("array_value(", col |> asplit(1) |> map_chr(stri_flatten, ", "), ")")
+      stri_c(
+        "array_value(",
+        col |> asplit(1) |> map_chr(stri_flatten, ", "),
+        ")"
+      )
     } else if (is.character(col)) {
       DBI::dbQuoteString(store@.con, col)
     } else if (is.numeric(col)) {
@@ -389,7 +422,7 @@ ragnar_store_insert <- function(store, chunks) {
     }
   })
 
-  rows <- stri_c("(", do.call(\(...) stri_c(..., sep=","), cols), ")")
+  rows <- stri_c("(", do.call(\(...) stri_c(..., sep = ","), cols), ")")
   rows <- stri_c(rows, collapse = ",\n")
 
   insert_statement <- sprintf(
@@ -415,13 +448,10 @@ ragnar_store_insert <- function(store, chunks) {
 #' @returns `store`, invisibly.
 #' @export
 ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
-
-  if(S7_inherits(store, DuckDBRagnarStore))
-    con <- store@.con
-  else if (methods::is(store, "DBIConnection"))
-    con <- store
-  else
-    stop("`store` must be a RagnarStore")
+  if (S7_inherits(store, DuckDBRagnarStore)) con <- store@.con else if (
+    methods::is(store, "DBIConnection")
+  )
+    con <- store else stop("`store` must be a RagnarStore")
 
   if ("vss" %in% type && !is.null(store@embed)) {
     # TODO: duckdb has support for three different distance metrics that can be
@@ -429,11 +459,14 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
     # in the R interface. https://duckdb.org/docs/extensions/vss.html#usage
     dbExecute(con, "INSTALL vss;")
     dbExecute(con, "LOAD vss;")
-    dbExecute(con, paste(
-      "SET hnsw_enable_experimental_persistence = true;",
-      "DROP INDEX IF EXISTS my_hnsw_index;",
-      "CREATE INDEX my_hnsw_index ON chunks USING HNSW (embedding);"
-    ))
+    dbExecute(
+      con,
+      paste(
+        "SET hnsw_enable_experimental_persistence = true;",
+        "DROP INDEX IF EXISTS my_hnsw_index;",
+        "CREATE INDEX my_hnsw_index ON chunks USING HNSW (embedding);"
+      )
+    )
   }
 
   if ("fts" %in% type) {
@@ -441,7 +474,10 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
     dbExecute(con, "LOAD fts;")
     # fts index builder takes many options, e.g., stemmer, stopwords, etc.
     # Expose a way to pass along args. https://duckdb.org/docs/extensions/full_text_search.html
-    dbExecute(con, "PRAGMA create_fts_index('chunks', 'id', 'text', overwrite = 1);")
+    dbExecute(
+      con,
+      "PRAGMA create_fts_index('chunks', 'id', 'text', overwrite = 1);"
+    )
   }
 
   invisible(store)

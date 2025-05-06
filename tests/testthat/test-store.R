@@ -1,5 +1,7 @@
 test_that("ragnar_store_update/insert", {
-  store <- ragnar_store_create(embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)))
+  store <- ragnar_store_create(
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
   expect_true(grepl("^store_[0-9]+$", store@name))
 
   chunks <- data.frame(
@@ -62,7 +64,9 @@ test_that("ragnar_store_update/insert", {
 })
 
 test_that("behavior when no hash/origin are provided", {
-  store <- ragnar_store_create(embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)))
+  store <- ragnar_store_create(
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
 
   chunks <- data.frame(
     text = "foo"
@@ -76,7 +80,10 @@ test_that("behavior when no hash/origin are provided", {
   ragnar_store_insert(store, chunks)
 
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
-  expect_equal(val, data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"))
+  expect_equal(
+    val,
+    data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo")
+  )
 
   # if they insert again, even though the text has the same hash, we don't update anything
   ragnar_store_insert(store, chunks)
@@ -86,8 +93,16 @@ test_that("behavior when no hash/origin are provided", {
   expect_equal(
     val,
     rbind(
-      data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo"),
-      data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo")
+      data.frame(
+        origin = NA_character_,
+        hash = rlang::hash("foo"),
+        text = "foo"
+      ),
+      data.frame(
+        origin = NA_character_,
+        hash = rlang::hash("foo"),
+        text = "foo"
+      )
     )
   )
 })

@@ -7,8 +7,7 @@
 # Not exported via NAMESPACE because the S3 class of DocumentConverterResult is not stable
 py_to_r.markitdown.DocumentConverterResult <- function(x) {
   text <- x$text_content
-  if(!is.null(x$title))
-    text <- stri_c("# ", x$title, "\n\n", text)
+  if (!is.null(x$title)) text <- stri_c("# ", x$title, "\n\n", text)
   text
 }
 
@@ -22,7 +21,6 @@ dotty::.
   ))
 
   reticulate::py_register_load_hook("markitdown", function() {
-
     ## markitdown maintainers forgot to include `DocumentConverterResult`
     ## in one of the releases, so the `nameOfClass()` approach can't work
     #  nameOfClass(reticulate::import("markitdown")$DocumentConverterResult)
@@ -36,7 +34,8 @@ dotty::.
     if (inherits(DocumentConverterResult, "python.builtin.object")) {
       s3_class <- class(DocumentConverterResult)[1]
       registerS3method(
-        "py_to_r", s3_class,
+        "py_to_r",
+        s3_class,
         py_to_r.markitdown.DocumentConverterResult,
         environment(reticulate::py_to_r)
       )

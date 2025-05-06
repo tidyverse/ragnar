@@ -1,5 +1,3 @@
-
-
 #' Read text from an html doc
 #'
 #' This builds upon `rvest::html_text2()` by adding support for splitting the returned
@@ -19,12 +17,19 @@
 #' @examples
 #' html_text3("https://r4ds.hadley.nz/base-R.html") |>
 #'   tibble::enframe()
-html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_html(file)) {
-  if("p" %in% split_tags)
-    split_tags <- unique(c("p", split_tags))
+html_text3 <- function(
+  file,
+  split_tags = c("h1", "h2", "h3", "p"),
+  doc = read_html(file)
+) {
+  if ("p" %in% split_tags) split_tags <- unique(c("p", split_tags))
 
-  if (any(stri_detect_fixed(html_text(doc), c("____RAGNAR_SPLIT____",
-                                              "____RAGNAR_TAG_NAME____")))) {
+  if (
+    any(stri_detect_fixed(
+      html_text(doc),
+      c("____RAGNAR_SPLIT____", "____RAGNAR_TAG_NAME____")
+    ))
+  ) {
     # TODO: find a better unique sequence we can safely split on.
     # (or add support for splitting directly into rvest::html_text2())
     warning("splits might be inaccurate")
@@ -32,13 +37,16 @@ html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_h
 
   for (tag_name in split_tags) {
     for (node in html_elements(doc, tag_name)) {
-      xml_add_sibling(node, "p",
-                      "____RAGNAR_SPLIT____",
-                      "____RAGNAR_TAG_NAME____", tag_name, "__",
-                      .where = "before")
-      xml_add_sibling(node, "p",
-                      "____RAGNAR_SPLIT____",
-                      .where = "after")
+      xml_add_sibling(
+        node,
+        "p",
+        "____RAGNAR_SPLIT____",
+        "____RAGNAR_TAG_NAME____",
+        tag_name,
+        "__",
+        .where = "before"
+      )
+      xml_add_sibling(node, "p", "____RAGNAR_SPLIT____", .where = "after")
     }
   }
   # TODO: collect added nodes, call xml_remove() to restore doc to original state afterwards?
@@ -48,7 +56,10 @@ html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_h
   txt <- stri_split_fixed(txt, "____RAGNAR_SPLIT____")[[1L]]
 
   is_named_tag <- stri_startswith_fixed(txt, "____RAGNAR_TAG_NAME____")
-  x <- stri_match_first_regex(txt[is_named_tag], "____RAGNAR_TAG_NAME____(.+)__(?s:(.+))")
+  x <- stri_match_first_regex(
+    txt[is_named_tag],
+    "____RAGNAR_TAG_NAME____(.+)__(?s:(.+))"
+  )
 
   txt[is_named_tag] <- x[, 3L] # remove  ____RAGNAR_TAG_NAME___<name>__ prefix
 
@@ -64,7 +75,6 @@ html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_h
 
   txt
 }
-
 
 
 #' Convert a vector that's a flattened tree into a dataframe
@@ -93,7 +103,12 @@ html_text3 <- function(file, split_tags = c("h1", "h2", "h3", "p"), doc = read_h
 #' )
 #' vec_frame_flattened_tree(vec, c("h1", "h2"))
 #' vec_frame_flattened_tree(vec, c("h1", "h2"), leaves = "text", names = "tag")
-vec_frame_flattened_tree <- function(vec, nodes, leaves = ".content", names = ".name") {
+vec_frame_flattened_tree <- function(
+  vec,
+  nodes,
+  leaves = ".content",
+  names = ".name"
+) {
   stopifnot(is.vector(vec), !is.null(names(vec))) # TODO: accept data frames
   check_character(nodes)
   check_string(leaves)
@@ -114,7 +129,6 @@ vec_frame_flattened_tree <- function(vec, nodes, leaves = ".content", names = ".
 
 vec_frame_flattened_tree_impl <-
   function(vec, nodes, leaves = ".content", names = ".name") {
-
     if (!length(vec)) {
       return(NULL)
     }
@@ -159,7 +173,7 @@ vec_frame_flattened_tree_impl <-
 
     # Combine all nodes into a single dataframe
     vec_rbind(!!!frames)
-}
+  }
 
 #' Read an HTML document
 #'
@@ -270,29 +284,37 @@ vec_frame_flattened_tree_impl <-
 #'     content: {text}
 #'
 #'     )--") |> _[6]
-ragnar_read_document <- function(x, ...,
-                                 split_by_tags = frame_by_tags,
-                                 frame_by_tags = NULL) {
-  if(is.null(frame_by_tags) && is.null(split_by_tags)) {
+ragnar_read_document <- function(
+  x,
+  ...,
+  split_by_tags = frame_by_tags,
+  frame_by_tags = NULL
+) {
+  if (is.null(frame_by_tags) && is.null(split_by_tags)) {
     text <- html_text2(read_html(x, ...))
     return(text)
   }
 
-  if(!inherits(x, "xml_node"))
-    x <- read_html(x)
+  if (!inherits(x, "xml_node")) x <- read_html(x)
 
-  text <- html_text3(doc = x, split_tags = unique(c(split_by_tags, frame_by_tags)))
+  text <- html_text3(
+    doc = x,
+    split_tags = unique(c(split_by_tags, frame_by_tags))
+  )
   if (is.null(frame_by_tags)) {
     # TODO: Return a 2 col tibble, instead of a named vector.
     # return(enframe(text, "tag", "text"))
     return(text)
   }
 
-  frame <- vec_frame_flattened_tree(text, frame_by_tags,
-                                    names = "tag", leaves = "text")
+  frame <- vec_frame_flattened_tree(
+    text,
+    frame_by_tags,
+    names = "tag",
+    leaves = "text"
+  )
 
-  if (base::setequal(split_by_tags, frame_by_tags))
-    frame[["tag"]] <- NULL
+  if (base::setequal(split_by_tags, frame_by_tags)) frame[["tag"]] <- NULL
 
   as_tibble(frame)
 }
@@ -337,9 +359,14 @@ ragnar_read_document <- function(x, ...,
 #'   depth = 1
 #' )
 #' }
-ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TRUE, ...,
-                              url_filter = identity) {
-
+ragnar_find_links <- function(
+  x,
+  depth = 0L,
+  children_only = TRUE,
+  progress = TRUE,
+  ...,
+  url_filter = identity
+) {
   rlang::check_dots_empty()
 
   if (!inherits(x, "xml_node")) {
@@ -377,48 +404,54 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 
   # This is wrapped into a try catch so users interrupts are captured and
   # we are able to return the current set of visited pages.
-  tryCatch({
-    while(length(deque) > 0) {
+  tryCatch(
+    {
+      while (length(deque) > 0) {
+        item <- deque$popleft()
+        cli::cli_progress_update()
 
-      item <- deque$popleft()
-      cli::cli_progress_update()
+        visited$add(item$url)
 
-      visited$add(item$url)
+        links <- tryCatch(
+          html_find_links(item$url),
+          error = function(e) {
+            # if there's an issue finding child links we log it into the `problems` table
+            # which is included in the output as an attribute.
+            problems[[length(problems) + 1]] <<- list(
+              link = item$url,
+              problem = conditionMessage(e)
+            )
+            character(0)
+          }
+        )
 
-      links <- tryCatch(
-        html_find_links(item$url),
-        error = function(e) {
-          # if there's an issue finding child links we log it into the `problems` table
-          # which is included in the output as an attribute.
-          problems[[length(problems) + 1]] <<- list(link = item$url, problem = conditionMessage(e))
-          character(0)
-        }
-      )
+        links <- url_filter_fn(links)
 
-      links <- url_filter_fn(links)
-
-      # If depth still supports, we add items to the deque if they are not yet
-      # visited.
-      if (item$depth + 1 <= depth) {
-        for (link in links) {
-          if (!visited$`__contains__`(link)) {
-            deque$append(list(url = link, depth = item$depth + 1))
+        # If depth still supports, we add items to the deque if they are not yet
+        # visited.
+        if (item$depth + 1 <= depth) {
+          for (link in links) {
+            if (!visited$`__contains__`(link)) {
+              deque$append(list(url = link, depth = item$depth + 1))
+            }
           }
         }
-      }
 
-      visited$update(as.list(links))
+        visited$update(as.list(links))
+      }
+    },
+    interrupt = function(e) {
+      cli::cli_inform(c(i = "User interrupted. Returning the current set!"))
     }
-  },
-  interrupt = function(e) {
-    cli::cli_inform(c(i = "User interrupted. Returning the current set!"))
-  })
+  )
   cli::cli_progress_update(force = TRUE)
 
   out <- sort(reticulate::import_builtins()$list(visited))
 
   if (length(problems)) {
-    cli::cli_warn("Some links could not be followed. Call {.code attr(.Last.value, 'problems')} to see the issues.")
+    cli::cli_warn(
+      "Some links could not be followed. Call {.code attr(.Last.value, 'problems')} to see the issues."
+    )
     attr(out, "problems") <- dplyr::bind_rows(problems)
   }
 
@@ -426,12 +459,10 @@ ragnar_find_links <- function(x, depth = 0L, children_only = TRUE, progress = TR
 }
 
 
-
 # E.g.,
 # for same site only: prefix = url_host(xml_url(x))
 # for child links only: prefix = url_normalize_stem(xml_url(x))
 html_find_links <- function(x, absolute = TRUE) {
-
   if (!inherits(x, "xml_node")) {
     x <- read_html2(x)
   }
@@ -443,11 +474,10 @@ html_find_links <- function(x, absolute = TRUE) {
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
   links <- links[!links %in% c("", "/", "./", "./index.html")] # remove self links
-  links <- stri_replace_last_regex(links, "/$", "")  # strip trailing /
+  links <- stri_replace_last_regex(links, "/$", "") # strip trailing /
   links <- sort(unique(links))
 
-  if (absolute)
-    links <- url_absolute2(links, xml_url2(x))
+  if (absolute) links <- url_absolute2(links, xml_url2(x))
 
   links
 }
@@ -455,7 +485,8 @@ html_find_links <- function(x, absolute = TRUE) {
 url_host <- function(x, baseurl = NULL) {
   map_chr(x, \(url) {
     # tryCatch to guard against error from, e.g., "mailto:copilot-safety@github.com"
-    tryCatch(curl::curl_parse_url(url, baseurl)$host, error = \(e) NULL) %||% NA_character_
+    tryCatch(curl::curl_parse_url(url, baseurl)$host, error = \(e) NULL) %||%
+      NA_character_
   })
 }
 
