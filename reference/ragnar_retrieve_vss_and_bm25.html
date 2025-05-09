@@ -47,7 +47,11 @@ documents.</p>
 
 
 <dl><dt id="arg-store">store<a class="anchor" aria-label="anchor" href="#arg-store"></a></dt>
-<dd><p>A <code>RagnarStore</code> object.</p></dd>
+<dd><p>A <code>RagnarStore</code> object or a <code><a href="https://dplyr.tidyverse.org/reference/tbl.html" class="external-link">dplyr::tbl()</a></code> derived from
+it. When you pass a <code>tbl</code>, you may use usual dplyr verbs (e.g.
+<code><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter()</a></code>, <code><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice()</a></code>) to restrict the rows examined before
+similarity scoring. Avoid dropping essential columns such as
+<code>text</code>, <code>embedding</code>, <code>origin</code>, and <code>hash</code>.</p></dd>
 
 
 <dt id="arg-text">text<a class="anchor" aria-label="anchor" href="#arg-text"></a></dt>
@@ -73,6 +77,14 @@ that contains the chunks.</p>
     <p>The results are not re-ranked after identifying the unique values.</p>
     </div>
     <div class="section level2">
+    <h2 id="pre-filtering-with-dplyr">Pre-filtering with dplyr<a class="anchor" aria-label="anchor" href="#pre-filtering-with-dplyr"></a></h2>
+
+
+<p>The store behaves like a lazy table backed by DuckDB, so row‑wise
+filtering is executed directly in the database. This lets you narrow the
+search space efficiently without pulling data into R.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other ragnar_retrieve:
 <code><a href="ragnar_retrieve.html">ragnar_retrieve</a>()</code>,
@@ -80,6 +92,55 @@ that contains the chunks.</p>
 <code><a href="ragnar_retrieve_vss.html">ragnar_retrieve_vss</a>()</code></p></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Basic usage</span></span></span>
+<span class="r-in"><span><span class="va">mock_embed</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">store</span> <span class="op">&lt;-</span> <span class="fu"><a href="ragnar_store_create.html">ragnar_store_create</a></span><span class="op">(</span>embed <span class="op">=</span> <span class="va">mock_embed</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"foo"</span>, <span class="st">"bar"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">store</span>, <span class="st">"foo"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      id origin hash                             text  cosine_distance   bm25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     2 <span style="color: #BB0000;">NA</span>     9f154be5a85276c7506e6553247c2c80 bar             0.175 <span style="color: #BB0000;">NA</span>    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>     1 <span style="color: #BB0000;">NA</span>     c1562fbd8fd449ea1c841e1688fabe2a foo             0.307  0.301</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># More Advanced: store metadata, retrieve with pre-filtering</span></span></span>
+<span class="r-in"><span><span class="va">store</span> <span class="op">&lt;-</span> <span class="fu"><a href="ragnar_store_create.html">ragnar_store_create</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  embed <span class="op">=</span> <span class="va">mock_embed</span>,</span></span>
+<span class="r-in"><span>  extra_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>category <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">store</span>,</span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    category <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"desert"</span>, <span class="st">"desert"</span>, <span class="st">"desert"</span>, <span class="st">"meal"</span>, <span class="st">"meal"</span>, <span class="st">"meal"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ice cream"</span>, <span class="st">"cake"</span>, <span class="st">"cookies"</span>, <span class="st">"pasta"</span>, <span class="st">"burger"</span>, <span class="st">"salad"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># simple retrieve</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">store</span>, <span class="st">"yummy"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      id category origin hash                             text    cosine_distance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     3 desert   <span style="color: #BB0000;">NA</span>     a1c54a4f1d87aee9aaa3e0905538cbfe cookies           0.179</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>     6 meal     <span style="color: #BB0000;">NA</span>     549caee504d74c3dbec40909849957c3 salad             0.180</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>     1 desert   <span style="color: #BB0000;">NA</span>     68e1d6a6cc354e3e99ae4b78c577eb29 ice cr…           0.201</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># retrieve with pre-filtering</span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html" class="external-link">tbl</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">category</span> <span class="op">==</span> <span class="st">"meal"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="st">"yummy"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      id category origin hash                             text   cosine_distance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     5 meal     <span style="color: #BB0000;">NA</span>     3d59d8377de9154b8fa040e68aa6b197 burger           0.135</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>     4 meal     <span style="color: #BB0000;">NA</span>     f52c971e2e05ea580f5dec52255c4070 pasta            0.149</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>     6 meal     <span style="color: #BB0000;">NA</span>     549caee504d74c3dbec40909849957c3 salad            0.181</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
