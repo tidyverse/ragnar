@@ -266,13 +266,15 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' @export
 #' @examples
 #' # Basic usage
-#' store <- ragnar_store_create()
+#' mock_embed <- function(x) matrix(stats::runif(10), nrow = length(x), ncol = 10)
+#' store <- ragnar_store_create(embed = mock_embed)
 #' ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
 #' ragnar_store_build_index(store)
 #' ragnar_retrieve(store, "foo")
 #'
 #' # More Advanced: store metadata, retrieve with pre-filtering
 #' store <- ragnar_store_create(
+#'   embed = mock_embed,
 #'   extra_cols = data.frame(category = character())
 #' )
 #' ragnar_store_insert(
