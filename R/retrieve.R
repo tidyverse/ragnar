@@ -40,8 +40,7 @@ ragnar_retrieve_vss <- function(
   method <- rlang::arg_match(method)
   if (inherits(store, "tbl_sql")) {
     tbl <- store
-    store <- dbplyr::remote_con(tbl)
-    return(retrieve_vss_tbl_sql(tbl, store, text, top_k, method))
+    return(ragnar_retrieve_vss_tbl(tbl, text, top_k, method))
   }
 
   cols <- names(store@schema) |>
@@ -71,11 +70,12 @@ ragnar_retrieve_vss <- function(
 # store |> dplyr::mutate(score = calculate_vss(store, text))
 # using dbplyr
 calculate_vss <- function(store, text, method) {
-  if (is.null(store@embed)) {
+  embed <- get_store_embed(store)
+  if (is.null(embed)) {
     cli::cli_abort("Store must have an embed function but got {.code NULL}")
   }
 
-  embedded_text <- store@embed(text)
+  embedded_text <- embed(text)
   embedding_size <- ncol(embedded_text)
 
   .[method_function, ..] <- method_to_info(method)
@@ -84,7 +84,8 @@ calculate_vss <- function(store, text, method) {
     {method_function}(
       embedding,
       [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
-    ))---"
+    )
+    )---"
   )
 }
 
@@ -103,39 +104,74 @@ method_to_info <- function(method) {
 }
 
 
-#' @importFrom dplyr tbl sql arrange collect
-method(tbl, ragnar:::DuckDBRagnarStore) <- function(src, from = "chunks", ...) {
-  tbl(src@.con, from)
+get_store_embed <- function(x) {
+  if (S7_inherits(x, RagnarStore)) {
+    return(x@embed)
+  }
+
+  if (inherits(x, "tbl_sql")) {
+    con <- dbplyr::remote_con(x)
+    ptr <- con@conn_ref
+    embed <- attr(ptr, "embed_function", exact = TRUE)
+    if (!is.null(embed)) {
+      return(embed)
+    }
+
+    # Attribute missing: reread from db and cache on ptr
+    embed_blob <- DBI::dbGetQuery(
+      con,
+      "SELECT embed_func FROM metadata LIMIT 1"
+    )$embed_func[[1]]
+    embed <- unserialize(embed_blob)
+    attr(ptr, "embed_function") <- embed
+    return(embed)
+  }
+
+  cli::cli_abort("`store` must be a RagnarStore or a dplyr::tbl()")
 }
 
-# Example usage:
-# tbl(store) |>
-#   filter(my_cat == "a") |>
-#   ragnar_retrieve_vss()
-ragnar_retrieve_vss_tbl_sql <- function(tbl, store, text, top_k, method) {
+
+ragnar_retrieve_vss_tbl <- function(tbl, text, top_k, method) {
   .[.., order_key] <- method_to_info(method)
   tbl |>
     mutate(
-      metric_value = sql(calculate_vss(store, text, method)),
+      metric_value = sql(calculate_vss(tbl, text, method)),
       metric_name = method
     ) |>
+    select(-"embedding") |>
     arrange(sql(glue("metric_value {order_key}"))) |>
+    head(n = top_k) |>
+    collect()
+}
+
+ragnar_retrieve_bm25_tbl_sql <- function(tbl, text, top_k) {
+  con <- dbplyr::remote_con(tbl)
+  text_quoted <- DBI::dbQuoteString(con, text)
+
+  tbl |>
+    mutate(
+      metric_value = sql(glue::glue(
+        "fts_main_chunks.match_bm25(id, {text_quoted})"
+      )),
+      metric_name = "bm25"
+    ) |>
+    filter(!is.na(metric_value)) |>
+    arrange(metric_value) |>
     select(-embedding) |>
     head(n = top_k) |>
     collect()
 }
 
-#' Retrieve chunks using BM25 from a pre‑filtered `tbl_sql`
-#'
-#' Internal helper mirroring `ragnar_retrieve_vss_tbl_sql()`, but for BM25.
-#' @noRd
-ragnar_retrieve_bm25_tbl_sql <- function(store, text, top_k) {
-  con <- dbplyr::remote_con(store)
+
+ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
+  con <- dbplyr::remote_con(tbl)
   text_quoted <- DBI::dbQuoteString(con, text)
 
-  store |>
+  tbl |>
     mutate(
-      metric_value = sql(glue::glue("fts_main_chunks.match_bm25(id, {text_quoted})")),
+      metric_value = sql(glue::glue(
+        "fts_main_chunks.match_bm25(id, {text_quoted})"
+      )),
       metric_name = "bm25"
     ) |>
     filter(!is.na(metric_value)) |>
@@ -228,7 +264,11 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' [ragnar_retrieve()] is a thin wrapper around [ragnar_retrieve_vss_and_bm25()]
 #' using the recommended best practices.
 #'
-#' @param store A `RagnarStore` object.
+#' @param store A `RagnarStore` object **or** a `dplyr::tbl()` derived from
+#'   it. When you pass a `tbl`, you may use usual dplyr verbs (e.g.
+#'   `filter()`, `slice()`) to restrict the rows examined *before*
+#'   similarity scoring. Avoid dropping essential columns such as
+#'   `text`, `embedding`, `origin`, and `hash`.
 #' @param text A string to find the nearest match too
 #' @param top_k Integer, the number of nearest entries to find *per method*.
 #'
@@ -236,10 +276,38 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #'   individual chunk in the store. It always contains a column named `text`
 #'   that contains the chunks.
 #'
+#' @section Pre-filtering with dplyr:
+#' The store behaves like a lazy table backed by DuckDB, so row‑wise
+#' filtering is executed directly in the database. This lets you narrow the
+#' search space efficiently without pulling data into R.
+#'
 #' @family ragnar_retrieve
 #' @export
+#' @examples
+#' # Basic usage
+#'store <- ragnar_store_create()
+#'ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
+#'ragnar_store_build_index(store)
+#'ragnar_retrieve(store, "foo")
+#'
+#'store <- ragnar_store_create(
+#'  extra_cols = data.frame(category = character())
+#')
+#'ragnar_store_insert(
+#'  store,
+#'  data.frame(
+#'    category = c("desert", "desert", "desert", "meal", "meal", "meal"),
+#'    text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+#'  )
+#')
+#'ragnar_store_build_index(store)
+#'ragnar_retrieve(store, "yummy")
+#'
+#'## Pre‑filter the store using extra cols to limit retrieval
+#'dplyr::tbl(store) |>
+#'  dplyr::filter(category == "meal") |>
+#'  ragnar_retrieve("yummy")
+#'
 ragnar_retrieve <- function(store, text, top_k = 3L) {
   ragnar_retrieve_vss_and_bm25(store, text, top_k)
 }
-
-# TODO: re-ranking.
