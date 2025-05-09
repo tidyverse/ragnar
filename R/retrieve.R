@@ -264,9 +264,9 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' [ragnar_retrieve()] is a thin wrapper around [ragnar_retrieve_vss_and_bm25()]
 #' using the recommended best practices.
 #'
-#' @param store A `RagnarStore` object **or** a `dplyr::tbl()` derived from
+#' @param store A `RagnarStore` object or a `dplyr::tbl()` derived from
 #'   it. When you pass a `tbl`, you may use usual dplyr verbs (e.g.
-#'   `filter()`, `slice()`) to restrict the rows examined *before*
+#'   `filter()`, `slice()`) to restrict the rows examined before
 #'   similarity scoring. Avoid dropping essential columns such as
 #'   `text`, `embedding`, `origin`, and `hash`.
 #' @param text A string to find the nearest match too
@@ -285,29 +285,31 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' @export
 #' @examples
 #' # Basic usage
-#'store <- ragnar_store_create()
-#'ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
-#'ragnar_store_build_index(store)
-#'ragnar_retrieve(store, "foo")
+#' store <- ragnar_store_create()
+#' ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
+#' ragnar_store_build_index(store)
+#' ragnar_retrieve(store, "foo")
 #'
-#'store <- ragnar_store_create(
-#'  extra_cols = data.frame(category = character())
-#')
-#'ragnar_store_insert(
-#'  store,
-#'  data.frame(
-#'    category = c("desert", "desert", "desert", "meal", "meal", "meal"),
-#'    text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
-#'  )
-#')
-#'ragnar_store_build_index(store)
-#'ragnar_retrieve(store, "yummy")
+#' # More Advanced: store metadata, retrieve with pre-filtering
+#' store <- ragnar_store_create(
+#'   extra_cols = data.frame(category = character())
+#' )
+#' ragnar_store_insert(
+#'   store,
+#'   data.frame(
+#'     category = c("desert", "desert", "desert", "meal", "meal", "meal"),
+#'     text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+#'   )
+#' )
+#' ragnar_store_build_index(store)
 #'
-#'## Pre‑filter the store using extra cols to limit retrieval
-#'dplyr::tbl(store) |>
-#'  dplyr::filter(category == "meal") |>
-#'  ragnar_retrieve("yummy")
+#' # simple retrieve
+#' ragnar_retrieve(store, "yummy")
 #'
+#' # retrieve with pre-filtering
+#' dplyr::tbl(store) |>
+#'   dplyr::filter(category == "meal") |>
+#'   ragnar_retrieve("yummy")
 ragnar_retrieve <- function(store, text, top_k = 3L) {
   ragnar_retrieve_vss_and_bm25(store, text, top_k)
 }
