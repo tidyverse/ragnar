@@ -38,6 +38,11 @@ ragnar_retrieve_vss <- function(
   check_string(text)
   check_number_whole(top_k)
   method <- rlang::arg_match(method)
+  if (inherits(store, "tbl_sql")) {
+    tbl <- store
+    store <- dbplyr::remote_con(tbl)
+    return(retrieve_vss_tbl_sql(tbl, store, text, top_k, method))
+  }
 
   cols <- names(store@schema) |>
     stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
@@ -74,14 +79,12 @@ calculate_vss <- function(store, text, method) {
   embedding_size <- ncol(embedded_text)
 
   .[method_function, ..] <- method_to_info(method)
-
   glue::glue(
     r"---(
     {method_function}(
       embedding,
       [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
-    )
-  )---"
+    ))---"
   )
 }
 
@@ -94,9 +97,54 @@ method_to_info <- function(method) {
     euclidean_distance = c("array_distance", "ASC"),
     negative_dot_product = c("array_negative_dot_product", "ASC"),
     cosine_similarity = c("array_cosine_similarity", "DESC"),
-    dot_product = c("array_dot_product", "DESC")
+    dot_product = c("array_dot_product", "DESC"),
+    stop("Unknown method")
   )
 }
+
+
+#' @importFrom dplyr tbl sql arrange collect
+method(tbl, ragnar:::DuckDBRagnarStore) <- function(src, from = "chunks", ...) {
+  tbl(src@.con, from)
+}
+
+# Example usage:
+# tbl(store) |>
+#   filter(my_cat == "a") |>
+#   ragnar_retrieve_vss()
+ragnar_retrieve_vss_tbl_sql <- function(tbl, store, text, top_k, method) {
+  .[.., order_key] <- method_to_info(method)
+  tbl |>
+    mutate(
+      metric_value = sql(calculate_vss(store, text, method)),
+      metric_name = method
+    ) |>
+    arrange(sql(glue("metric_value {order_key}"))) |>
+    select(-embedding) |>
+    head(n = top_k) |>
+    collect()
+}
+
+#' Retrieve chunks using BM25 from a pre‑filtered `tbl_sql`
+#'
+#' Internal helper mirroring `ragnar_retrieve_vss_tbl_sql()`, but for BM25.
+#' @noRd
+ragnar_retrieve_bm25_tbl_sql <- function(store, text, top_k) {
+  con <- dbplyr::remote_con(store)
+  text_quoted <- DBI::dbQuoteString(con, text)
+
+  store |>
+    mutate(
+      metric_value = sql(glue::glue("fts_main_chunks.match_bm25(id, {text_quoted})")),
+      metric_name = "bm25"
+    ) |>
+    filter(!is.na(metric_value)) |>
+    arrange(metric_value) |>
+    select(-embedding) |>
+    head(n = top_k) |>
+    collect()
+}
+
 
 #' Retrieves chunks using the BM25 score
 #'
@@ -108,6 +156,9 @@ method_to_info <- function(method) {
 ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
   check_string(text)
   check_number_whole(top_k)
+  if (inherits(store, "tbl_sql")) {
+    return(ragnar_retrieve_bm25_tbl_sql(store, text, top_k))
+  }
 
   cols <- names(store@schema) |>
     stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
@@ -168,7 +219,6 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   )
 
   # TODO: come up with a nice reordering that doesn't involve too much compute.
-
   as_tibble(out)
 }
 
