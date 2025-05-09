@@ -155,28 +155,9 @@ ragnar_retrieve_bm25_tbl_sql <- function(tbl, text, top_k) {
       )),
       metric_name = "bm25"
     ) |>
-    filter(!is.na(metric_value)) |>
-    arrange(metric_value) |>
-    select(-embedding) |>
-    head(n = top_k) |>
-    collect()
-}
-
-
-ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
-  con <- dbplyr::remote_con(tbl)
-  text_quoted <- DBI::dbQuoteString(con, text)
-
-  tbl |>
-    mutate(
-      metric_value = sql(glue::glue(
-        "fts_main_chunks.match_bm25(id, {text_quoted})"
-      )),
-      metric_name = "bm25"
-    ) |>
-    filter(!is.na(metric_value)) |>
-    arrange(metric_value) |>
-    select(-embedding) |>
+    filter(sql('metric_value IS NOT NULL')) |>
+    arrange(.data$metric_value) |>
+    select(-"embedding") |>
     head(n = top_k) |>
     collect()
 }

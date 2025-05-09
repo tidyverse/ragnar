@@ -22,6 +22,8 @@ There are no guardarails for the kind of model that is used, but the model
 must be available in the AWS region specified by the profile.
 You may look for available models in the Bedrock Model Catalog}
 
+\item{profile}{AWS profile to use.}
+
 \item{api_args}{Additional arguments to pass to the Bedrock API. Dependending
 on the \code{model}, you might be able to provide different parameters. Check
 the documentation for the model you are using in the

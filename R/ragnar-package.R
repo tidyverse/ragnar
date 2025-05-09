@@ -16,6 +16,7 @@ dotty::.
 
 .onLoad <- function(libname, pkgname) {
   Sys.setenv(RETICULATE_PYTHON = "managed")
+  S7::methods_register()
   reticulate::py_require(c(
     "markitdown[all]"
   ))

@@ -21,6 +21,7 @@
 #'   dbWriteTable dbListTables dbReadTable
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
+#' @importFrom utils head
 #' @useDynLib ragnar, .registration = TRUE
 NULL
 
