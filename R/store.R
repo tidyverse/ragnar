@@ -219,7 +219,12 @@ ragnar_store_connect <- function(
   # mode <- match.arg(mode)
   # read_only <- mode == "retrieve"
 
-  con <- dbConnect(duckdb::duckdb(), dbdir = location, read_only = read_only)
+  con <- dbConnect(
+    duckdb::duckdb(),
+    dbdir = location,
+    read_only = read_only,
+    array = "matrix"
+  )
 
   # can't use dbExistsTable() because internally it runs:
   # > dbGetQuery(conn, sqlInterpolate(conn, "SELECT * FROM ? WHERE FALSE", dbQuoteIdentifier(conn, name)))
