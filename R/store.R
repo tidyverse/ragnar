@@ -69,7 +69,7 @@ ragnar_store_create <- function(
       stop("File already exists: ", location)
     }
   }
-  con <- dbConnect(duckdb::duckdb(), dbdir = location)
+  con <- dbConnect(duckdb::duckdb(), dbdir = location, array = "matrix")
 
   default_schema <- vctrs::vec_ptype(data_frame(
     origin = character(0),
@@ -152,6 +152,10 @@ ragnar_store_create <- function(
   schema <- unserialize(metadata$schema[[1]])
   name <- metadata$name
 
+  # attach function to externalptr, so we can retreive it from just the connection.
+  ptr <- con@conn_ref
+  attr(ptr, "embed_function") <- embed
+
   # duckdb R interface does not support array columns yet,
   # so we hand-write the sql.
   columns <- map2(names(schema), schema, function(nm, type) {
@@ -219,7 +223,12 @@ ragnar_store_connect <- function(
   # mode <- match.arg(mode)
   # read_only <- mode == "retrieve"
 
-  con <- dbConnect(duckdb::duckdb(), dbdir = location, read_only = read_only)
+  con <- dbConnect(
+    duckdb::duckdb(),
+    dbdir = location,
+    read_only = read_only,
+    array = "matrix"
+  )
 
   # can't use dbExistsTable() because internally it runs:
   # > dbGetQuery(conn, sqlInterpolate(conn, "SELECT * FROM ? WHERE FALSE", dbQuoteIdentifier(conn, name)))
@@ -236,6 +245,10 @@ ragnar_store_connect <- function(
   embed <- unserialize(metadata$embed_func[[1L]])
   schema <- unserialize(metadata$schema[[1L]])
   name <- metadata$name %||% unique_store_name()
+
+  # attach function to externalptr, so we can retreive it from just the connection.
+  ptr <- con@conn_ref
+  attr(ptr, "embed_function") <- embed
 
   if (build_index) ragnar_store_build_index(con)
 
@@ -398,13 +411,13 @@ ragnar_store_insert <- function(store, chunks) {
 
   # Ideally this would use dbWriteTable, but we can't really because it currently
   # doesn't support array columns.
-  cols <- map2(names(schema), schema, function(nm, ptype) {
+  cols <- imap(schema, function(ptype, name) {
     # Ensures that the column in chunks has the expected ptype. (or at least
     # something that can be cast to the correct ptype with no loss)
     col <- vctrs::vec_cast(
-      chunks[[nm]],
+      chunks[[name]],
       ptype,
-      x_arg = glue::glue("chunks${nm}")
+      x_arg = glue::glue("chunks${name}")
     )
 
     if (is.matrix(col) && is.numeric(col)) {
@@ -418,7 +431,7 @@ ragnar_store_insert <- function(store, chunks) {
     } else if (is.numeric(col)) {
       DBI::dbQuoteLiteral(store@.con, col)
     } else {
-      cli::cli_abort("Unsupported type {.cls {class(col)}")
+      cli::cli_abort("Unsupported type {.cls {class(col)}}")
     }
   })
 
@@ -518,3 +531,9 @@ ragnar_store_inspect <- function(store, ...) {
   })
   invisible(NULL)
 }
+
+#' @importFrom dplyr tbl sql arrange collect
+method(tbl, ragnar:::DuckDBRagnarStore) <- function(src, from = "chunks", ...) {
+  tbl(src@.con, from)
+}
+rm(tbl)

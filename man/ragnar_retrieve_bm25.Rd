@@ -7,7 +7,11 @@
 ragnar_retrieve_bm25(store, text, top_k = 3L)
 }
 \arguments{
-\item{store}{A \code{RagnarStore} object.}
+\item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from
+it. When you pass a \code{tbl}, you may use usual dplyr verbs (e.g.
+\code{filter()}, \code{slice()}) to restrict the rows examined before
+similarity scoring. Avoid dropping essential columns such as
+\code{text}, \code{embedding}, \code{origin}, and \code{hash}.}
 
 \item{text}{A string to find the nearest match too}
 
@@ -35,6 +39,43 @@ two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}
 \item \strong{dot_product}: Computes the sum of the element-wise products of two vectors.
 \item \strong{negative_dot_product}: The negation of the dot product.
 }
+}
+\section{Pre-filtering with dplyr}{
+
+The store behaves like a lazy table backed by DuckDB, so row‑wise
+filtering is executed directly in the database. This lets you narrow the
+search space efficiently without pulling data into R.
+}
+
+\examples{
+# Basic usage
+mock_embed <- function(x) matrix(stats::runif(10), nrow = length(x), ncol = 10)
+store <- ragnar_store_create(embed = mock_embed)
+ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
+ragnar_store_build_index(store)
+ragnar_retrieve(store, "foo")
+
+# More Advanced: store metadata, retrieve with pre-filtering
+store <- ragnar_store_create(
+  embed = mock_embed,
+  extra_cols = data.frame(category = character())
+)
+ragnar_store_insert(
+  store,
+  data.frame(
+    category = c("desert", "desert", "desert", "meal", "meal", "meal"),
+    text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+  )
+)
+ragnar_store_build_index(store)
+
+# simple retrieve
+ragnar_retrieve(store, "yummy")
+
+# retrieve with pre-filtering
+dplyr::tbl(store) |>
+  dplyr::filter(category == "meal") |>
+  ragnar_retrieve("yummy")
 }
 \seealso{
 Other ragnar_retrieve: 

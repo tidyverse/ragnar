@@ -10,7 +10,7 @@
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows select mutate filter
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
@@ -21,6 +21,7 @@
 #'   dbWriteTable dbListTables dbReadTable
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
+#' @importFrom utils head
 #' @useDynLib ragnar, .registration = TRUE
 NULL
 
@@ -54,6 +55,12 @@ map2 <- function(.x, .y, .f, ...) {
 map3 <- function(.x, .y, .z, .f, ...) {
   out <- .mapply(.f, list(.x, .y, .z), list(...))
   if (length(.x) == length(out)) names(out) <- names(.x)
+  out
+}
+
+imap <- function(.x, .f, ...) {
+  out <- .mapply(.f, list(.x, names(.x) %||% seq_along(.x)), list(...))
+  names(out) <- names(.x)
   out
 }
 
