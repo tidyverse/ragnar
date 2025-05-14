@@ -132,6 +132,7 @@ get_store_embed <- function(x) {
 
 
 ragnar_retrieve_vss_tbl <- function(tbl, text, top_k, method) {
+  rlang::check_installed("dbplyr")
   .[.., order_key] <- method_to_info(method)
   tbl |>
     mutate(
@@ -144,7 +145,8 @@ ragnar_retrieve_vss_tbl <- function(tbl, text, top_k, method) {
     collect()
 }
 
-ragnar_retrieve_bm25_tbl_sql <- function(tbl, text, top_k) {
+ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
+  rlang::check_installed("dbplyr")
   con <- dbplyr::remote_con(tbl)
   text_quoted <- DBI::dbQuoteString(con, text)
 
@@ -174,7 +176,7 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
   check_string(text)
   check_number_whole(top_k)
   if (inherits(store, "tbl_sql")) {
-    return(ragnar_retrieve_bm25_tbl_sql(store, text, top_k))
+    return(ragnar_retrieve_bm25_tbl(store, text, top_k))
   }
 
   cols <- names(store@schema) |>
