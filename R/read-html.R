@@ -119,7 +119,7 @@ vec_frame_flattened_tree <- function(
   frame <- vec_frame_flattened_tree_impl(vec, nodes, leaves, names)
 
   # reorder, drop names, normalize row.names
-  for (missing_node in setdiff(nodes, names(frame)))
+  for (missing_node in setdiff(c(nodes, leaves, names), names(frame)))
     frame[[missing_node]] <- NA_character_
   frame <- as.list(frame)[c(nodes, names, leaves)]
   frame <- lapply(frame, `names<-`, NULL)

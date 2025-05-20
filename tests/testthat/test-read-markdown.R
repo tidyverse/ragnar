@@ -33,3 +33,9 @@ test_that("ragnar_read", {
   expect_in("tag", colnames(document))
   expect_in(split_tags, document$tag)
 })
+
+
+test_that("ragnar_read() empty doc", {
+  jpg <- file.path(R.home("doc"), "html", "logo.jpg")
+  expect_no_error(ragnar_read(jpg, frame_by_tags = "h1"))
+})
