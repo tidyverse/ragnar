@@ -117,3 +117,20 @@ test_that("vec_frame_flattened_tree works 3", {
   expect_equal(frame, expected)
   expect_true(is.na(last(frame$h3)))
 })
+
+
+test_that("vec_frame_flattened_tree works 4", {
+  frame <- vec_frame_flattened_tree(
+    c(h1 = "# Quarto – executable-code-figure-size"),
+    nodes = c("h1", "h2", "h3")
+  )
+
+  expected <- vctrs::data_frame(
+    h1 = "# Quarto – executable-code-figure-size",
+    h2 = NA_character_,
+    h3 = NA_character_,
+    .name = NA_character_,
+    .content = NA_character_
+  )
+  expect_equal(frame, expected)
+})
