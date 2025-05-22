@@ -55,3 +55,4 @@ Config/testthat/edition: 3
 Remotes:
     rstudio/reticulate
 URL: https://tidyverse.github.io/ragnar/
+VignetteBuilder: knitr
