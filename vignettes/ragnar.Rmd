@@ -18,21 +18,21 @@ knitr::opts_chunk$set(
 )
 ```
 
-```r
+``` r
 library(ragnar)
 ```
 
 # Getting Started with ragnar
 
 Retrieval-Augmented Generation (RAG) is a practical technique for
-improving large language model (LLM) outputs by grounding them in
+improving large language model (LLM) outputs by grounding them with
 external, trusted content. The `ragnar` package provides tools for
 building RAG workflows in R, with a focus on transparency and control at
 each step.
 
 This guide walks through building a simple chat tool for Quarto
-documentation using `ragnar`. The examples are simplified for clarity;
-for a full implementation, see
+documentation using `ragnar`. The code examples are simplified for
+clarity; for a full implementation, see
 <https://github.com/t-kalinowski/quartohelp>.
 
 ## Why RAG? The Hallucination Problem
@@ -44,7 +44,7 @@ plausible, and wrong.
 
 When the generated output is wrong, we call that a *hallucination*, and
 hallucinations seem to be an inherent consequence of how LLMs work. LLMs
-operate on text sequences—they do not seem to possess a concept of
+operate on text sequences; they do not seem to possess a concept of
 "facts" and "truth" like humans do. They generate text with no awareness
 of whether it is true or false, only guided by similarity to patterns in
 text sequences in their training data.
@@ -68,17 +68,17 @@ models generate "bullshit" [^1]:
 > describe reality correctly. He just picks them out, or makes them up,
 > to suit his purpose.
 
-RAG addresses this by retrieving relevant excerpts from a trusted corpus
-of vetted sources and asking the LLM to summarize, paraphrase, or answer
-the user's question using only that material. This grounds the response
-in known content and reduces the risk of hallucination. RAG shifts the
-LLM's job from open-ended generation to summarizing or quoting from
-retrieved material.
+RAG addresses this by retrieving relevant excerpts from a corpus of
+trusted, vetted sources and asking the LLM to summarize, paraphrase, or
+answer the user's question using only that material. This grounds the
+response in known content and reduces the risk of hallucination. RAG
+shifts the LLM's job from open-ended generation to summarizing or
+quoting from retrieved material.
 
 RAG reduces but does not eliminate hallucinations. For richer texts and
 tasks, LLMs may still miss nuance or overgeneralize. For this reason,
-it's helpful for RAG-based tools to present links back to the original
-material so users can check context and verify details.
+it's still helpful for RAG-based tools to present links back to the
+original material so users can check context and verify details.
 
 ## Use Case: Quarto Docs Chat vs. Standard Search
 
@@ -86,8 +86,8 @@ Standard documentation search is the default for answering questions
 about tools like Quarto but has limitations. Search requires precise
 wording, familiarity with the docs' structure, and sometimes piecing
 together information from multiple pages. Even with a focused site
-search, users spend time clicking, reading, and skimming, and may still
-miss the answer.
+search, users spend time skimming and navigating to the correct
+material, and may still miss the answer.
 
 A RAG-powered chat tool could offer a better alternative. You ask a
 natural language question. The tool retrieves relevant excerpts from the
@@ -163,10 +163,10 @@ Next, split the documents into smaller chunks. This is necessary because
 embedding models have context size limits, and because chunking allows
 you to return just the most relevant excerpts from a long document.
 
-Chunking is delicate; each chunk should stand alone without relying on
-the context of the surrounding document. Ideally, we can split the text
-at natural points like headings, paragraphs, or sentences, and avoid
-splits in the middle of a sentence or word.
+Chunking is delicate; Ideally, each chunk should stand alone without
+relying on the context of the surrounding document. We can aim to split
+the text at natural points like headings, paragraphs, or sentences, and
+avoid splits in the middle of a sentence or word.
 
 Additionally, we augment chunks with context that describes the chunk’s
 origin—such as URL, title, headings, and subheadings—both so the LLM can
@@ -175,10 +175,10 @@ can better situate the chunk’s content.
 
 To help with these tasks, use `ragnar_read()` and `ragnar_chunk()`.
 
-`ragnar_read()` can split a markdown document using markdown headings,
-while also extracting the heading titles as columns in the dataframe.
-Use the `frame_by_tags` argument and select the document headings you
-want to segment by. If you’re starting from already converted markdown
+`ragnar_read()` can split a document using markdown headings, while also
+extracting the heading titles as columns in the dataframe. Use the
+`frame_by_tags` argument and select the document heading levels you want
+to segment by. If you’re starting from already converted markdown
 content, use `markdown_frame()` or `markdown_segment()` instead.
 
 `ragnar_chunk()` then chunks the text further, trying to split at
@@ -251,7 +251,7 @@ Once the store index is built, the store is ready for retrieval.
 
 ------------------------------------------------------------------------
 
-## Retrieval and System Prompt Design
+## Retrieval
 
 To retrieve content from the store, call `ragnar_retrieve()`. This
 function uses two retrieval methods:
@@ -284,13 +284,13 @@ ragnar_register_tool_retrieve(
 
 Note that the registered tool is intentionally simple. It asks the LLM
 to provide one argument: the query string. LLM tool calls are just text
-completions, like any other LLM output. We minimize the complexity in
-the tool interface to minimize the chance for LLM errors.
+completions after all, like any other LLM output. We minimize the
+complexity in the tool interface to minimize the chance for LLM errors.
 
 Rather than exposing detailed search options to the LLM, we can instead
 set a high `top_k` value to return more chunks than usually necessary.
-This provides some slack, so the system can handle less-than-perfect
-search results or unclear questions.
+This provides some slack in the chat app, so we can gracefully handle
+less-than-perfectly-ranked search results.
 
 ### Customizing Retrieval
 
@@ -369,19 +369,30 @@ client$register_tool(ellmer::tool(
 ## Troubleshooting and Debugging
 
 Developing a RAG app is an iterative process. There are many places to
-spend effort optimizing, and it's helpful to test in the context of an
-end-to-end application.
+potentially spend effort on improvements:
 
-You can use `ragnar_store_inspect()` to interactively see what kind of
+-   selecting sources
+-   converting to markdown
+-   chunking
+-   augmenting chunks
+-   using metadata to narrow search
+-   choice of embedding model
+-   choice of LLM
+-   system prompt
+-   tool definition
+
+It's helpful to iterate in the context of an end-to-end application.
+
+You can use `ragnar_store_inspect()` to interactively see what kinds of
 results are returned by the store for different queries. This helps
 confirm that chunking and augmentation preserve semantic meaning and
 that the embedding model is working as expected.
 
-If the results shown in the inspector do not seem useful—either because
-they lack sufficient context or are chunked in a way that fails to
-preserve meaning—they likely won't be useful to an LLM either. Iterate
-on the store creation pipeline until retrieval returns meaningful
-excerpts.
+If the results shown in the inspector do not seem useful or relevant to
+you, they likely won't be useful to an LLM either. Iterate on the store
+creation pipeline until retrieval returns meaningful excerpts.
+
+![](../man/figures/ragnar-store-inspector-screenshot.png)
 
 Some things you can try:
 
@@ -389,6 +400,7 @@ Some things you can try:
 -   Specify coarser or custom boundaries in `ragnar_chunk()`.
 -   Augment chunks with additional context.
 -   Try a different embedding model.
+-   Try a different LLM.
 -   Increase `top_k` to return more results.
 -   Iterate on the LLM system prompt to give clearer, more precise
     instructions.
@@ -402,10 +414,10 @@ responsible for.
 With that in mind, note that this chat app described here does not
 intend to replace documentation or act as a general-purpose assistant.
 Its goal is to provide a faster, more contextual way to find the right
-place in the docs, with enough information to decide if you need to read
-further. We've designed it to escalate gracefully: if the LLM is not
-able to provide an accurate answer, the user can transition to reading
-the source material without friction.
+place in the docs, with enough information for the user to decide if
+they need to read further. It's designed it to escalate on failure
+gracefully: if the LLM is not able to provide an accurate answer, the
+user can transition to reading the source material without friction.
 
 ## Cost Management
 
@@ -418,8 +430,8 @@ tips for managing costs:
     With RAG, summarization and paraphrasing do not typically need the
     flagship reasoning models to return useful results.
 -   The cost of generating embeddings is negligible. For example,
-    generating embeddings for the entire Quarto website costs less than
-    a cent.
+    generating embeddings for the entire Quarto website costs
+    approximately a cent.
 -   Keep chat sessions focused and concise. Start new chat sessions for
     unrelated questions. Long conversations increase token usage, costs,
     and in practice, also lower output quality as the LLM gets confused
