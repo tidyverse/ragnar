@@ -43,7 +43,6 @@ Suggests:
     pandoc,
     ellmer,
     knitr,
-    readr,
     rmarkdown,
     stringr,
     dbplyr,
@@ -52,7 +51,5 @@ Suggests:
     shiny
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
 Config/testthat/edition: 3
-Remotes:
-    rstudio/reticulate
-URL: https://tidyverse.github.io/ragnar/
+URL: http://ragnar.tidyverse.org/
 VignetteBuilder: knitr

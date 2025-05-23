@@ -107,9 +107,9 @@ Key functions:
 
 - `ragnar_retrieve()`
 - `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
-  extension](https://duckdb.org/docs/extensions/vss.html)
+  extension](https://duckdb.org/docs/stable/core_extensions/vss)
 - `ragnar_retrieve_bm25()`: Retrieve using
-  [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
+  [`full-text search DuckDB extension`](https://duckdb.org/docs/stable/core_extensions/full_text_search)
 
 ### 7. Chat Augmentation
 
@@ -222,7 +222,7 @@ text <- "How can I subset a dataframe with a logical vector?"
 embedding_near_chunks <- ragnar_retrieve_vss(store, text, top_k = 3)
 embedding_near_chunks
 #> # A tibble: 3 × 6
-#>      id metric_name     metric_value origin                          hash  text 
+#>      id metric_name     metric_value origin                          hash  text
 #>   <int> <chr>                  <dbl> <chr>                           <chr> <chr>
 #> 1   630 cosine_distance        0.394 https://r4ds.hadley.nz/logical… 943f… "# E…
 #> 2   653 cosine_distance        0.399 https://r4ds.hadley.nz/logical… 943f… "# E…
@@ -234,13 +234,13 @@ embedding_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 #> section: ## 12.1 Introduction
 #> subsection: NA
 #> content: In this chapter, you’ll learn tools for working with logical vectors. Logical vectors are the simplest type of vector because each element can only be one of three possible values: `TRUE`, `FALSE`, and `NA`. It’s relatively rare to find logical vectors in your raw data, but you’ll create and manipulate them in the course of almost every analysis.
-#> 
+#>
 #> We’ll begin by discussing the most common way of creating logical vectors: with numeric comparisons. Then you’ll learn about how you can use Boolean algebra to combine different logical vectors, as well as some useful summaries. We’ll finish off with `[if_else()](https://dplyr.tidyverse.org/reference/if_else.html)` and `[case_when()](https://dplyr.tidyverse.org/reference/case_when.html)`, two useful functions for making conditional changes powered by logical vectors.
 
 bm25_near_chunks <- ragnar_retrieve_bm25(store, text, top_k = 3)
 bm25_near_chunks
 #> # A tibble: 3 × 6
-#>      id metric_name metric_value origin                              hash  text 
+#>      id metric_name metric_value origin                              hash  text
 #>   <int> <chr>              <dbl> <chr>                               <chr> <chr>
 #> 1   988 bm25               0.661 https://r4ds.hadley.nz/webscraping… 8629… "# E…
 #> 2   842 bm25               0.665 https://r4ds.hadley.nz/regexps.html 15ee… "# E…
@@ -254,7 +254,7 @@ bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
     #> section: ## 24.4 Extracting data
     #> subsection: ### 24.4.2 Nesting selections
     #> content: In most cases, you’ll use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` and `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` together, typically using `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to identify elements that will become observations then using `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` to find elements that will become variables. Let’s see this in action using a simple example. Here we have an unordered list (`<ul>)` where each list item (`<li>`) contains some information about four characters from StarWars:
-    #> 
+    #>
     #> ```
     #> html <- minimal_html("
     #>   <ul>
@@ -265,9 +265,9 @@ bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
     #>   </ul>
     #>   ")
     #> ```
-    #> 
+    #>
     #> We can use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to make a vector where each element corresponds to a different character:
-    #> 
+    #>
     #> ```
     #> characters <- html |> html_elements("li")
     #> characters
@@ -290,9 +290,9 @@ relevant_chunks
 #> # A tibble: 6 × 6
 #>      id origin                                hash  text  cosine_distance   bm25
 #>   <int> <chr>                                 <chr> <chr>           <dbl>  <dbl>
-#> 1   630 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.394 NA    
-#> 2   653 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.399 NA    
-#> 3   632 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.401 NA    
+#> 1   630 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.394 NA
+#> 2   653 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.399 NA
+#> 3   632 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.401 NA
 #> 4   988 https://r4ds.hadley.nz/webscraping.h… 8629… "# E…          NA      0.661
 #> 5   842 https://r4ds.hadley.nz/regexps.html   15ee… "# E…          NA      0.665
 #> 6   337 https://r4ds.hadley.nz/datetimes.html fd3e… "# E…          NA      0.667
@@ -326,9 +326,9 @@ chat$chat("How can I subset a dataframe?")
 ```
 
     #> From "R for Data Science (2e)":
-    #> 
-    #> > Several dplyr verbs are special cases of `[`:  
-    #> > * `filter()` is equivalent to subsetting the rows with a logical vector...  
+    #>
+    #> > Several dplyr verbs are special cases of `[`:
+    #> > * `filter()` is equivalent to subsetting the rows with a logical vector...
     #> >   ```
     #> >   df |> filter(x > 1)
     #> >   # same as
@@ -341,15 +341,15 @@ chat$chat("How can I subset a dataframe?")
     #> >   # same as
     #> >   df[, c("x", "z")]
     #> >   ```
-    #> > Base R also provides a function that combines the features of `filter()` and 
+    #> > Base R also provides a function that combines the features of `filter()` and
     #> `select()` called `subset()`:
     #> >   ```
     #> >   df |> subset(x > 1, c(y, z))
     #> >   ```
-    #> 
+    #>
     #> > There’s an important difference between tibbles and data frames when it comes
-    #> to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if 
-    #> `col` selects a single column and a data frame if it selects more than one 
+    #> to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if
+    #> `col` selects a single column and a data frame if it selects more than one
     #> column. If `df` is a tibble, then `[` will always return a tibble.
     #> > ```
     #> > df1[, "x" , drop = FALSE]
@@ -358,18 +358,18 @@ chat$chat("How can I subset a dataframe?")
     #> > #> 2 2
     #> > #> 3 3
     #> > ```
-    #> 
-    #> **Summary:**  
+    #>
+    #> **Summary:**
     #> - To subset rows: `df[rows, ]` or `df |> filter(condition)`
     #> - To subset columns: `df[, cols]` or `df |> select(cols)`
     #> - To subset both: `df[rows, cols]` or `subset(df, condition, select = cols)`
-    #> - With tibbles, `[` always returns a tibble; with data.frames, use `drop = 
+    #> - With tibbles, `[` always returns a tibble; with data.frames, use `drop =
     #> FALSE` to keep a data.frame when selecting a single column.
-    #> 
-    #> **References:**  
-    #> - [R4DS: Base R 
+    #>
+    #> **References:**
+    #> - [R4DS: Base R
     #> subsetting](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with-)
-    #> - [R4DS: dplyr 
+    #> - [R4DS: dplyr
     #> equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)
-    #> - [R4DS: Data frame 
+    #> - [R4DS: Data frame
     #> subsetting](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
