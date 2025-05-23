@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+unlink("r4ds.ragnar.duckdb")
 ```
 
 # ragnar <img src="man/figures/logo.png" align="right" height="138"/>
@@ -58,7 +59,7 @@ Key functions:
 
 Next we divide each document into chunks. Ragnar defaults to a strategy
 that preserves some of the semantics of the document, but provide plenty
-of options to tweak the approach.
+of opportunities to tweak the approach.
 
 Key functions:
 
@@ -73,9 +74,9 @@ Key functions:
 
 RAG applications benefit from augmenting text chunks with additional
 context, such as document headings and subheadings. `ragnar` makes it
-easy to associate headings and subheadings as part of chunking, which
-can then be used to support template-based augmentation. (See examples
-below)
+easy to keep track of headings and subheadings as part of chunking,
+which can then be used to support template-based augmentation. (See
+examples below)
 
 Key functions:
 

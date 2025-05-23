@@ -22,8 +22,7 @@ bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 relevant_chunks <- ragnar_retrieve(
   store,
   text,
-  top_k = 3,
-  methods = c("vss", "bm25")
+  top_k = 3
 )
 relevant_chunks
 
@@ -31,13 +30,18 @@ relevant_chunks
 #' You can register an ellmer tool to let the LLM retrieve chunks.
 system_prompt <- stringr::str_squish(
   r"--(
-  You are an expert R programmer and mentor.
+  You are an expert R programmer and mentor. You are concise.
   You always respond by first direct quoting material from book or documentation,
   then adding your own additional context and interpertation.
+  Always include links to the source materials used.
   )--"
 )
-chat <- ellmer::chat_openai(system_prompt, model = "gpt-4.1")
+chat <- ellmer::chat_openai(
+  system_prompt,
+  model = "gpt-4.1",
+  params = ellmer::params(temperature = .5)
+)
 
-ragnar_register_tool_retrieve(chat, store)
+ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")

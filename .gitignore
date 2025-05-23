@@ -3,9 +3,6 @@ scratch*
 inst/doc
 *ragnar.duckdb
 docs
-_chats/
-*chat.Rmd
 .claude
-**/.claude/settings.local.json
 _chats/
 *chat.Rmd
