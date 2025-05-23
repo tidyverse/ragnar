@@ -138,3 +138,6 @@ reorder_names <- function(..., last = NULL) {
   if (!is.null(last)) x <- unique(c(x, last), fromLast = TRUE)
   x
 }
+
+is_windows <- function() identical(.Platform$OS.type, "windows")
+
