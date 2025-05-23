@@ -47,26 +47,30 @@ ragnar_store_build_index(store)
 ragnar_retrieve(store, "foo")
 
 # More Advanced: store metadata, retrieve with pre-filtering
-store <- ragnar_store_create(
-  embed = mock_embed,
-  extra_cols = data.frame(category = character())
-)
-ragnar_store_insert(
-  store,
-  data.frame(
-    category = c("desert", "desert", "desert", "meal", "meal", "meal"),
-    text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+
+if (rlang::is_installed("dbplyr")) {
+  store <- ragnar_store_create(
+    embed = mock_embed,
+    extra_cols = data.frame(category = character())
   )
-)
-ragnar_store_build_index(store)
+  ragnar_store_insert(
+    store,
+    data.frame(
+      category = c("desert", "desert", "desert", "meal", "meal", "meal"),
+      text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+    )
+  )
+  ragnar_store_build_index(store)
 
-# simple retrieve
-ragnar_retrieve(store, "yummy")
+  # simple retrieve
+  ragnar_retrieve(store, "yummy")
 
-# retrieve with pre-filtering
-dplyr::tbl(store) |>
-  dplyr::filter(category == "meal") |>
-  ragnar_retrieve("yummy")
+
+  # retrieve with pre-filtering
+  dplyr::tbl(store) |>
+    dplyr::filter(category == "meal") |>
+    ragnar_retrieve("yummy")
+}
 }
 \seealso{
 Other ragnar_retrieve: 

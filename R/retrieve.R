@@ -275,26 +275,30 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' ragnar_retrieve(store, "foo")
 #'
 #' # More Advanced: store metadata, retrieve with pre-filtering
-#' store <- ragnar_store_create(
-#'   embed = mock_embed,
-#'   extra_cols = data.frame(category = character())
-#' )
-#' ragnar_store_insert(
-#'   store,
-#'   data.frame(
-#'     category = c("desert", "desert", "desert", "meal", "meal", "meal"),
-#'     text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+#'
+#' if (rlang::is_installed("dbplyr")) {
+#'   store <- ragnar_store_create(
+#'     embed = mock_embed,
+#'     extra_cols = data.frame(category = character())
 #'   )
-#' )
-#' ragnar_store_build_index(store)
+#'   ragnar_store_insert(
+#'     store,
+#'     data.frame(
+#'       category = c("desert", "desert", "desert", "meal", "meal", "meal"),
+#'       text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
+#'     )
+#'   )
+#'   ragnar_store_build_index(store)
 #'
-#' # simple retrieve
-#' ragnar_retrieve(store, "yummy")
+#'   # simple retrieve
+#'   ragnar_retrieve(store, "yummy")
 #'
-#' # retrieve with pre-filtering
-#' dplyr::tbl(store) |>
-#'   dplyr::filter(category == "meal") |>
-#'   ragnar_retrieve("yummy")
+#'
+#'   # retrieve with pre-filtering
+#'   dplyr::tbl(store) |>
+#'     dplyr::filter(category == "meal") |>
+#'     ragnar_retrieve("yummy")
+#' }
 ragnar_retrieve <- function(store, text, top_k = 3L) {
   ragnar_retrieve_vss_and_bm25(store, text, top_k)
 }
