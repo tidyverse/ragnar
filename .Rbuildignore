@@ -17,3 +17,4 @@
 ^.*chat\.Rmd$
 ^_chats$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$
