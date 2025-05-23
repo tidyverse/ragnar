@@ -1,4 +1,3 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # ragnar <img src="man/figures/logo.png" align="right" height="138"/>
@@ -20,8 +19,10 @@ happening.
 
 ## Installation
 
+You can install ragnar from CRAN with:
+
 ``` r
-pak::pak("tidyverse/ragnar")
+install.packages("ragnar")
 ```
 
 ## Key Steps
@@ -34,9 +35,9 @@ to Markdown.
 
 Key functions:
 
-- `ragnar_read()`: Convert a file or URL to a dataframe
-- `read_as_markdown`: Convert a file or URL to markdown
-- `ragnar_find_links()`: Find all links in a webpage
+-   `ragnar_read()`: Convert a file or URL to a dataframe
+-   `read_as_markdown`: Convert a file or URL to markdown
+-   `ragnar_find_links()`: Find all links in a webpage
 
 ### 2. Text Chunking
 
@@ -46,12 +47,12 @@ of opportunities to tweak the approach.
 
 Key functions:
 
-- `ragnar_chunk()`: Higher-level function that both identifies semantic
-  boundaries and chunks text.
-- `ragnar_segment()`: Lower-level function that identifies semantic
-  boundaries.
-- `ragnar_chunk_segments()`: Lower-level function that chunks
-  pre-segmented text.
+-   `ragnar_chunk()`: Higher-level function that both identifies
+    semantic boundaries and chunks text.
+-   `ragnar_segment()`: Lower-level function that identifies semantic
+    boundaries.
+-   `ragnar_chunk_segments()`: Lower-level function that chunks
+    pre-segmented text.
 
 ### 3. Context Augmentation (Optional)
 
@@ -63,11 +64,11 @@ examples below)
 
 Key functions:
 
-- `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags` arguments
-  to associate text chunks with their document position.
-- `markdown_segment()`: Segment markdown text into a character vector
-  using semantic tags (e.g., headings, paragraphs, or code chunks).
-- `markdown_frame()`: Convert markdown text into a dataframe.
+-   `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags`
+    arguments to associate text chunks with their document position.
+-   `markdown_segment()`: Segment markdown text into a character vector
+    using semantic tags (e.g., headings, paragraphs, or code chunks).
+-   `markdown_frame()`: Convert markdown text into a dataframe.
 
 ### 4. Embedding
 
@@ -77,8 +78,8 @@ Currently `ollama` and `openai` providers are supported.
 
 Key functions:
 
-- `embed_ollama()`
-- `embed_openai()`
+-   `embed_ollama()`
+-   `embed_openai()`
 
 Note that calling the embedding function directly is typically not
 necessary. Instead, the embedding function is specified when a store is
@@ -94,9 +95,9 @@ providers.
 
 Key functions:
 
-- `ragnar_store_create()`
-- `ragnar_store_connect()`
-- `ragnar_store_insert()`
+-   `ragnar_store_create()`
+-   `ragnar_store_connect()`
+-   `ragnar_store_insert()`
 
 ### 6. Retrieval
 
@@ -105,18 +106,18 @@ bm25 text search.
 
 Key functions:
 
-- `ragnar_retrieve()`
-- `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
-  extension](https://duckdb.org/docs/stable/core_extensions/vss)
-- `ragnar_retrieve_bm25()`: Retrieve using
-  [`full-text search DuckDB extension`](https://duckdb.org/docs/stable/core_extensions/full_text_search)
+-   `ragnar_retrieve()`
+-   `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
+    extension](https://duckdb.org/docs/stable/core_extensions/vss)
+-   `ragnar_retrieve_bm25()`: Retrieve using
+    [`full-text search DuckDB extension`](https://duckdb.org/docs/stable/core_extensions/full_text_search)
 
 ### 7. Chat Augmentation
 
 `ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
 enables an LLM to retreive content from a store on-demand.
 
-- `ragnar_register_tool_retrieve(chat, store)`.
+-   `ragnar_register_tool_retrieve(chat, store)`.
 
 ## Usage
 
@@ -248,35 +249,37 @@ bm25_near_chunks
 bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 ```
 
-    #> # Excerpt from the book "R for Data Science (2e)"
-    #> link: https://r4ds.hadley.nz/webscraping.html
-    #> chapter: # 24  Web scraping
-    #> section: ## 24.4 Extracting data
-    #> subsection: ### 24.4.2 Nesting selections
-    #> content: In most cases, you’ll use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` and `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` together, typically using `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to identify elements that will become observations then using `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` to find elements that will become variables. Let’s see this in action using a simple example. Here we have an unordered list (`<ul>)` where each list item (`<li>`) contains some information about four characters from StarWars:
-    #>
-    #> ```
-    #> html <- minimal_html("
-    #>   <ul>
-    #>     <li><b>C-3PO</b> is a <i>droid</i> that weighs <span class='weight'>167 kg</span></li>
-    #>     <li><b>R4-P17</b> is a <i>droid</i></li>
-    #>     <li><b>R2-D2</b> is a <i>droid</i> that weighs <span class='weight'>96 kg</span></li>
-    #>     <li><b>Yoda</b> weighs <span class='weight'>66 kg</span></li>
-    #>   </ul>
-    #>   ")
-    #> ```
-    #>
-    #> We can use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to make a vector where each element corresponds to a different character:
-    #>
-    #> ```
-    #> characters <- html |> html_elements("li")
-    #> characters
-    #> #> {xml_nodeset (4)}
-    #> #> [1] <li>\n<b>C-3PO</b> is a <i>droid</i> that weighs <span class="weight"> ...
-    #> #> [2] <li>\n<b>R4-P17</b> is a <i>droid</i>\n</li>
-    #> #> [3] <li>\n<b>R2-D2</b> is a <i>droid</i> that weighs <span class="weight"> ...
-    #> #> [4] <li>\n<b>Yoda</b> weighs <span class="weight">66 kg</span>\n</li>
-    #> ```
+```         
+#> # Excerpt from the book "R for Data Science (2e)"
+#> link: https://r4ds.hadley.nz/webscraping.html
+#> chapter: # 24  Web scraping
+#> section: ## 24.4 Extracting data
+#> subsection: ### 24.4.2 Nesting selections
+#> content: In most cases, you’ll use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` and `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` together, typically using `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to identify elements that will become observations then using `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` to find elements that will become variables. Let’s see this in action using a simple example. Here we have an unordered list (`<ul>)` where each list item (`<li>`) contains some information about four characters from StarWars:
+#>
+#> ```
+#> html <- minimal_html("
+#>   <ul>
+#>     <li><b>C-3PO</b> is a <i>droid</i> that weighs <span class='weight'>167 kg</span></li>
+#>     <li><b>R4-P17</b> is a <i>droid</i></li>
+#>     <li><b>R2-D2</b> is a <i>droid</i> that weighs <span class='weight'>96 kg</span></li>
+#>     <li><b>Yoda</b> weighs <span class='weight'>66 kg</span></li>
+#>   </ul>
+#>   ")
+#> ```
+#>
+#> We can use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to make a vector where each element corresponds to a different character:
+#>
+#> ```
+#> characters <- html |> html_elements("li")
+#> characters
+#> #> {xml_nodeset (4)}
+#> #> [1] <li>\n<b>C-3PO</b> is a <i>droid</i> that weighs <span class="weight"> ...
+#> #> [2] <li>\n<b>R4-P17</b> is a <i>droid</i>\n</li>
+#> #> [3] <li>\n<b>R2-D2</b> is a <i>droid</i> that weighs <span class="weight"> ...
+#> #> [4] <li>\n<b>Yoda</b> weighs <span class="weight">66 kg</span>\n</li>
+#> ```
+```
 
 ``` r
 
@@ -325,51 +328,54 @@ chat$chat("How can I subset a dataframe?")
 #>   #> …
 ```
 
-    #> From "R for Data Science (2e)":
-    #>
-    #> > Several dplyr verbs are special cases of `[`:
-    #> > * `filter()` is equivalent to subsetting the rows with a logical vector...
-    #> >   ```
-    #> >   df |> filter(x > 1)
-    #> >   # same as
-    #> >   df[!is.na(df$x) & df$x > 1, ]
-    #> >   ```
-    #> > * Both `select()` and `relocate()` are similar to subsetting the columns with
-    #> a character vector:
-    #> >   ```
-    #> >   df |> select(x, z)
-    #> >   # same as
-    #> >   df[, c("x", "z")]
-    #> >   ```
-    #> > Base R also provides a function that combines the features of `filter()` and
-    #> `select()` called `subset()`:
-    #> >   ```
-    #> >   df |> subset(x > 1, c(y, z))
-    #> >   ```
-    #>
-    #> > There’s an important difference between tibbles and data frames when it comes
-    #> to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if
-    #> `col` selects a single column and a data frame if it selects more than one
-    #> column. If `df` is a tibble, then `[` will always return a tibble.
-    #> > ```
-    #> > df1[, "x" , drop = FALSE]
-    #> > #>   x
-    #> > #> 1 1
-    #> > #> 2 2
-    #> > #> 3 3
-    #> > ```
-    #>
-    #> **Summary:**
-    #> - To subset rows: `df[rows, ]` or `df |> filter(condition)`
-    #> - To subset columns: `df[, cols]` or `df |> select(cols)`
-    #> - To subset both: `df[rows, cols]` or `subset(df, condition, select = cols)`
-    #> - With tibbles, `[` always returns a tibble; with data.frames, use `drop =
-    #> FALSE` to keep a data.frame when selecting a single column.
-    #>
-    #> **References:**
-    #> - [R4DS: Base R
-    #> subsetting](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with-)
-    #> - [R4DS: dplyr
-    #> equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)
-    #> - [R4DS: Data frame
-    #> subsetting](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
+```         
+#> From "R for Data Science (2e)":
+#>
+#> > Several dplyr verbs are special cases of `[`:
+#> > * `filter()` is equivalent to subsetting the rows with a logical vector...
+#> >   ```
+#> >   df |> filter(x > 1)
+#> >   # same as
+#> >   df[!is.na(df$x) & df$x > 1, ]
+#> >   ```
+#> > * Both `select()` and `relocate()` are similar to subsetting the columns with
+#> a character vector:
+#> >   ```
+#> >   df |> select(x, z)
+#> >   # same as
+#> >   df[, c("x", "z")]
+#> >   ```
+#> > Base R also provides a function that combines the features of `filter()` and
+#> `select()` called `subset()`:
+#> >   ```
+#> >   df |> subset(x > 1, c(y, z))
+#> >   ```
+#>
+#> > There’s an important difference between tibbles and data frames when it comes
+#> to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if
+#> `col` selects a single column and a data frame if it selects more than one
+#> column. If `df` is a tibble, then `[` will always return a tibble.
+#> > ```
+#> > df1[, "x" , drop = FALSE]
+#> > #>   x
+#> > #> 1 1
+#> > #> 2 2
+#> > #> 3 3
+#> > ```
+#>
+#> **Summary:**
+#> - To subset rows: `df[rows, ]` or `df |> filter(condition)`
+#> - To subset columns: `df[, cols]` or `df |> select(cols)`
+#> - To subset both: `df[rows, cols]` or `subset(df, condition, select = cols)`
+#> - With tibbles, `[` always returns a tibble; with data.frames, use `drop =
+#> FALSE` to keep a data.frame when selecting a single column.
+#>
+#> **References:**
+#> - [R4DS: Base R
+#> subsetting](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with-)
+#> - [R4DS: dplyr
+#> equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)
+#> - [R4DS: Data frame
+#> subsetting](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
+```
+

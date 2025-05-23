@@ -37,8 +37,10 @@ happening.
 
 ## Installation
 
+You can install ragnar from CRAN with:
+
 ``` r
-pak::pak("tidyverse/ragnar")
+install.packages("ragnar")
 ```
 
 ## Key Steps
