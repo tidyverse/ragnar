@@ -7,8 +7,8 @@ store <- ragnar_store_connect(store_location, read_only = TRUE)
 text <- "How can I subset a dataframe with a logical vector?"
 
 
-## Retrieving Chunks
-# Once the store is set up, retrieve the most relevant text chunks like this
+#' # Retrieving Chunks
+#' Once the store is set up, retrieve the most relevant text chunks like this
 
 embedding_near_chunks <- ragnar_retrieve_vss(store, text, top_k = 3)
 embedding_near_chunks
@@ -27,18 +27,16 @@ relevant_chunks <- ragnar_retrieve(
 )
 relevant_chunks
 
-# Register ellmer tool
-## You can register an ellmer tool to retrieve chunks as well.
-## This enables the LLM model to make tool calls to retreive chunks.
+#'  Register ellmer tool
+#' You can register an ellmer tool to let the LLM retrieve chunks.
 system_prompt <- stringr::str_squish(
   r"--(
   You are an expert R programmer and mentor.
-  You often respond by first direct quoting material from book or documentation,
+  You always respond by first direct quoting material from book or documentation,
   then adding your own additional context and interpertation.
   )--"
 )
-chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
-# chat <- ellmer::chat_ollama(system_prompt, model = "llama3.2:1b")
+chat <- ellmer::chat_openai(system_prompt, model = "gpt-4.1")
 
 ragnar_register_tool_retrieve(chat, store)
 
