@@ -1,8 +1,12 @@
 Package: ragnar
 Title: Retrieval-Augmented Generation (RAG) Workflows
 Version: 0.0.0.9000
-Authors@R:
-    person("Tomasz", "Kalinowski", , "tomasz@posit.co", role = c("aut", "cre"))
+Authors@R: c(
+    person("Tomasz", "Kalinowski", , "tomasz@posit.co", role = c("aut", "cre")),
+    person("Daniel", "Falbel", , "daniel@posit.co", role = "aut"),
+    person("Posit Software, PBC", role = c("cph", "fnd"),
+           comment = c(ROR = "03wc8by49"))
+  )
 Description: Provides tools for implementing Retrieval-Augmented Generation
     (RAG) workflows with Large Language Models (LLMs). Includes functions for
     document processing, text chunking, embedding generation, storage
