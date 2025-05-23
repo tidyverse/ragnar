@@ -60,7 +60,7 @@
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p><code>ragnar</code> is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each steps. We don’t believe that you can fully automate the creation of a good RAG system, so it’s important that <code>ragnar</code> is not a black box. <code>ragnar</code> is designed to be transparent—you can inspect easily outputs at intermediate steps to understand what’s happening.</p>
+<p><code>ragnar</code> is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each steps. We don’t believe that you can fully automate the creation of a good RAG system, so it’s important that <code>ragnar</code> is not a black box. <code>ragnar</code> is designed to be transparent. You can inspect easily outputs at intermediate steps to understand what’s happening.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -77,15 +77,17 @@
 <p>Key functions:</p>
 <ul>
 <li>
-<code><a href="reference/ragnar_find_links.html">ragnar_find_links()</a></code>: Find all links in a webpage</li>
+<code><a href="reference/ragnar_read.html">ragnar_read()</a></code>: Convert a file or URL to a dataframe</li>
 <li>
-<code><a href="reference/ragnar_read.html">ragnar_read()</a></code>: Convert a file or URL to markdown</li>
+<code>read_as_markdown</code>: Convert a file or URL to markdown</li>
+<li>
+<code><a href="reference/ragnar_find_links.html">ragnar_find_links()</a></code>: Find all links in a webpage</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="id_2-text-chunking">2. Text Chunking<a class="anchor" aria-label="anchor" href="#id_2-text-chunking"></a>
 </h3>
-<p>Next we divide each document into multiple chunks. Ragnar defaults to a strategy that preserves some of the semantics of the document, but provide plenty of options to tweak the approach.</p>
+<p>Next we divide each document into chunks. Ragnar defaults to a strategy that preserves some of the semantics of the document, but provide plenty of opportunities to tweak the approach.</p>
 <p>Key functions:</p>
 <ul>
 <li>
@@ -99,7 +101,7 @@
 <div class="section level3">
 <h3 id="id_3-context-augmentation-optional">3. Context Augmentation (Optional)<a class="anchor" aria-label="anchor" href="#id_3-context-augmentation-optional"></a>
 </h3>
-<p>RAG applications benefit from augmenting text chunks with additional context, such as document headings and subheadings. While <code>ragnar</code> doesn’t directly export functions for this, it supports template-based augmentation through <code>ragnar_read(frame_by_tags, split_by_tags)</code>. Future versions will support generating context summaries via LLM calls.</p>
+<p>RAG applications benefit from augmenting text chunks with additional context, such as document headings and subheadings. <code>ragnar</code> makes it easy to keep track of headings and subheadings as part of chunking, which can then be used to support template-based augmentation. (See examples below)</p>
 <p>Key functions:</p>
 <ul>
 <li>
@@ -113,7 +115,7 @@
 <div class="section level3">
 <h3 id="id_4-embedding">4. Embedding<a class="anchor" aria-label="anchor" href="#id_4-embedding"></a>
 </h3>
-<p><code>ragnar</code> can help compute embeddings for each chunk. The goal is for <code>ragnar</code> to provide access to embeddings from popular LLM providers. Currently only <code>ollama</code> and <code>openai</code> providers.</p>
+<p><code>ragnar</code> can help compute embeddings for each chunk. The goal is for <code>ragnar</code> to provide access to embeddings from popular LLM providers. Currently <code>ollama</code> and <code>openai</code> providers are supported.</p>
 <p>Key functions:</p>
 <ul>
 <li><code><a href="reference/embed_ollama.html">embed_ollama()</a></code></li>
@@ -148,12 +150,7 @@
 </ul>
 </div>
 <div class="section level3">
-<h3 id="id_7-re-ranking-optional">7. Re-ranking (Optional)<a class="anchor" aria-label="anchor" href="#id_7-re-ranking-optional"></a>
-</h3>
-<p>Re-ranking of retrieved chunks is planned for future releases.</p>
-</div>
-<div class="section level3">
-<h3 id="id_8-prompt-generation">8. Prompt Generation<a class="anchor" aria-label="anchor" href="#id_8-prompt-generation"></a>
+<h3 id="id_7-chat-augmentation">7. Chat Augmentation<a class="anchor" aria-label="anchor" href="#id_7-chat-augmentation"></a>
 </h3>
 <p><code>ragnar</code> can equip an <code><a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a></code> object with a retrieve tool that enables an LLM to retreive content from a store on-demand.</p>
 <ul>
@@ -171,13 +168,13 @@
 <span></span>
 <span><span class="va">base_url</span> <span class="op">&lt;-</span> <span class="st">"https://r4ds.hadley.nz"</span></span>
 <span><span class="va">pages</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_find_links.html">ragnar_find_links</a></span><span class="op">(</span><span class="va">base_url</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ⠙ Finding links: 38 | On queue: 0 | Current depth: 0 | [0s]</span></span>
 <span></span>
 <span><span class="va">store_location</span> <span class="op">&lt;-</span> <span class="st">"r4ds.ragnar.duckdb"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">store_location</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">store</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_store_create.html">ragnar_store_create</a></span><span class="op">(</span></span>
 <span>  <span class="va">store_location</span>,</span>
-<span>  embed <span class="op">=</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="reference/embed_ollama.html">embed_ollama</a></span><span class="op">(</span><span class="va">x</span>, model <span class="op">=</span> <span class="st">"all-minilm"</span><span class="op">)</span></span>
+<span>  embed <span class="op">=</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="reference/embed_ollama.html">embed_openai</a></span><span class="op">(</span><span class="va">x</span>, model <span class="op">=</span> <span class="st">"text-embedding-3-small"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span></span>
@@ -185,21 +182,25 @@
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"ingesting: "</span>, <span class="va">page</span><span class="op">)</span></span>
 <span>  <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="va">page</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="reference/ragnar_read.html">ragnar_read</a></span><span class="op">(</span>frame_by_tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"h1"</span>, <span class="st">"h2"</span>, <span class="st">"h3"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>link <span class="op">=</span> <span class="va">page</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="reference/ragnar_chunk.html">ragnar_chunk</a></span><span class="op">(</span>boundaries <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"paragraph"</span>, <span class="st">"sentence"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="co"># add context to chunks</span></span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">r"---(</span></span>
-<span><span class="st">    # Excerpt from the book "R for Data Science (2e)"</span></span>
-<span><span class="st">    link: {link}</span></span>
-<span><span class="st">    chapter: {h1}</span></span>
-<span><span class="st">    section: {h2}</span></span>
-<span><span class="st">    subsection: {h3}</span></span>
-<span><span class="st">    content: {text}</span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>      text <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span></span>
+<span>        <span class="st">r"---(</span></span>
+<span><span class="st">        # Excerpt from the book "R for Data Science (2e)"</span></span>
+<span><span class="st">        link: {origin}</span></span>
+<span><span class="st">        chapter: {h1}</span></span>
+<span><span class="st">        section: {h2}</span></span>
+<span><span class="st">        subsection: {h3}</span></span>
+<span><span class="st">        content: {text}</span></span>
 <span><span class="st"></span></span>
-<span><span class="st">    )---"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="st">        )---"</span></span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
 <span></span>
 <span>  <span class="fu"><a href="reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
+<span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/</span></span>
 <span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/arrow.html</span></span>
 <span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/base-R.html</span></span>
 <span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/communicate.html</span></span>
@@ -242,8 +243,7 @@
 <span><span class="fu"><a href="reference/ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></code></pre></div>
 <p>Once the store is set up, you can then retrieve the most relevant text chunks.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co">#' ## Retrieving Chunks</span></span>
+<code class="sourceCode R"><span><span class="co">#' ## Retrieving Chunks</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.github.io/ragnar/" class="external-link">ragnar</a></span><span class="op">)</span></span>
 <span><span class="va">store_location</span> <span class="op">&lt;-</span> <span class="st">"r4ds.ragnar.duckdb"</span></span>
@@ -252,197 +252,158 @@
 <span><span class="va">text</span> <span class="op">&lt;-</span> <span class="st">"How can I subset a dataframe with a logical vector?"</span></span>
 <span></span>
 <span></span>
-<span><span class="co">## Retrieving Chunks</span></span>
-<span><span class="co"># Once the store is set up, retrieve the most relevant text chunks like this</span></span>
+<span><span class="co">#' # Retrieving Chunks</span></span>
+<span><span class="co">#' Once the store is set up, retrieve the most relevant text chunks like this</span></span>
 <span></span>
 <span><span class="va">embedding_near_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve_vss.html">ragnar_retrieve_vss</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">embedding_near_chunks</span></span>
-<span><span class="co">#&gt; # A tibble: 3 × 3</span></span>
-<span><span class="co">#&gt;      id l2sq_distance text                                                      </span></span>
-<span><span class="co">#&gt;   &lt;int&gt;         &lt;dbl&gt; &lt;chr&gt;                                                     </span></span>
-<span><span class="co">#&gt; 1    31         0.920 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…</span></span>
-<span><span class="co">#&gt; 2   625         0.941 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…</span></span>
-<span><span class="co">#&gt; 3   639         0.943 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…</span></span>
-<span><span class="va">embedding_near_chunks</span><span class="op">$</span><span class="va">text</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span>sep <span class="op">=</span> <span class="st">"\n~~~~~~~~\n"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&gt; # Excerpt from the book "R for Data Science (2e)"</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; link: https://r4ds.hadley.nz/base-R.html</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; chapter: # 27  A field guide to base R</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; section: ## 27.2 Selecting multiple elements with `[`</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; subsection: </span><span class="al">###</span><span class="co"> 27.2.2 Subsetting data frames</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; content: There are quite a few different ways[1](#fn1) that you can use `[` with a data frame, but the most important way is to select rows and columns independently with `df[rows, cols]`. Here `rows` and `cols` are vectors as described above. For example, `df[rows, ]` and `df[, cols]` select just rows or just columns, using the empty subset to preserve the other dimension.</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; Here are a couple of examples:</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; df &lt;- tibble(</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;   x = 1:3,</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;   y = c("a", "e", "f"),</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;   z = runif(3)</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; )</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; # Select first row and second column</span></span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; df[1, 2]</span></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; #&gt; # A tibble: 1 × 1</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; #&gt;   y</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; #&gt;   &lt;chr&gt;</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; #&gt; 1 a</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; # Select all rows and columns x and y</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; df[, c("x" , "y")]</span></span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; #&gt; # A tibble: 3 × 2</span></span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; #&gt;       x y</span></span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; #&gt;   &lt;int&gt; &lt;chr&gt;</span></span>
-<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; #&gt; 1     1 a</span></span>
-<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; #&gt; 2     2 e</span></span>
-<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; #&gt; 3     3 f</span></span>
-<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a><span class="co">#&gt; # Select rows where `x` is greater than 1 and all columns</span></span>
-<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a><span class="co">#&gt; df[df$x &gt; 1, ]</span></span>
-<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a><span class="co">#&gt; #&gt; # A tibble: 2 × 3</span></span>
-<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a><span class="co">#&gt; #&gt;       x y         z</span></span>
-<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a><span class="co">#&gt; #&gt;   &lt;int&gt; &lt;chr&gt; &lt;dbl&gt;</span></span>
-<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a><span class="co">#&gt; #&gt; 1     2 e     0.834</span></span>
-<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co">#&gt; #&gt; 2     3 f     0.601</span></span>
-<span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
-<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a><span class="co">#&gt; We’ll come back to `$` shortly, but you should be able to guess what `df$x` does from the context: it extracts the `x` variable from `df`. We need to use it here because `[` doesn’t use tidy evaluation, so you need to be explicit about the source of the `x` variable.</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; # A tibble: 3 × 6</span></span>
+<span><span class="co">#&gt;      id metric_name     metric_value origin                          hash  text </span></span>
+<span><span class="co">#&gt;   &lt;int&gt; &lt;chr&gt;                  &lt;dbl&gt; &lt;chr&gt;                           &lt;chr&gt; &lt;chr&gt;</span></span>
+<span><span class="co">#&gt; 1   630 cosine_distance        0.394 https://r4ds.hadley.nz/logical… 943f… "# E…</span></span>
+<span><span class="co">#&gt; 2   653 cosine_distance        0.399 https://r4ds.hadley.nz/logical… 943f… "# E…</span></span>
+<span><span class="co">#&gt; 3   632 cosine_distance        0.401 https://r4ds.hadley.nz/logical… 943f… "# E…</span></span>
+<span><span class="va">embedding_near_chunks</span><span class="op">$</span><span class="va">text</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span>sep <span class="op">=</span> <span class="st">"\n~~~~~~~~\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # Excerpt from the book "R for Data Science (2e)"</span></span>
+<span><span class="co">#&gt; link: https://r4ds.hadley.nz/logicals.html</span></span>
+<span><span class="co">#&gt; chapter: # 12  Logical vectors</span></span>
+<span><span class="co">#&gt; section: ## 12.1 Introduction</span></span>
+<span><span class="co">#&gt; subsection: NA</span></span>
+<span><span class="co">#&gt; content: In this chapter, you’ll learn tools for working with logical vectors. Logical vectors are the simplest type of vector because each element can only be one of three possible values: `TRUE`, `FALSE`, and `NA`. It’s relatively rare to find logical vectors in your raw data, but you’ll create and manipulate them in the course of almost every analysis.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; We’ll begin by discussing the most common way of creating logical vectors: with numeric comparisons. Then you’ll learn about how you can use Boolean algebra to combine different logical vectors, as well as some useful summaries. We’ll finish off with `[if_else()](https://dplyr.tidyverse.org/reference/if_else.html)` and `[case_when()](https://dplyr.tidyverse.org/reference/case_when.html)`, two useful functions for making conditional changes powered by logical vectors.</span></span>
+<span></span>
 <span><span class="va">bm25_near_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve_bm25.html">ragnar_retrieve_bm25</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">bm25_near_chunks</span></span>
-<span><span class="co">#&gt; # A tibble: 3 × 3</span></span>
-<span><span class="co">#&gt;      id bm25_score text                                                         </span></span>
-<span><span class="co">#&gt;   &lt;int&gt;      &lt;dbl&gt; &lt;chr&gt;                                                        </span></span>
-<span><span class="co">#&gt; 1    29       5.62 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …</span></span>
-<span><span class="co">#&gt; 2   645       5.54 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …</span></span>
-<span><span class="co">#&gt; 3   624       5.07 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …</span></span>
+<span><span class="co">#&gt; # A tibble: 3 × 6</span></span>
+<span><span class="co">#&gt;      id metric_name metric_value origin                              hash  text </span></span>
+<span><span class="co">#&gt;   &lt;int&gt; &lt;chr&gt;              &lt;dbl&gt; &lt;chr&gt;                               &lt;chr&gt; &lt;chr&gt;</span></span>
+<span><span class="co">#&gt; 1   988 bm25               0.661 https://r4ds.hadley.nz/webscraping… 8629… "# E…</span></span>
+<span><span class="co">#&gt; 2   842 bm25               0.665 https://r4ds.hadley.nz/regexps.html 15ee… "# E…</span></span>
+<span><span class="co">#&gt; 3   337 bm25               0.667 https://r4ds.hadley.nz/datetimes.h… fd3e… "# E…</span></span>
 <span><span class="va">bm25_near_chunks</span><span class="op">$</span><span class="va">text</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span>sep <span class="op">=</span> <span class="st">"\n~~~~~~~~\n"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co">#&gt; # Excerpt from the book "R for Data Science (2e)"</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; link: https://r4ds.hadley.nz/base-R.html</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; chapter: # 27  A field guide to base R</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; section: ## 27.2 Selecting multiple elements with `[`</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; subsection: </span><span class="al">###</span><span class="co"> 27.2.1 Subsetting vectors</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; content: There are five main types of things that you can subset a vector with, i.e., that can be the `i` in `x[i]`:</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 1. **A vector of positive integers**. Subsetting with positive integers keeps the elements at those positions:</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;    x &lt;- c("one", "two", "three", "four", "five")</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;    x[c(3, 2, 5)]</span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;    #&gt; [1] "three" "two"   "five"</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;    By repeating a position, you can actually make a longer output than input, making the term “subsetting” a bit of a misnomer.</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt;    x[c(1, 1, 5, 5, 5, 2)]</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt;    #&gt; [1] "one"  "one"  "five" "five" "five" "two"</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; 2. **A vector of negative integers**. Negative values drop the elements at the specified positions:</span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt;    x[c(-1, -3, -5)]</span></span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt;    #&gt; [1] "two"  "four"</span></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; 3. **A logical vector**. Subsetting with a logical vector keeps all values corresponding to a `TRUE` value. This is most often useful in conjunction with the comparison functions.</span></span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt;    x &lt;- c(10, 3, NA, 5, 8, 1, NA)</span></span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt;    # All non-missing values of x</span></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt;    x[!is.na(x)]</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt;    #&gt; [1] 10  3  5  8  1</span></span>
-<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt;    # All even (or missing!) values of x</span></span>
-<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="co">#&gt;    x[x %% 2 == 0]</span></span>
-<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="co">#&gt;    #&gt; [1] 10 NA  8 NA</span></span>
-<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a><span class="co">#&gt;    Unlike `[filter()](https://dplyr.tidyverse.org/reference/filter.html)`, `NA` indices will be included in the output as `NA`s.</span></span>
-<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a><span class="co">#&gt; 4. **A character vector**. If you have a named vector, you can subset it with a character vector:</span></span>
-<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a><span class="co">#&gt;    x &lt;- c(abc = 1, def = 2, xyz = 5)</span></span>
-<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a><span class="co">#&gt;    x[c("xyz", "def")]</span></span>
-<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a><span class="co">#&gt;    #&gt; xyz def</span></span>
-<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a><span class="co">#&gt;    #&gt;   5   2</span></span>
-<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a><span class="co">#&gt;    ```</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&gt; # Excerpt from the book "R for Data Science (2e)"</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; link: https://r4ds.hadley.nz/webscraping.html</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; chapter: # 24  Web scraping</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; section: ## 24.4 Extracting data</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; subsection: </span><span class="al">###</span><span class="co"> 24.4.2 Nesting selections</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; content: In most cases, you’ll use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` and `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` together, typically using `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to identify elements that will become observations then using `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` to find elements that will become variables. Let’s see this in action using a simple example. Here we have an unordered list (`&lt;ul&gt;)` where each list item (`&lt;li&gt;`) contains some information about four characters from StarWars:</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; html &lt;- minimal_html("</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;   &lt;ul&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt;     &lt;li&gt;&lt;b&gt;C-3PO&lt;/b&gt; is a &lt;i&gt;droid&lt;/i&gt; that weighs &lt;span class='weight'&gt;167 kg&lt;/span&gt;&lt;/li&gt;</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;     &lt;li&gt;&lt;b&gt;R4-P17&lt;/b&gt; is a &lt;i&gt;droid&lt;/i&gt;&lt;/li&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;     &lt;li&gt;&lt;b&gt;R2-D2&lt;/b&gt; is a &lt;i&gt;droid&lt;/i&gt; that weighs &lt;span class='weight'&gt;96 kg&lt;/span&gt;&lt;/li&gt;</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;     &lt;li&gt;&lt;b&gt;Yoda&lt;/b&gt; weighs &lt;span class='weight'&gt;66 kg&lt;/span&gt;&lt;/li&gt;</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt;   &lt;/ul&gt;</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt;   ")</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; We can use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to make a vector where each element corresponds to a different character:</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; characters &lt;- html |&gt; html_elements("li")</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; characters</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; #&gt; {xml_nodeset (4)}</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; #&gt; [1] &lt;li&gt;\n&lt;b&gt;C-3PO&lt;/b&gt; is a &lt;i&gt;droid&lt;/i&gt; that weighs &lt;span class="weight"&gt; ...</span></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; #&gt; [2] &lt;li&gt;\n&lt;b&gt;R4-P17&lt;/b&gt; is a &lt;i&gt;droid&lt;/i&gt;\n&lt;/li&gt;</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; #&gt; [3] &lt;li&gt;\n&lt;b&gt;R2-D2&lt;/b&gt; is a &lt;i&gt;droid&lt;/i&gt; that weighs &lt;span class="weight"&gt; ...</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; #&gt; [4] &lt;li&gt;\n&lt;b&gt;Yoda&lt;/b&gt; weighs &lt;span class="weight"&gt;66 kg&lt;/span&gt;\n&lt;/li&gt;</span></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; ```</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># get both vss and bm26</span></span>
 <span><span class="va">relevant_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span></span>
-<span>  <span class="va">store</span>, <span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vss"</span>, <span class="st">"bm25"</span><span class="op">)</span></span>
+<span>  <span class="va">store</span>,</span>
+<span>  <span class="va">text</span>,</span>
+<span>  top_k <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">relevant_chunks</span></span>
-<span><span class="co">#&gt; # A tibble: 6 × 4</span></span>
-<span><span class="co">#&gt;      id l2sq_distance bm25_score text                                           </span></span>
-<span><span class="co">#&gt;   &lt;int&gt;         &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                                          </span></span>
-<span><span class="co">#&gt; 1    31         0.920       2.91 "# Excerpt from the book \"R for Data Science …</span></span>
-<span><span class="co">#&gt; 2   625         0.941       3.58 "# Excerpt from the book \"R for Data Science …</span></span>
-<span><span class="co">#&gt; 3   639         0.943       2.58 "# Excerpt from the book \"R for Data Science …</span></span>
-<span><span class="co">#&gt; 4    29         0.980       5.62 "# Excerpt from the book \"R for Data Science …</span></span>
-<span><span class="co">#&gt; 5   645         0.971       5.54 "# Excerpt from the book \"R for Data Science …</span></span>
-<span><span class="co">#&gt; 6   624         1.22        5.07 "# Excerpt from the book \"R for Data Science …</span></span>
+<span><span class="co">#&gt; # A tibble: 6 × 6</span></span>
+<span><span class="co">#&gt;      id origin                                hash  text  cosine_distance   bm25</span></span>
+<span><span class="co">#&gt;   &lt;int&gt; &lt;chr&gt;                                 &lt;chr&gt; &lt;chr&gt;           &lt;dbl&gt;  &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1   630 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.394 NA    </span></span>
+<span><span class="co">#&gt; 2   653 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.399 NA    </span></span>
+<span><span class="co">#&gt; 3   632 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.401 NA    </span></span>
+<span><span class="co">#&gt; 4   988 https://r4ds.hadley.nz/webscraping.h… 8629… "# E…          NA      0.661</span></span>
+<span><span class="co">#&gt; 5   842 https://r4ds.hadley.nz/regexps.html   15ee… "# E…          NA      0.665</span></span>
+<span><span class="co">#&gt; 6   337 https://r4ds.hadley.nz/datetimes.html fd3e… "# E…          NA      0.667</span></span>
 <span></span>
-<span><span class="co"># Register ellmer tool</span></span>
-<span><span class="co">## You can register an ellmer tool to retrieve chunks as well.</span></span>
-<span><span class="co">## This enables the LLM model to make tool calls to retreive chunks.</span></span>
-<span><span class="va">system_prompt</span> <span class="op">&lt;-</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html" class="external-link">str_squish</a></span><span class="op">(</span><span class="st">r"--(</span></span>
-<span><span class="st">    You are an expert R programmer and mentor.</span></span>
-<span><span class="st">    You often respond by first direct quoting material from book or documentation,</span></span>
-<span><span class="st">    then adding your own additional context and interpertation.</span></span>
-<span><span class="st">)--"</span><span class="op">)</span></span>
-<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span><span class="va">system_prompt</span>, model <span class="op">=</span> <span class="st">"gpt-4o"</span><span class="op">)</span></span>
-<span><span class="co"># chat &lt;- ellmer::chat_ollama(system_prompt, model = "llama3.2:1b")</span></span>
+<span><span class="co">#'  Register ellmer tool</span></span>
+<span><span class="co">#' You can register an ellmer tool to let the LLM retrieve chunks.</span></span>
+<span><span class="va">system_prompt</span> <span class="op">&lt;-</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html" class="external-link">str_squish</a></span><span class="op">(</span></span>
+<span>  <span class="st">r"--(</span></span>
+<span><span class="st">  You are an expert R programmer and mentor. You are concise.</span></span>
+<span><span class="st">  You always respond by first direct quoting material from book or documentation,</span></span>
+<span><span class="st">  then adding your own additional context and interpertation.</span></span>
+<span><span class="st">  Always include links to the source materials used.</span></span>
+<span><span class="st">  )--"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span></span>
+<span>  <span class="va">system_prompt</span>,</span>
+<span>  model <span class="op">=</span> <span class="st">"gpt-4.1"</span>,</span>
+<span>  params <span class="op">=</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/params.html" class="external-link">params</a></span><span class="op">(</span>temperature <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve</a></span><span class="op">(</span><span class="va">chat</span>, <span class="va">store</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve</a></span><span class="op">(</span><span class="va">chat</span>, <span class="va">store</span>, top_k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"How can I subset a dataframe?"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co">#&gt; To subset a dataframe in R, you can use multiple methods depending on your </span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; needs. A common way to do this is with the square bracket `[` operator, which </span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; allows you to select rows and columns separately using a matrix-style indexing.</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; Here are some basic ways to subset a dataframe:</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; 1. **Select Specific Rows and Columns:**</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;    You can select specific rows and columns by specifying their indices inside </span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; the square brackets `df[rows, cols]`. Here's an example:</span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;    ```r</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;    df &lt;- data.frame(x = 1:3, y = c("a", "e", "f"), z = runif(3))</span></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt;    df[1, 2]  # Selects the first row and second column.</span></span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;    df[, c("x", "y")]  # Select all rows for columns x and y.</span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;    df[df$x &gt; 1, ]  # Select rows where x is greater than 1 with all columns.</span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; 2. **Handling Tibbles vs. Data Frames:**</span></span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;    It's important to understand the difference in behavior between tibbles and </span></span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; base data frames:</span></span>
-<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;    ```r</span></span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt;    df1 &lt;- data.frame(x = 1:3)</span></span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;    df1[, "x"]  # Returns a vector.</span></span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;    df2 &lt;- tibble(x = 1:3)</span></span>
-<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;    df2[, "x"]  # Always returns a tibble.</span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;    # To avoid ambiguity in data.frames and ensure a dataframe output:</span></span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;    df1[, "x", drop = FALSE]</span></span>
-<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt; 3. **Logical Vectors:**</span></span>
-<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;    Logical vectors are often used for conditional subsetting:</span></span>
-<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt;    ```r</span></span>
-<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co">#&gt;    x &lt;- c(10, 3, NA, 5, 8, 1, NA)</span></span>
-<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="co">#&gt;    x[!is.na(x)]  # All non-missing values.</span></span>
-<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt;    x[x %% 2 == 0]  # All even values, including NA.</span></span>
-<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt;    ```</span></span>
-<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a><span class="co">#&gt; Each method has its specific use case and can be chosen based on the context of</span></span>
-<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a><span class="co">#&gt; what you're trying to achieve with your dataset. Understanding these subsetting</span></span>
-<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a><span class="co">#&gt; techniques provides flexibility in how you manipulate and analyze data frames.</span></span></code></pre></div>
+<span><span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"How can I subset a dataframe?"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ◯ [tool call] rag_retrieve_from_store_001(text = "subset a dataframe")</span></span>
+<span><span class="co">#&gt; ● #&gt; # Excerpt from the book "R for Data Science (2e)"</span></span>
+<span><span class="co">#&gt;   #&gt; link: https://r4ds.hadley.nz/functions.html</span></span>
+<span><span class="co">#&gt;   #&gt; chapter: # 25  Functions</span></span>
+<span><span class="co">#&gt;   #&gt; section: ## 25.3 Data frame functions</span></span>
+<span><span class="co">#&gt;   #&gt; subsection: ### 25.3.3 Common use cases</span></span>
+<span><span class="co">#&gt;   #&gt; …</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co">#&gt; From "R for Data Science (2e)":</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; &gt; Several dplyr verbs are special cases of `[`:  </span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; &gt; * `filter()` is equivalent to subsetting the rows with a logical vector...  </span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; &gt;   ```</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; &gt;   df |&gt; filter(x &gt; 1)</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; &gt;   # same as</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; &gt;   df[!is.na(df$x) &amp; df$x &gt; 1, ]</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; &gt;   ```</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; &gt; * Both `select()` and `relocate()` are similar to subsetting the columns with</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; a character vector:</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; &gt;   ```</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; &gt;   df |&gt; select(x, z)</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; &gt;   # same as</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; &gt;   df[, c("x", "z")]</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; &gt;   ```</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; &gt; Base R also provides a function that combines the features of `filter()` and </span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; `select()` called `subset()`:</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; &gt;   ```</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; &gt;   df |&gt; subset(x &gt; 1, c(y, z))</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; &gt;   ```</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; &gt; There’s an important difference between tibbles and data frames when it comes</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if </span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; `col` selects a single column and a data frame if it selects more than one </span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; column. If `df` is a tibble, then `[` will always return a tibble.</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; &gt; ```</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; &gt; df1[, "x" , drop = FALSE]</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; &gt; #&gt;   x</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; &gt; #&gt; 1 1</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; &gt; #&gt; 2 2</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; &gt; #&gt; 3 3</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; &gt; ```</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; **Summary:**  </span></span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt; - To subset rows: `df[rows, ]` or `df |&gt; filter(condition)`</span></span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt; - To subset columns: `df[, cols]` or `df |&gt; select(cols)`</span></span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="co">#&gt; - To subset both: `df[rows, cols]` or `subset(df, condition, select = cols)`</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="co">#&gt; - With tibbles, `[` always returns a tibble; with data.frames, use `drop = </span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="co">#&gt; FALSE` to keep a data.frame when selecting a single column.</span></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a><span class="co">#&gt; **References:**  </span></span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a><span class="co">#&gt; - [R4DS: Base R </span></span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="co">#&gt; subsetting](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with-)</span></span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a><span class="co">#&gt; - [R4DS: dplyr </span></span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a><span class="co">#&gt; equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)</span></span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a><span class="co">#&gt; - [R4DS: Data frame </span></span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a><span class="co">#&gt; subsetting](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">

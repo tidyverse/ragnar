@@ -114,8 +114,8 @@ shifts the LLM’s job from open-ended generation to summarizing or
 quoting from retrieved material.</p>
 <p>RAG reduces but does not eliminate hallucinations. For richer texts
 and tasks, LLMs may still miss nuance or overgeneralize. For this
-reason, it’s still helpful for RAG-based tools to present links back to
-the original material so users can check context and verify details.</p>
+reason, it’s helpful if RAG-based tools present links back to the
+original material so users can check context and verify details.</p>
 </div>
 <div class="section level3">
 <h3 id="use-case-quarto-docs-chat-vs--standard-search">Use Case: Quarto Docs Chat vs. Standard Search<a class="anchor" aria-label="anchor" href="#use-case-quarto-docs-chat-vs--standard-search"></a>
@@ -152,8 +152,9 @@ a new store if you want to change it.</p>
 <span>  <span class="va">store_location</span>,</span>
 <span>  embed <span class="op">=</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="../reference/embed_ollama.html">embed_openai</a></span><span class="op">(</span><span class="va">x</span>, model <span class="op">=</span> <span class="st">"text-embedding-3-small"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>You can use OpenAI, an open-source model via
-<code><a href="../reference/embed_ollama.html">embed_ollama()</a></code>, or your own function.</p>
+<p>To generate embeddings, you can use <code><a href="../reference/embed_ollama.html">embed_openai()</a></code>, an
+open-source model via <code><a href="../reference/embed_ollama.html">embed_ollama()</a></code>, or your own
+function.</p>
 <div class="section level5">
 <h5 id="identify-documents-for-processing">Identify Documents for Processing<a class="anchor" aria-label="anchor" href="#identify-documents-for-processing"></a>
 </h5>
@@ -178,11 +179,12 @@ plain text, easy to inspect, keeps token counts low, and works well for
 both humans and LLMs.</p>
 <p>For this step, ragnar provides <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> and
 <code><a href="../reference/ragnar_read.html">ragnar_read()</a></code>, which can accept a wide variety of formats
-(pdf, docx, pptx, html). In many cases it works well, but for
-specialized needs you can opt for a more custom-tailored approach. See
-the help in <code><a href="../reference/read_as_markdown.html">?read_as_markdown</a></code> for some guidance on
-alternatives if you’d like to improve on the default conversion. (But
-only begin optimizing once you have a basic app working.)</p>
+(pdf, docx, pptx, html, zip files, epubs, etc.). In many cases it works
+well, but for specialized needs you can opt for a more custom-tailored
+approach. See the help in <code><a href="../reference/read_as_markdown.html">?read_as_markdown</a></code> for some
+guidance on alternatives if you’d like to improve on the default
+conversion. (But only begin optimizing once you have a basic app
+working.)</p>
 <p><code><a href="../reference/ragnar_read.html">ragnar_read()</a></code> does the same thing as
 <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>, but instead of returning a string, it
 returns a dataframe that also includes <code>origin</code> and
@@ -197,10 +199,10 @@ allows you to return just the most relevant excerpts from a long
 document.</p>
 <p>Chunking is delicate; Ideally, each chunk should stand alone without
 relying on the context of the surrounding document. We can aim to split
-the text at natural points like headings, paragraphs, or sentences, and
-avoid splits in the middle of a sentence or word.</p>
-<p>Additionally, we augment chunks with context that describes the
-chunk’s origin—such as URL, title, headings, and subheadings—both so the
+the text at natural points like headings or paragraphs, and avoid splits
+in the middle of a sentence or word.</p>
+<p>Additionally, we can augment chunks with context that describes the
+chunk’s origin–such as URL, title, headings, and subheadings–both so the
 LLM can provide links back to the source, and so the LLM and embedding
 models can better situate the chunk’s content.</p>
 <p>To help with these tasks, use <code><a href="../reference/ragnar_read.html">ragnar_read()</a></code> and
@@ -241,7 +243,7 @@ in a function.</p>
 can be to use an LLM with instructions to “situate this excerpt from
 this document,” or, worse, “summarize this document.” This can work but
 carries significant risk. Remember, the goal is to create a knowledge
-store—a trusted, factual, vetted source of truth. Giving an LLM an
+store–a trusted, factual, vetted source of truth. Giving an LLM an
 opportunity to corrupt this store with hallucinations may be necessary
 depending on your needs, but as an initial approximation, I recommend
 starting with an ingestion pipeline that does not give any opportunities
@@ -263,14 +265,14 @@ specified when the store was first created.</p>
 <p>Repeat these steps for every document you want to insert into the
 store. Once you’re done processing the documents, call
 <code><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index()</a></code> to finalize the store and build
-the index for efficient retrieval.</p>
+the index.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">path</span> <span class="kw">in</span> <span class="va">paths</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="fu">read_and_chunk</span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="../reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></code></pre></div>
 <p>Once the store index is built, the store is ready for retrieval.</p>
 <hr>
 </div>
@@ -312,8 +314,8 @@ once if needed. Register <code><a href="../reference/ragnar_retrieve.html">ragna
 <p>Note that the registered tool is intentionally simple. It asks the
 LLM to provide one argument: the query string. LLM tool calls are just
 text completions after all, like any other LLM output. We minimize the
-complexity in the tool interface to minimize the chance for LLM
-errors.</p>
+complexity in the tool interface to minimize opportunities for LLM to
+make errors.</p>
 <p>Rather than exposing detailed search options to the LLM, we can
 instead set a high <code>top_k</code> value to return more chunks than
 usually necessary. This provides some slack in the chat app, so we can
@@ -431,9 +433,10 @@ responsible for.</p>
 intend to replace documentation or act as a general-purpose assistant.
 Its goal is to provide a faster, more contextual way to find the right
 place in the docs, with enough information for the user to decide if
-they need to read further. It’s designed it to escalate on failure
-gracefully: if the LLM is not able to provide an accurate answer, the
-user can transition to reading the source material without friction.</p>
+they need to read further. It’s designed it to allow users to naturally
+escalate: if the LLM is not able to provide a useful answer, the user
+can use the provided links and transition to reading the source material
+without friction.</p>
 </div>
 <div class="section level3">
 <h3 id="cost-management">Cost Management<a class="anchor" aria-label="anchor" href="#cost-management"></a>
@@ -469,7 +472,7 @@ answers quickly and reliably.</p>
 <p>Building a good RAG system is iterative. Inspect intermediate
 outputs, tune chunking and retrieval, and keep the user’s workflow in
 mind. With these guardrails, you can reduce hallucinations and deliver
-trustworthy, grounded answers—while always giving users a path to the
+trustworthy, grounded answers–while also giving users a path to the
 original source.</p>
 <p>For more details and a full example, see the <a href="https://github.com/t-kalinowski/quartohelp" class="external-link">quartohelp</a>
 package.</p>
