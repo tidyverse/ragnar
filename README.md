@@ -14,7 +14,7 @@ Generation (RAG) workflows. It focuses on providing a complete solution
 with sensible defaults, while still giving the knowledgeable user
 precise control over each steps. We don’t believe that you can fully
 automate the creation of a good RAG system, so it’s important that
-`ragnar` is not a black box. `ragnar` is designed to be transparent—you
+`ragnar` is not a black box. `ragnar` is designed to be transparent. You
 can inspect easily outputs at intermediate steps to understand what’s
 happening.
 
@@ -34,14 +34,15 @@ to Markdown.
 
 Key functions:
 
+- `ragnar_read()`: Convert a file or URL to a dataframe
+- `read_as_markdown`: Convert a file or URL to markdown
 - `ragnar_find_links()`: Find all links in a webpage
-- `ragnar_read()`: Convert a file or URL to markdown
 
 ### 2. Text Chunking
 
-Next we divide each document into multiple chunks. Ragnar defaults to a
-strategy that preserves some of the semantics of the document, but
-provide plenty of options to tweak the approach.
+Next we divide each document into chunks. Ragnar defaults to a strategy
+that preserves some of the semantics of the document, but provide plenty
+of opportunities to tweak the approach.
 
 Key functions:
 
@@ -55,10 +56,10 @@ Key functions:
 ### 3. Context Augmentation (Optional)
 
 RAG applications benefit from augmenting text chunks with additional
-context, such as document headings and subheadings. While `ragnar`
-doesn’t directly export functions for this, it supports template-based
-augmentation through `ragnar_read(frame_by_tags, split_by_tags)`. Future
-versions will support generating context summaries via LLM calls.
+context, such as document headings and subheadings. `ragnar` makes it
+easy to keep track of headings and subheadings as part of chunking,
+which can then be used to support template-based augmentation. (See
+examples below)
 
 Key functions:
 
@@ -72,7 +73,7 @@ Key functions:
 
 `ragnar` can help compute embeddings for each chunk. The goal is for
 `ragnar` to provide access to embeddings from popular LLM providers.
-Currently only `ollama` and `openai` providers.
+Currently `ollama` and `openai` providers are supported.
 
 Key functions:
 
@@ -110,11 +111,7 @@ Key functions:
 - `ragnar_retrieve_bm25()`: Retrieve using
   [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
 
-### 7. Re-ranking (Optional)
-
-Re-ranking of retrieved chunks is planned for future releases.
-
-### 8. Prompt Generation
+### 7. Chat Augmentation
 
 `ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
 enables an LLM to retreive content from a store on-demand.
@@ -131,13 +128,13 @@ library(ragnar)
 
 base_url <- "https://r4ds.hadley.nz"
 pages <- ragnar_find_links(base_url)
+#> ⠙ Finding links: 38 | On queue: 0 | Current depth: 0 | [0s]
 
 store_location <- "r4ds.ragnar.duckdb"
-unlink(store_location)
 
 store <- ragnar_store_create(
   store_location,
-  embed = \(x) ragnar::embed_ollama(x, model = "all-minilm")
+  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small")
 )
 
 
@@ -145,21 +142,25 @@ for (page in pages) {
   message("ingesting: ", page)
   chunks <- page |>
     ragnar_read(frame_by_tags = c("h1", "h2", "h3")) |>
-    dplyr::mutate(link = page) |>
     ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
     # add context to chunks
-    dplyr::mutate(text = glue::glue(r"---(
-    # Excerpt from the book "R for Data Science (2e)"
-    link: {link}
-    chapter: {h1}
-    section: {h2}
-    subsection: {h3}
-    content: {text}
+    dplyr::mutate(
+      text = glue::glue(
+        r"---(
+        # Excerpt from the book "R for Data Science (2e)"
+        link: {origin}
+        chapter: {h1}
+        section: {h2}
+        subsection: {h3}
+        content: {text}
 
-    )---"))
+        )---"
+      )
+    )
 
   ragnar_store_insert(store, chunks)
 }
+#> ingesting: https://r4ds.hadley.nz/
 #> ingesting: https://r4ds.hadley.nz/arrow.html
 #> ingesting: https://r4ds.hadley.nz/base-R.html
 #> ingesting: https://r4ds.hadley.nz/communicate.html
@@ -206,7 +207,6 @@ Once the store is set up, you can then retrieve the most relevant text
 chunks.
 
 ``` r
-
 #' ## Retrieving Chunks
 
 library(ragnar)
@@ -216,202 +216,160 @@ store <- ragnar_store_connect(store_location, read_only = TRUE)
 text <- "How can I subset a dataframe with a logical vector?"
 
 
-## Retrieving Chunks
-# Once the store is set up, retrieve the most relevant text chunks like this
+#' # Retrieving Chunks
+#' Once the store is set up, retrieve the most relevant text chunks like this
 
 embedding_near_chunks <- ragnar_retrieve_vss(store, text, top_k = 3)
 embedding_near_chunks
-#> # A tibble: 3 × 3
-#>      id l2sq_distance text                                                      
-#>   <int>         <dbl> <chr>                                                     
-#> 1    31         0.920 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…
-#> 2   625         0.941 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…
-#> 3   639         0.943 "# Excerpt from the book \"R for Data Science (2e)\"\nlin…
+#> # A tibble: 3 × 6
+#>      id metric_name     metric_value origin                          hash  text 
+#>   <int> <chr>                  <dbl> <chr>                           <chr> <chr>
+#> 1   630 cosine_distance        0.394 https://r4ds.hadley.nz/logical… 943f… "# E…
+#> 2   653 cosine_distance        0.399 https://r4ds.hadley.nz/logical… 943f… "# E…
+#> 3   632 cosine_distance        0.401 https://r4ds.hadley.nz/logical… 943f… "# E…
 embedding_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
-```
-
-    #> # Excerpt from the book "R for Data Science (2e)"
-    #> link: https://r4ds.hadley.nz/base-R.html
-    #> chapter: # 27  A field guide to base R
-    #> section: ## 27.2 Selecting multiple elements with `[`
-    #> subsection: ### 27.2.2 Subsetting data frames
-    #> content: There are quite a few different ways[1](#fn1) that you can use `[` with a data frame, but the most important way is to select rows and columns independently with `df[rows, cols]`. Here `rows` and `cols` are vectors as described above. For example, `df[rows, ]` and `df[, cols]` select just rows or just columns, using the empty subset to preserve the other dimension.
-    #> 
-    #> Here are a couple of examples:
-    #> 
-    #> ```
-    #> df <- tibble(
-    #>   x = 1:3,
-    #>   y = c("a", "e", "f"),
-    #>   z = runif(3)
-    #> )
-    #> 
-    #> # Select first row and second column
-    #> df[1, 2]
-    #> #> # A tibble: 1 × 1
-    #> #>   y
-    #> #>   <chr>
-    #> #> 1 a
-    #> 
-    #> # Select all rows and columns x and y
-    #> df[, c("x" , "y")]
-    #> #> # A tibble: 3 × 2
-    #> #>       x y
-    #> #>   <int> <chr>
-    #> #> 1     1 a
-    #> #> 2     2 e
-    #> #> 3     3 f
-    #> 
-    #> # Select rows where `x` is greater than 1 and all columns
-    #> df[df$x > 1, ]
-    #> #> # A tibble: 2 × 3
-    #> #>       x y         z
-    #> #>   <int> <chr> <dbl>
-    #> #> 1     2 e     0.834
-    #> #> 2     3 f     0.601
-    #> ```
-    #> 
-    #> We’ll come back to `$` shortly, but you should be able to guess what `df$x` does from the context: it extracts the `x` variable from `df`. We need to use it here because `[` doesn’t use tidy evaluation, so you need to be explicit about the source of the `x` variable.
-
-``` r
+#> # Excerpt from the book "R for Data Science (2e)"
+#> link: https://r4ds.hadley.nz/logicals.html
+#> chapter: # 12  Logical vectors
+#> section: ## 12.1 Introduction
+#> subsection: NA
+#> content: In this chapter, you’ll learn tools for working with logical vectors. Logical vectors are the simplest type of vector because each element can only be one of three possible values: `TRUE`, `FALSE`, and `NA`. It’s relatively rare to find logical vectors in your raw data, but you’ll create and manipulate them in the course of almost every analysis.
+#> 
+#> We’ll begin by discussing the most common way of creating logical vectors: with numeric comparisons. Then you’ll learn about how you can use Boolean algebra to combine different logical vectors, as well as some useful summaries. We’ll finish off with `[if_else()](https://dplyr.tidyverse.org/reference/if_else.html)` and `[case_when()](https://dplyr.tidyverse.org/reference/case_when.html)`, two useful functions for making conditional changes powered by logical vectors.
 
 bm25_near_chunks <- ragnar_retrieve_bm25(store, text, top_k = 3)
 bm25_near_chunks
-#> # A tibble: 3 × 3
-#>      id bm25_score text                                                         
-#>   <int>      <dbl> <chr>                                                        
-#> 1    29       5.62 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …
-#> 2   645       5.54 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …
-#> 3   624       5.07 "# Excerpt from the book \"R for Data Science (2e)\"\nlink: …
+#> # A tibble: 3 × 6
+#>      id metric_name metric_value origin                              hash  text 
+#>   <int> <chr>              <dbl> <chr>                               <chr> <chr>
+#> 1   988 bm25               0.661 https://r4ds.hadley.nz/webscraping… 8629… "# E…
+#> 2   842 bm25               0.665 https://r4ds.hadley.nz/regexps.html 15ee… "# E…
+#> 3   337 bm25               0.667 https://r4ds.hadley.nz/datetimes.h… fd3e… "# E…
 bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
 ```
 
     #> # Excerpt from the book "R for Data Science (2e)"
-    #> link: https://r4ds.hadley.nz/base-R.html
-    #> chapter: # 27  A field guide to base R
-    #> section: ## 27.2 Selecting multiple elements with `[`
-    #> subsection: ### 27.2.1 Subsetting vectors
-    #> content: There are five main types of things that you can subset a vector with, i.e., that can be the `i` in `x[i]`:
+    #> link: https://r4ds.hadley.nz/webscraping.html
+    #> chapter: # 24  Web scraping
+    #> section: ## 24.4 Extracting data
+    #> subsection: ### 24.4.2 Nesting selections
+    #> content: In most cases, you’ll use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` and `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` together, typically using `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to identify elements that will become observations then using `[html_element()](https://rvest.tidyverse.org/reference/html_element.html)` to find elements that will become variables. Let’s see this in action using a simple example. Here we have an unordered list (`<ul>)` where each list item (`<li>`) contains some information about four characters from StarWars:
     #> 
-    #> 1. **A vector of positive integers**. Subsetting with positive integers keeps the elements at those positions:
+    #> ```
+    #> html <- minimal_html("
+    #>   <ul>
+    #>     <li><b>C-3PO</b> is a <i>droid</i> that weighs <span class='weight'>167 kg</span></li>
+    #>     <li><b>R4-P17</b> is a <i>droid</i></li>
+    #>     <li><b>R2-D2</b> is a <i>droid</i> that weighs <span class='weight'>96 kg</span></li>
+    #>     <li><b>Yoda</b> weighs <span class='weight'>66 kg</span></li>
+    #>   </ul>
+    #>   ")
+    #> ```
     #> 
-    #>    ```
-    #>    x <- c("one", "two", "three", "four", "five")
-    #>    x[c(3, 2, 5)]
-    #>    #> [1] "three" "two"   "five"
-    #>    ```
+    #> We can use `[html_elements()](https://rvest.tidyverse.org/reference/html_element.html)` to make a vector where each element corresponds to a different character:
     #> 
-    #>    By repeating a position, you can actually make a longer output than input, making the term “subsetting” a bit of a misnomer.
-    #> 
-    #>    ```
-    #>    x[c(1, 1, 5, 5, 5, 2)]
-    #>    #> [1] "one"  "one"  "five" "five" "five" "two"
-    #>    ```
-    #> 2. **A vector of negative integers**. Negative values drop the elements at the specified positions:
-    #> 
-    #>    ```
-    #>    x[c(-1, -3, -5)]
-    #>    #> [1] "two"  "four"
-    #>    ```
-    #> 3. **A logical vector**. Subsetting with a logical vector keeps all values corresponding to a `TRUE` value. This is most often useful in conjunction with the comparison functions.
-    #> 
-    #>    ```
-    #>    x <- c(10, 3, NA, 5, 8, 1, NA)
-    #> 
-    #>    # All non-missing values of x
-    #>    x[!is.na(x)]
-    #>    #> [1] 10  3  5  8  1
-    #> 
-    #>    # All even (or missing!) values of x
-    #>    x[x %% 2 == 0]
-    #>    #> [1] 10 NA  8 NA
-    #>    ```
-    #> 
-    #>    Unlike `[filter()](https://dplyr.tidyverse.org/reference/filter.html)`, `NA` indices will be included in the output as `NA`s.
-    #> 4. **A character vector**. If you have a named vector, you can subset it with a character vector:
-    #> 
-    #>    ```
-    #>    x <- c(abc = 1, def = 2, xyz = 5)
-    #>    x[c("xyz", "def")]
-    #>    #> xyz def
-    #>    #>   5   2
-    #>    ```
+    #> ```
+    #> characters <- html |> html_elements("li")
+    #> characters
+    #> #> {xml_nodeset (4)}
+    #> #> [1] <li>\n<b>C-3PO</b> is a <i>droid</i> that weighs <span class="weight"> ...
+    #> #> [2] <li>\n<b>R4-P17</b> is a <i>droid</i>\n</li>
+    #> #> [3] <li>\n<b>R2-D2</b> is a <i>droid</i> that weighs <span class="weight"> ...
+    #> #> [4] <li>\n<b>Yoda</b> weighs <span class="weight">66 kg</span>\n</li>
+    #> ```
 
 ``` r
 
 # get both vss and bm26
 relevant_chunks <- ragnar_retrieve(
-  store, text, top_k = 3,
-  methods = c("vss", "bm25")
+  store,
+  text,
+  top_k = 3
 )
 relevant_chunks
-#> # A tibble: 6 × 4
-#>      id l2sq_distance bm25_score text                                           
-#>   <int>         <dbl>      <dbl> <chr>                                          
-#> 1    31         0.920       2.91 "# Excerpt from the book \"R for Data Science …
-#> 2   625         0.941       3.58 "# Excerpt from the book \"R for Data Science …
-#> 3   639         0.943       2.58 "# Excerpt from the book \"R for Data Science …
-#> 4    29         0.980       5.62 "# Excerpt from the book \"R for Data Science …
-#> 5   645         0.971       5.54 "# Excerpt from the book \"R for Data Science …
-#> 6   624         1.22        5.07 "# Excerpt from the book \"R for Data Science …
+#> # A tibble: 6 × 6
+#>      id origin                                hash  text  cosine_distance   bm25
+#>   <int> <chr>                                 <chr> <chr>           <dbl>  <dbl>
+#> 1   630 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.394 NA    
+#> 2   653 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.399 NA    
+#> 3   632 https://r4ds.hadley.nz/logicals.html  943f… "# E…           0.401 NA    
+#> 4   988 https://r4ds.hadley.nz/webscraping.h… 8629… "# E…          NA      0.661
+#> 5   842 https://r4ds.hadley.nz/regexps.html   15ee… "# E…          NA      0.665
+#> 6   337 https://r4ds.hadley.nz/datetimes.html fd3e… "# E…          NA      0.667
 
-# Register ellmer tool
-## You can register an ellmer tool to retrieve chunks as well.
-## This enables the LLM model to make tool calls to retreive chunks.
-system_prompt <- stringr::str_squish(r"--(
-    You are an expert R programmer and mentor.
-    You often respond by first direct quoting material from book or documentation,
-    then adding your own additional context and interpertation.
-)--")
-chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
-# chat <- ellmer::chat_ollama(system_prompt, model = "llama3.2:1b")
+#'  Register ellmer tool
+#' You can register an ellmer tool to let the LLM retrieve chunks.
+system_prompt <- stringr::str_squish(
+  r"--(
+  You are an expert R programmer and mentor. You are concise.
+  You always respond by first direct quoting material from book or documentation,
+  then adding your own additional context and interpertation.
+  Always include links to the source materials used.
+  )--"
+)
+chat <- ellmer::chat_openai(
+  system_prompt,
+  model = "gpt-4.1",
+  params = ellmer::params(temperature = .5)
+)
 
-ragnar_register_tool_retrieve(chat, store)
+ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
+#> ◯ [tool call] rag_retrieve_from_store_001(text = "subset a dataframe")
+#> ● #> # Excerpt from the book "R for Data Science (2e)"
+#>   #> link: https://r4ds.hadley.nz/functions.html
+#>   #> chapter: # 25  Functions
+#>   #> section: ## 25.3 Data frame functions
+#>   #> subsection: ### 25.3.3 Common use cases
+#>   #> …
 ```
 
-    #> To subset a dataframe in R, you can use multiple methods depending on your 
-    #> needs. A common way to do this is with the square bracket `[` operator, which 
-    #> allows you to select rows and columns separately using a matrix-style indexing.
-    #> Here are some basic ways to subset a dataframe:
+    #> From "R for Data Science (2e)":
     #> 
-    #> 1. **Select Specific Rows and Columns:**
-    #>    You can select specific rows and columns by specifying their indices inside 
-    #> the square brackets `df[rows, cols]`. Here's an example:
+    #> > Several dplyr verbs are special cases of `[`:  
+    #> > * `filter()` is equivalent to subsetting the rows with a logical vector...  
+    #> >   ```
+    #> >   df |> filter(x > 1)
+    #> >   # same as
+    #> >   df[!is.na(df$x) & df$x > 1, ]
+    #> >   ```
+    #> > * Both `select()` and `relocate()` are similar to subsetting the columns with
+    #> a character vector:
+    #> >   ```
+    #> >   df |> select(x, z)
+    #> >   # same as
+    #> >   df[, c("x", "z")]
+    #> >   ```
+    #> > Base R also provides a function that combines the features of `filter()` and 
+    #> `select()` called `subset()`:
+    #> >   ```
+    #> >   df |> subset(x > 1, c(y, z))
+    #> >   ```
     #> 
-    #>    ```r
-    #>    df <- data.frame(x = 1:3, y = c("a", "e", "f"), z = runif(3))
+    #> > There’s an important difference between tibbles and data frames when it comes
+    #> to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if 
+    #> `col` selects a single column and a data frame if it selects more than one 
+    #> column. If `df` is a tibble, then `[` will always return a tibble.
+    #> > ```
+    #> > df1[, "x" , drop = FALSE]
+    #> > #>   x
+    #> > #> 1 1
+    #> > #> 2 2
+    #> > #> 3 3
+    #> > ```
     #> 
-    #>    df[1, 2]  # Selects the first row and second column.
-    #>    df[, c("x", "y")]  # Select all rows for columns x and y.
-    #>    df[df$x > 1, ]  # Select rows where x is greater than 1 with all columns.
-    #>    ```
+    #> **Summary:**  
+    #> - To subset rows: `df[rows, ]` or `df |> filter(condition)`
+    #> - To subset columns: `df[, cols]` or `df |> select(cols)`
+    #> - To subset both: `df[rows, cols]` or `subset(df, condition, select = cols)`
+    #> - With tibbles, `[` always returns a tibble; with data.frames, use `drop = 
+    #> FALSE` to keep a data.frame when selecting a single column.
     #> 
-    #> 2. **Handling Tibbles vs. Data Frames:**
-    #>    It's important to understand the difference in behavior between tibbles and 
-    #> base data frames:
-    #> 
-    #>    ```r
-    #>    df1 <- data.frame(x = 1:3)
-    #>    df1[, "x"]  # Returns a vector.
-    #> 
-    #>    df2 <- tibble(x = 1:3)
-    #>    df2[, "x"]  # Always returns a tibble.
-    #> 
-    #>    # To avoid ambiguity in data.frames and ensure a dataframe output:
-    #>    df1[, "x", drop = FALSE]
-    #>    ```
-    #> 
-    #> 3. **Logical Vectors:**
-    #>    Logical vectors are often used for conditional subsetting:
-    #> 
-    #>    ```r
-    #>    x <- c(10, 3, NA, 5, 8, 1, NA)
-    #>    x[!is.na(x)]  # All non-missing values.
-    #>    x[x %% 2 == 0]  # All even values, including NA.
-    #>    ```
-    #> 
-    #> Each method has its specific use case and can be chosen based on the context of
-    #> what you're trying to achieve with your dataset. Understanding these subsetting
-    #> techniques provides flexibility in how you manipulate and analyze data frames.
+    #> **References:**  
+    #> - [R4DS: Base R 
+    #> subsetting](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with-)
+    #> - [R4DS: dplyr 
+    #> equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)
+    #> - [R4DS: Data frame 
+    #> subsetting](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)

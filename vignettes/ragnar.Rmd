@@ -77,8 +77,8 @@ quoting from retrieved material.
 
 RAG reduces but does not eliminate hallucinations. For richer texts and
 tasks, LLMs may still miss nuance or overgeneralize. For this reason,
-it's still helpful for RAG-based tools to present links back to the
-original material so users can check context and verify details.
+it's helpful if RAG-based tools present links back to the original
+material so users can check context and verify details.
 
 ## Use Case: Quarto Docs Chat vs. Standard Search
 
@@ -117,8 +117,8 @@ store <- ragnar_store_create(
 )
 ```
 
-You can use OpenAI, an open-source model via `embed_ollama()`, or your
-own function.
+To generate embeddings, you can use `embed_openai()`, an open-source
+model via `embed_ollama()`, or your own function.
 
 #### Identify Documents for Processing
 
@@ -146,12 +146,12 @@ plain text, easy to inspect, keeps token counts low, and works well for
 both humans and LLMs.
 
 For this step, ragnar provides `read_as_markdown()` and `ragnar_read()`,
-which can accept a wide variety of formats (pdf, docx, pptx, html). In
-many cases it works well, but for specialized needs you can opt for a
-more custom-tailored approach. See the help in `?read_as_markdown` for
-some guidance on alternatives if you'd like to improve on the default
-conversion. (But only begin optimizing once you have a basic app
-working.)
+which can accept a wide variety of formats (pdf, docx, pptx, html, zip
+files, epubs, etc.). In many cases it works well, but for specialized
+needs you can opt for a more custom-tailored approach. See the help in
+`?read_as_markdown` for some guidance on alternatives if you'd like to
+improve on the default conversion. (But only begin optimizing once you
+have a basic app working.)
 
 `ragnar_read()` does the same thing as `read_as_markdown()`, but instead
 of returning a string, it returns a dataframe that also includes
@@ -165,13 +165,13 @@ you to return just the most relevant excerpts from a long document.
 
 Chunking is delicate; Ideally, each chunk should stand alone without
 relying on the context of the surrounding document. We can aim to split
-the text at natural points like headings, paragraphs, or sentences, and
-avoid splits in the middle of a sentence or word.
+the text at natural points like headings or paragraphs, and avoid splits
+in the middle of a sentence or word.
 
-Additionally, we augment chunks with context that describes the chunk’s
-origin—such as URL, title, headings, and subheadings—both so the LLM can
-provide links back to the source, and so the LLM and embedding models
-can better situate the chunk’s content.
+Additionally, we can augment chunks with context that describes the
+chunk’s origin--such as URL, title, headings, and subheadings--both so
+the LLM can provide links back to the source, and so the LLM and
+embedding models can better situate the chunk’s content.
 
 To help with these tasks, use `ragnar_read()` and `ragnar_chunk()`.
 
@@ -214,7 +214,7 @@ Note that an alternative approach for augmenting chunks with context can
 be to use an LLM with instructions to "situate this excerpt from this
 document," or, worse, "summarize this document." This can work but
 carries significant risk. Remember, the goal is to create a knowledge
-store—a trusted, factual, vetted source of truth. Giving an LLM an
+store--a trusted, factual, vetted source of truth. Giving an LLM an
 opportunity to corrupt this store with hallucinations may be necessary
 depending on your needs, but as an initial approximation, I recommend
 starting with an ingestion pipeline that does not give any opportunities
@@ -235,8 +235,7 @@ ragnar_store_insert(store, chunks)
 
 Repeat these steps for every document you want to insert into the store.
 Once you're done processing the documents, call
-`ragnar_store_build_index()` to finalize the store and build the index
-for efficient retrieval.
+`ragnar_store_build_index()` to finalize the store and build the index.
 
 ``` r
 for (path in paths) {
@@ -244,7 +243,7 @@ for (path in paths) {
   ragnar_store_insert(store, chunks)
 }
 
-ragnar_store_build_index()
+ragnar_store_build_index(store)
 ```
 
 Once the store index is built, the store is ready for retrieval.
@@ -285,7 +284,8 @@ ragnar_register_tool_retrieve(
 Note that the registered tool is intentionally simple. It asks the LLM
 to provide one argument: the query string. LLM tool calls are just text
 completions after all, like any other LLM output. We minimize the
-complexity in the tool interface to minimize the chance for LLM errors.
+complexity in the tool interface to minimize opportunities for LLM to
+make errors.
 
 Rather than exposing detailed search options to the LLM, we can instead
 set a high `top_k` value to return more chunks than usually necessary.
@@ -415,9 +415,10 @@ With that in mind, note that this chat app described here does not
 intend to replace documentation or act as a general-purpose assistant.
 Its goal is to provide a faster, more contextual way to find the right
 place in the docs, with enough information for the user to decide if
-they need to read further. It's designed it to escalate on failure
-gracefully: if the LLM is not able to provide an accurate answer, the
-user can transition to reading the source material without friction.
+they need to read further. It's designed it to allow users to naturally
+escalate: if the LLM is not able to provide a useful answer, the user
+can use the provided links and transition to reading the source material
+without friction.
 
 ## Cost Management
 
@@ -451,8 +452,7 @@ quickly and reliably.
 Building a good RAG system is iterative. Inspect intermediate outputs,
 tune chunking and retrieval, and keep the user’s workflow in mind. With
 these guardrails, you can reduce hallucinations and deliver trustworthy,
-grounded answers—while always giving users a path to the original
-source.
+grounded answers--while also giving users a path to the original source.
 
 For more details and a full example, see the
 [quartohelp](https://github.com/t-kalinowski/quartohelp) package.

@@ -1,5 +1,9 @@
 ---
 output: github_document
+editor:
+  markdown:
+    canonical: true
+    wrap: 72
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -11,6 +15,7 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+unlink("r4ds.ragnar.duckdb")
 ```
 
 # ragnar <img src="man/figures/logo.png" align="right" height="138"/>
@@ -26,7 +31,7 @@ Generation (RAG) workflows. It focuses on providing a complete solution
 with sensible defaults, while still giving the knowledgeable user
 precise control over each steps. We don't believe that you can fully
 automate the creation of a good RAG system, so it's important that
-`ragnar` is not a black box. `ragnar` is designed to be transparent—you
+`ragnar` is not a black box. `ragnar` is designed to be transparent. You
 can inspect easily outputs at intermediate steps to understand what's
 happening.
 
@@ -46,14 +51,15 @@ to Markdown.
 
 Key functions:
 
+-   `ragnar_read()`: Convert a file or URL to a dataframe
+-   `read_as_markdown`: Convert a file or URL to markdown
 -   `ragnar_find_links()`: Find all links in a webpage
--   `ragnar_read()`: Convert a file or URL to markdown
 
 ### 2. Text Chunking
 
-Next we divide each document into multiple chunks. Ragnar defaults to a
-strategy that preserves some of the semantics of the document, but
-provide plenty of options to tweak the approach.
+Next we divide each document into chunks. Ragnar defaults to a strategy
+that preserves some of the semantics of the document, but provide plenty
+of opportunities to tweak the approach.
 
 Key functions:
 
@@ -67,10 +73,10 @@ Key functions:
 ### 3. Context Augmentation (Optional)
 
 RAG applications benefit from augmenting text chunks with additional
-context, such as document headings and subheadings. While `ragnar`
-doesn't directly export functions for this, it supports template-based
-augmentation through `ragnar_read(frame_by_tags, split_by_tags)`. Future
-versions will support generating context summaries via LLM calls.
+context, such as document headings and subheadings. `ragnar` makes it
+easy to keep track of headings and subheadings as part of chunking,
+which can then be used to support template-based augmentation. (See
+examples below)
 
 Key functions:
 
@@ -84,7 +90,7 @@ Key functions:
 
 `ragnar` can help compute embeddings for each chunk. The goal is for
 `ragnar` to provide access to embeddings from popular LLM providers.
-Currently only `ollama` and `openai` providers.
+Currently `ollama` and `openai` providers are supported.
 
 Key functions:
 
@@ -122,11 +128,7 @@ Key functions:
 -   `ragnar_retrieve_bm25()`: Retrieve using
     [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
 
-### 7. Re-ranking (Optional)
-
-Re-ranking of retrieved chunks is planned for future releases.
-
-### 8. Prompt Generation
+### 7. Chat Augmentation
 
 `ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
 enables an LLM to retreive content from a store on-demand.

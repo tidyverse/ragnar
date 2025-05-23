@@ -3,6 +3,6 @@ scratch*
 inst/doc
 *ragnar.duckdb
 docs
+.claude
 _chats/
 *chat.Rmd
-.claude
