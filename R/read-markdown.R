@@ -9,16 +9,18 @@ init_markitdown <- function(...) {
 
 #' Convert files to markdown
 #'
-#' @param x A filepath or url
-#' @inheritParams rlang::args_dots_empty
-# ' @param ... Passed on to `MarkItDown.convert()`
+#' @param x A filepath or url. Accepts a wide variety of file types, including
+#'   PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
+#'   metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
+#'   ZIP files (iterates over contents), Youtube URLs, and EPubs.#'
+#' @param ... Passed on to `MarkItDown.convert()`
 #' @param canonical logical, whether to postprocess the output from MarkItDown
 #'   with `commonmark::markdown_commonmark()`.
 #'
 #' @returns A single string of markdown
 #' @export
 #'
-#' @examples
+#' @examplesIf ragnar:::should_init_python()
 #' # convert html
 #' read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
 #'   substr(1, 1000) |> cat()
@@ -339,7 +341,7 @@ markdown_segment_text <- function(
 #'
 #' @export
 #'
-#' @examples
+#' @examplesIf ragnar:::should_init_python()
 #' file <- tempfile(fileext = ".html")
 #' download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 #'
@@ -461,4 +463,11 @@ cli_markitdown <- function(args, ...) {
     python_version = "3.11",
     ...
   )
+}
+
+
+should_init_python <- function() {
+  reticulate::py_available() ||
+    interactive() ||
+    identical(Sys.getenv("IN_PKGDOWN"), "true")
 }
