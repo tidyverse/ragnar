@@ -8,7 +8,7 @@ Authors@R: c(
            comment = c(ROR = "03wc8by49"))
   )
 Description: Provides tools for implementing Retrieval-Augmented Generation
-    (RAG) workflows with Large Language Models (LLMs). Includes functions for
+    (RAG) workflows with Large Language Models (LLM). Includes functions for
     document processing, text chunking, embedding generation, storage
     management, and content retrieval. Supports various document types and
     embedding providers ('Ollama', 'OpenAI'), with 'DuckDB' as the default
