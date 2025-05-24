@@ -13,12 +13,24 @@ Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows w
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://tidyverse.github.io/ragnar/}
+  \item \url{http://ragnar.tidyverse.org/}
+  \item \url{https://github.com/tidyverse/ragnar}
+  \item Report bugs at \url{https://github.com/tidyverse/ragnar/issues}
 }
 
 }
 \author{
 \strong{Maintainer}: Tomasz Kalinowski \email{tomasz@posit.co}
+
+Authors:
+\itemize{
+  \item Daniel Falbel \email{daniel@posit.co}
+}
+
+Other contributors:
+\itemize{
+  \item Posit Software, PBC (03wc8by49) [copyright holder, funder]
+}
 
 }
 \keyword{internal}

@@ -1,4 +1,5 @@
 test_that("ragnar_read", {
+  skip_on_cran()
   doc <- test_doc()
 
   # Reading the document without any arguments yields a single row data frame

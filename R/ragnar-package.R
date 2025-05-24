@@ -18,6 +18,10 @@ dotty::.
   Sys.setenv(RETICULATE_PYTHON = "managed")
   S7::methods_register()
   reticulate::py_require(c(
+    # Pin onnxruntime until this is resolved: https://github.com/microsoft/markitdown/issues/1266
+    # New VC++ version requirement begins:
+    # https://github.com/Microsoft/onnxruntime/releases/tag/v1.21.0
+    if (is_windows()) "onnxruntime<=1.20.1",
     "markitdown[all]"
   ))
 

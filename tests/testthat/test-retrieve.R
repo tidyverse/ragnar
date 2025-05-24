@@ -3,6 +3,7 @@ test_that("retrieving works as expected", {
   store <- ragnar_store_create(
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
   chunks <- data.frame(
     text = c("foo", "bar", "faz")
   )

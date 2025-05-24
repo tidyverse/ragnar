@@ -7,9 +7,12 @@
 read_as_markdown(x, ..., canonical = FALSE)
 }
 \arguments{
-\item{x}{A filepath or url}
+\item{x}{A filepath or url. Accepts a wide variety of file types, including
+PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
+metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
+ZIP files (iterates over contents), Youtube URLs, and EPubs.#'}
 
-\item{...}{These dots are for future extensions and must be empty.}
+\item{...}{Passed on to \code{MarkItDown.convert()}}
 
 \item{canonical}{logical, whether to postprocess the output from MarkItDown
 with \code{commonmark::markdown_commonmark()}.}
@@ -21,6 +24,7 @@ A single string of markdown
 Convert files to markdown
 }
 \examples{
+\dontshow{if (ragnar:::should_init_python()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # convert html
 read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
   substr(1, 1000) |> cat()
@@ -64,4 +68,5 @@ if(FALSE) {
     chat$chat("Describe this image", ellmer::content_image_file(jpg))
   }
 }
+\dontshow{\}) # examplesIf}
 }

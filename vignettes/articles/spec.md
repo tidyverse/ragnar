@@ -67,8 +67,8 @@ CREATE TABLE chunks (
 
 Finally need to provide a method to retrieve related chunks based on cosine similarity of embeddings and BM25 ranking and the user query. Need to specify either number of results or (better?) some distance threshold.
 
-* https://duckdb.org/docs/extensions/vss.html: index for vector similarity search
-* https://duckdb.org/docs/extensions/full_text_search.html
+* https://duckdb.org/docs/stable/core_extensions/vss: index for vector similarity search
+* https://duckdb.org/docs/stable/core_extensions/full_text_search
 
 (Do we also need tools that summarise the conversation history to add more context to the user query?)
 

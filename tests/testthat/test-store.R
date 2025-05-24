@@ -2,6 +2,7 @@ test_that("ragnar_store_update/insert", {
   store <- ragnar_store_create(
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
   expect_true(grepl("^store_[0-9]+$", store@name))
 
   chunks <- data.frame(
@@ -67,6 +68,7 @@ test_that("behavior when no hash/origin are provided", {
   store <- ragnar_store_create(
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- data.frame(
     text = "foo"
@@ -112,6 +114,7 @@ test_that("additional columns", {
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
     extra_cols = data.frame(h1 = character(0))
   )
+  maybe_set_threads(store)
 
   chunks <- data.frame(
     text = "foo"
@@ -149,6 +152,7 @@ test_that("additional columns", {
 
 test_that("Allow a NULL embedding function", {
   store <- ragnar_store_create(embed = NULL)
+  maybe_set_threads(store)
   chunks <- data.frame(
     origin = c("foo", "bar"),
     hash = c("foo", "bar"),

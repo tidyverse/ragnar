@@ -1,8 +1,12 @@
 Package: ragnar
 Title: Retrieval-Augmented Generation (RAG) Workflows
-Version: 0.0.0.9000
-Authors@R:
-    person("Tomasz", "Kalinowski", , "tomasz@posit.co", role = c("aut", "cre"))
+Version: 0.1.0
+Authors@R: c(
+    person("Tomasz", "Kalinowski", , "tomasz@posit.co", role = c("aut", "cre")),
+    person("Daniel", "Falbel", , "daniel@posit.co", role = "aut"),
+    person("Posit Software, PBC", role = c("cph", "fnd"),
+           comment = c(ROR = "03wc8by49"))
+  )
 Description: Provides tools for implementing Retrieval-Augmented Generation
     (RAG) workflows with Large Language Models (LLMs). Includes functions for
     document processing, text chunking, embedding generation, storage
@@ -43,7 +47,6 @@ Suggests:
     pandoc,
     ellmer,
     knitr,
-    readr,
     rmarkdown,
     stringr,
     dbplyr,
@@ -52,7 +55,6 @@ Suggests:
     shiny
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
 Config/testthat/edition: 3
-Remotes:
-    rstudio/reticulate
-URL: https://tidyverse.github.io/ragnar/
+URL: http://ragnar.tidyverse.org/, https://github.com/tidyverse/ragnar
 VignetteBuilder: knitr
+BugReports: https://github.com/tidyverse/ragnar/issues

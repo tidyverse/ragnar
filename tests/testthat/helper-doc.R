@@ -7,3 +7,14 @@ test_doc <- function() {
 
   tmp
 }
+
+maybe_on_cran <- function() {
+  !identical(Sys.getenv("NOT_CRAN"), "true")
+}
+
+maybe_set_threads <- function(store) {
+  if (maybe_on_cran()) {
+    DBI::dbExecute(store@.con, "SET threads TO 1;")
+  }
+  store
+}
