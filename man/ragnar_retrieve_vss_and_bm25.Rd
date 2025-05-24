@@ -39,38 +39,47 @@ search space efficiently without pulling data into R.
 }
 
 \examples{
+\dontshow{if ((rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Basic usage
-mock_embed <- function(x) matrix(stats::runif(10), nrow = length(x), ncol = 10)
-store <- ragnar_store_create(embed = mock_embed)
+store <- ragnar_store_create(
+  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small")
+)
 ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
 ragnar_store_build_index(store)
 ragnar_retrieve(store, "foo")
 
 # More Advanced: store metadata, retrieve with pre-filtering
+store <- ragnar_store_create(
+  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),
+  extra_cols = data.frame(category = character())
+)
 
-if (rlang::is_installed("dbplyr")) {
-  store <- ragnar_store_create(
-    embed = mock_embed,
-    extra_cols = data.frame(category = character())
+ragnar_store_insert(
+  store,
+  data.frame(
+    category = "desert",
+    text = c("ice cream", "cake", "cookies")
   )
-  ragnar_store_insert(
-    store,
-    data.frame(
-      category = c("desert", "desert", "desert", "meal", "meal", "meal"),
-      text = c("ice cream", "cake", "cookies", "pasta", "burger", "salad")
-    )
+)
+
+ragnar_store_insert(
+  store,
+  data.frame(
+    category = "meal",
+    text = c("steak", "potatoes", "salad")
   )
-  ragnar_store_build_index(store)
+)
 
-  # simple retrieve
-  ragnar_retrieve(store, "yummy")
+ragnar_store_build_index(store)
 
+# simple retrieve
+ragnar_retrieve(store, "carbs")
 
-  # retrieve with pre-filtering
-  dplyr::tbl(store) |>
-    dplyr::filter(category == "meal") |>
-    ragnar_retrieve("yummy")
-}
+# retrieve with pre-filtering
+dplyr::tbl(store) |>
+  dplyr::filter(category == "meal") |>
+  ragnar_retrieve("carbs")
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other ragnar_retrieve: 
