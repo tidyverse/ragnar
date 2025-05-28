@@ -40,7 +40,7 @@ provided, the converted markdown content is then split and converted to a
 data frame, otherwise, the markdown is returned as a string.
 }
 \examples{
-\dontshow{if (ragnar:::should_init_python()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (reticulate::py_available()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 file <- tempfile(fileext = ".html")
 download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 

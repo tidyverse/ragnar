@@ -24,13 +24,15 @@ A single string of markdown
 Convert files to markdown
 }
 \examples{
-\dontshow{if (ragnar:::should_init_python()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (reticulate::py_available()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # convert html
 read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
-  substr(1, 1000) |> cat()
+  substr(1, 1000) |>
+  cat()
 
 read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
-  substr(1, 1000) |> cat()
+  substr(1, 1000) |>
+  cat()
 
 # convert pdf
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
@@ -38,35 +40,30 @@ read_as_markdown(pdf) |> substr(1, 1000) |> cat()
 ## alternative:
 # pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
 
-# convert images
+# convert images to markdown descriptions using OpenAI
 jpg <- file.path(R.home("doc"), "html", "logo.jpg")
-if (FALSE) {
-  # system("brew install ffmpeg")
+if (Sys.getenv("OPENAI_API_KEY") != "") {
+  # if (xfun::is_macos()) system("brew install ffmpeg")
   reticulate::py_require("openai")
   llm_client <- reticulate::import("openai")$OpenAI()
-  read_as_markdown(jpg,
-    llm_client = llm_client,
-    llm_model = "gpt-4o"
-  )
+  read_as_markdown(jpg, llm_client = llm_client, llm_model = "gpt-4.1-mini")
   # # Description:
-  # The image features the official logo of the R programming language.
-  # Prominently displayed is a bold, blue letter "R," which serves as the
-  # centerpiece of the design. Encircling the "R" is a two-toned,
-  # stylized oval or ellipse with a gradient that transitions from dark
-  # gray to light gray, creating a sense of motion and dynamics. R is an
-  # open-source programming language widely used for statistical
-  # computing, data analysis, and graphical representation. The logo
-  # represents the language's focus on clarity, precision, and
-  # versatility in handling complex data tasks.
+  # The image displays the logo of the R programming language. It features a
+  # large, stylized capital letter "R" in blue, positioned prominently in the
+  # center. Surrounding the "R" is a gray oval shape that is open on the right
+  # side, creating a dynamic and modern appearance. The R logo is commonly
+  # associated with statistical computing, data analysis, and graphical
+  # representation in various scientific and professional fields.
 }
 
 # Alternative approach to image conversion:
-if(FALSE) {
-  if (Sys.getenv("OPENAI_API_KEY") != "") {
-    rlang::check_installed(c("ellmer", "magick"))
-    chat <- ellmer::chat_openai(echo = TRUE)
-    chat$chat("Describe this image", ellmer::content_image_file(jpg))
-  }
+if (
+  Sys.getenv("OPENAI_API_KEY") != "" &&
+    rlang::is_installed("ellmer") &&
+    rlang::is_installed("magick")
+) {
+  chat <- ellmer::chat_openai(echo = TRUE)
+  chat$chat("Describe this image", ellmer::content_image_file(jpg))
 }
 \dontshow{\}) # examplesIf}
 }
