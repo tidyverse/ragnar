@@ -15,6 +15,9 @@ Description: Provides tools for implementing Retrieval-Augmented Generation
     storage backend. Integrates with the 'ellmer' package to equip chat objects
     with retrieval capabilities. Designed to offer both sensible defaults and
     customization options with transparent access to intermediate outputs.
+    For a review of retrieval-augmented generation methods, see Gao et al. (2023)
+    "Retrieval-Augmented Generation for Large Language Models: A Survey"
+    <doi:10.48550/arXiv.2312.10997>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
