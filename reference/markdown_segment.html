@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,8 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/ragnar.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tidyverse/ragnar/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -27,7 +29,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Segment markdown text</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/R/read-markdown.R" class="external-link"><code>R/read-markdown.R</code></a></small>
       <div class="d-none name"><code>markdown_segment.Rd</code></div>
     </div>
 
@@ -56,7 +58,8 @@
 
 
 <dt id="arg-tags-segment-by">tags, segment_by<a class="anchor" aria-label="anchor" href="#arg-tags-segment-by"></a></dt>
-<dd><p>A character vector of html tag names, e.g., <code>c("h1", "h2", "h3", "pre")</code></p></dd>
+<dd><p>A character vector of html tag names, e.g.,
+<code>c("h1", "h2", "h3", "pre")</code></p></dd>
 
 
 <dt id="arg-trim">trim<a class="anchor" aria-label="anchor" href="#arg-trim"></a></dt>
@@ -73,7 +76,8 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A named character vector. Names will correspond to <code>tags</code>, or <code>""</code> for content inbetween tags.</p>
+    <p>A named character vector. Names will correspond to <code>tags</code>, or <code>""</code>
+for content in between tags.</p>
     </div>
 
     <div class="section level2">
@@ -107,9 +111,9 @@
 <span class="r-in"><span><span class="st">A table &lt;table&gt;:</span></span></span>
 <span class="r-in"><span><span class="st"></span></span></span>
 <span class="r-in"><span><span class="st">  | Name  | Age | City      |</span></span></span>
-<span class="r-in"><span><span class="st">  |-------|----:|----------|</span></span></span>
-<span class="r-in"><span><span class="st">  | Alice |  25 | New York |</span></span></span>
-<span class="r-in"><span><span class="st">  | Bob   |  30 | London   |</span></span></span>
+<span class="r-in"><span><span class="st">  |-------|----:|-----------|</span></span></span>
+<span class="r-in"><span><span class="st">  | Alice |  25 | New York  |</span></span></span>
+<span class="r-in"><span><span class="st">  | Bob   |  30 | London    |</span></span></span>
 <span class="r-in"><span><span class="st"></span></span></span>
 <span class="r-in"><span><span class="st"></span></span></span>
 <span class="r-in"><span><span class="st">## Conclusion</span></span></span>
@@ -118,7 +122,8 @@
 <span class="r-in"><span><span class="st"></span></span></span>
 <span class="r-in"><span><span class="st">- h1, h2, h3, h4, h5, h6: section headings</span></span></span>
 <span class="r-in"><span><span class="st">- p: paragraph (prose)</span></span></span>
-<span class="r-in"><span><span class="st">- pre: pre-formatted text, meant to be displayed with monospace font. Typically code or code output</span></span></span>
+<span class="r-in"><span><span class="st">- pre: pre-formatted text, meant to be displayed with monospace font.</span></span></span>
+<span class="r-in"><span><span class="st">  Typically code or code output</span></span></span>
 <span class="r-in"><span><span class="st">- blockquote: A blockquote</span></span></span>
 <span class="r-in"><span><span class="st">- table: A table</span></span></span>
 <span class="r-in"><span><span class="st">- ul: Unordered list</span></span></span>
@@ -176,7 +181,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>   name    value                                                                 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                                                 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">""</span>      <span style="color: #949494;">"</span># Sample Markdown File\n\n## Introduction\n\nThis is a sample **Mark…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">"</span>table<span style="color: #949494;">"</span> <span style="color: #949494;">"</span>| Name  | Age | City      |\n  |-------|----:|----------|\n  | Alice…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">"</span>table<span style="color: #949494;">"</span> <span style="color: #949494;">"</span>| Name  | Age | City      |\n  |-------|----:|-----------|\n  | Alic…</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">""</span>      <span style="color: #949494;">"</span>## Conclusion\n\nCommon tags:\n\n- h1, h2, h3, h4, h5, h6: section h…</span>
 <span class="r-in"><span><span class="fu">markdown_segment</span><span class="op">(</span><span class="va">md</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ul"</span><span class="op">)</span>, trim <span class="op">=</span> <span class="cn">TRUE</span>, omit_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 2</span></span>
@@ -193,11 +198,11 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Tomasz Kalinowski.</p>
+  <p>Developed by Tomasz Kalinowski, Daniel Falbel, Posit Software, PBC.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

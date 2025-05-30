@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,8 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/ragnar.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tidyverse/ragnar/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -27,7 +29,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Convert files to markdown</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/R/read-markdown.R" class="external-link"><code>R/read-markdown.R</code></a></small>
       <div class="d-none name"><code>read_as_markdown.Rd</code></div>
     </div>
 
@@ -45,11 +47,14 @@
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A filepath or url</p></dd>
+<dd><p>A filepath or url. Accepts a wide variety of file types, including
+PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
+metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
+ZIP files (iterates over contents), Youtube URLs, and EPubs.#'</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>These dots are for future extensions and must be empty.</p></dd>
+<dd><p>Passed on to <code>MarkItDown.convert()</code></p></dd>
 
 
 <dt id="arg-canonical">canonical<a class="anchor" aria-label="anchor" href="#arg-canonical"></a></dt>
@@ -64,144 +69,47 @@ with <code><a href="https://docs.ropensci.org/commonmark/reference/commonmark.ht
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># convert html</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># reticulate::py_available()</span></span></span>
+<span class="r-in"><span><span class="co"># convert html</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/base-R.html"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R – R for Data Science (2e)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1. [Program](./program.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2. [27  A field guide to base R](./base-R.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [R for Data Science (2e)](./)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * [Welcome](./index.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * [Preface to the second edition](./preface-2e.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * [Introduction](./intro.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * [Whole game](./whole-game.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [1  Data visualization](./data-visualize.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [2  Workflow: basics](./workflow-basics.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [3  Data transformation](./data-transform.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [4  Workflow: code style](./workflow-style.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [5  Data tidying](./data-tidy.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [6  Workflow: scripts and projects](./workflow-scripts.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [7  Data import](./data-import.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [8  Workflow: getting help](./workflow-help.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * [Visualize](./visualize.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [9  Layers](./layers.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [10  Exploratory data analysis](./EDA.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [11  Communication](./communication.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * [Transform](./transform.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [12  Logical vectors](./logicals.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [13  Numbers](./numbers.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   + [14  String</span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/base-R.html"</span>, canonical <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R – R for Data Science (2e)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1.  [Program](./program.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2.  [27  A field guide to base R](./base-R.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [R for Data Science (2e)](./)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Welcome](./index.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Preface to the second edition](./preface-2e.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Introduction](./intro.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Whole game](./whole-game.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [1  Data visualization](./data-visualize.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [2  Workflow: basics](./workflow-basics.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [3  Data transformation](./data-transform.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [4  Workflow: code style](./workflow-style.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [5  Data tidying](./data-tidy.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [6  Workflow: scripts and projects](./workflow-scripts.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [7  Data import](./data-import.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [8  Workflow: getting help](./workflow-help.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Visualize](./visualize.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [9  Layers](./layers.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [10  Exploratory data analysis](./EDA.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [11  Communication](./communication.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Transform](./transform.html)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - [12  Logi</span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># convert pdf</span></span></span>
 <span class="r-in"><span><span class="va">pdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Rhome.html" class="external-link">R.home</a></span><span class="op">(</span><span class="st">"doc"</span><span class="op">)</span>, <span class="st">"NEWS.pdf"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">pdf</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS for R version 4.5.0 (2025-04-11)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R News</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> CHANGES IN R 4.5.0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NEW FEATURES:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) as.integer(rl) and hence as.raw(rl) now work for a list of raw(1) elements, as</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> proposed by Michael Chirico’s PR#18696.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) graphics’ grid() gains optional argument nintLog.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) New functions check_package_urls() and check_package_dois() in package tools</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> for checking URLs and DOIs in package sources.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) New head() and tail() methods for class "ts" time series, proposed by Spencer</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Graves on R-devel.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) New qr.influence() function, a (cid:16)bare bones(cid:17) interface to the lm.influence() leave-</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> one-out diagnostics computations; wished for in PR#18739.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Package citation() results auto-generated from the package metadata now also pro-</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> vide package DOIs for CRAN and Bioconductor packages.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) New function grepv() identical to grep() except for the default value = TRUE.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) methods(&lt;pkg&gt;:::&lt;genfun&gt;) now does report methods when neither </span>
 <span class="r-in"><span><span class="co">## alternative:</span></span></span>
 <span class="r-in"><span><span class="co"># pdftools::pdf_text(pdf) |&gt; substr(1, 2000) |&gt; cat()</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># convert images</span></span></span>
+<span class="r-in"><span><span class="co"># convert images to markdown descriptions using OpenAI</span></span></span>
 <span class="r-in"><span><span class="va">jpg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Rhome.html" class="external-link">R.home</a></span><span class="op">(</span><span class="st">"doc"</span><span class="op">)</span>, <span class="st">"html"</span>, <span class="st">"logo.jpg"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="co"># system("brew install ffmpeg")</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"OPENAI_API_KEY"</span><span class="op">)</span> <span class="op">!=</span> <span class="st">""</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="co"># if (xfun::is_macos()) system("brew install ffmpeg")</span></span></span>
 <span class="r-in"><span>  <span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/py_require.html" class="external-link">py_require</a></span><span class="op">(</span><span class="st">"openai"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">llm_client</span> <span class="op">&lt;-</span> <span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/import.html" class="external-link">import</a></span><span class="op">(</span><span class="st">"openai"</span><span class="op">)</span><span class="op">$</span><span class="fu">OpenAI</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">jpg</span>,</span></span>
-<span class="r-in"><span>    llm_client <span class="op">=</span> <span class="va">llm_client</span>,</span></span>
-<span class="r-in"><span>    llm_model <span class="op">=</span> <span class="st">"gpt-4o"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">jpg</span>, llm_client <span class="op">=</span> <span class="va">llm_client</span>, llm_model <span class="op">=</span> <span class="st">"gpt-4.1-mini"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="co"># # Description:</span></span></span>
-<span class="r-in"><span>  <span class="co"># The image features the official logo of the R programming language.</span></span></span>
-<span class="r-in"><span>  <span class="co"># Prominently displayed is a bold, blue letter "R," which serves as the</span></span></span>
-<span class="r-in"><span>  <span class="co"># centerpiece of the design. Encircling the "R" is a two-toned,</span></span></span>
-<span class="r-in"><span>  <span class="co"># stylized oval or ellipse with a gradient that transitions from dark</span></span></span>
-<span class="r-in"><span>  <span class="co"># gray to light gray, creating a sense of motion and dynamics. R is an</span></span></span>
-<span class="r-in"><span>  <span class="co"># open-source programming language widely used for statistical</span></span></span>
-<span class="r-in"><span>  <span class="co"># computing, data analysis, and graphical representation. The logo</span></span></span>
-<span class="r-in"><span>  <span class="co"># represents the language's focus on clarity, precision, and</span></span></span>
-<span class="r-in"><span>  <span class="co"># versatility in handling complex data tasks.</span></span></span>
+<span class="r-in"><span>  <span class="co"># The image displays the logo of the R programming language. It features a</span></span></span>
+<span class="r-in"><span>  <span class="co"># large, stylized capital letter "R" in blue, positioned prominently in the</span></span></span>
+<span class="r-in"><span>  <span class="co"># center. Surrounding the "R" is a gray oval shape that is open on the right</span></span></span>
+<span class="r-in"><span>  <span class="co"># side, creating a dynamic and modern appearance. The R logo is commonly</span></span></span>
+<span class="r-in"><span>  <span class="co"># associated with statistical computing, data analysis, and graphical</span></span></span>
+<span class="r-in"><span>  <span class="co"># representation in various scientific and professional fields.</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Alternative approach to image conversion:</span></span></span>
-<span class="r-in"><span><span class="kw">if</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"OPENAI_API_KEY"</span><span class="op">)</span> <span class="op">!=</span> <span class="st">""</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>    <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">check_installed</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ellmer"</span>, <span class="st">"magick"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span>    <span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span>echo <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span>    <span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"Describe this image"</span>, <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/content_image_url.html" class="external-link">content_image_file</a></span><span class="op">(</span><span class="va">jpg</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="op">}</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"OPENAI_API_KEY"</span><span class="op">)</span> <span class="op">!=</span> <span class="st">""</span> <span class="op">&amp;&amp;</span></span></span>
+<span class="r-in"><span>    <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">is_installed</a></span><span class="op">(</span><span class="st">"ellmer"</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span></span>
+<span class="r-in"><span>    <span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">is_installed</a></span><span class="op">(</span><span class="st">"magick"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span>echo <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"Describe this image"</span>, <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/content_image_url.html" class="external-link">content_image_file</a></span><span class="op">(</span><span class="va">jpg</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
@@ -210,11 +118,11 @@ with <code><a href="https://docs.ropensci.org/commonmark/reference/commonmark.ht
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Tomasz Kalinowski.</p>
+  <p>Developed by Tomasz Kalinowski, Daniel Falbel, Posit Software, PBC.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
