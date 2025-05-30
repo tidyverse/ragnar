@@ -20,8 +20,10 @@ happening.
 
 ## Installation
 
+You can install ragnar from CRAN with:
+
 ``` r
-pak::pak("tidyverse/ragnar")
+install.packages("ragnar")
 ```
 
 ## Key Steps
@@ -107,9 +109,9 @@ Key functions:
 
 - `ragnar_retrieve()`
 - `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
-  extension](https://duckdb.org/docs/extensions/vss.html)
+  extension](https://duckdb.org/docs/stable/core_extensions/vss)
 - `ragnar_retrieve_bm25()`: Retrieve using
-  [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
+  [`full-text search DuckDB extension`](https://duckdb.org/docs/stable/core_extensions/full_text_search)
 
 ### 7. Chat Augmentation
 
@@ -328,48 +330,55 @@ chat$chat("How can I subset a dataframe?")
     #> From "R for Data Science (2e)":
     #> 
     #> > Several dplyr verbs are special cases of `[`:  
-    #> > * `filter()` is equivalent to subsetting the rows with a logical vector...  
+    #> > 
+    #> > * `[filter()](https://dplyr.tidyverse.org/reference/filter.html)` is 
+    #> equivalent to subsetting the rows with a logical vector, taking care to exclude
+    #> missing values:
+    #> > 
     #> >   ```
     #> >   df |> filter(x > 1)
     #> >   # same as
     #> >   df[!is.na(df$x) & df$x > 1, ]
     #> >   ```
-    #> > * Both `select()` and `relocate()` are similar to subsetting the columns with
-    #> a character vector:
+    #> > * Both `[select()](https://dplyr.tidyverse.org/reference/select.html)` and 
+    #> `[relocate()](https://dplyr.tidyverse.org/reference/relocate.html)` are similar
+    #> to subsetting the columns with a character vector:
+    #> > 
     #> >   ```
     #> >   df |> select(x, z)
     #> >   # same as
     #> >   df[, c("x", "z")]
     #> >   ```
+    #> > 
     #> > Base R also provides a function that combines the features of `filter()` and 
-    #> `select()` called `subset()`:
-    #> >   ```
-    #> >   df |> subset(x > 1, c(y, z))
-    #> >   ```
+    #> `select()` called [`subset()`](https://rdrr.io/r/base/subset.html):
     #> 
-    #> > There’s an important difference between tibbles and data frames when it comes
-    #> to `[`. If `df` is a `data.frame`, then `df[, cols]` will return a vector if 
-    #> `col` selects a single column and a data frame if it selects more than one 
-    #> column. If `df` is a tibble, then `[` will always return a tibble.
     #> > ```
-    #> > df1[, "x" , drop = FALSE]
-    #> > #>   x
-    #> > #> 1 1
-    #> > #> 2 2
-    #> > #> 3 3
+    #> > df |> filter(x > 1) |> select(y, z)
+    #> > # same as
+    #> > df |> subset(x > 1, c(y, z))
     #> > ```
     #> 
-    #> **Summary:**  
-    #> - To subset rows: `df[rows, ]` or `df |> filter(condition)`
-    #> - To subset columns: `df[, cols]` or `df |> select(cols)`
-    #> - To subset both: `df[rows, cols]` or `subset(df, condition, select = cols)`
-    #> - With tibbles, `[` always returns a tibble; with data.frames, use `drop = 
-    #> FALSE` to keep a data.frame when selecting a single column.
+    #> ([source](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with))
     #> 
-    #> **References:**  
-    #> - [R4DS: Base R 
-    #> subsetting](https://r4ds.hadley.nz/base-R.html#selecting-multiple-elements-with-)
-    #> - [R4DS: dplyr 
-    #> equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)
-    #> - [R4DS: Data frame 
-    #> subsetting](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
+    #> Additional context:
+    #> 
+    #> - **Base R**:  
+    #>   - Subset rows: `df[rows, ]` (where `rows` is a logical or integer vector)
+    #>   - Subset columns: `df[, cols]` (where `cols` is a name, number, or character 
+    #> vector)
+    #>   - Both: `df[rows, cols]`
+    #>   - Use `drop = FALSE` to always return a data frame: `df[, "x", drop = FALSE]`
+    #> 
+    #> - **dplyr** (tidyverse):  
+    #>   - Subset rows: `df |> filter(condition)`
+    #>   - Subset columns: `df |> select(col1, col2)`
+    #>   - Both: `df |> filter(condition) |> select(col1, col2)`
+    #> 
+    #> - **subset()**:  
+    #>   - `subset(df, condition, select = c(cols))`
+    #> 
+    #> Choose the style that matches your workflow (base R or tidyverse).  
+    #> - For more: [dplyr filter](https://dplyr.tidyverse.org/reference/filter.html), 
+    #> [dplyr select](https://dplyr.tidyverse.org/reference/select.html), 
+    #> [base::subset](https://rdrr.io/r/base/subset.html).

@@ -8,17 +8,29 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLMs). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers ('Ollama', 'OpenAI'), with 'DuckDB' as the default storage backend. Integrates with the 'ellmer' package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs.
+Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLM). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers ('Ollama', 'OpenAI'), with 'DuckDB' as the default storage backend. Integrates with the 'ellmer' package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs. For a review of retrieval-augmented generation methods, see Gao et al. (2023) "Retrieval-Augmented Generation for Large Language Models: A Survey" \doi{10.48550/arXiv.2312.10997}.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://tidyverse.github.io/ragnar/}
+  \item \url{http://ragnar.tidyverse.org/}
+  \item \url{https://github.com/tidyverse/ragnar}
+  \item Report bugs at \url{https://github.com/tidyverse/ragnar/issues}
 }
 
 }
 \author{
 \strong{Maintainer}: Tomasz Kalinowski \email{tomasz@posit.co}
+
+Authors:
+\itemize{
+  \item Daniel Falbel \email{daniel@posit.co}
+}
+
+Other contributors:
+\itemize{
+  \item Posit Software, PBC (03wc8by49) [copyright holder, funder]
+}
 
 }
 \keyword{internal}

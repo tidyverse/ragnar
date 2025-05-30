@@ -9,22 +9,26 @@ init_markitdown <- function(...) {
 
 #' Convert files to markdown
 #'
-#' @param x A filepath or url
-#' @inheritParams rlang::args_dots_empty
-# ' @param ... Passed on to `MarkItDown.convert()`
+#' @param x A filepath or url. Accepts a wide variety of file types, including
+#'   PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
+#'   metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
+#'   ZIP files (iterates over contents), Youtube URLs, and EPubs.#'
+#' @param ... Passed on to `MarkItDown.convert()`
 #' @param canonical logical, whether to postprocess the output from MarkItDown
 #'   with `commonmark::markdown_commonmark()`.
 #'
 #' @returns A single string of markdown
 #' @export
 #'
-#' @examples
+#' @examplesIf reticulate::py_available()
 #' # convert html
 #' read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
-#'   substr(1, 1000) |> cat()
+#'   substr(1, 1000) |>
+#'   cat()
 #'
 #' read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
-#'   substr(1, 1000) |> cat()
+#'   substr(1, 1000) |>
+#'   cat()
 #'
 #' # convert pdf
 #' pdf <- file.path(R.home("doc"), "NEWS.pdf")
@@ -32,35 +36,30 @@ init_markitdown <- function(...) {
 #' ## alternative:
 #' # pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
 #'
-#' # convert images
+#' # convert images to markdown descriptions using OpenAI
 #' jpg <- file.path(R.home("doc"), "html", "logo.jpg")
-#' if (FALSE) {
-#'   # system("brew install ffmpeg")
+#' if (Sys.getenv("OPENAI_API_KEY") != "") {
+#'   # if (xfun::is_macos()) system("brew install ffmpeg")
 #'   reticulate::py_require("openai")
 #'   llm_client <- reticulate::import("openai")$OpenAI()
-#'   read_as_markdown(jpg,
-#'     llm_client = llm_client,
-#'     llm_model = "gpt-4o"
-#'   )
+#'   read_as_markdown(jpg, llm_client = llm_client, llm_model = "gpt-4.1-mini")
 #'   # # Description:
-#'   # The image features the official logo of the R programming language.
-#'   # Prominently displayed is a bold, blue letter "R," which serves as the
-#'   # centerpiece of the design. Encircling the "R" is a two-toned,
-#'   # stylized oval or ellipse with a gradient that transitions from dark
-#'   # gray to light gray, creating a sense of motion and dynamics. R is an
-#'   # open-source programming language widely used for statistical
-#'   # computing, data analysis, and graphical representation. The logo
-#'   # represents the language's focus on clarity, precision, and
-#'   # versatility in handling complex data tasks.
+#'   # The image displays the logo of the R programming language. It features a
+#'   # large, stylized capital letter "R" in blue, positioned prominently in the
+#'   # center. Surrounding the "R" is a gray oval shape that is open on the right
+#'   # side, creating a dynamic and modern appearance. The R logo is commonly
+#'   # associated with statistical computing, data analysis, and graphical
+#'   # representation in various scientific and professional fields.
 #' }
 #'
 #' # Alternative approach to image conversion:
-#' if(FALSE) {
-#'   if (Sys.getenv("OPENAI_API_KEY") != "") {
-#'     rlang::check_installed(c("ellmer", "magick"))
-#'     chat <- ellmer::chat_openai(echo = TRUE)
-#'     chat$chat("Describe this image", ellmer::content_image_file(jpg))
-#'   }
+#' if (
+#'   Sys.getenv("OPENAI_API_KEY") != "" &&
+#'     rlang::is_installed("ellmer") &&
+#'     rlang::is_installed("magick")
+#' ) {
+#'   chat <- ellmer::chat_openai(echo = TRUE)
+#'   chat$chat("Describe this image", ellmer::content_image_file(jpg))
 #' }
 read_as_markdown <- function(x, ..., canonical = FALSE) {
   check_string(x)
@@ -135,9 +134,12 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
     tag = elements |> xml_name(),
     source_position = elements |> xml_attr("data-sourcepos")
   )
-  if (length(tags)) df <- df[df$tag %in% unique(c(tags)), ]
 
-  # common mark returns positions as line:byte-line:byte
+  if (length(tags)) {
+    df <- df[df$tag %in% unique(c(tags)), ]
+  }
+
+  # commonmark returns positions as line:byte-line:byte
   # e.g., 52:1-52:20
   position <- df$source_position |>
     stri_split_charclass("[-:]", n = 4L, simplify = TRUE)
@@ -147,13 +149,15 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   line_numbytes <- stri_numbytes(lines) + 1L # +1 for \n
   line_startbyte <- c(1L, 1L + drop_last(cumsum(line_numbytes)))
 
-  start <- line_startbyte[position[, "start_line"]] +
-    position[, "start_byte"] -
-    1L
-  end <- line_startbyte[position[, "end_line"]] + position[, "end_byte"] - 1L
+  start <-
+    line_startbyte[position[, "start_line"]] + position[, "start_byte"] - 1L
+  end <-
+    line_startbyte[position[, "end_line"]] + position[, "end_byte"] - 1L
 
   ## To convert byte to char index:
-  # char_byte_indexes <- stri_split_boundaries(text, type = "character")[[1L]] |> stri_numbytes() |> cumsum()
+  # char_byte_indexes <-
+  #   stri_split_boundaries(text, type = "character")[[1L]] |>
+  #   stri_numbytes() |> cumsum()
   # start <- match(start, char_byte_indexes)
   # end <- match(end, char_byte_indexes)
   tibble::tibble(tag = df$tag, start = start, end = end)
@@ -163,11 +167,13 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 #' Segment markdown text
 #'
 #' @param text Markdown string
-#' @param tags,segment_by A character vector of html tag names, e.g., `c("h1", "h2", "h3", "pre")`
+#' @param tags,segment_by A character vector of html tag names, e.g.,
+#'   `c("h1", "h2", "h3", "pre")`
 #' @param trim logical, trim whitespace on segments
 #' @param omit_empty logical, whether to remove empty segments
 #'
-#' @returns A named character vector. Names will correspond to `tags`, or `""` for content inbetween tags.
+#' @returns A named character vector. Names will correspond to `tags`, or `""`
+#'   for content in between tags.
 #' @export
 #'
 #' @examples
@@ -200,9 +206,9 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 #' A table <table>:
 #'
 #'   | Name  | Age | City      |
-#'   |-------|----:|----------|
-#'   | Alice |  25 | New York |
-#'   | Bob   |  30 | London   |
+#'   |-------|----:|-----------|
+#'   | Alice |  25 | New York  |
+#'   | Bob   |  30 | London    |
 #'
 #'
 #' ## Conclusion
@@ -211,7 +217,8 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 #'
 #' - h1, h2, h3, h4, h5, h6: section headings
 #' - p: paragraph (prose)
-#' - pre: pre-formatted text, meant to be displayed with monospace font. Typically code or code output
+#' - pre: pre-formatted text, meant to be displayed with monospace font.
+#'   Typically code or code output
 #' - blockquote: A blockquote
 #' - table: A table
 #' - ul: Unordered list
@@ -339,7 +346,7 @@ markdown_segment_text <- function(
 #'
 #' @export
 #'
-#' @examples
+#' @examplesIf reticulate::py_available()
 #' file <- tempfile(fileext = ".html")
 #' download.file("https://r4ds.hadley.nz/base-R.html", file, quiet = TRUE)
 #'
@@ -461,4 +468,11 @@ cli_markitdown <- function(args, ...) {
     python_version = "3.11",
     ...
   )
+}
+
+
+should_init_python <- function() {
+  reticulate::py_available() ||
+    interactive() ||
+    identical(Sys.getenv("IN_PKGDOWN"), "true")
 }

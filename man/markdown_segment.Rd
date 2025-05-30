@@ -17,7 +17,8 @@ markdown_frame(text, frame_by = c("h1", "h2", "h3"), segment_by = NULL)
 \arguments{
 \item{text}{Markdown string}
 
-\item{tags, segment_by}{A character vector of html tag names, e.g., \code{c("h1", "h2", "h3", "pre")}}
+\item{tags, segment_by}{A character vector of html tag names, e.g.,
+\code{c("h1", "h2", "h3", "pre")}}
 
 \item{trim}{logical, trim whitespace on segments}
 
@@ -26,7 +27,8 @@ markdown_frame(text, frame_by = c("h1", "h2", "h3"), segment_by = NULL)
 \item{frame_by}{Character vector of tags that will become columns in the returned dataframe.}
 }
 \value{
-A named character vector. Names will correspond to \code{tags}, or \code{""} for content inbetween tags.
+A named character vector. Names will correspond to \code{tags}, or \code{""}
+for content in between tags.
 }
 \description{
 Segment markdown text
@@ -61,9 +63,9 @@ hello_world <- function() {
 A table <table>:
 
   | Name  | Age | City      |
-  |-------|----:|----------|
-  | Alice |  25 | New York |
-  | Bob   |  30 | London   |
+  |-------|----:|-----------|
+  | Alice |  25 | New York  |
+  | Bob   |  30 | London    |
 
 
 ## Conclusion
@@ -72,7 +74,8 @@ Common tags:
 
 - h1, h2, h3, h4, h5, h6: section headings
 - p: paragraph (prose)
-- pre: pre-formatted text, meant to be displayed with monospace font. Typically code or code output
+- pre: pre-formatted text, meant to be displayed with monospace font.
+  Typically code or code output
 - blockquote: A blockquote
 - table: A table
 - ul: Unordered list

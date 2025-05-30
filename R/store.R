@@ -469,7 +469,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   if ("vss" %in% type && !is.null(store@embed)) {
     # TODO: duckdb has support for three different distance metrics that can be
     # selected when building the index: l2sq, cosine, and ip. Expose these as options
-    # in the R interface. https://duckdb.org/docs/extensions/vss.html#usage
+    # in the R interface. https://duckdb.org/docs/stable/core_extensions/vss#usage
     dbExecute(con, "INSTALL vss;")
     dbExecute(con, "LOAD vss;")
     dbExecute(
@@ -486,7 +486,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
     dbExecute(con, "INSTALL fts;")
     dbExecute(con, "LOAD fts;")
     # fts index builder takes many options, e.g., stemmer, stopwords, etc.
-    # Expose a way to pass along args. https://duckdb.org/docs/extensions/full_text_search.html
+    # Expose a way to pass along args. https://duckdb.org/docs/stable/core_extensions/full_text_search
     dbExecute(
       con,
       "PRAGMA create_fts_index('chunks', 'id', 'text', overwrite = 1);"

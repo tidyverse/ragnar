@@ -8,7 +8,13 @@
 ^\.ruff_cache$
 ^\.vscode$
 ^.*ragnar\.duckdb$
+^.*ragnar\.store$
 ^LICENSE\.md$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^.claude$
+^.*chat\.Rmd$
+^_chats$
+^cran-comments\.md$
+^CRAN-SUBMISSION$

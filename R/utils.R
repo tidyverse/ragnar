@@ -139,19 +139,5 @@ reorder_names <- function(..., last = NULL) {
   x
 }
 
+is_windows <- function() identical(.Platform$OS.type, "windows")
 
-ollama_ls <- function() {
-  rlang::check_installed("readr")
-  tbl <- system2("ollama", "list", stdout = TRUE)
-  header <- tbl[1]
-  col_starts <- stringi::stri_locate_all_words(header)[[1]][, "start"]
-  col_positions <- readr::fwf_positions(
-    start = col_starts,
-    end = c(col_starts[-1L] - 1L, NA),
-    col_names = stringi::stri_extract_all_words(header)[[1]] |>
-      stringi::stri_trans_tolower()
-  )
-  col_types <- "cccc"
-
-  readr::read_fwf(I(tbl[-1]), col_positions, col_types)
-}

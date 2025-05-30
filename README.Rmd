@@ -37,8 +37,10 @@ happening.
 
 ## Installation
 
+You can install ragnar from CRAN with:
+
 ``` r
-pak::pak("tidyverse/ragnar")
+install.packages("ragnar")
 ```
 
 ## Key Steps
@@ -124,9 +126,9 @@ Key functions:
 
 -   `ragnar_retrieve()`
 -   `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
-    extension](https://duckdb.org/docs/extensions/vss.html)
+    extension](https://duckdb.org/docs/stable/core_extensions/vss)
 -   `ragnar_retrieve_bm25()`: Retrieve using
-    [`full-text search DuckDB extension`](https://duckdb.org/docs/extensions/full_text_search.html)
+    [`full-text search DuckDB extension`](https://duckdb.org/docs/stable/core_extensions/full_text_search)
 
 ### 7. Chat Augmentation
 
