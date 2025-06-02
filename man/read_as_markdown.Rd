@@ -4,18 +4,23 @@
 \alias{read_as_markdown}
 \title{Convert files to markdown}
 \usage{
-read_as_markdown(x, ..., canonical = FALSE)
+read_as_markdown(x, ..., canonical = FALSE, main_only = TRUE)
 }
 \arguments{
 \item{x}{A filepath or url. Accepts a wide variety of file types, including
 PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
-metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
-ZIP files (iterates over contents), Youtube URLs, and EPubs.#'}
+metadata and speech transcription), HTML, Text-based formats (CSV, JSON,
+XML), ZIP files (iterates over contents), Youtube URLs, and EPubs.}
 
 \item{...}{Passed on to \code{MarkItDown.convert()}}
 
 \item{canonical}{logical, whether to postprocess the output from MarkItDown
 with \code{commonmark::markdown_commonmark()}.}
+
+\item{main_only}{logical. Applies only to HTML documents. If \code{TRUE} and a
+\code{main} tag is present in the document, only the contents of the \code{main} tag
+are returned. This is a convenient way to exclude navigational elements
+typically found in sidebars, page headers, and footers.}
 }
 \value{
 A single string of markdown

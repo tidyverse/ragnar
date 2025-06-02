@@ -6,7 +6,8 @@
 #'   stri_extract_last_regex stri_startswith_charclass stri_replace_last_regex
 #'   stri_replace_all_regex stri_replace_all_fixed stri_split_lines1
 #'   stri_replace_first_regex stri_replace_na stri_replace_first_fixed
-#'   stri_endswith_fixed stri_trim_both stri_split_charclass stri_read_lines
+#'   stri_replace_last_fixed stri_count_fixed stri_endswith_fixed stri_trim_both
+#'   stri_split_charclass stri_read_lines
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
@@ -140,4 +141,3 @@ reorder_names <- function(..., last = NULL) {
 }
 
 is_windows <- function() identical(.Platform$OS.type, "windows")
-
