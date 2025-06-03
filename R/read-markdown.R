@@ -97,6 +97,7 @@ read_as_markdown <- function(x, ..., canonical = FALSE, main_only = TRUE) {
 
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
+  md <- stri_trim_right(md)
   if (canonical)
     md <- commonmark::markdown_commonmark(
       md,
