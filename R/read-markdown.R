@@ -1,21 +1,16 @@
-set_markitdown_options <- function(...) {
-  init_markitdown(...)
-}
-
-init_markitdown <- function(...) {
-  .globals$markitdown <- reticulate::import("markitdown")$MarkItDown(...)
-}
-
-
 #' Convert files to markdown
 #'
 #' @param x A filepath or url. Accepts a wide variety of file types, including
 #'   PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
-#'   metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
-#'   ZIP files (iterates over contents), Youtube URLs, and EPubs.#'
+#'   metadata and speech transcription), HTML, Text-based formats (CSV, JSON,
+#'   XML), ZIP files (iterates over contents), Youtube URLs, and EPubs.
 #' @param ... Passed on to `MarkItDown.convert()`
 #' @param canonical logical, whether to postprocess the output from MarkItDown
 #'   with `commonmark::markdown_commonmark()`.
+#' @param main_only logical. Applies only to HTML documents. If `TRUE` and a
+#'   `main` tag is present in the document, only the contents of the `main` tag
+#'   are returned. This is a convenient way to exclude navigational elements
+#'   typically found in sidebars, page headers, and footers.
 #'
 #' @returns A single string of markdown
 #' @export
@@ -61,18 +56,22 @@ init_markitdown <- function(...) {
 #'   chat <- ellmer::chat_openai(echo = TRUE)
 #'   chat$chat("Describe this image", ellmer::content_image_file(jpg))
 #' }
-read_as_markdown <- function(x, ..., canonical = FALSE) {
+read_as_markdown <- function(x, ..., canonical = FALSE, main_only = TRUE) {
   check_string(x)
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
     # use the Python API, faster, more powerful, the default
     # but we leave an escape hatch just in case there are other python
     # dependencies that conflict
-    convert <- .globals$markitdown$convert %||% init_markitdown()$convert
-    md <- convert(x, ...)
+    md <- ragnartools.markitdown$convert_to_markdown(
+      x,
+      ...,
+      main_only = main_only
+    )
   } else {
     # use the markitdown cli API, (much) slower, but can be isolated from
     # reticulated python.
+    # TODO: apply markitdown monkeypatches in cli interface too
 
     check_dots_empty()
     outfile <- withr::local_tempfile(fileext = ".md")
@@ -98,6 +97,7 @@ read_as_markdown <- function(x, ..., canonical = FALSE) {
 
   md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
   md <- unlist(stri_split_lines(md)) # normalize newlines
+  md <- stri_trim_right(md)
   if (canonical)
     md <- commonmark::markdown_commonmark(
       md,

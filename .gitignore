@@ -6,3 +6,4 @@ docs
 .claude
 _chats/
 *chat.Rmd
+__pycache__
