@@ -39,7 +39,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, canonical <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, canonical <span class="op">=</span> <span class="cn">FALSE</span>, main_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -49,8 +49,8 @@
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A filepath or url. Accepts a wide variety of file types, including
 PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
-metadata and speech transcription), HTML, Text-based formats (CSV, JSON, XML),
-ZIP files (iterates over contents), Youtube URLs, and EPubs.#'</p></dd>
+metadata and speech transcription), HTML, Text-based formats (CSV, JSON,
+XML), ZIP files (iterates over contents), Youtube URLs, and EPubs.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -60,6 +60,13 @@ ZIP files (iterates over contents), Youtube URLs, and EPubs.#'</p></dd>
 <dt id="arg-canonical">canonical<a class="anchor" aria-label="anchor" href="#arg-canonical"></a></dt>
 <dd><p>logical, whether to postprocess the output from MarkItDown
 with <code><a href="https://docs.ropensci.org/commonmark/reference/commonmark.html" class="external-link">commonmark::markdown_commonmark()</a></code>.</p></dd>
+
+
+<dt id="arg-main-only">main_only<a class="anchor" aria-label="anchor" href="#arg-main-only"></a></dt>
+<dd><p>logical. Applies only to HTML documents. If <code>TRUE</code> and a
+<code>main</code> tag is present in the document, only the contents of the <code>main</code> tag
+are returned. This is a convenient way to exclude navigational elements
+typically found in sidebars, page headers, and footers.</p></dd>
 
 </dl></div>
     <div class="section level2">
