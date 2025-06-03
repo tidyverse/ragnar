@@ -22,19 +22,24 @@ def maybe_expand_outer_code_fence(text):
     #     ````
     if text.count("```") > 2:
         for n in range(4, 25):
-            fence = "`" * n
-            if fence not in text:
+            new_fence = "`" * n
+            if new_fence not in text:
                 break
-        start = text.find("```")
-        end = text.rfind("```")
-        if start != -1 and end != -1 and start != end:
+        old_fence = "```"
+        old_fence_start = text.find(old_fence)
+        old_fence_end = text.rfind(old_fence)
+        if (
+            old_fence_start != -1
+            and old_fence_end != -1
+            and old_fence_start != old_fence_end
+        ):
             text = "".join(
                 [
-                    text[:start],
-                    fence,
-                    text[start + 3 : end],
-                    fence,
-                    text[end + 3 :],
+                    text[:old_fence_start],
+                    new_fence,
+                    text[old_fence_start + len(old_fence) : old_fence_end],
+                    new_fence,
+                    text[old_fence_end + len(old_fence) :],
                 ]
             )
     return text
@@ -67,6 +72,7 @@ class patched_markitdown:
 
                 def convert_main(self, el, text, parent_tags):
                     return fence_main(text)
+
             else:
 
                 def convert_main(self, el, text, parent_tags):
