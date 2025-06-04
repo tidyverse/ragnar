@@ -1,7 +1,7 @@
 url:  https://ragnar.tidyverse.org
 
 template:
-  package: ragnar
+  package: tidytemplate
   bootstrap: 5
 
   includes:
@@ -10,4 +10,43 @@ template:
 
 development:
   mode: auto
+
+reference:
+  - title: Document processing
+    desc: Ingest documents from the web, PDFs, Word, or local Markdown.
+    contents:
+      - ragnar_read
+      - ragnar_read_document
+      - ragnar_find_links
+      - read_as_markdown
+
+  - title: Text chunking
+    desc: Chunk and augment text context.
+    contents:
+      - ragnar_chunk
+      - ragnar_segment
+      - ragnar_chunk_segments
+      - markdown_segment
+      - markdown_frame
+
+  - title: Store
+    desc: Store embeddings in DuckDB for fast, local queries.
+    contents:
+      - ragnar_store_create
+      - ragnar_store_connect
+      - ragnar_store_insert
+      - ragnar_store_update
+      - ragnar_store_build_index
+      - ragnar_store_inspect
+
+  - title: Embeddings
+    desc: Embed chunks with commercial or open-source models.
+    contents:
+      - starts_with("embed")
+
+  - title: Retrieve
+    desc: Retrieve relevant chunks using both vector and text search.
+    contents:
+      - starts_with("ragnar_retrieve")
+      - ragnar_register_tool_retrieve
 

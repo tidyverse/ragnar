@@ -58,6 +58,6 @@ Suggests:
     shiny
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
 Config/testthat/edition: 3
-URL: http://ragnar.tidyverse.org/, https://github.com/tidyverse/ragnar
+URL: https://ragnar.tidyverse.org/, https://github.com/tidyverse/ragnar
 VignetteBuilder: knitr
 BugReports: https://github.com/tidyverse/ragnar/issues
