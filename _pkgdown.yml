@@ -1,7 +1,7 @@
 url:  https://ragnar.tidyverse.org
 
 template:
-  package: ragnar
+  package: tidytemplate
   bootstrap: 5
 
   includes:
