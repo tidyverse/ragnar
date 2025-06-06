@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+* `ragnar_register_tool_retrieve()` gains optional `name` and `title` arguments
+  to allow for more descriptive tool registration. These values can also be set
+  in `ragnar_store_create()` (#43).
+
 * Changes to `read_as_markdown()` HTML conversion (#40):
 
   * If a 'main' tag is present, content outside the 'main' tag is now excluded 
