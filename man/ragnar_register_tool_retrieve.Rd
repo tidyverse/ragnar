@@ -21,6 +21,12 @@ ragnar_register_tool_retrieve(
 \item{store_description}{Optional string, used for composing the tool description.}
 
 \item{...}{arguments passed on to \code{ragnar_retrieve()}.}
+
+\item{name, title}{Optional tool function name and title. By default, the
+\link{RagnarStore} \verb{@name} and \verb{@title} will be used if present. The tool \code{name}
+must be a valid R function name and should be unique with the tools
+registered with the \link[ellmer:Chat]{ellmer::Chat} object. \code{title} is used for
+user-friendly display.}
 }
 \value{
 \code{chat}, invisibly.

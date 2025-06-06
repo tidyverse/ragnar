@@ -4,6 +4,11 @@
 #' @param store a string of a store location, or a `RagnarStore` object.
 #' @param store_description Optional string, used for composing the tool description.
 #' @param ... arguments passed on to `ragnar_retrieve()`.
+#' @param name,title Optional tool function name and title. By default, the
+#'   [RagnarStore] `@name` and `@title` will be used if present. The tool `name`
+#'   must be a valid R function name and should be unique with the tools
+#'   registered with the [ellmer::Chat] object. `title` is used for
+#'   user-friendly display.
 #'
 #' @returns `chat`, invisibly.
 #' @export
