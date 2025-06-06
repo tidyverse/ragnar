@@ -8,7 +8,9 @@ ragnar_register_tool_retrieve(
   chat,
   store,
   store_description = "the knowledge store",
-  ...
+  ...,
+  name = NULL,
+  title = NULL
 )
 }
 \arguments{

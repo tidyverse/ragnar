@@ -48,7 +48,7 @@ Imports:
     dotty
 Suggests:
     pandoc,
-    ellmer,
+    ellmer (>= 0.2.0),
     knitr,
     rmarkdown,
     stringr,
