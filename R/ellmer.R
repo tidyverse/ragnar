@@ -32,6 +32,9 @@ ragnar_register_tool_retrieve <- function(
   store
   list(...)
 
+  check_string(name, allow_null = TRUE)
+  check_string(title, allow_null = TRUE)
+
   name <- name %||% glue::glue("rag_retrieve_from_{store@name}")
   title <- title %||% store@title
 
