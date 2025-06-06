@@ -18,7 +18,9 @@
 #'  [vctrs::vec_cast()] is used to consistently perform type checks and casts
 #'  when inserting with [ragnar_store_insert()].
 #' @param name A unique name for the store. Must match the `^[a-zA-Z0-9_-]+$`
-#'  regex. Used by [ragnar_register_tool_retrieve()] for registering tools.
+#'   regex. Used by [ragnar_register_tool_retrieve()] for registering tools.
+#' @param title A title for the store, used by [ragnar_register_tool_retrieve()]
+#'   when the store is registered with an [ellmer::Chat] object.
 #'
 #' @examples
 #' # A store with a dummy embedding
@@ -53,7 +55,8 @@ ragnar_store_create <- function(
   overwrite = FALSE,
   ...,
   extra_cols = NULL,
-  name = NULL
+  name = NULL,
+  title = NULL
 ) {
   rlang::check_dots_empty()
 
@@ -61,6 +64,7 @@ ragnar_store_create <- function(
     name <- unique_store_name()
   }
   stopifnot(grepl("^[a-zA-Z0-9_-]+$", name))
+  check_string(title, allow_null = TRUE)
 
   if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
     if (overwrite) {
@@ -128,10 +132,11 @@ ragnar_store_create <- function(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),
     schema = blob::blob(serialize(schema, NULL)),
-    name = name
+    name = name,
+    title = title
   )
 
-  if (overwrite)
+  if (overwrite) {
     dbExecute(
       con,
       glue::trim(
@@ -142,6 +147,7 @@ ragnar_store_create <- function(
       "
       )
     )
+  }
 
   dbWriteTable(con, "metadata", metadata)
 
@@ -191,7 +197,13 @@ ragnar_store_create <- function(
     )
   )
 
-  DuckDBRagnarStore(embed = embed, schema = schema, .con = con, name = name)
+  DuckDBRagnarStore(
+    embed = embed,
+    schema = schema,
+    .con = con,
+    name = name,
+    title = title
+  )
 }
 
 unique_store_name <- function() {
@@ -250,9 +262,17 @@ ragnar_store_connect <- function(
   ptr <- con@conn_ref
   attr(ptr, "embed_function") <- embed
 
-  if (build_index) ragnar_store_build_index(con)
+  if (build_index) {
+    ragnar_store_build_index(con)
+  }
 
-  DuckDBRagnarStore(embed = embed, schema = schema, .con = con, name = name)
+  DuckDBRagnarStore(
+    embed = embed,
+    schema = schema,
+    .con = con,
+    name = name,
+    title = metadata$title
+  )
 }
 
 #' Inserts or updates chunks in a `RagnarStore`
@@ -461,10 +481,13 @@ ragnar_store_insert <- function(store, chunks) {
 #' @returns `store`, invisibly.
 #' @export
 ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
-  if (S7_inherits(store, DuckDBRagnarStore)) con <- store@.con else if (
-    methods::is(store, "DBIConnection")
-  )
-    con <- store else stop("`store` must be a RagnarStore")
+  if (S7_inherits(store, DuckDBRagnarStore)) {
+    con <- store@.con
+  } else if (methods::is(store, "DBIConnection")) {
+    con <- store
+  } else {
+    stop("`store` must be a RagnarStore")
+  }
 
   if ("vss" %in% type && !is.null(store@embed)) {
     # TODO: duckdb has support for three different distance metrics that can be
@@ -502,7 +525,8 @@ RagnarStore <- new_class(
   properties = list(
     embed = S7::new_union(class_function, NULL),
     schema = class_data.frame,
-    name = class_character
+    name = class_character,
+    title = S7::new_union(NULL, class_character)
   ),
   abstract = TRUE
 )
