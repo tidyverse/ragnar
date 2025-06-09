@@ -58,6 +58,9 @@
 #' }
 read_as_markdown <- function(x, ..., canonical = FALSE, main_only = TRUE) {
   check_string(x)
+  if (startsWith(x, "~")) {
+    x <- path.expand(x)
+  }
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
     # use the Python API, faster, more powerful, the default
@@ -409,8 +412,6 @@ markdown_segment_text <- function(
 #'   # inspect
 #'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
 ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
-  check_string(x)
-  if (startsWith(x, "~")) x <- path.expand(x)
   text <- read_as_markdown(x, ...)
   hash <- rlang::hash(text)
 
