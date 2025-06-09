@@ -409,6 +409,7 @@ markdown_segment_text <- function(
 #'   # inspect
 #'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
 ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
+  x <- normalize_path(x)
   text <- read_as_markdown(x, ...)
   hash <- rlang::hash(text)
 
@@ -470,6 +471,17 @@ cli_markitdown <- function(args, ...) {
   )
 }
 
+normalize_path <- function(x) {
+  is_url <- grepl("(http|https|ftp)", x)
+  if (!is_url) {
+    # Is it a local file?
+    does_exists <- file.exists(x)
+    if (does_exists) {
+      x <- normalizePath(x)
+    }
+  }
+  x
+}
 
 should_init_python <- function() {
   reticulate::py_available() ||
