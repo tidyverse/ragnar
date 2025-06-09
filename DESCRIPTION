@@ -47,10 +47,8 @@ Imports:
     withr,
     xml2
 Suggests:
-    pandoc,
-    ellmer (>= 0.2.0),
     dbplyr,
-    ellmer (>= 0.2.0),,
+    ellmer (>= 0.2.0),
     knitr,
     pandoc,
     paws.common,
