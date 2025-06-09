@@ -4,6 +4,9 @@
   to allow for more descriptive tool registration. These values can also be set
   in `ragnar_store_create()` (#43).
 
+* `ragnar_read()` and `read_as_markdown()` now accept paths 
+  that begin with `~` (#46, #48).
+
 * Changes to `read_as_markdown()` HTML conversion (#40):
 
   * If a 'main' tag is present, content outside the 'main' tag is now excluded 

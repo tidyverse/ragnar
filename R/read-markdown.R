@@ -58,6 +58,9 @@
 #' }
 read_as_markdown <- function(x, ..., canonical = FALSE, main_only = TRUE) {
   check_string(x)
+  if (startsWith(x, "~")) {
+    x <- path.expand(x)
+  }
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
     # use the Python API, faster, more powerful, the default
@@ -475,4 +478,20 @@ should_init_python <- function() {
   reticulate::py_available() ||
     interactive() ||
     identical(Sys.getenv("IN_PKGDOWN"), "true")
+}
+
+#' View chunks with the store inspector
+#'
+#' Visualize chunks read by [ragnar_read()] for quick inspection.
+#' Helpful for inspecting the results of chunking and reading while iterating
+#' on the ingestion pipeline.
+#'
+#' @param chunks A data frame containing a few chunks.
+#'
+#' @export
+ragnar_chunks_view <- function(chunks) {
+  store <- ragnar_store_create(embed = NULL)
+  ragnar_store_insert(store, chunks)
+  ragnar_store_build_index(store)
+  ragnar_store_inspect(store)
 }
