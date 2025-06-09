@@ -479,3 +479,19 @@ should_init_python <- function() {
     interactive() ||
     identical(Sys.getenv("IN_PKGDOWN"), "true")
 }
+
+#' View chunks with the store inspector
+#'
+#' Visualize chunks read by [ragnar_read()] for quick inspection.
+#' Helpful for inspecting the results of chunking and reading while iterating
+#' on the ingestion pipeline.
+#'
+#' @param chunks A data frame containing a few chunks.
+#'
+#' @export
+ragnar_chunks_view <- function(chunks) {
+  store <- ragnar_store_create(embed = NULL)
+  ragnar_store_insert(store, chunks)
+  ragnar_store_build_index(store)
+  ragnar_store_inspect(store)
+}

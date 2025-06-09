@@ -1,4 +1,4 @@
-storeInspectorUI <- function(id) {
+storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
   ns <- \(i) shiny::NS(id, i)
 
   shiny::tags$html(
@@ -34,7 +34,7 @@ storeInspectorUI <- function(id) {
             placeholder = "Search the store ..."
           )
         ),
-        switchInput(ns("search_type"), "VSS", "BM25")
+        switchInput(ns("search_type"), search_types)
       ),
       shiny::div(
         class = "flex grow p-2 gap-2 h-full overflow-hidden",
@@ -44,7 +44,7 @@ storeInspectorUI <- function(id) {
           shiny::div(
             class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
             shiny::h3("Document preview", class = "text-md font-mono"),
-            switchInput(ns("markdown"), "Preview", "Raw Text")
+            switchInput(ns("markdown"), c("Preview", "Raw Text"))
           ),
           shiny::uiOutput(
             class = "h-full",
@@ -59,16 +59,20 @@ storeInspectorUI <- function(id) {
 storeInspectorServer <- function(id, store) {
   shiny::moduleServer(id, function(input, output, session) {
     query <- shiny::debounce(shiny::reactive(input$query), 1000)
-    is_vss <- switchServer("search_type")
+    search_type <- switchServer("search_type")
 
     documents <- shiny::reactive({
       if (is.null(query()) || nchar(query()) <= 0) {
-        return(data.frame())
+        d <- dplyr::tbl(store) |>
+          head(100) |>
+          dplyr::collect()
+        attr(d, "no_filter") <- TRUE
+        return(d)
       }
 
       tryCatch(
         {
-          if (is_vss()) {
+          if (search_type() == "VSS") {
             ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
           } else {
             ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
@@ -92,14 +96,14 @@ storeInspectorServer <- function(id, store) {
       docs <- documents()
       docs$text[docs$id == selectedDocumentId()]
     })
-    is_markdown <- switchServer("markdown")
+    preview_type <- switchServer("markdown")
 
     output$preview <- shiny::renderUI({
       if (is.null(selectedDocumentText())) {
         return(tags$div("Select a document to preview"))
       }
 
-      if (is_markdown()) {
+      if (preview_type() == "Markdown") {
         shiny::tags$iframe(
           class = "size-full",
           srcdoc = shiny::markdown(selectedDocumentText())
@@ -199,7 +203,16 @@ listDocumentsServer <- function(id, documents) {
               active = d$.rn == 1
             )
         )
-      shiny::tagList(!!!summaries)
+
+
+
+      shiny::tagList(
+        if (attr(documents(), "no_filter") %||% FALSE) shiny::tags$div(
+          class = "text-sm text-center",
+          "No search query, showing first few documents"
+        ),
+        !!!summaries
+      )
     })
 
     shiny::reactive(input$selected_document)
@@ -254,7 +267,7 @@ documentSummaryUI <- function(id, document, active = FALSE) {
         glue::glue("id: #{document$id}")
       )
     ),
-    div(
+    if(!is.null(document[["metric_name"]])) div(
       class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
       icon(
         "gauge",
@@ -289,20 +302,55 @@ documentSummaryUI <- function(id, document, active = FALSE) {
       ),
       div(
         class = "flex-none font-light",
-        glue::glue("~{as.integer(prettyNum(n_char/4, big.mark = ','))}")
+        glue::glue("~{prettyNum(as.integer(n_char/4), big.mark = ',')}")
       )
     )
   )
 }
 
 
-switchInput <- function(id, trueLabel, falseLabel) {
+switchInput <- function(id, switch_values) {
   ns <- \(i) shiny::NS(id, i)
+  stopifnot(length(switch_values) <= 2, is.character(switch_values))
+
+  container <- function(...) {
+    shiny::div(
+      class = "flex flex-row bg-gray-200 rounded-full p-1 gap-1 text-xs",
+      shiny::tags$script(shiny::HTML(glue::glue("(function() {{
+        function init() {{
+          console.log('setting input value');
+          Shiny.setInputValue('{ns('value')}', '{switch_values[1]}');
+        }}
+
+        function waitForShiny() {{
+          if (window.Shiny && Shiny.setInputValue) {{
+            init();
+          }} else {{
+            setTimeout(waitForShiny, 50);
+          }}
+        }}
+
+        waitForShiny();
+      }})()"))),
+      ...
+    )
+  }
+
+  if (length(switch_values) == 1) {
+    return(container(
+      shiny::tags$button(
+        class = ns('btn'),
+        class = "rounded-full p-1 px-4 bg-white disabled",
+        disabled = TRUE,
+        switch_values
+      )
+    ))
+  }
 
   jsHandler <- function(val) {
     glue::glue(
       "(function() {{
-        Shiny.setInputValue('{ns('value')}', {val});
+        Shiny.setInputValue('{ns('value')}', '{val}');
         var $element = $('.{ns('btn')}');
         $element.
           toggleClass('bg-white disabled').
@@ -311,26 +359,25 @@ switchInput <- function(id, trueLabel, falseLabel) {
     )
   }
 
-  shiny::div(
-    class = "flex flex-row bg-gray-200 rounded-full p-1 gap-1 text-xs",
+  container(
     shiny::tags$button(
       class = ns('btn'),
       class = "rounded-full p-1 px-4 bg-white disabled",
-      onClick = jsHandler('true'),
+      onClick = jsHandler(switch_values[1]),
       disabled = NA,
-      trueLabel
+      switch_values[1]
     ),
     shiny::tags$button(
       class = ns('btn'),
       class = "rounded-full p-1 px-4",
-      onClick = jsHandler('false'),
-      falseLabel
+      onClick = jsHandler(switch_values[2]),
+      switch_values[2]
     )
   )
 }
 
 switchServer <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
-    shiny::reactive(input$value %||% TRUE)
+    shiny::reactive(input$value)
   })
 }
