@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+* `ragnar_read()` and `read_as_markdown()` now accept paths 
+  that begin with `~` (#46, #48).
+
 * Changes to `read_as_markdown()` HTML conversion (#40):
 
   * If a 'main' tag is present, content outside the 'main' tag is now excluded 

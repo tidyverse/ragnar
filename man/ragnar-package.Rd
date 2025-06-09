@@ -13,7 +13,7 @@ Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows w
 \seealso{
 Useful links:
 \itemize{
-  \item \url{http://ragnar.tidyverse.org/}
+  \item \url{https://ragnar.tidyverse.org/}
   \item \url{https://github.com/tidyverse/ragnar}
   \item Report bugs at \url{https://github.com/tidyverse/ragnar/issues}
 }

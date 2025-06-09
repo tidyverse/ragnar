@@ -58,6 +58,9 @@
 #' }
 read_as_markdown <- function(x, ..., canonical = FALSE, main_only = TRUE) {
   check_string(x)
+  if (startsWith(x, "~")) {
+    x <- path.expand(x)
+  }
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
     # use the Python API, faster, more powerful, the default
