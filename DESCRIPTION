@@ -48,7 +48,7 @@ Imports:
     xml2
 Suggests:
     dbplyr,
-    ellmer,
+    ellmer (>= 0.2.0),
     knitr,
     pandoc,
     paws.common,
@@ -56,7 +56,7 @@ Suggests:
     shiny,
     stringr,
     testthat (>= 3.0.0)
-VignetteBuilder: 
+VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
 Config/testthat/edition: 3

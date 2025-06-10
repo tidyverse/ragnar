@@ -4,6 +4,11 @@
 #' @param store a string of a store location, or a `RagnarStore` object.
 #' @param store_description Optional string, used for composing the tool description.
 #' @param ... arguments passed on to `ragnar_retrieve()`.
+#' @param name,title Optional tool function name and title. By default,
+#'   `store@name` and `store@title` will be used if present. The tool `name`
+#'   must be a valid R function name and should be unique with the tools
+#'   registered with the [ellmer::Chat] object. `title` is used for
+#'   user-friendly display.
 #'
 #' @returns `chat`, invisibly.
 #' @export
@@ -20,26 +25,43 @@
 #' store <- ragnar_store_connect("r4ds.ragnar.duckdb", read_only = TRUE)
 #' ragnar_register_tool_retrieve(chat, store)
 #' chat$chat("How can I subset a dataframe?")
-ragnar_register_tool_retrieve <-
-  function(chat, store, store_description = "the knowledge store", ...) {
-    rlang::check_installed("ellmer")
-    store
-    list(...)
+ragnar_register_tool_retrieve <- function(
+  chat,
+  store,
+  store_description = "the knowledge store",
+  ...,
+  name = NULL,
+  title = NULL
+) {
+  rlang::check_installed("ellmer")
+  store
+  list(...)
 
-    chat$register_tool(
-      ellmer::tool(
-        .name = glue::glue("rag_retrieve_from_{store@name}"),
-        function(text) {
-          ragnar_retrieve(store, text, ...)$text |>
-            stringi::stri_flatten("\n\n---\n\n")
-        },
-        glue::glue(
-          "Given a string, retrieve the most relevent excerpts from {store_description}."
-        ),
-        text = ellmer::type_string(
-          "The text to find the most relevent matches for."
-        )
+  check_string(name, allow_null = TRUE)
+  check_string(title, allow_null = TRUE)
+
+  name <- name %||% glue::glue("rag_retrieve_from_{store@name}")
+  title <- title %||% store@title
+
+  chat$register_tool(
+    ellmer::tool(
+      .name = name,
+      function(text) {
+        ragnar_retrieve(store, text, ...)$text |>
+          stringi::stri_flatten("\n\n---\n\n")
+      },
+      glue::glue(
+        "Given a string, retrieve the most relevent excerpts from {store_description}."
+      ),
+      text = ellmer::type_string(
+        "The text to find the most relevent matches for."
+      ),
+      .annotations = ellmer::tool_annotations(
+        title = title,
+        read_only_hint = TRUE,
+        open_world_hint = FALSE
       )
     )
-    invisible(chat)
-  }
+  )
+  invisible(chat)
+}

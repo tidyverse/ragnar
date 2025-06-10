@@ -11,7 +11,8 @@ ragnar_store_create(
   overwrite = FALSE,
   ...,
   extra_cols = NULL,
-  name = NULL
+  name = NULL,
+  title = NULL
 )
 }
 \arguments{
@@ -40,6 +41,9 @@ when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.}
 
 \item{name}{A unique name for the store. Must match the \verb{^[a-zA-Z0-9_-]+$}
 regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}} for registering tools.}
+
+\item{title}{A title for the store, used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}}
+when the store is registered with an \link[ellmer:Chat]{ellmer::Chat} object.}
 }
 \value{
 a \code{DuckDBRagnarStore} object
