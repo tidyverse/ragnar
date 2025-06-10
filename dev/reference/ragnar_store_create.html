@@ -46,7 +46,8 @@
 <span>  overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  extra_cols <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  name <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  title <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,6 +93,11 @@ when inserting with <code><a href="ragnar_store_insert.html">ragnar_store_insert
 <dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
 <dd><p>A unique name for the store. Must match the <code>^[a-zA-Z0-9_-]+$</code>
 regex. Used by <code><a href="ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code> for registering tools.</p></dd>
+
+
+<dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
+<dd><p>A title for the store, used by <code><a href="ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code>
+when the store is registered with an <a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a> object.</p></dd>
 
 </dl></div>
     <div class="section level2">

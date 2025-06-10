@@ -43,7 +43,9 @@
 <span>  <span class="va">chat</span>,</span>
 <span>  <span class="va">store</span>,</span>
 <span>  store_description <span class="op">=</span> <span class="st">"the knowledge store"</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  title <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -65,6 +67,14 @@
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>arguments passed on to <code><a href="ragnar_retrieve.html">ragnar_retrieve()</a></code>.</p></dd>
+
+
+<dt id="arg-name-title">name, title<a class="anchor" aria-label="anchor" href="#arg-name-title"></a></dt>
+<dd><p>Optional tool function name and title. By default,
+<code>store@name</code> and <code>store@title</code> will be used if present. The tool <code>name</code>
+must be a valid R function name and should be unique with the tools
+registered with the <a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a> object. <code>title</code> is used for
+user-friendly display.</p></dd>
 
 </dl></div>
     <div class="section level2">
