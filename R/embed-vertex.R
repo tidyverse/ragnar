@@ -38,10 +38,6 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
     return(NULL)
   }
 
-  # location="us-central1"
-  # model <- "text-embedding-005"
-  # project_id = "rstudio-162821"
-
   check_string(model, allow_empty = FALSE)
   credentials <- google_credentials()
 
@@ -59,25 +55,20 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
 
   out <- list()
-  for (chunk in x) {
+  for (indices in chunk_list(seq_along(x), 20)) {
+    instances <- purrr::map(indices, \(i) list(task_type = task_type, content = x[[i]]))
+
     resp <- base_req |>
-      httr2::req_body_json(list(
-        instances = list(
-          list(
-            "task_type" = task_type,
-            "content" = chunk
-          )
-        )
-      )) |>
+      httr2::req_body_json(list(instances = instances)) |>
       httr2::req_perform() |>
       httr2::resp_body_json()
 
-    out[indices] <- unlist(resp$predictions[[1]]$embeddings)
+    out[indices] <- purrr::map(resp$predictions, \(x) x$embeddings$values)
   }
 
   matrix(
     unlist(out),
-    nrow = length(inputs),
+    nrow = length(x),
     ncol = length(out[[1]]),
     byrow = TRUE
   )
