@@ -45,7 +45,7 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
   base_req <- vertex_url(location, project_id) |>
     httr2::request() |>
-    httr2::req_headers(req, !!!credentials, .redact = names(credentials))
+    httr2::req_headers(!!!credentials, .redact = names(credentials))
     httr2::req_url_path_append(
       "models",
       paste0(model, ":predict")
