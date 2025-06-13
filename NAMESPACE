@@ -2,6 +2,7 @@
 
 export(embed_bedrock)
 export(embed_databricks)
+export(embed_google_vertex)
 export(embed_ollama)
 export(embed_openai)
 export(markdown_frame)
