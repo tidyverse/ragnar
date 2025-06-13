@@ -56,14 +56,14 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
   out <- list()
   for (indices in chunk_list(seq_along(x), 20)) {
-    instances <- purrr::map(indices, \(i) list(task_type = task_type, content = x[[i]]))
+    instances <- lapply(indices, \(i) list(task_type = task_type, content = x[[i]]))
 
     resp <- base_req |>
       httr2::req_body_json(list(instances = instances)) |>
       httr2::req_perform() |>
       httr2::resp_body_json()
 
-    out[indices] <- purrr::map(resp$predictions, \(x) x$embeddings$values)
+    out[indices] <- lapply(resp$predictions, \(x) x$embeddings$values)
   }
 
   matrix(
