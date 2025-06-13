@@ -25,8 +25,9 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
     x[["embedding"]] <- Recall(
       x[["text"]],
       model = model,
-      profile = profile,
-      api_args = api_args
+      location = location,
+      project_id = project_id,
+      task_type = task_type
     )
     return(x)
   }
