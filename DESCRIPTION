@@ -55,7 +55,9 @@ Suggests:
     rmarkdown,
     shiny,
     stringr,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    connectcreds,
+    gargle
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown

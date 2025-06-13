@@ -41,10 +41,11 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
   check_string(model, allow_empty = FALSE)
   credentials <- google_credentials()
+  credentials <- credentials()
 
   base_req <- vertex_url(location, project_id) |>
     httr2::request() |>
-    ellmer:::ellmer_req_credentials(credentials) |>
+    httr2::req_headers(req, !!!credentials, .redact = names(credentials))
     httr2::req_url_path_append(
       "models",
       paste0(model, ":predict")
@@ -87,7 +88,7 @@ vertex_url <- function(location, project_id) {
 
 google_credentials <- function (error_call = caller_env()) {
   scope <- "https://www.googleapis.com/auth/cloud-platform"
-  if (ellmer:::has_connect_viewer_token(scope = scope)) {
+  if (has_connect_viewer_token(scope = scope)) {
     return(function() {
       token <- connectcreds::connect_viewer_token(scope = scope)
       list(Authorization = paste("Bearer", token$access_token))
@@ -134,4 +135,11 @@ google_credentials <- function (error_call = caller_env()) {
     }
     list(Authorization = paste("Bearer", token$credentials$access_token))
   })
+}
+
+has_connect_viewer_token <- function (...) {
+  if (!is_installed("connectcreds")) {
+    return(FALSE)
+  }
+  connectcreds::has_viewer_token(...)
 }
