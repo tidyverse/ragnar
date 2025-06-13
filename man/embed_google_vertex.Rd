@@ -23,7 +23,8 @@ to get embeddings. This is a convenient way to partial in additional arguments l
 and is the most convenient way to produce a function that can be passed to the \code{embed} argument of \code{ragnar_store_create()}.
 }}
 
-\item{model}{string; model name}
+\item{model}{Character specifying the embedding model.
+See supported models in \href{https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/text-embeddings-api}{Text embeddings API}}
 
 \item{location}{Location, e.g. \code{us-east1}, \code{me-central1}, \code{africa-south1}.}
 
@@ -45,4 +46,14 @@ For more information about task types, see \href{https://cloud.google.com/vertex
 }
 \description{
 Embed using Google Vertex API platform
+}
+\examples{
+\dontrun{
+embed_google_vertex(
+ "hello world",
+ model="gemini-embedding-001",
+ project = "<your-project-id>",
+ location = "us-central1"
+)
+}
 }

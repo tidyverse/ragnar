@@ -1,6 +1,8 @@
 #' Embed using Google Vertex API platform
 #' @inheritParams embed_openai
 #' @inheritParams ellmer::chat_google_vertex
+#' @param model Character specifying the embedding model.
+#' See supported models in [Text embeddings API](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/text-embeddings-api)
 #' @param task_type Used to convey intended downstream application to help the
 #' model produce better embeddings. If left blank, the default used is `"RETRIEVAL_QUERY"`.
 #' - `"RETRIEVAL_QUERY"`
@@ -12,7 +14,15 @@
 #' - `"FACT_VERIFICATION"`
 #' - `"CODE_RETRIEVAL_QUERY"`
 #' For more information about task types, see [Choose an embeddings task type](https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types).
-#'
+#' @examples
+#' \dontrun{
+#' embed_google_vertex(
+#'  "hello world",
+#'  model="gemini-embedding-001",
+#'  project = "<your-project-id>",
+#'  location = "us-central1"
+#' )
+#' }
 #'@export
 embed_google_vertex <- function(x, model, location, project_id, task_type = "RETRIEVAL_QUERY") {
   if (missing(x) || is.null(x)) {
@@ -45,7 +55,7 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
   base_req <- vertex_url(location, project_id) |>
     httr2::request() |>
-    httr2::req_headers(!!!credentials, .redact = names(credentials))
+    httr2::req_headers(!!!credentials, .redact = names(credentials)) |>
     httr2::req_url_path_append(
       "models",
       paste0(model, ":predict")
@@ -57,11 +67,16 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
 
   out <- list()
-  for (indices in chunk_list(seq_along(x), 20)) {
+  # The gemini model does not support batches
+  chunk_size <- if (grepl("gemini", model)) 1 else 20
+
+  for (indices in chunk_list(seq_along(x), chunk_size)) {
     instances <- lapply(indices, \(i) list(task_type = task_type, content = x[[i]]))
 
     resp <- base_req |>
-      httr2::req_body_json(list(instances = instances)) |>
+      httr2::req_body_json(list(
+        instances = instances
+      )) |>
       httr2::req_perform() |>
       httr2::resp_body_json()
 
