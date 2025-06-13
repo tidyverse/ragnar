@@ -27,7 +27,7 @@
 embed_google_vertex <- function(x, model, location, project_id, task_type = "RETRIEVAL_QUERY") {
   if (missing(x) || is.null(x)) {
     args <- capture_args()
-    fn <- partial(quote(ragnar::embed_vertex), alist(x = ), args)
+    fn <- partial(quote(ragnar::embed_google_vertex), alist(x = ), args)
     return(fn)
   }
 
