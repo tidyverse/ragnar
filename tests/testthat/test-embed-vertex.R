@@ -29,6 +29,16 @@ test_that("google vertex embeddings works", {
 
     expect_equal(embs1[1,], embs[1,])
     expect_equal(embs2[1,], embs[2,])
+
+    # error when max tokens is reached
+    expect_error(embed_google_vertex(
+      paste(rep(letters, 10000), collapse = ""),
+      model=model,
+      project = project_id,
+      location = "us-central1"
+    ), regexp = "are longer than the maximum number of tokens")
   }
 
 })
+
+

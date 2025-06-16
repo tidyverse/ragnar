@@ -75,6 +75,9 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
     resp <- base_req |>
       httr2::req_body_json(list(
+        parameters = list(
+          autoTruncate = FALSE
+        ),
         instances = instances
       )) |>
       httr2::req_perform() |>
