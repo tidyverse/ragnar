@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+* New function `embed_google_vertex()` (@dfalbel, #49)
+
 * New function `embed_databricks()` (@atheriel, #45)
 
 * New function `ragnar_chunks_view()` for quickly previewing chunks (#42)
