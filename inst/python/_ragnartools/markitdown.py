@@ -100,6 +100,10 @@ def convert_to_markdown(x, *args, main_only=True, **kwargs):
             end = text.rfind("____RAGNAR_MAIN_END____")
             if start != -1 and end != -1:
                 text = text[start + len("____RAGNAR_MAIN_START____") : end]
+            # if there was malformed html with multiple <main> tags
+            # make sure we don't leak fences (and use the outermost main)
+            text = text.replace("____RAGNAR_MAIN_START____", "")
+            text = text.replace("____RAGNAR_MAIN_END____", "")
 
         if result.title is not None:
             text = f"# {result.title}\n\n{text}"
