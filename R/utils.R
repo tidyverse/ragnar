@@ -17,7 +17,7 @@
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
 #'   vec_chop
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
-#'   resp_body_json req_retry req_auth_bearer_token
+#'   resp_body_json req_retry req_auth_bearer_token req_error resp_body_json
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
 #'   dbWriteTable dbListTables dbReadTable
 #' @importFrom glue glue glue_data as_glue

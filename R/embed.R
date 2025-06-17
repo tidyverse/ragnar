@@ -67,7 +67,10 @@ embed_ollama <- function(
   embeddings <- map2(starts, ends, function(start, end) {
     req <- request(base_url) |>
       req_url_path_append("/api/embed") |>
-      req_body_json(list(model = model, input = x[start:end]))
+      req_body_json(list(model = model, input = x[start:end])) |>
+      req_error(body = \(resp) {
+        resp_body_json(resp)$error
+      })
 
     resp <- req_perform(req)
     resp_body_json(resp, simplifyVector = TRUE)$embeddings
