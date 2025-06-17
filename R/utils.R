@@ -49,13 +49,17 @@ map_lgl <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = TRUE, ...)
 
 map2 <- function(.x, .y, .f, ...) {
   out <- .mapply(.f, list(.x, .y), list(...))
-  if (length(.x) == length(out)) names(out) <- names(.x)
+  if (length(.x) == length(out)) {
+    names(out) <- names(.x)
+  }
   out
 }
 
 map3 <- function(.x, .y, .z, .f, ...) {
   out <- .mapply(.f, list(.x, .y, .z), list(...))
-  if (length(.x) == length(out)) names(out) <- names(.x)
+  if (length(.x) == length(out)) {
+    names(out) <- names(.x)
+  }
   out
 }
 
@@ -84,13 +88,19 @@ imap <- function(.x, .f, ...) {
 #  is_double2(x, c(NA, NA, NA)) # FALSE
 #  is_double2(x, 12)            # FALSE
 is_double2 <- function(x, dim = NULL) {
-  if (is.null(dim)) return(is_double(x))
+  if (is.null(dim)) {
+    return(is_double(x))
+  }
 
-  if (!is.double(x)) return(FALSE)
+  if (!is.double(x)) {
+    return(FALSE)
+  }
 
   actual_size <- base::dim(x)
   expected_size <- as.integer(dim)
-  if (length(actual_size) != length(expected_size)) return(FALSE)
+  if (length(actual_size) != length(expected_size)) {
+    return(FALSE)
+  }
 
   all(expected_size == actual_size, na.rm = TRUE)
 }
@@ -136,7 +146,9 @@ partial <- function(.fn, .sig, ...) {
 
 reorder_names <- function(..., last = NULL) {
   x <- unique(c(...))
-  if (!is.null(last)) x <- unique(c(x, last), fromLast = TRUE)
+  if (!is.null(last)) {
+    x <- unique(c(x, last), fromLast = TRUE)
+  }
   x
 }
 

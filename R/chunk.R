@@ -12,10 +12,14 @@ str_chunk1 <- function(
   max_size = 1600L,
   trim = TRUE
 ) {
-  if (isTRUE(is.na(string))) return(NA_character_)
+  if (isTRUE(is.na(string))) {
+    return(NA_character_)
+  }
   check_string(string, allow_na = TRUE)
   string_len <- stri_length(string)
-  if (string_len <= max_size) return(string)
+  if (string_len <= max_size) {
+    return(string)
+  }
 
   candidate_cutpoints <- c(
     1L,
@@ -31,7 +35,9 @@ str_chunk1 <- function(
     use_matrix = FALSE
   )
 
-  if (trim) chunks <- stri_trim_both(chunks)
+  if (trim) {
+    chunks <- stri_trim_both(chunks)
+  }
 
   chunks <- chunks[nzchar(chunks)]
 
@@ -42,45 +48,47 @@ str_locate_boundaries1 <- function(string, boundary) {
   check_string(string)
   if (inherits(boundary, "stringr_pattern")) {
     locations <- stringr::str_locate_all(string, boundary)[[1L]][, "end"]
-  } else {
-    check_string(boundary)
-    locations <- switch(
-      boundary,
-      ## TODO: we might need to a specialized markdown <p> tag detector here,
-      ## since this will false positive on code chunks and non-compact lists
-      ## (<pre> <ul> or <ol>) in markdown.
-      ## We can probably factor markdown_boundaries() out of markdown_segment() and
-      ## use it here. I.e., use commonmark::markdown_html() to extract sourcepos,
-      ## then split on raw vector.
-      ## ... or use stringi to convert byte to char indexes, e.g.,
-      ## stri_split_boundaries(x, type = "char")[[1]] |>  stri_numbytes()
-      paragraph = stri_locate_all_fixed(string, "\n\n", omit_no_match = TRUE)[[
-        1L
-      ]][, "end"],
-
-      # Note, stri_opts_brkiter 'type = line_break' is really about finding
-      # candidates line break for the purpose of line wrapping a string, not
-      # about finding actual new line boundaries. `type = line_break` might be
-      # more suitable than `type = word` for our purpose here.
-      # stri_split_lines() does more comprehensive identification of line
-      # breaks, but isn't exported as a boundary detector. Most text passing
-      # through here is expected to have been normalized as markdown already...
-      line_break = stri_locate_all_fixed(string, "\n", omit_no_match = TRUE)[[
-        1L
-      ]][, "end"],
-
-      sentence = ,
-      word = ,
-      character = stri_locate_all_boundaries(
-        string,
-        type = boundary,
-        locale = "@ss=standard"
-      )[[1L]][, "end"],
-      stop(
-        'boundaries values must be one of: "paragraph", "sentence", "line_break", "word", "character" or a stringr pattern'
-      )
-    )
+    return(locations)
   }
+  check_string(boundary)
+  locations <- switch(
+    boundary,
+    ## TODO: we might need to a specialized markdown <p> tag detector here,
+    ## since this will false positive on code chunks and non-compact lists
+    ## (<pre> <ul> or <ol>) in markdown.
+    ## We can probably factor markdown_boundaries() out of markdown_segment() and
+    ## use it here. I.e., use commonmark::markdown_html() to extract sourcepos,
+    ## then split on raw vector.
+    ## ... or use stringi to convert byte to char indexes, e.g.,
+    ## stri_split_boundaries(x, type = "char")[[1]] |>  stri_numbytes()
+    paragraph = stri_locate_all_fixed(
+      string,
+      "\n\n",
+      omit_no_match = TRUE
+    )[[1L]][, "end"],
+
+    # Note, stri_opts_brkiter 'type = line_break' is really about finding
+    # candidates line break for the purpose of line wrapping a string, not
+    # about finding actual new line boundaries. `type = line_break` might be
+    # more suitable than `type = word` for our purpose here.
+    # stri_split_lines() does more comprehensive identification of line
+    # breaks, but isn't exported as a boundary detector. Most text passing
+    # through here is expected to have been normalized as markdown already...
+    line_break = stri_locate_all_fixed(string, "\n", omit_no_match = TRUE)[[
+      1L
+    ]][, "end"],
+
+    sentence = ,
+    word = ,
+    character = stri_locate_all_boundaries(
+      string,
+      type = boundary,
+      locale = "@ss=standard"
+    )[[1L]][, "end"],
+    stop(
+      'boundaries values must be one of: "paragraph", "sentence", "line_break", "word", "character" or a stringr pattern'
+    )
+  )
   locations
 }
 
@@ -107,9 +115,13 @@ str_chunk <- function(
     repeat {
       lens <- stri_length(chunks)
       is_over_size <- lens > max_size
-      if (!any(is_over_size, na.rm = TRUE)) break
+      if (!any(is_over_size, na.rm = TRUE)) {
+        break
+      }
       boundaries <- boundaries[-1L]
-      if (!length(boundaries)) break
+      if (!length(boundaries)) {
+        break
+      }
       chunks <- as.list(chunks)
       chunks[is_over_size] <- lapply(
         chunks[is_over_size],
@@ -122,7 +134,9 @@ str_chunk <- function(
     chunks
   })
 
-  if (simplify) out <- unlist(out)
+  if (simplify) {
+    out <- unlist(out)
+  }
 
   out
 }
@@ -280,7 +294,9 @@ ragnar_segment <- function(
       ...,
       simplify = FALSE
     )
-    if (simplify) x <- tidyr::unchop(x, "text")
+    if (simplify) {
+      x <- tidyr::unchop(x, "text")
+    }
     return(x)
   }
 
@@ -293,11 +309,15 @@ ragnar_segment <- function(
       sort() |>
       unique()
     segments <- stri_sub(string, drop_last(cutpoints), drop_first(cutpoints))
-    if (trim) segments <- stri_trim_both(segments)
+    if (trim) {
+      segments <- stri_trim_both(segments)
+    }
     segments
   })
 
-  if (simplify) out <- unlist(out)
+  if (simplify) {
+    out <- unlist(out)
+  }
 
   out
 }
@@ -322,7 +342,9 @@ ragnar_chunk_segments <- function(
       sep = sep,
       simplify = FALSE
     )
-    if (simplify) x <- tidyr::unchop(x, "text")
+    if (simplify) {
+      x <- tidyr::unchop(x, "text")
+    }
     return(x)
   }
   check_string(sep)
@@ -336,7 +358,9 @@ ragnar_chunk_segments <- function(
         ...
       )
     })
-    if (simplify) out <- unlist(out)
+    if (simplify) {
+      out <- unlist(out)
+    }
 
     return(out)
   }
