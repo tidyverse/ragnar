@@ -15,7 +15,7 @@
 
 * Changes to `read_as_markdown()` HTML conversion (#40, #51):
 
-  * New arguments `html_extract_selectors` and `html_zap_selectors` provide a felxible way to
+  * New arguments `html_extract_selectors` and `html_zap_selectors` provide a flexible way to
     exclude some html page elements from being included in the converted markdown.
 
   * Fixed handling of nested code fences in markdown output.
