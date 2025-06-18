@@ -135,6 +135,10 @@ ragnar_store_create <- function(
     }
   }
 
+  if (!is.null(embed)) {
+    embed <- make_default_args_explicit(embed)
+  }
+
   metadata <- tibble::tibble(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),
@@ -242,6 +246,37 @@ motherduck_connection <- function(location, create = FALSE, overwrite = FALSE) {
 
   DBI::dbExecute(con, glue::glue_sql(.con = con, "USE {`dbName`}"))
   con
+}
+
+make_default_args_explicit <- function(closure) {
+  walker <- function(x) {
+    switch(
+      typeof(x),
+      language = {
+        if (rlang::is_call_simple(x)) {
+          fn_name <- rlang::call_name(x)
+          if (grepl("^embed_", fn_name)) {
+            # an embedding function is found.
+            ns <- rlang::call_ns(x)
+            if (is.null(ns)) {
+              def <- get(fn_name, inherits = TRUE, mode = "function")
+            } else {
+              def <- get(fn_name, asNamespace(ns), mode = "function")
+            }
+            x <- rlang::call_match(x, def, defaults = TRUE, dots_expand = FALSE)
+
+            if (is.null(ns) && environmentName(rlang::fn_env(def)) == "ragnar") {
+              x[[1]] <- call("::", quote(ragnar), as.symbol(fn_name))
+            }
+          }
+        }
+        as.call(lapply(x, walker))
+      },
+      x
+    )
+  }
+  body(closure) <- walker(body(closure))
+  closure
 }
 
 #' Connect to `RagnarStore`

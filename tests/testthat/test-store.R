@@ -198,3 +198,16 @@ test_that("works with MotherDuck", {
   val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
   expect_equal(nrow(val), 1)
 })
+
+test_that("embed functions get the defaults stored", {
+  store <- ragnar_store_create(embed = function(x) ragnar::embed_openai(x))
+  expect_snapshot(store@embed)
+
+  # here embed_openai is implicitly obtained from ragnar::embed_openai
+  store <- ragnar_store_create(embed = function(x) embed_openai(x))
+  expect_snapshot(store@embed)
+
+  # when using the partialized version, we should also add the defaults
+  store <- ragnar_store_create(embed = embed_openai())
+  expect_snapshot(store@embed)
+})
