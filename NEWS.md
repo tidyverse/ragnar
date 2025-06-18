@@ -13,12 +13,10 @@
 * `ragnar_read()` and `read_as_markdown()` now accept paths
   that begin with `~` (@topepo, #46, #48).
 
-* Changes to `read_as_markdown()` HTML conversion (#40):
+* Changes to `read_as_markdown()` HTML conversion (#40, #51):
 
-  * If a 'main' tag is present, content outside the 'main' tag is now excluded
-    by default. To restore the previous behavior and include the sidebar, header,
-    footer, and other navigational elements in the converted markdown, use
-    `read_as_markdown(x, main_only=FALSE)`.
+  * New arguments `html_extract_selectors` and `html_zap_selectors` provide a felxible way to
+    exclude some html page elements from being included in the converted markdown.
 
   * Fixed handling of nested code fences in markdown output.
 
