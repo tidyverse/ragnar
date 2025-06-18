@@ -1,10 +1,7 @@
-import functools
 import markitdown
 from markitdown.converters._markdownify import _CustomMarkdownify
 
 md = markitdown.MarkItDown()
-
-MISSING = object()
 
 
 def maybe_expand_outer_code_fence(text):
@@ -45,63 +42,89 @@ def maybe_expand_outer_code_fence(text):
     return text
 
 
-def fence_main(text):
-    return f"____RAGNAR_MAIN_START____{text}____RAGNAR_MAIN_END____"
-
-
 class patched_markitdown:
-    def __init__(self, patch_pre=True, patch_main=True):
-        self.patch_main = patch_main
-        self.patch_pre = patch_pre
+    def __init__(
+        self,
+        html_extract_selectors=None,
+        html_zap_selectors=None,
+    ):
+        self.html_extract_selectors = html_extract_selectors or []
+        self.html_zap_selectors = html_zap_selectors or []
 
     def __enter__(self):
-        if self.patch_pre:
-            self.og_convert_pre = og_convert_pre = _CustomMarkdownify.convert_pre
+        self.og_convert_soup = og_convert_soup = _CustomMarkdownify.convert_soup
 
-            def convert_pre(self, el, text, parent_tags):
-                text = og_convert_pre(self, el, text, parent_tags)
-                return maybe_expand_outer_code_fence(text)
+        def convert_soup(self_, soup):
+            # print(self.html_extract_selectors)
+            for selector in self.html_extract_selectors:
+                if (tag := soup.select_one(selector)) is not None:
+                    # print(selector)
+                    # print("extracting ", selector)
+                    # print(tag)
+                    soup = tag.extract()
 
-            _CustomMarkdownify.convert_pre = convert_pre
+            for selector in self.html_zap_selectors:
+                while (tag := soup.select_one(selector)) is not None:
+                    # print("popping ", selector)
+                    tag.extract()
+                    # tag.decompose()
 
-        if self.patch_main:
-            self.og_convert_main = og_convert_main = getattr(
-                _CustomMarkdownify, "convert_main", MISSING
-            )
-            if og_convert_main is MISSING or None:
+            return og_convert_soup(self_, soup)
 
-                def convert_main(self, el, text, parent_tags):
-                    return fence_main(text)
+        _CustomMarkdownify.convert_soup = convert_soup
 
-            else:
+        self.og_convert_pre = og_convert_pre = _CustomMarkdownify.convert_pre
 
-                def convert_main(self, el, text, parent_tags):
-                    text = og_convert_main(self, el, text, parent_tags)
-                    return fence_main(text)
+        def convert_pre(self, el, text, parent_tags):
+            text = og_convert_pre(self, el, text, parent_tags)
+            return maybe_expand_outer_code_fence(text)
 
-            _CustomMarkdownify.convert_main = convert_main
+        _CustomMarkdownify.convert_pre = convert_pre
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         _CustomMarkdownify.convert_pre = self.og_convert_pre
-        if self.patch_main:
-            if self.og_convert_main is MISSING:
-                delattr(_CustomMarkdownify, "convert_main")
-            else:
-                _CustomMarkdownify.convert_main = self.og_convert_main
+        _CustomMarkdownify.convert_soup = self.og_convert_soup
 
 
-def convert_to_markdown(x, *args, main_only=True, **kwargs):
-    with patched_markitdown(patch_main=main_only):
-        result = md.convert(x, *args, **kwargs)
-        text = result.markdown
+def as_str_list(x):
+    if x is None:
+        return []
+    if isinstance(x, str):
+        return [x]
+    return list(x)
 
+
+def convert_to_markdown(
+    x,
+    *args,
+    html_extract_selectors=None,
+    html_zap_selectors=None,
+    **kwargs,
+):
+    html_extract_selectors = as_str_list(html_extract_selectors)
+    html_zap_selectors = as_str_list(html_zap_selectors)
+
+    # backcompat support for previous 'main_only' arg
+    main_only = kwargs.pop("main_only", None)
+    if main_only is not None:
         if main_only:
-            start = text.find("____RAGNAR_MAIN_START____")
-            end = text.rfind("____RAGNAR_MAIN_END____")
-            if start != -1 and end != -1:
-                text = text[start + len("____RAGNAR_MAIN_START____") : end]
+            if "main" not in html_extract_selectors:
+                html_extract_selectors.insert(0, "main")
+        else:
+            html_extract_selectors = [s for s in html_extract_selectors if s != "main"]
+
+    with patched_markitdown(
+        html_extract_selectors=html_extract_selectors,
+        html_zap_selectors=html_zap_selectors,
+    ):
+        result = md.convert(x, *args, **kwargs)
+        text = result.markdown.strip()
 
         if result.title is not None:
-            text = f"# {result.title}\n\n{text}"
+            title = f"# {result.title}"
+            if not text.startswith(title):
+                text = f"{title}\n\n{text}"
+                
+        text = text.replace("\f", "\n\n---\n\n")
 
         return text
