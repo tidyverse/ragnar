@@ -40,8 +40,8 @@
 <li><p><code><a href="../reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code> gains optional <code>name</code> and <code>title</code> arguments to allow for more descriptive tool registration. These values can also be set in <code><a href="../reference/ragnar_store_create.html">ragnar_store_create()</a></code> (<a href="https://github.com/tidyverse/ragnar/issues/43" class="external-link">#43</a>).</p></li>
 <li><p><code><a href="../reference/ragnar_read.html">ragnar_read()</a></code> and <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> now accept paths that begin with <code>~</code> (<a href="https://github.com/topepo" class="external-link">@topepo</a>, <a href="https://github.com/tidyverse/ragnar/issues/46" class="external-link">#46</a>, <a href="https://github.com/tidyverse/ragnar/issues/48" class="external-link">#48</a>).</p></li>
 <li>
-<p>Changes to <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> HTML conversion (<a href="https://github.com/tidyverse/ragnar/issues/40" class="external-link">#40</a>):</p>
-<ul><li><p>If a ‘main’ tag is present, content outside the ‘main’ tag is now excluded by default. To restore the previous behavior and include the sidebar, header, footer, and other navigational elements in the converted markdown, use <code>read_as_markdown(x, main_only=FALSE)</code>.</p></li>
+<p>Changes to <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> HTML conversion (<a href="https://github.com/tidyverse/ragnar/issues/40" class="external-link">#40</a>, <a href="https://github.com/tidyverse/ragnar/issues/51" class="external-link">#51</a>):</p>
+<ul><li><p>New arguments <code>html_extract_selectors</code> and <code>html_zap_selectors</code> provide a flexible way to exclude some html page elements from being included in the converted markdown.</p></li>
 <li><p>Fixed handling of nested code fences in markdown output.</p></li>
 </ul></li>
 </ul></div>
