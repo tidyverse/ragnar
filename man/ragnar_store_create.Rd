@@ -16,7 +16,9 @@ ragnar_store_create(
 )
 }
 \arguments{
-\item{location}{filepath, or \verb{:memory:}}
+\item{location}{filepath, or \verb{:memory:}. Location can also be a database name
+specified with \code{md:dbname}, in this case the database will be created in
+MotherDuck after a connection is etablished.}
 
 \item{embed}{A function that is called with a character vector and returns a
 matrix of embeddings. Note this function will be serialized and then

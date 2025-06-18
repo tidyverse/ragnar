@@ -166,3 +166,35 @@ test_that("Allow a NULL embedding function", {
   ragnar_retrieve_bm25(store, "bar")
   expect_error(ragnar_retrieve(store, "bar"))
 })
+
+test_that("works with MotherDuck", {
+
+  testthat::skip_if(Sys.getenv("motherduck_token", "") == "")
+
+  store <- ragnar_store_create(
+    "md:ragnartest",
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
+    overwrite = TRUE
+  )
+
+  chunks <- data.frame(
+    origin = "foo",
+    hash = "foo",
+    text = "foo"
+  )
+
+  expect_error(ragnar_store_insert(store, chunks), regexp = NA)
+  expect_warning(ragnar_store_build_index(store), regexp = "MotherDuck does not support")
+  expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
+
+  # Since we used insert, there's no checking if the hash is the same
+  val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
+  expect_equal(nrow(val), 1)
+
+  # connect to the motherduck store
+  store <- ragnar_store_connect("md:ragnartest")
+  expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
+
+  val <- dbGetQuery(store@.con, "select origin, hash, text from chunks")
+  expect_equal(nrow(val), 1)
+})
