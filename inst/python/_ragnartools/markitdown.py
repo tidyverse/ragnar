@@ -55,19 +55,15 @@ class patched_markitdown:
         self.og_convert_soup = og_convert_soup = _CustomMarkdownify.convert_soup
 
         def convert_soup(self_, soup):
-            # print(self.html_extract_selectors)
+
             for selector in self.html_extract_selectors:
                 if (tag := soup.select_one(selector)) is not None:
-                    # print(selector)
-                    # print("extracting ", selector)
-                    # print(tag)
+
                     soup = tag.extract()
 
             for selector in self.html_zap_selectors:
                 while (tag := soup.select_one(selector)) is not None:
-                    # print("popping ", selector)
-                    tag.extract()
-                    # tag.decompose()
+                    tag.decompose()
 
             return og_convert_soup(self_, soup)
 

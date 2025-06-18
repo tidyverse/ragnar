@@ -13,14 +13,14 @@ read_as_markdown(
 )
 }
 \arguments{
-\item{x}{A filepath or url. Accepts a wide variety of file types, including
-PDF, PowerPoint, Word, Excel, Images (EXIF metadata and OCR), Audio (EXIF
-metadata and speech transcription), HTML, Text-based formats (CSV, JSON,
-XML), ZIP files (iterates over contents), Youtube URLs, and EPubs.}
+\item{x}{A filepath or URL. Accepts a wide variety of file types, including
+PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR), audio (EXIF
+metadata and speech transcription), HTML, text-based formats (CSV, JSON,
+XML), ZIP files (iterates over contents), YouTube URLs, and EPUBs.}
 
-\item{...}{Passed on to \code{MarkItDown.convert()}}
+\item{...}{Passed on to \code{MarkItDown.convert()}.}
 
-\item{canonical}{logical, whether to postprocess the output from MarkItDown
+\item{canonical}{Logical. Whether to postprocess the output from MarkItDown
 with \code{commonmark::markdown_commonmark()}.}
 
 \item{html_extract_selectors}{Character vector of CSS selectors. If a match
@@ -34,14 +34,14 @@ sidebars, headers, footers, or other unwanted elements. By default,
 navigation elements (\code{nav}) are excluded.}
 }
 \value{
-A single string of markdown
+A single string of markdown.
 }
 \description{
 Convert files to markdown
 }
 \examples{
 \dontshow{if (reticulate::py_available()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-# convert html
+# Convert HTML
 read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
   substr(1, 500) |>
   cat()
@@ -50,46 +50,53 @@ read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
   substr(1, 500) |>
   cat()
 
-# When converting html, you might want to omit certain elements, like
-# sidebars, headers, footers, etc. You can pass css selector strings
+# When converting HTML, you might want to omit certain elements, like
+# sidebars, headers, footers, etc. You can pass CSS selector strings
 # to either extract nodes or exclude nodes during conversion.
-# you can use the SelectorGadget to quickly generate selectors,
-# (and/or use "Inspect Element" in a browser to understand a page structure).
-# https://rvest.tidyverse.org/articles/selectorgadget.html
+#
+# The easiest way to make selectors is to use SelectorGadget:
+# https://rvest.tidyverse.orgarticles/selectorgadget.html
+#
+# You can also right-click on a page and select "Inspect Element" in a
+# browser to better understand an HTML page's structure.
+#
+# For comprehensive or advanced usage of CSS selectors, consult:
+# https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-cssproperty
+# https://facelessuser.github.io/soupsieveselectors/
 
 url <- "https://duckdb.org/code_of_conduct"
-# includes the sidebar and other navigational elements
-read_as_markdown(url) |> substr(1, 500)
+# Includes the sidebar and other navigational elements
+read_as_markdown(url) |> substr(1, 500) |> writeLines()
 
-# extract the main content
+# Extract the main content
 read_as_markdown(url, html_extract_selectors = "#main_content_wrap")
 
-# alternative approach, exclude nodes
+# Alternative approach: exclude nodes
 read_as_markdown(
   url,
   html_zap_selectors = c(
-    "header", # node name
+    "header",          # node name
     ".sidenavigation", # node class
-    ".searchoverlay", # node class
-    "#sidebar" # node id
+    ".searchoverlay",  # node class
+    "#sidebar"         # node ID
   )
-)
+) |> substr(1, 500) |> writeLines()
 
-# quarto example
+# Quarto example
 url <- "https://quarto.org/docs/computations/python.html"
 
-# include sidebar, footer, etc
+# Include sidebar, footer, etc.
 read_as_markdown(
   url,
   html_extract_selectors = NULL,
   html_zap_selectors = NULL
-) |>
-  substr(1, 500)
+) |> substr(1, 500) |> writeLines()
 
-# exclude content outside <main>
-read_as_markdown(url, html_extract_selectors = "main") |> substr(1, 500)
+# Exclude content outside <main>
+read_as_markdown(url, html_extract_selectors = "main") |>
+  substr(1, 500) |> writeLines()
 
-# excludes specific matching nodes
+# Exclude specific matching nodes
 read_as_markdown(
   url,
   html_extract_selectors = NULL,
@@ -100,17 +107,15 @@ read_as_markdown(
     "footer",
     "nav"
   )
-) |>
-  substr(1, 500)
+) |> substr(1, 500) |> writeLines()
 
-
-# convert pdf
+# Convert PDF
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
 read_as_markdown(pdf) |> substr(1, 1000) |> cat()
-## alternative:
+## Alternative:
 # pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
 
-# convert images to markdown descriptions using OpenAI
+# Convert images to markdown descriptions using OpenAI
 jpg <- file.path(R.home("doc"), "html", "logo.jpg")
 if (Sys.getenv("OPENAI_API_KEY") != "") {
   # if (xfun::is_macos()) system("brew install ffmpeg")
