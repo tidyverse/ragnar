@@ -71,7 +71,9 @@ ragnar_store_create <- function(
   if (is_motherduck_location(location)) {
     con <- motherduck_connection(location, create = TRUE, overwrite)
   } else {
-    if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
+    if (
+      any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))
+    ) {
       if (overwrite) {
         unlink(c(location, location.wal), force = TRUE)
       } else {
@@ -91,13 +93,9 @@ ragnar_store_create <- function(
   if (is.null(embed)) {
     embedding_size <- NULL
   } else {
+    embed <- process_embed_func(embed)
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
-
-    if (!inherits(embed, "crate")) {
-      environment(embed) <- baseenv()
-      embed <- rlang::zap_srcref(embed)
-    }
 
     default_schema$embedding <- matrix(
       numeric(0),
@@ -232,17 +230,79 @@ motherduck_connection <- function(location, create = FALSE, overwrite = FALSE) {
   if (create) {
     if (dbName %in% DBI::dbGetQuery(con, "SHOW DATABASES")$database_name) {
       if (overwrite) {
-        DBI::dbExecute(con, glue::glue_sql(.con = con, "DROP DATABASE {`dbName`}"))
+        DBI::dbExecute(
+          con,
+          glue::glue_sql(.con = con, "DROP DATABASE {`dbName`}")
+        )
       } else {
         stop("Database already exists: ", dbName)
       }
     }
-    DBI::dbExecute(con, glue::glue_sql(.con = con, "CREATE DATABASE {`dbName`}"))
+    DBI::dbExecute(
+      con,
+      glue::glue_sql(.con = con, "CREATE DATABASE {`dbName`}")
+    )
   }
 
   DBI::dbExecute(con, glue::glue_sql(.con = con, "USE {`dbName`}"))
   con
 }
+
+process_embed_func <- function(embed) {
+  if (inherits(embed, "crate")) {
+    return(embed)
+  }
+  environment(embed) <- baseenv()
+  embed <- rlang::zap_srcref(embed)
+
+  embed_func_names <- grep(
+    "^embed_",
+    getNamespaceExports("ragnar"),
+    value = TRUE
+  )
+
+  walker <- function(x) {
+    switch(
+      typeof(x),
+      list = {
+        x <- lapply(x, walker)
+      },
+      language = {
+        if (rlang::is_call(x, embed_func_names, ns = c("", "ragnar"))) {
+          name <- rlang::call_name(x)
+          fn <- get(name)
+          ox <- x
+          x <- rlang::call_match(x, fn, defaults = FALSE, dots_expand = FALSE)
+          x <- as.list(x)
+
+          # ensure 'model' is explicit arg embedded in call
+          if (!"model" %in% names(x)) {
+            x["model"] <- formals(fn)["model"]
+          }
+
+          # preserve `...` if they were present in the call (call_match() removes them)
+          if (any(map_lgl(as.list(ox), identical, quote(...)))) {
+            x <- c(x, quote(...))
+          }
+          x <- as.call(x)
+
+          # ensure the call is namespaced
+          if (is.null(rlang::call_ns(x))) {
+            x[[1L]] <- call("::", quote(ragnar), as.symbol(name))
+          }
+        } else {
+          x <- as.call(lapply(x, walker))
+        }
+      },
+      x
+    )
+    x
+  }
+
+  body(embed) <- walker(body(embed))
+  embed
+}
+
 
 #' Connect to `RagnarStore`
 #'
