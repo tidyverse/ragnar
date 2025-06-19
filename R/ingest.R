@@ -587,48 +587,50 @@ ragnar_store_connect_v2 <- function(location, read_only = TRUE) {
   )
 }
 
-ragnar_retrieve_vss_v2 <- function(store, query, top_k = 3L) {
+ragnar_retrieve_vss_v2 <- function(
+  store,
+  query,
+  top_k = 3L,
+  method = "cosine_distance"
+) {
   conn <- store@.con
   retrieve_df <- data_frame(
     query = query,
     embedding = store@embed(query)
   )
-  on.exit(duckdb::duckdb_unregister(conn, "_ragnar_retrieve_query"))
-  duckdb::duckdb_register(
-    conn,
-    "_ragnar_retrieve_query",
-    retrieve_df,
-    overwrite = TRUE
-  )
+  tmp_name <- "_ragnar_retrieve_query"
+  on.exit(duckdb::duckdb_unregister(conn, tmp_name))
+  duckdb::duckdb_register(conn, tmp_name, retrieve_df, overwrite = TRUE)
 
-  method = "cosine_distance"
+  top_k <- as.integer(top_k)
+  method <- "cosine_distance"
   .[method_func, order_key_direction] <- method_to_info(method)
-  top_k <- 3L
   dbGetQuery(
     conn,
     glue(
-      r"--(
-     SELECT
-       *,
-      '{method}' as metric_name,
-      {method_func}(
-         embedding,
-         (SELECT embedding FROM _ragnar_retrieve_query)
-       ) as metric_value
-    FROM chunks
-    ORDER BY metric_value {order_key_direction}
-    LIMIT {top_k};
-)--"
+      "
+      SELECT
+        *,
+        '{method}' as metric_name,
+        {method_func}(
+           embedding,
+           (SELECT embedding FROM _ragnar_retrieve_query)
+        ) as metric_value
+       FROM chunks
+       ORDER BY metric_value {order_key_direction}
+       LIMIT {top_k};
+       "
     )
   )
 }
 
 
 ragnar_retrieve_bm25_v2 <- function(store, text, top_k = 3L) {
+  conn <- store@.con
   dbGetQuery(
     conn,
     glue(
-      r"---(
+      "
       SELECT
         *,
         'bm25' as metric_name,
@@ -637,7 +639,7 @@ ragnar_retrieve_bm25_v2 <- function(store, text, top_k = 3L) {
       WHERE metric_value IS NOT NULL
       ORDER BY metric_value
       LIMIT {top_k};
-      )---"
+      "
     ),
     params = list(text)
   )
@@ -667,34 +669,45 @@ if (FALSE) {
   library(dplyr, warn.conflicts = FALSE)
   devtools::load_all()
 
-  if (FALSE) {
+  if (!file.exists("duckdb_docs.ragnar2.duckdb")) {
     paths <- ragnar_find_links("https://duckdb.org/sitemap.html")
-
-    store <- sto <- ragnar_store_create_v2(
+    store <- ragnar_store_create_v2(
       location = "duckdb_docs.ragnar2.duckdb",
       embed = embed_ollama(model = "snowflake-arctic-embed2:568m")
     )
-    ragnar_store_ingest(store, paths)
-
+    ragnar_store_ingest(
+      store,
+      paths,
+      html_extract_selectors = c(
+        "main",
+        "#main_content_wrap"
+      ),
+      html_zap_selectors = c(
+        "header",
+        "footer",
+        ".sidenavigation",
+        ".searchoverlay",
+        "#sidebar"
+      )
+    )
     ragnar_store_build_index_v2(store)
-
     dbDisconnect(store@.con)
   }
-
   store <- ragnar_store_connect_v2(
     "duckdb_docs.ragnar2.duckdb",
     read_only = TRUE
   )
 
-  ragnar_retrieve(store, "foo")
-  ragnar_retrieve_vss_v2(store, "foo")
-  ragnar_retrieve_bm25_v2(store, "foo")
+  show <- \(...) cat(..., sep = paste("\n\n*", strrep("~", 80), "*\n"))
 
-  # ragnar_chunk_v2(md)
-  ragnar_chunk_v2(md)$headings |> head()
-  ragnar_chunk_v2(md)$headings |> tail()
+  ragnar_retrieve_vss_v2(store, "create a table from json files", top_k = 10) |>
+    pull(text) |>
+    show()
+  ragnar_retrieve_bm25_v2(store, "json") |> pull(text) |> show()
 
   origin = "https://quarto.org/docs/computations/r.html"
   md <- read_as_markdown(origin)
   ragnar_chunk_v2(md)
+  ragnar_chunk_v2(md)$headings |> head()
+  ragnar_chunk_v2(md)$headings |> tail()
 }
