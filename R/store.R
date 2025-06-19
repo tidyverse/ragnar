@@ -91,13 +91,9 @@ ragnar_store_create <- function(
   if (is.null(embed)) {
     embedding_size <- NULL
   } else {
+    embed <- process_embed_func(embed)
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
-
-    if (!inherits(embed, "crate")) {
-      environment(embed) <- baseenv()
-      embed <- rlang::zap_srcref(embed)
-    }
 
     default_schema$embedding <- matrix(
       numeric(0),
@@ -133,10 +129,6 @@ ragnar_store_create <- function(
         schema[[nm]] <- default_schema[[nm]]
       }
     }
-  }
-
-  if (!is.null(embed)) {
-    embed <- make_default_args_explicit(embed)
   }
 
   metadata <- tibble::tibble(
@@ -248,36 +240,60 @@ motherduck_connection <- function(location, create = FALSE, overwrite = FALSE) {
   con
 }
 
-make_default_args_explicit <- function(closure) {
+process_embed_func <- function(embed) {
+  if (inherits(embed, "crate")) {
+    return(embed)
+  }
+  environment(embed) <- baseenv()
+  embed <- rlang::zap_srcref(embed)
+
+  embed_func_names <- grep(
+    "^embed_",
+    getNamespaceExports("ragnar"),
+    value = TRUE
+  )
+
   walker <- function(x) {
     switch(
       typeof(x),
+      list = {
+        x <- lapply(x, walker)
+      },
       language = {
-        if (rlang::is_call_simple(x)) {
-          fn_name <- rlang::call_name(x)
-          if (grepl("^embed_", fn_name)) {
-            # an embedding function is found.
-            ns <- rlang::call_ns(x)
-            if (is.null(ns)) {
-              def <- get(fn_name, inherits = TRUE, mode = "function")
-            } else {
-              def <- get(fn_name, asNamespace(ns), mode = "function")
-            }
-            x <- rlang::call_match(x, def, defaults = TRUE, dots_expand = FALSE)
+        if (rlang::is_call(x, embed_func_names, ns = c("", "ragnar"))) {
+          name <- rlang::call_name(x)
+          fn <- get(name)
+          xs <- rlang::call_match(x, fn, defaults = FALSE, dots_expand = FALSE)
+          x <- as.list(x)
 
-            if (is.null(ns) && environmentName(rlang::fn_env(def)) == "ragnar") {
-              x[[1]] <- call("::", quote(ragnar), as.symbol(fn_name))
-            }
+          # ensure 'model' is explicit arg embedded in call
+          if (!"model" %in% names(xs)) {
+            x["model"] <- formals(fn)["model"]
           }
+
+          # ensure first positional arg is named (e.g., if passing on ...)
+          if (names(x)[2L] == "") {
+            names(x)[2L] <- names(formals(fn))[1L]
+          }
+          x <- as.call(x)
+
+          # ensure the call is namespaced
+          if (is.null(rlang::call_ns(x))) {
+            x[[1L]] <- call("::", quote(ragnar), as.symbol(name))
+          }
+        } else {
+          x <- as.call(lapply(x, walker))
         }
-        as.call(lapply(x, walker))
       },
       x
     )
+    x
   }
-  body(closure) <- walker(body(closure))
-  closure
+
+  body(embed) <- walker(body(embed))
+  embed
 }
+
 
 #' Connect to `RagnarStore`
 #'
