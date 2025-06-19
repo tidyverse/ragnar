@@ -24,7 +24,13 @@
 #' )
 #' }
 #'@export
-embed_google_vertex <- function(x, model, location, project_id, task_type = "RETRIEVAL_QUERY") {
+embed_google_vertex <- function(
+  x,
+  model,
+  location,
+  project_id,
+  task_type = "RETRIEVAL_QUERY"
+) {
   if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::embed_google_vertex), alist(x = ), args)
@@ -55,6 +61,7 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 
   base_req <- vertex_url(location, project_id) |>
     httr2::request() |>
+    req_user_agent(ragnar_user_agent()) |>
     httr2::req_headers(!!!credentials, .redact = names(credentials)) |>
     httr2::req_url_path_append(
       "models",
@@ -65,13 +72,14 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
       json$error$message
     })
 
-
   out <- list()
   # The gemini model does not support batches
   chunk_size <- if (grepl("gemini", model)) 1 else 20
 
   for (indices in chunk_list(seq_along(x), chunk_size)) {
-    instances <- lapply(indices, \(i) list(task_type = task_type, content = x[[i]]))
+    instances <- lapply(indices, \(i) {
+      list(task_type = task_type, content = x[[i]])
+    })
 
     resp <- base_req |>
       httr2::req_body_json(list(
@@ -95,16 +103,19 @@ embed_google_vertex <- function(x, model, location, project_id, task_type = "RET
 }
 
 vertex_url <- function(location, project_id) {
-  paste(unlist(list(
-    c("https://", location, "-aiplatform.googleapis.com/v1"),
-    c("/projects/", project_id),
-    c("/locations/", location),
-    "/publishers/google/"
-  )), collapse="")
+  paste(
+    unlist(list(
+      c("https://", location, "-aiplatform.googleapis.com/v1"),
+      c("/projects/", project_id),
+      c("/locations/", location),
+      "/publishers/google/"
+    )),
+    collapse = ""
+  )
 }
 
 
-google_credentials <- function (error_call = caller_env()) {
+google_credentials <- function(error_call = caller_env()) {
   scope <- "https://www.googleapis.com/auth/cloud-platform"
   if (has_connect_viewer_token(scope = scope)) {
     return(function() {
@@ -119,7 +130,6 @@ google_credentials <- function (error_call = caller_env()) {
 
   check_installed("gargle", "for Google authentication")
 
-
   gargle::with_cred_funs(
     funs = list(credentials_app_default = gargle::credentials_app_default),
     {
@@ -133,10 +143,13 @@ google_credentials <- function (error_call = caller_env()) {
   }
 
   if (is.null(token)) {
-    cli::cli_abort(c(
-      "No Google credentials are available.",
-      i = "Try suppling an API key or configuring Google's application default credentials."
-    ), call = error_call)
+    cli::cli_abort(
+      c(
+        "No Google credentials are available.",
+        i = "Try suppling an API key or configuring Google's application default credentials."
+      ),
+      call = error_call
+    )
   }
 
   if (!token$can_refresh()) {
@@ -155,7 +168,7 @@ google_credentials <- function (error_call = caller_env()) {
   })
 }
 
-has_connect_viewer_token <- function (...) {
+has_connect_viewer_token <- function(...) {
   if (!is_installed("connectcreds")) {
     return(FALSE)
   }
