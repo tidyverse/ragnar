@@ -83,6 +83,7 @@ get_markdown_source_positions <- function(md, type = NULL) {
 NULL
 
 str_locate_boundary_starts1 <- function(string, type) {
+  check_string(string)
   stri_locate_all_boundaries(
     string,
     type = type,
@@ -90,7 +91,7 @@ str_locate_boundary_starts1 <- function(string, type) {
   )[[1L]][, "start"]
 }
 
-ragnar_chunk2 <- function(
+ragnar_chunk_v2 <- function(
   md,
   target_size = 1600,
   target_overlap = .5,
@@ -404,7 +405,7 @@ ragnar_store_create_v2 <- function(
   )
 }
 
-ragnar_store_build_index2 <- function(store, type = c("vss", "fts")) {
+ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
   if (S7_inherits(store, DuckDBRagnarStore)) {
     conn <- store@.con
   } else if (methods::is(store, "DBIConnection")) {
@@ -421,9 +422,15 @@ ragnar_store_build_index2 <- function(store, type = c("vss", "fts")) {
     dbExecute(
       conn,
       r"--(
-        SET hnsw_enable_experimental_persistence = true;
-        DROP INDEX IF EXISTS my_hnsw_index;
-        CREATE INDEX my_hnsw_index ON embeddings USING HNSW (embedding);
+      SET hnsw_enable_experimental_persistence = true;
+
+      DROP INDEX IF EXISTS store_hnsw_cosine_index;
+      DROP INDEX IF EXISTS store_hnsw_l2sq_index;
+      DROP INDEX IF EXISTS store_hnsw_ip_index;
+
+      CREATE INDEX store_hnsw_cosine_index ON embeddings USING HNSW (embedding) WITH (metric = 'cosine');
+      CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq');
+      CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');
       )--"
     )
   }
@@ -474,7 +481,7 @@ ragnar_store_build_index2 <- function(store, type = c("vss", "fts")) {
 
 # ragnar_store_from <- function(paths)
 
-ragnar_store_ingest <- function(store, paths) {
+ragnar_store_ingest <- function(store, paths, ...) {
   # TODO: check document hash and perform update
   conn <- store@.con
   on.exit({
@@ -485,7 +492,7 @@ ragnar_store_ingest <- function(store, paths) {
   for (i in seq_along(paths)) {
     origin <- paths[i]
     message(sprintf("[% 3i/%i] ingesting: %s", i, length(paths), origin))
-    md <- read_as_markdown(origin)
+    md <- read_as_markdown(origin, ...)
     already_present <- dbGetQuery(
       conn,
       "SELECT hash(text) as hash, doc_id FROM documents WHERE origin = ?",
@@ -522,7 +529,7 @@ ragnar_store_ingest <- function(store, paths) {
         documents$doc_id <- doc_id
       }
     }
-    chunks <- ragnar_chunk2(md)
+    chunks <- ragnar_chunk_v2(md)
     embeddings <- chunks |>
       store@embed() |>
       mutate(
@@ -553,7 +560,7 @@ ragnar_store_ingest <- function(store, paths) {
   invisible(store)
 }
 
-ragnar_store_connect2 <- function(location, read_only = TRUE) {
+ragnar_store_connect_v2 <- function(location, read_only = TRUE) {
   conn <- dbConnect(
     duckdb::duckdb(),
     dbdir = location,
@@ -580,7 +587,7 @@ ragnar_store_connect2 <- function(location, read_only = TRUE) {
   )
 }
 
-ragnar_retrieve_vss2 <- function(store, query, top_k = 3L) {
+ragnar_retrieve_vss_v2 <- function(store, query, top_k = 3L) {
   conn <- store@.con
   retrieve_df <- data_frame(
     query = query,
@@ -639,12 +646,18 @@ ragnar_retrieve_bm25_v2 <- function(store, text, top_k = 3L) {
 ragnar_store_from <- function(
   sources,
   embed = embed_ollama(model = "snowflake-arctic-embed2:568m"),
-  location = ":memory:"
+  location = ":memory:",
+  ...
 ) {
   sources <- unique(sources)
-  store <- ragnar_store_create_v2(
-    embed = embed_ollama(model = "snowflake-arctic-embed2:568m")
-  )
+  store <- ragnar_store_create_v2(embed = embed, location = location)
+  ragnar_store_ingest(store, sources, ...)
+  ragnar_store_build_index_v2(store)
+  if (location != ":memory:") {
+    dbDisconnect(store@.con)
+    store <- ragnar_store_connect_v2(location, read_only = TRUE)
+  }
+  store
 }
 
 
@@ -663,22 +676,25 @@ if (FALSE) {
     )
     ragnar_store_ingest(store, paths)
 
-    ragnar_store_build_index2(store)
+    ragnar_store_build_index_v2(store)
 
     dbDisconnect(store@.con)
   }
 
-  store <- ragnar_store_connect2("duckdb_docs.ragnar2.duckdb", read_only = TRUE)
+  store <- ragnar_store_connect_v2(
+    "duckdb_docs.ragnar2.duckdb",
+    read_only = TRUE
+  )
 
   ragnar_retrieve(store, "foo")
-  ragnar_retrieve_vss2(store, "foo")
+  ragnar_retrieve_vss_v2(store, "foo")
   ragnar_retrieve_bm25_v2(store, "foo")
 
-  # ragnar_chunk2(md)
-  ragnar_chunk2(md)$headings |> head()
-  ragnar_chunk2(md)$headings |> tail()
+  # ragnar_chunk_v2(md)
+  ragnar_chunk_v2(md)$headings |> head()
+  ragnar_chunk_v2(md)$headings |> tail()
 
   origin = "https://quarto.org/docs/computations/r.html"
   md <- read_as_markdown(origin)
-  ragnar_chunk2(md)
+  ragnar_chunk_v2(md)
 }
