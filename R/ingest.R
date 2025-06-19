@@ -663,6 +663,91 @@ ragnar_store_from <- function(
 }
 
 
+ragnar_deoverlap <- chunks_deoverlap <- function(store, chunks) {
+  deoverlapped <- chunks |>
+    group_by(doc_id) |>
+    arrange(doc_chunk_idx, .by_group = TRUE) |>
+    mutate(
+      overlap_grp = cumsum(
+        doc_char_start_idx > lag(doc_char_end_idx, default = -1L)
+      )
+    ) |>
+    group_by(doc_id, overlap_grp) |>
+    summarise(
+      origin = first(origin),
+      chunk_ids = list(chunk_id),
+      doc_chunk_idxs = list(doc_chunk_idx),
+      doc_char_start_idx = min(doc_char_start_idx),
+      doc_char_end_idx = max(doc_char_end_idx),
+      headings = first(headings),
+      .groups = "drop"
+    ) |>
+    mutate(tmp_chunk_id = row_number())
+
+  tmp_ <- deoverlapped |>
+    select(doc_id, doc_char_start_idx, doc_char_end_idx, tmp_chunk_id)
+
+  conn <- store@.con
+  tmp_name <- "_ragnar_tmp_rechunk"
+  on.exit(duckdb::duckdb_unregister(conn, tmp_name))
+  duckdb::duckdb_register(conn, tmp_name, tmp_, overwrite = TRUE)
+
+  new_text <- dbGetQuery(
+    conn,
+    glue(
+      "
+      SELECT
+        c.tmp_chunk_id,
+        d.text[ c.doc_char_start_idx : c.doc_char_end_idx ] AS text
+      FROM {tmp_name} c
+      JOIN documents d
+      USING (doc_id)
+      "
+    )
+  )
+
+  deoverlapped <- deoverlapped |>
+    full_join(
+      new_text,
+      by = join_by(tmp_chunk_id)
+    )
+  deoverlapped |>
+    select(-overlap_grp, -tmp_chunk_id)
+}
+
+pluck_augmented_text <- function(chunks) {
+  # c()
+  # origin <- chunks$origin
+  # headings <- chunks$headings |>
+  #   stri_split_lines() |>
+  #   lapply(\(x) {
+  #     if (nzchar(x)) {
+  #       paste0("> ", x, collapse = "\n")
+  #     }
+  #   })
+  origin <- glue("excerpt from: {chunks$origin}")
+  headings <- chunks$headings
+  about <- as.character(map2(origin, headings, \(o, h) {
+    lines <- unlist(stri_split_lines(c(o, h)))
+    paste0("> ", lines[nzchar(lines)], collapse = "\n")
+  }))
+  text <- chunks$text
+  glue(
+    "
+    {about}
+    ---
+    {text}
+    "
+  )
+}
+
+ragnar_augment <- function(chunks) {
+  # TODO:
+  # context <- format(chunks$headings... other cols) # as yaml?
+  # paste(context, "\n" headings) # fences? quote metadata? or just dump it in context as json?
+}
+
+
 if (FALSE) {
   library(DBI)
   library(stringi)
@@ -701,9 +786,22 @@ if (FALSE) {
   show <- \(...) cat(..., sep = paste("\n\n*", strrep("~", 80), "*\n"))
 
   ragnar_retrieve_vss_v2(store, "create a table from json files", top_k = 10) |>
-    pull(text) |>
+    ragnar_deoverlap(store = store)
+  pull(text) |>
     show()
   ragnar_retrieve_bm25_v2(store, "json") |> pull(text) |> show()
+  ragnar_retrieve_bm25_v2(store, "json", top_k = 10) |>
+    ragnar_deoverlap(store = store)
+
+  chunks <- bind_rows(
+    ragnar_retrieve_vss_v2(store, "create a table from json files", top_k = 15),
+    ragnar_retrieve_bm25_v2(store, "json", top_k = 15)
+  ) |>
+    ragnar_deoverlap(store = store)
+
+  rag
+
+  # |>
 
   origin = "https://quarto.org/docs/computations/r.html"
   md <- read_as_markdown(origin)
