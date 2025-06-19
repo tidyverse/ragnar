@@ -1,6 +1,8 @@
 #' Create and connect to a vector store
 #'
-#' @param location filepath, or `:memory:`
+#' @param location filepath, or `:memory:`. Location can also be a database name
+#'   specified with `md:dbname`, in this case the database will be created in
+#'   MotherDuck after a connection is etablished.
 #' @param embed A function that is called with a character vector and returns a
 #'   matrix of embeddings. Note this function will be serialized and then
 #'   deserialized in new R sessions, so it cannot reference to any objects in
@@ -66,14 +68,21 @@ ragnar_store_create <- function(
   stopifnot(grepl("^[a-zA-Z0-9_-]+$", name))
   check_string(title, allow_null = TRUE)
 
-  if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
-    if (overwrite) {
-      unlink(c(location, location.wal), force = TRUE)
-    } else {
-      stop("File already exists: ", location)
+  if (is_motherduck_location(location)) {
+    con <- motherduck_connection(location, create = TRUE, overwrite)
+  } else {
+    if (
+      any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))
+    ) {
+      if (overwrite) {
+        unlink(c(location, location.wal), force = TRUE)
+      } else {
+        stop("File already exists: ", location)
+      }
     }
+
+    con <- dbConnect(duckdb::duckdb(), dbdir = location, array = "matrix")
   }
-  con <- dbConnect(duckdb::duckdb(), dbdir = location, array = "matrix")
 
   default_schema <- vctrs::vec_ptype(data_frame(
     origin = character(0),
@@ -84,13 +93,9 @@ ragnar_store_create <- function(
   if (is.null(embed)) {
     embedding_size <- NULL
   } else {
+    embed <- process_embed_func(embed)
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
-
-    if (!inherits(embed, "crate")) {
-      environment(embed) <- baseenv()
-      embed <- rlang::zap_srcref(embed)
-    }
 
     default_schema$embedding <- matrix(
       numeric(0),
@@ -211,6 +216,94 @@ unique_store_name <- function() {
   sprintf("store_%03d", the$current_store_id)
 }
 
+is_motherduck_location <- function(location) {
+  grepl("^md:", location)
+}
+
+motherduck_connection <- function(location, create = FALSE, overwrite = FALSE) {
+  con <- DBI::dbConnect(duckdb::duckdb(), array = "matrix")
+  DBI::dbExecute(con, "INSTALL 'motherduck'")
+  DBI::dbExecute(con, "LOAD 'motherduck'")
+  DBI::dbExecute(con, "ATTACH 'md:'")
+
+  dbName <- strsplit(location, ":", fixed = TRUE)[[1]][2]
+  if (create) {
+    if (dbName %in% DBI::dbGetQuery(con, "SHOW DATABASES")$database_name) {
+      if (overwrite) {
+        DBI::dbExecute(
+          con,
+          glue::glue_sql(.con = con, "DROP DATABASE {`dbName`}")
+        )
+      } else {
+        stop("Database already exists: ", dbName)
+      }
+    }
+    DBI::dbExecute(
+      con,
+      glue::glue_sql(.con = con, "CREATE DATABASE {`dbName`}")
+    )
+  }
+
+  DBI::dbExecute(con, glue::glue_sql(.con = con, "USE {`dbName`}"))
+  con
+}
+
+process_embed_func <- function(embed) {
+  if (inherits(embed, "crate")) {
+    return(embed)
+  }
+  environment(embed) <- baseenv()
+  embed <- rlang::zap_srcref(embed)
+
+  embed_func_names <- grep(
+    "^embed_",
+    getNamespaceExports("ragnar"),
+    value = TRUE
+  )
+
+  walker <- function(x) {
+    switch(
+      typeof(x),
+      list = {
+        x <- lapply(x, walker)
+      },
+      language = {
+        if (rlang::is_call(x, embed_func_names, ns = c("", "ragnar"))) {
+          name <- rlang::call_name(x)
+          fn <- get(name)
+          ox <- x
+          x <- rlang::call_match(x, fn, defaults = FALSE, dots_expand = FALSE)
+          x <- as.list(x)
+
+          # ensure 'model' is explicit arg embedded in call
+          if (!"model" %in% names(x)) {
+            x["model"] <- formals(fn)["model"]
+          }
+
+          # preserve `...` if they were present in the call (call_match() removes them)
+          if (any(map_lgl(as.list(ox), identical, quote(...)))) {
+            x <- c(x, quote(...))
+          }
+          x <- as.call(x)
+
+          # ensure the call is namespaced
+          if (is.null(rlang::call_ns(x))) {
+            x[[1L]] <- call("::", quote(ragnar), as.symbol(name))
+          }
+        } else {
+          x <- as.call(lapply(x, walker))
+        }
+      },
+      x
+    )
+    x
+  }
+
+  body(embed) <- walker(body(embed))
+  embed
+}
+
+
 #' Connect to `RagnarStore`
 #'
 #' @param location string, a filepath location.
@@ -235,12 +328,16 @@ ragnar_store_connect <- function(
   # mode <- match.arg(mode)
   # read_only <- mode == "retrieve"
 
-  con <- dbConnect(
-    duckdb::duckdb(),
-    dbdir = location,
-    read_only = read_only,
-    array = "matrix"
-  )
+  if (is_motherduck_location(location)) {
+    con <- motherduck_connection(location, create = FALSE, overwrite = FALSE)
+  } else {
+    con <- dbConnect(
+      duckdb::duckdb(),
+      dbdir = location,
+      read_only = read_only,
+      array = "matrix"
+    )
+  }
 
   # can't use dbExistsTable() because internally it runs:
   # > dbGetQuery(conn, sqlInterpolate(conn, "SELECT * FROM ? WHERE FALSE", dbQuoteIdentifier(conn, name)))
@@ -490,19 +587,31 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   }
 
   if ("vss" %in% type && !is.null(store@embed)) {
-    # TODO: duckdb has support for three different distance metrics that can be
-    # selected when building the index: l2sq, cosine, and ip. Expose these as options
-    # in the R interface. https://duckdb.org/docs/stable/core_extensions/vss#usage
-    dbExecute(con, "INSTALL vss;")
-    dbExecute(con, "LOAD vss;")
-    dbExecute(
-      con,
-      paste(
-        "SET hnsw_enable_experimental_persistence = true;",
-        "DROP INDEX IF EXISTS my_hnsw_index;",
-        "CREATE INDEX my_hnsw_index ON chunks USING HNSW (embedding);"
-      )
+    # MotherDuck currently does not support VSS embedding, so we'll skip building
+    # the VSS index with a warning.
+    # First detect we're in motherduck
+    loaded <- DBI::dbGetQuery(
+      store@.con,
+      "SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name='motherduck' and loaded=TRUE"
     )
+    loaded <- nrow(loaded) > 0
+    if (loaded) {
+      warning("MotherDuck does not support building VSS index. Skipping.")
+    } else {
+      # TODO: duckdb has support for three different distance metrics that can be
+      # selected when building the index: l2sq, cosine, and ip. Expose these as options
+      # in the R interface. https://duckdb.org/docs/stable/core_extensions/vss#usage
+      dbExecute(con, "INSTALL vss;")
+      dbExecute(con, "LOAD vss;")
+      dbExecute(
+        con,
+        paste(
+          "SET hnsw_enable_experimental_persistence = true;",
+          "DROP INDEX IF EXISTS my_hnsw_index;",
+          "CREATE INDEX my_hnsw_index ON chunks USING HNSW (embedding);"
+        )
+      )
+    }
   }
 
   if ("fts" %in% type) {

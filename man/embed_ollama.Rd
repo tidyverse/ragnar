@@ -18,7 +18,7 @@ embed_openai(
   base_url = "https://api.openai.com/v1",
   api_key = get_envvar("OPENAI_API_KEY"),
   dims = NULL,
-  user = get_ragnar_username(),
+  user = get_user(),
   batch_size = 20L
 )
 }
