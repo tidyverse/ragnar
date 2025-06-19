@@ -71,7 +71,9 @@ ragnar_store_create <- function(
   if (is_motherduck_location(location)) {
     con <- motherduck_connection(location, create = TRUE, overwrite)
   } else {
-    if (any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))) {
+    if (
+      any(file.exists(c(location, location.wal <- paste0(location, ".wal"))))
+    ) {
       if (overwrite) {
         unlink(c(location, location.wal), force = TRUE)
       } else {
@@ -228,12 +230,18 @@ motherduck_connection <- function(location, create = FALSE, overwrite = FALSE) {
   if (create) {
     if (dbName %in% DBI::dbGetQuery(con, "SHOW DATABASES")$database_name) {
       if (overwrite) {
-        DBI::dbExecute(con, glue::glue_sql(.con = con, "DROP DATABASE {`dbName`}"))
+        DBI::dbExecute(
+          con,
+          glue::glue_sql(.con = con, "DROP DATABASE {`dbName`}")
+        )
       } else {
         stop("Database already exists: ", dbName)
       }
     }
-    DBI::dbExecute(con, glue::glue_sql(.con = con, "CREATE DATABASE {`dbName`}"))
+    DBI::dbExecute(
+      con,
+      glue::glue_sql(.con = con, "CREATE DATABASE {`dbName`}")
+    )
   }
 
   DBI::dbExecute(con, glue::glue_sql(.con = con, "USE {`dbName`}"))
@@ -263,17 +271,18 @@ process_embed_func <- function(embed) {
         if (rlang::is_call(x, embed_func_names, ns = c("", "ragnar"))) {
           name <- rlang::call_name(x)
           fn <- get(name)
-          xs <- rlang::call_match(x, fn, defaults = FALSE, dots_expand = FALSE)
+          ox <- x
+          x <- rlang::call_match(x, fn, defaults = FALSE, dots_expand = FALSE)
           x <- as.list(x)
 
           # ensure 'model' is explicit arg embedded in call
-          if (!"model" %in% names(xs)) {
+          if (!"model" %in% names(x)) {
             x["model"] <- formals(fn)["model"]
           }
 
-          # ensure first positional arg is named (e.g., if passing on ...)
-          if (names(x)[2L] == "") {
-            names(x)[2L] <- names(formals(fn))[1L]
+          # preserve `...` if they were present in the call (call_match() removes them)
+          if (any(map_lgl(as.list(ox), identical, quote(...)))) {
+            x <- c(x, quote(...))
           }
           x <- as.call(x)
 
