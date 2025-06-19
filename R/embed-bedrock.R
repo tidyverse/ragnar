@@ -51,7 +51,8 @@ embed_bedrock <- function(x, model, profile, api_args = list()) {
     "https://bedrock-runtime.",
     credentials$region,
     ".amazonaws.com"
-  ))
+  )) |>
+    req_user_agent(ragnar_user_agent())
 
   req <- httr2::req_url_path_append(
     req,

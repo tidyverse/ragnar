@@ -61,8 +61,8 @@ read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
 # browser to better understand an HTML page's structure.
 #
 # For comprehensive or advanced usage of CSS selectors, consult:
-# https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-cssproperty
-# https://facelessuser.github.io/soupsieveselectors/
+# https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property
+# https://facelessuser.github.io/soupsieve/selectors/
 
 url <- "https://duckdb.org/code_of_conduct"
 # Includes the sidebar and other navigational elements
