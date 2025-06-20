@@ -85,7 +85,10 @@ SEXP pick_cut_positions_(SEXP candidate_positions, SEXP max_chunk_size_sexp) {
 static const R_CallMethodDef CallEntries[] = {
     {"pick_cut_positions_", (DL_FUNC)&pick_cut_positions_, 2}, {NULL, NULL, 0}};
 
+extern void R_init_ragnar_quick_functions(DllInfo *dll);
+
 void R_init_ragnar(DllInfo *dll) {
+  R_init_ragnar_quick_functions(dll);
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
 }

@@ -95,23 +95,11 @@ ragnar_chunk_v2 <- function(
   md,
   target_size = 1600,
   target_overlap = .5,
-  max_snap_dist = target_size / 8
+  max_snap_dist = target_size / 8,
+  pre_segment = NULL
 ) {
   md_len <- stri_length(md)
-  # if (md_len <= target_size) {
-  #   return(data_frame(
-  #     idx = 1L,
-  #     char_start_idx = 1L,
-  #     char_end_idx = md_len,
-  #     text = md,
-  #     headings = list(tibble(
-  #       level = integer(),
-  #       char_start_idx = integer(),
-  #       char_end_idx = integer(),
-  #       text = character()
-  #     ))
-  #   ))
-  # }
+
   md_positions <-
     get_markdown_source_positions(md, type = c("heading", "paragraph"))
 
@@ -272,6 +260,111 @@ ragnar_chunk_v2 <- function(
   #
   #   z$headings[1:10]
 }
+
+
+# Fast nearest-boundary search (adapted from findInterval.c)
+# ------------------------------------------------------------------
+# * target      : arbitrary order, integer vector of positions to snap
+# * candidates  : sorted, unique integer positions of valid boundaries
+# * max_snap_dist : maximum distance within which snapping may occur
+#
+# Returns an integer vector `snap` with one element per `target`.
+snap_candidates_q <- quickr::quick(
+  name = "snap_candidates_q",
+  function(target, candidates, max_snap_dist) {
+    declare({
+      type(target = integer(nt))
+      type(candidates = integer(nc))
+      type(max_snap_dist = integer(1))
+      type(snap = integer(nt))
+    })
+
+    nt <- length(target)
+    nc <- length(candidates)
+    snap <- integer(nt)
+
+    ilo <- 1L # index of last hit (initially 1)
+
+    for (i in 1:nt) {
+      x <- target[i]
+
+      ## 1. Exponential bracketing --------------------------------------------
+      if (x < candidates[ilo]) {
+        step <- 1L
+        repeat {
+          ihi <- ilo
+          ilo <- ilo - step
+          if (ilo <= 1L) {
+            ilo <- 1L
+            break
+          }
+          if (x >= candidates[ilo]) {
+            break
+          }
+          step <- step * 2L
+        }
+      } else {
+        step <- 1L
+        ihi <- min(ilo + 1L, nc)
+        while (ihi < nc && x >= candidates[ihi]) {
+          ilo <- ihi
+          step <- step * 2L
+          ihi <- min(ilo + step, nc)
+        }
+      }
+
+      ## 2. Binary search inside [ilo, ihi] -----------------------------------
+      while (ihi - ilo > 1L) {
+        mid <- (ilo + ihi) %/% 2L
+        if (x < candidates[mid]) ihi <- mid else ilo <- mid
+      }
+
+      ## 3. Pick nearer candidate within max_snap_dist ------------------------
+      left <- candidates[ilo]
+      if (ilo < nc) {
+        right <- candidates[ilo + 1L]
+      } else {
+        right <- candidates[nc]
+      }
+      ld <- abs(x - left)
+      rd <- abs(x - right)
+
+      if (ld <= max_snap_dist || rd <= max_snap_dist) {
+        if (rd < ld) {
+          snap[i] <- right
+        } else {
+          snap[i] <- left
+        }
+      } else {
+        snap[i] <- x # keep original position
+      }
+    }
+
+    snap
+  }
+)
+
+
+nearest_within <- function(target, pos, max_dist) {
+  pos <- sort(unique(pos))
+  idx <- findInterval(
+    target,
+    pos,
+    rightmost.closed = FALSE,
+    all.inside = TRUE,
+    checkSorted = FALSE
+  )
+  left <- pos[idx]
+  right <- pos[pmin(idx + 1L, length(pos))]
+  left_d <- abs(target - left)
+  right_d <- abs(target - right)
+  pick <- ifelse(right_d < left_d, right, left)
+  pick[(left_d > max_dist) & (right_d > max_dist)] <- NA_integer_
+  pick
+}
+
+
+nearest_within(seq(0, 100, by = 10), pos = c(23, 99), 4)
 
 # get_headings <- function(md, positions, headings) {}
 
