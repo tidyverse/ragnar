@@ -2,26 +2,23 @@
 % Please edit documentation in R/read-markdown.R
 \name{read_as_markdown}
 \alias{read_as_markdown}
-\title{Convert files to markdown}
+\title{Convert files to Markdown}
 \usage{
 read_as_markdown(
-  x,
+  path,
   ...,
-  canonical = FALSE,
   html_extract_selectors = c("main"),
   html_zap_selectors = c("nav")
 )
 }
 \arguments{
-\item{x}{A filepath or URL. Accepts a wide variety of file types, including
-PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR), audio (EXIF
-metadata and speech transcription), HTML, text-based formats (CSV, JSON,
-XML), ZIP files (iterates over contents), YouTube URLs, and EPUBs.}
+\item{path}{\link{string} A filepath or URL. Accepts a wide variety of file types,
+including PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR),
+audio (EXIF metadata and speech transcription), HTML, text-based formats
+(CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs, and
+EPUBs.}
 
 \item{...}{Passed on to \code{MarkItDown.convert()}.}
-
-\item{canonical}{Logical. Whether to postprocess the output from MarkItDown
-with \code{commonmark::markdown_commonmark()}.}
 
 \item{html_extract_selectors}{Character vector of CSS selectors. If a match
 for a selector is found in the document, only the matched node's contents
@@ -34,13 +31,13 @@ sidebars, headers, footers, or other unwanted elements. By default,
 navigation elements (\code{nav}) are excluded.}
 }
 \value{
-A single string of markdown.
+A single string of Markdown.
 }
 \description{
-Convert files to markdown
+Convert files to Markdown
 }
 \examples{
-\dontshow{if (reticulate::py_available()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (reticulate::py_module_available("markitdown")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Convert HTML
 read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
   substr(1, 500) |>
