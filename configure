@@ -1,0 +1,7 @@
+#!/bin/sh
+# Make reticulate setup the ephemeral venv so CRAN examples run quickly
+
+"${R_HOME}/bin/Rscript" -e '{
+  library(ragnar)
+  reticulate::py_config()
+}'
