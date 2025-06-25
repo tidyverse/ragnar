@@ -13,8 +13,8 @@
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows select mutate filter slice_min slice_max
-#'   rename_with left_join join_by
-#' @importFrom tidyr unchop
+#'   rename_with left_join join_by rename
+#' @importFrom tidyr unchop unnest
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
 #'   vec_chop  vec_ptype

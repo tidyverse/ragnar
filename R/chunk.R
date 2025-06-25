@@ -1,3 +1,17 @@
+#' @export
+ragnar_chunk <- function(x, ...) {
+  stopifnot(is.data.frame(x), c("origin", "text") %in% names(x))
+  x |>
+    rename(doc_text = text) |>
+    mutate(
+      chunk = lapply(doc_text, \(md) {
+        markdown_chunk(md, ..., headings = TRUE, text = TRUE)
+      })
+    ) |>
+    unnest(chunk, names_sep = "_")
+}
+
+
 markdown_chunk <- function(
   md,
   target_size = 1600L,
