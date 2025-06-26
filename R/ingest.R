@@ -1,4 +1,3 @@
-
 check_store_overwrite <- function(location, overwrite) {
   check_bool(overwrite)
   if (location == ":memory:") {
@@ -78,6 +77,20 @@ ragnar_store_create_v2 <- function(
       )--"
     )
   )
+
+  if (length(extra_cols)) {
+    extra_cols <- DBI::dbDataType(conn, extra_cols)
+    extra_cols <- paste0(
+      dbQuoteIdentifier(conn, names(extra_cols)),
+      " ",
+      extra_cols,
+      ",",
+      collapse = "\n"
+    )
+  } else {
+    extra_cols <- ""
+  }
+
   dbExecute(
     conn,
     glue(
@@ -100,6 +113,7 @@ ragnar_store_create_v2 <- function(
         doc_char_start_idx INTEGER,
         doc_char_end_idx INTEGER,
         headings VARCHAR,
+        {extra_cols}
         embedding FLOAT[{embedding_size}]
       );
 
@@ -477,11 +491,13 @@ if (FALSE) {
   library(dplyr, warn.conflicts = FALSE)
   devtools::load_all()
 
-  if (!file.exists("duckdb_docs.ragnar2.duckdb")) {
+  if (!file.exists("duckdb_docs.ragnar3.duckdb")) {
     paths <- ragnar_find_links("https://duckdb.org/sitemap.html")
     store <- ragnar_store_create_v2(
-      location = "duckdb_docs.ragnar2.duckdb",
-      embed = embed_ollama(model = "snowflake-arctic-embed2:568m")
+      location = "duckdb_docs.ragnar3.duckdb",
+      embed = embed_ollama(model = "snowflake-arctic-embed2:568m"),
+      overwrite = TRUE,
+      extra_cols = data.frame(date_accessed = Sys.time())
     )
     ragnar_store_ingest(
       store,
