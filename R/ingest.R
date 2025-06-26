@@ -256,18 +256,19 @@ ragnar_store_update_document_and_chunks <- function(store, document, chunks) {
 
   # Now we are sure we're inserting this document, so we force chunks
   stopifnot(is.data.frame(chunks) && 
-    c("origin", "doc_text", "chunk_start", "chunk_end", "chunk_headings", 
-"chunk_text") %in% names(chunks))
+    all(c("origin", "doc_text", "chunk_start", "chunk_end", "chunk_headings", 
+"chunk_text") %in% names(chunks)))
   
   # Get embeddings
   embeddings <- chunks |>
       dplyr::mutate(text = chunk_text) |> 
       store@embed() |>
       mutate(
+        doc_chunk_idx = dplyr::row_number(),
         headings = map_chr(chunk_headings, \(x) paste0(x, collapse = "\n")),
       ) |>
       select(
-        doc_chunk_idx = documents$id,
+        doc_chunk_idx,
         doc_char_start_idx = chunk_start,
         doc_char_end_idx = chunk_end,
         headings,
@@ -294,7 +295,7 @@ ragnar_store_update_document_and_chunks <- function(store, document, chunks) {
 
     DBI::dbAppendTable(conn, "documents", document)
     # can optionally hand-write INSERT ... RETURNING doc_id
-    embeddings$doc_id <- document$doc_id %||%
+    embeddings$doc_id <- document[["doc_id"]] %||%
       as.integer(dbGetQuery(
         conn,
         "SELECT currval('doc_id_seq') AS doc_id"
@@ -347,80 +348,13 @@ ragnar_store_update_chunks <- function(store, chunks) {
 
 # ragnar_store_from <- function(paths)
 ragnar_store_ingest <- function(store, paths, ...) {
-  # TODO: check document hash and perform update
-  conn <- store@.con
-  on.exit({
-    duckdb::duckdb_unregister(conn, "_ragnar_insert_temp_view")
-  })
   # cli::cli_progress_bar("Cleaning data", total = length(paths))
   # for (origin in paths) {
   for (i in seq_along(paths)) {
     origin <- paths[i]
     message(sprintf("[% 3i/%i] ingesting: %s", i, length(paths), origin))
-    md <- read_as_markdown(origin, ...)
-    already_present <- dbGetQuery(
-      conn,
-      "SELECT hash(text) as hash, doc_id FROM documents WHERE origin = ?",
-      list(origin)
-    )
-    documents <- data_frame(origin = origin, text = md)
-    if (nrow(already_present)) {
-      duckdb::duckdb_register(
-        conn,
-        "_ragnar_insert_temp_view",
-        documents,
-        overwrite = TRUE
-      )
-      to_insert <- dbGetQuery(
-        conn,
-        "SELECT hash(text) AS hash FROM _ragnar_insert_temp_view"
-      )
-      if (identical(to_insert$hash, already_present$hash)) {
-        next
-      } else {
-        DBI::dbWithTransaction(conn, {
-          doc_id <- already_present$doc_id
-          dbExecute(
-            conn,
-            glue(
-              # TODO: use UPDATE statement instead of DELETE ???
-              "
-              DELETE FROM documents WHERE doc_id = {doc_id};
-              DELETE FROM embeddings WHERE doc_id = {doc_id};
-              "
-            )
-          )
-        })
-        documents$doc_id <- doc_id
-      }
-    }
-
-    chunks <- ragnar_chunk(tibble(origin = origin, text = md))
-    embeddings <- chunks |>
-      dplyr::mutate(text = chunk_text) |> 
-      store@embed() |>
-      mutate(
-        headings = map_chr(chunk_headings, \(x) paste0(x, collapse = "\n")),
-      ) |>
-      # relocate(headings, .before = text) |>
-      select(
-        doc_chunk_idx = documents$id,
-        doc_char_start_idx = chunk_start,
-        doc_char_end_idx = chunk_end,
-        headings,
-        embedding
-      )
-
-    DBI::dbWithTransaction(conn, {
-      DBI::dbAppendTable(conn, "documents", documents)
-      # can optionally hand-write INSERT ... RETURNING doc_id
-      embeddings$doc_id <- documents$doc_id %||%
-        as.integer(dbGetQuery(
-          conn,
-          "SELECT currval('doc_id_seq') AS doc_id"
-        ))
-      DBI::dbAppendTable(conn, "embeddings", embeddings)
-    })
+    document <- tibble::tibble(origin = origin, text = read_as_markdown(origin, ...))
+    ragnar_store_update_document_and_chunks(store, document, ragnar_chunk(document))
     # cli::cli_progress_update()
   }
   # cli::cli_progress_done()
