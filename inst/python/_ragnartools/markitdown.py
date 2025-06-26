@@ -13,11 +13,11 @@ def maybe_insert_info_string(text, class_):
     if not class_:
         return text
     if isinstance(class_, list):
-        # ["sourceCode", "python"] -> "python", else join
-        if len(class_) > 1 and class_[0] == "sourceCode":
-            class_ = class_[1]
-        else:
+        try:
+            class_ = class_[class_.index("sourceCode") + 1]
+        except:
             class_ = " ".join(class_)
+
     class_ = str(class_).strip()
     if not class_:
         return text
@@ -37,7 +37,7 @@ def maybe_insert_info_string(text, class_):
         return text
 
     new_info = " ".join(info_tokens + missing).strip()
-    return f"{indent}{fence}{new_info}{text[m.end():]}"
+    return f"{indent}{fence}{new_info}{text[m.end() :]}"
 
 
 def maybe_expand_outer_code_fence(text):

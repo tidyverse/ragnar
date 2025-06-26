@@ -17,7 +17,7 @@
 
   * New arguments `html_extract_selectors` and `html_zap_selectors` provide a flexible way to
     exclude some html page elements from being included in the converted markdown.
-
+  * code blocks now include the language, if available.
   * Fixed handling of nested code fences in markdown output.
 
 # ragnar 0.1.0
