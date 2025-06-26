@@ -136,8 +136,8 @@ ragnar_store_create_v2 <- function(
   DuckDBRagnarStore(
     embed = embed,
     # schema = schema,
-    .con = conn
-    # name = name,
+    .con = conn,
+    name = name
     # title = title
   )
 }
@@ -217,7 +217,6 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
 }
 
 # ragnar_store_from <- function(paths)
-
 ragnar_store_ingest <- function(store, paths, ...) {
   # TODO: check document hash and perform update
   conn <- store@.con
@@ -250,7 +249,7 @@ ragnar_store_ingest <- function(store, paths, ...) {
       if (identical(to_insert$hash, already_present$hash)) {
         next
       } else {
-        dbWithTransaction(conn, {
+        DBI::dbWithTransaction(conn, {
           doc_id <- already_present$doc_id
           dbExecute(
             conn,
@@ -266,30 +265,32 @@ ragnar_store_ingest <- function(store, paths, ...) {
         documents$doc_id <- doc_id
       }
     }
-    chunks <- ragnar_chunk_v2(md)
+
+    chunks <- ragnar_chunk(tibble(origin = origin, text = md))
     embeddings <- chunks |>
+      dplyr::mutate(text = chunk_text) |> 
       store@embed() |>
       mutate(
-        headings = map_chr(headings, \(x) paste0(x$text, collapse = "\n")),
+        headings = map_chr(chunk_headings, \(x) paste0(x, collapse = "\n")),
       ) |>
       # relocate(headings, .before = text) |>
       select(
-        doc_chunk_idx = idx,
-        doc_char_start_idx = char_start_idx,
-        doc_char_end_idx = char_end_idx,
+        doc_chunk_idx = documents$id,
+        doc_char_start_idx = chunk_start,
+        doc_char_end_idx = chunk_end,
         headings,
         embedding
       )
 
     DBI::dbWithTransaction(conn, {
-      dbAppendTable(conn, "documents", documents)
+      DBI::dbAppendTable(conn, "documents", documents)
       # can optionally hand-write INSERT ... RETURNING doc_id
       embeddings$doc_id <- documents$doc_id %||%
         as.integer(dbGetQuery(
           conn,
           "SELECT currval('doc_id_seq') AS doc_id"
         ))
-      dbAppendTable(conn, "embeddings", embeddings)
+      DBI::dbAppendTable(conn, "embeddings", embeddings)
     })
     # cli::cli_progress_update()
   }
