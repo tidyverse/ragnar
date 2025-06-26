@@ -22,7 +22,8 @@
       store@embed
     Output
       function (x, ...) 
-      ragnar::embed_openai(x = x, ..., model = "text-embedding-3-small")
+      ragnar::embed_openai(x = x, model = "text-embedding-3-small", 
+          ...)
       <environment: base>
 
 ---

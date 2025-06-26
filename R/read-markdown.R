@@ -163,20 +163,20 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   lines <- text |> stri_split_lines() |> unlist()
   text <- lines |> stri_flatten("\n")
 
-  if (text == "") {
-    return(data_frame(tag = character(), start = integer(), end = integer()))
-  }
-
-  doc <- text |>
+  html <- text |>
     commonmark::markdown_html(
       sourcepos = TRUE,
       extensions = TRUE,
       normalize = TRUE
     ) |>
     enc2utf8() |>
-    charToRaw() |>
-    read_html(encoding = "UTF-8")
+    charToRaw()
 
+  if (!length(html)) {
+    return(data_frame(tag = character(), start = integer(), end = integer()))
+  }
+
+  doc <- html |> read_html(encoding = "UTF-8")
   elements <- doc |> xml_find_all(xpath = "//*[@data-sourcepos]")
 
   df <- tibble::tibble(
