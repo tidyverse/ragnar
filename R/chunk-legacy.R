@@ -162,7 +162,7 @@ str_chunk <- function(
 #' - extracting slices: extracting substrings using the candidate boundaries to produce chunks that
 #'   match the requested `chunk_size` and `chunk_overlap`
 #'
-#' `ragnar_chunk()` is a higher-level function that does both, identifies boundaries and extracts slices.
+#' `ragnar_chunk_legacy()` is a higher-level function that does both, identifies boundaries and extracts slices.
 #'
 #' If you need lower-level control, you can alternatively use the lower-level functions
 #' `ragnar_segment()` in combination with `ragnar_chunk_segments()`.
@@ -173,7 +173,7 @@ str_chunk <- function(
 #'
 #' For most usecases, these two are equivalent:
 #' ```r
-#' x |> ragnar_chunk()
+#' x |> ragnar_chunk_legacy()
 #' x |> ragnar_segment() |> ragnar_chunk_segments()
 #' ```
 #'
@@ -192,24 +192,24 @@ str_chunk <- function(
 #' # Basic chunking with max size
 #' text <- "This is a long piece of text. It has multiple sentences.
 #'          We want to split it into chunks. Here's another sentence."
-#' ragnar_chunk(text, max_size = 40) # splits at sentences
+#' ragnar_chunk_legacy(text, max_size = 40) # splits at sentences
 #'
 #' # smaller chunk size: first splits at sentence boundaries, then word boundaries
-#' ragnar_chunk(text, max_size = 20)
+#' ragnar_chunk_legacy(text, max_size = 20)
 #'
 #' # only split at sentence boundaries. Note, some chunks are oversized
-#' ragnar_chunk(text, max_size = 20, boundaries = c("sentence"))
+#' ragnar_chunk_legacy(text, max_size = 20, boundaries = c("sentence"))
 #'
 #' # only consider word boundaries when splitting:
-#' ragnar_chunk(text, max_size = 20, boundaries = c("word"))
+#' ragnar_chunk_legacy(text, max_size = 20, boundaries = c("word"))
 #'
 #' # first split at sentence boundaries, then word boundaries,
 #' # as needed to satisfy `max_chunk`
-#' ragnar_chunk(text, max_size = 20, boundaries = c("sentence", "word"))
+#' ragnar_chunk_legacy(text, max_size = 20, boundaries = c("sentence", "word"))
 #'
 #' # Use a stringr pattern to find semantic boundaries
-#' ragnar_chunk(text, max_size = 10, boundaries = stringr::fixed(". "))
-#' ragnar_chunk(text, max_size = 10, boundaries = list(stringr::fixed(". "), "word"))
+#' ragnar_chunk_legacy(text, max_size = 10, boundaries = stringr::fixed(". "))
+#' ragnar_chunk_legacy(text, max_size = 10, boundaries = list(stringr::fixed(". "), "word"))
 #'
 #'
 #' # Working with data frames
@@ -217,8 +217,8 @@ str_chunk <- function(
 #'   id = 1:2,
 #'   text = c("First sentence. Second sentence.", "Another sentence here.")
 #' )
-#' ragnar_chunk(df, max_size = 20, boundaries = "sentence")
-#' ragnar_chunk(df$text, max_size = 20, boundaries = "sentence")
+#' ragnar_chunk_legacy(df, max_size = 20, boundaries = "sentence")
+#' ragnar_chunk_legacy(df$text, max_size = 20, boundaries = "sentence")
 #'
 #' # Chunking pre-segmented text
 #' segments <- c("First segment. ", "Second segment. ", "Third segment. ", "Fourth segment. ")
@@ -226,10 +226,11 @@ str_chunk <- function(
 #' ragnar_chunk_segments(segments, max_size = 40)
 #' ragnar_chunk_segments(segments, max_size = 60)
 #'
-#' @name ragnar_chunk
-#' @rdname ragnar_chunk
+#' @name ragnar_chunk_legacy
+#' @rdname ragnar_chunk_legacy
+#' @keywords internal
 #' @export
-ragnar_chunk <- function(
+ragnar_chunk_legacy <- function(
   x,
   max_size = 1600L,
   boundaries = c("paragraph", "sentence", "line_break", "word", "character"),
@@ -303,8 +304,8 @@ ragnar_segment <- function(
 }
 
 #' @export
-#' @rdname ragnar_chunk
-ragnar_chunk_segments <- function(
+#' @rdname ragnar_chunk_legacy
+ragnar_chunk_segments_legacy <- function(
   x,
   max_size = 1600L,
   ...,
