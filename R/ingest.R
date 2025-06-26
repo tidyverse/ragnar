@@ -14,6 +14,8 @@ check_store_overwrite <- function(location, overwrite) {
   }
 }
 
+
+
 ragnar_store_create_v2 <- function(
   location = ":memory:",
   embed = embed_ollama(model = "snowflake-arctic-embed2:568m"),
@@ -212,6 +214,133 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
   # dbExecute(
   #   conn,
   #   r"--(
+
+  invisible(store)
+}
+
+#' Workhorse that inserts a document and its chunks into the store.
+#' Relies on lazy evaluation to not evaluate `chunks` unless needed. 
+ragnar_store_update_document_and_chunks <- function(store, document, chunks) {
+  stopifnot(is.data.frame(document) && nrow(document) == 1L)
+  # we don't typecheck chunks until later because we rely on lazy evaluation to not
+  # evaluate chunks if it's not needed.
+  
+  on.exit({
+    duckdb::duckdb_unregister(conn, "_ragnar_insert_temp_view")
+  })
+  
+  conn <- store@.con
+
+  already_present <- dbGetQuery(
+    conn,
+    "SELECT hash(text) as hash, doc_id FROM documents WHERE origin = ?",
+    list(document$origin)
+  )
+
+  if (nrow(already_present)) {
+    duckdb::duckdb_register(
+      conn,
+      "_ragnar_insert_temp_view",
+      document,
+      overwrite = TRUE
+    )
+    to_insert <- dbGetQuery(
+      conn,
+      "SELECT hash(text) AS hash FROM _ragnar_insert_temp_view"
+    )
+    if (identical(to_insert$hash, already_present$hash)) {
+      return(invisible(store))
+    }
+    document$doc_id <- already_present$doc_id
+  }
+
+  # Now we are sure we're inserting this document, so we force chunks
+  stopifnot(is.data.frame(chunks) && 
+    c("origin", "doc_text", "chunk_start", "chunk_end", "chunk_headings", 
+"chunk_text") %in% names(chunks))
+  
+  # Get embeddings
+  embeddings <- chunks |>
+      dplyr::mutate(text = chunk_text) |> 
+      store@embed() |>
+      mutate(
+        headings = map_chr(chunk_headings, \(x) paste0(x, collapse = "\n")),
+      ) |>
+      select(
+        doc_chunk_idx = documents$id,
+        doc_char_start_idx = chunk_start,
+        doc_char_end_idx = chunk_end,
+        headings,
+        embedding
+      )
+  
+  # Update the database in a single transaction
+  DBI::dbWithTransaction(conn, {
+    
+    # Delete doc ids if we are replacing
+    if (nrow(already_present)) {
+      doc_id <- already_present$doc_id
+      dbExecute(
+        conn,
+        glue(
+          # TODO: use UPDATE statement instead of DELETE ???
+          "
+          DELETE FROM documents WHERE doc_id = {doc_id};
+          DELETE FROM embeddings WHERE doc_id = {doc_id};
+          "
+        )
+      )
+    }
+
+    DBI::dbAppendTable(conn, "documents", document)
+    # can optionally hand-write INSERT ... RETURNING doc_id
+    embeddings$doc_id <- document$doc_id %||%
+      as.integer(dbGetQuery(
+        conn,
+        "SELECT currval('doc_id_seq') AS doc_id"
+      ))
+    DBI::dbAppendTable(conn, "embeddings", embeddings)
+
+  })
+
+  invisible(store)
+}
+
+ragnar_store_update_documents <- function(store, documents) {
+  stopifnot(is.data.frame(documents) && all(
+    c("origin", "text") %in% names(documents)
+  ))
+
+  for (i in seq_len(nrow(documents))) {
+    document <- documents[i,,drop=FALSE]
+    ragnar_store_update_document_and_chunks(store, document, ragnar_chunk(document))
+  }
+
+  invisible(store)
+}
+
+ragnar_store_update_chunks <- function(store, chunks) {
+  stopifnot(is.data.frame(chunks) && all(
+    c("origin", "doc_text", "chunk_start", "chunk_end", "chunk_headings", 
+      "chunk_text") %in% names(chunks)
+  ))
+
+  chunks <- dplyr::distinct(chunks)
+
+  documents <- chunks |> 
+    dplyr::select(origin, text = doc_text) |> 
+    dplyr::distinct()
+
+  for (i in seq_len(nrow(documents))) {
+    document <- documents[i,,drop=FALSE]
+    ragnar_store_update_document_and_chunks(
+      store, 
+      document, 
+      # keeping this here is slightly more efficient because we don't
+      # evaluate if the document already exists in the DB.
+      chunks[chunks$origin == document$origin,,drop=FALSE]
+    )
+  }
 
   invisible(store)
 }
