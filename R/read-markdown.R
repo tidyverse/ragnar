@@ -1,12 +1,11 @@
-#' Convert files to markdown
+#' Convert files to Markdown
 #'
-#' @param x A filepath or URL. Accepts a wide variety of file types, including
-#'   PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR), audio (EXIF
-#'   metadata and speech transcription), HTML, text-based formats (CSV, JSON,
-#'   XML), ZIP files (iterates over contents), YouTube URLs, and EPUBs.
+#' @param path [string] A filepath or URL. Accepts a wide variety of file types,
+#'   including PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR),
+#'   audio (EXIF metadata and speech transcription), HTML, text-based formats
+#'   (CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs, and
+#'   EPUBs.
 #' @param ... Passed on to `MarkItDown.convert()`.
-#' @param canonical Logical. Whether to postprocess the output from MarkItDown
-#'   with `commonmark::markdown_commonmark()`.
 #' @param html_extract_selectors Character vector of CSS selectors. If a match
 #'   for a selector is found in the document, only the matched node's contents
 #'   are converted. Unmatched extract selectors have no effect.
@@ -16,7 +15,7 @@
 #'   sidebars, headers, footers, or other unwanted elements. By default,
 #'   navigation elements (`nav`) are excluded.
 #'
-#' @returns A single string of markdown.
+#' @returns A single string of Markdown.
 #' @export
 #'
 #' @examplesIf reticulate::py_available()
@@ -120,45 +119,43 @@
 #'   chat$chat("Describe this image", ellmer::content_image_file(jpg))
 #' }
 read_as_markdown <- function(
-  x,
+  path,
   ...,
-  canonical = FALSE,
   html_extract_selectors = c("main"),
   html_zap_selectors = c("nav")
 ) {
-  check_string(x)
-  if (startsWith(x, "~")) {
+  check_string(path)
+  if (startsWith(path, "~")) {
     x <- path.expand(x)
   }
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
-    # use the Python API, faster, more powerful, the default
+    # use the Python API, faster, more powerful, the default,
     # but we leave an escape hatch just in case there are other python
     # dependencies that conflict
     md <- ragnartools.markitdown$convert_to_markdown(
-      x,
+      path,
       html_extract_selectors = html_extract_selectors,
       html_zap_selectors = html_zap_selectors,
       ...,
     )
   } else {
-    md <- read_as_markdown_cli(x, ...)
+    md <- read_as_markdown_cli(path, ...)
   }
 
-  md <- stri_replace_all_fixed(md, "\f", "\n\n---\n\n")
-  md <- unlist(stri_split_lines(md)) # normalize newlines
-  md <- stri_trim_right(md)
-  if (canonical) {
-    md <- commonmark::markdown_commonmark(
-      md,
+  # normalize
+  md |>
+    stri_split_lines() |>
+    unlist() |>
+    enc2utf8() |>
+    stri_trim_right() |>
+    stri_flatten("\n") |>
+    commonmark::markdown_commonmark(
       normalize = TRUE,
       footnotes = TRUE,
-      width = 72L,
       extensions = TRUE
-    )
-  }
-  md <- stri_flatten(md, "\n")
-  glue::as_glue(md)
+    ) |>
+    as_glue()
 }
 
 
@@ -166,20 +163,20 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   lines <- text |> stri_split_lines() |> unlist()
   text <- lines |> stri_flatten("\n")
 
-  if (text == "") {
-    return(data_frame(tag = character(), start = integer(), end = integer()))
-  }
-
-  doc <- text |>
+  html <- text |>
     commonmark::markdown_html(
       sourcepos = TRUE,
       extensions = TRUE,
       normalize = TRUE
     ) |>
     enc2utf8() |>
-    charToRaw() |>
-    read_html(encoding = "UTF-8")
+    charToRaw()
 
+  if (!length(html)) {
+    return(data_frame(tag = character(), start = integer(), end = integer()))
+  }
+
+  doc <- html |> read_html(encoding = "UTF-8")
   elements <- doc |> xml_find_all(xpath = "//*[@data-sourcepos]")
 
   df <- tibble::tibble(
