@@ -6,12 +6,14 @@
 #'   stri_extract_last_regex stri_startswith_charclass stri_replace_last_regex
 #'   stri_replace_all_regex stri_replace_all_fixed stri_split_lines1
 #'   stri_replace_first_regex stri_replace_na stri_replace_first_fixed
-#'   stri_replace_last_fixed stri_count_fixed stri_endswith_fixed stri_trim_both
-#'   stri_split_charclass stri_read_lines stri_trim_right
+#'   stri_locate_first_regex stri_replace_last_fixed stri_count_fixed
+#'   stri_endswith_fixed stri_trim_both stri_split_charclass stri_read_lines
+#'   stri_trim_right stri_split_boundaries
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr bind_rows select mutate filter
+#' @importFrom dplyr bind_rows select mutate filter slice_min slice_max
+#'   left_join rename_with join_by coalesce
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
