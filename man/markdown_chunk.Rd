@@ -11,7 +11,7 @@ markdown_chunk(
   ...,
   max_snap_dist = target_size * (1 - target_overlap)/3,
   headings = TRUE,
-  pre_segment_heading_levels = 0L,
+  pre_segment_heading_levels = integer(),
   text = TRUE
 )
 }
@@ -22,8 +22,8 @@ markdown_chunk(
 (≈ 400 tokens, or 1 page of text).}
 
 \item{target_overlap}{Numeric in \verb{[0, 1)}. Fraction of desired overlap
-between successive chunks. Default: \code{0.5}. Even when \code{0}, some overlap
-can occur because the last chunk is anchored to the document end.}
+between successive chunks. Default: \code{0.5}. Even when \code{0}, some overlap can
+occur because the last chunk is anchored to the document end.}
 
 \item{...}{Must be empty.}
 
@@ -35,9 +35,9 @@ merged.}
 \item{headings}{Logical. Add a \code{headings} column containing the Markdown
 headings in scope at each chunk start. Default: \code{TRUE}.}
 
-\item{pre_segment_heading_levels}{Integer. Headings at or above this level
-are treated as hard segment breaks before chunking. Default: \code{0}
-(disabled).}
+\item{pre_segment_heading_levels}{Integer vector with possible values \code{1:6}.
+Headings at these levels are treated as hard segment breaks before
+chunking. Default: disabled.}
 
 \item{text}{Logical. If \code{TRUE}, include a \code{text} column with the chunk
 contents. Default: \code{TRUE}.}
@@ -87,6 +87,6 @@ Even more text here.
 
 markdown_chunk(md, target_size = 40)
 markdown_chunk(md, target_size = 40, target_overlap = 0)
-markdown_chunk(md, target_size = 40, pre_segment_heading_levels = 2)
+markdown_chunk(md, target_size = 400, pre_segment_heading_levels = c(1, 2))
 markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 }

@@ -10,8 +10,8 @@
 #' @param target_size Integer. Target chunk size in characters. Default: `1600`
 #'   (≈ 400 tokens, or 1 page of text).
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
-#'   between successive chunks. Default: `0.5`. Even when `0`, some overlap
-#'   can occur because the last chunk is anchored to the document end.
+#'   between successive chunks. Default: `0.5`. Even when `0`, some overlap can
+#'   occur because the last chunk is anchored to the document end.
 #' @param max_snap_dist Integer. Furthest distance (in characters) a cut point
 #'   may move to reach a boundary. Defaults to one third of the stride size
 #'   between target chunk starts. Chunks that end up on identical boundaries are
@@ -19,9 +19,9 @@
 #' @param ... Must be empty.
 #' @param headings Logical. Add a `headings` column containing the Markdown
 #'   headings in scope at each chunk start. Default: `TRUE`.
-#' @param pre_segment_heading_levels Integer. Headings at or above this level
-#'   are treated as hard segment breaks before chunking. Default: `0`
-#'   (disabled).
+#' @param pre_segment_heading_levels Integer vector with possible values `1:6`.
+#'   Headings at these levels are treated as hard segment breaks before
+#'   chunking. Default: disabled.
 #' @param text Logical. If `TRUE`, include a `text` column with the chunk
 #'   contents. Default: `TRUE`.
 #'
@@ -64,7 +64,7 @@
 #'
 #' markdown_chunk(md, target_size = 40)
 #' markdown_chunk(md, target_size = 40, target_overlap = 0)
-#' markdown_chunk(md, target_size = 40, pre_segment_heading_levels = 2)
+#' markdown_chunk(md, target_size = 400, pre_segment_heading_levels = c(1, 2))
 #' markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 markdown_chunk <- function(
   md,
@@ -73,7 +73,7 @@ markdown_chunk <- function(
   ...,
   max_snap_dist = target_size * (1 - target_overlap) / 3,
   headings = TRUE,
-  pre_segment_heading_levels = 0L,
+  pre_segment_heading_levels = integer(),
   text = TRUE
 ) {
   check_dots_empty()
@@ -84,7 +84,7 @@ markdown_chunk <- function(
   md_headings <- markdown_headings(md, md_positions)
 
   segment_breaks <-
-    filter(md_headings, level <= pre_segment_heading_levels)$start
+    filter(md_headings, level %in% as.integer(pre_segment_heading_levels))$start
   chunk_targets <- make_chunk_targets(
     md_len = md_len,
     segment_breaks = segment_breaks,
@@ -139,7 +139,7 @@ markdown_chunk <- function(
       ## same boundary. If that happens, scan ahead to the next boundary in the
       ## snap table and adjust the end to use that.
       end = ifelse(
-        start < end,
+        start <= end,
         end,
         map_int(end, \(e) {
           snap_table$to[which.max(snap_table$to > (e + 1L))] - 1L
