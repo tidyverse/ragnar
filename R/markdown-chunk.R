@@ -393,3 +393,21 @@ markdown_position_headings <- function(
     ) |>
     _$heading
 }
+
+utils::globalVariables(c(
+  # markdown_chunk() and helpers
+  "level",
+  "type",
+  "to",
+  "from",
+  "start",
+  "end",
+  "text",
+  "heading_level",
+  "heading_start",
+  "closest",
+  "start_of_heading_level",
+  "nearest_preceeding_heading_level",
+  "heading",
+  "max_applicable_level"
+))

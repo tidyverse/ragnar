@@ -12,7 +12,7 @@ read_as_markdown(
 )
 }
 \arguments{
-\item{path}{\link{string} A filepath or URL. Accepts a wide variety of file types,
+\item{path}{[string] A filepath or URL. Accepts a wide variety of file types,
 including PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR),
 audio (EXIF metadata and speech transcription), HTML, text-based formats
 (CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs, and
