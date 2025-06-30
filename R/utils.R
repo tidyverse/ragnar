@@ -6,12 +6,14 @@
 #'   stri_extract_last_regex stri_startswith_charclass stri_replace_last_regex
 #'   stri_replace_all_regex stri_replace_all_fixed stri_split_lines1
 #'   stri_replace_first_regex stri_replace_na stri_replace_first_fixed
-#'   stri_replace_last_fixed stri_count_fixed stri_endswith_fixed stri_trim_both
-#'   stri_split_charclass stri_read_lines stri_trim_right
+#'   stri_locate_first_regex stri_replace_last_fixed stri_count_fixed
+#'   stri_endswith_fixed stri_trim_both stri_split_charclass stri_read_lines
+#'   stri_trim_right stri_split_boundaries
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr bind_rows select mutate filter
+#' @importFrom dplyr bind_rows select mutate filter slice_min slice_max
+#'   left_join rename_with join_by coalesce na_if
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
@@ -45,6 +47,7 @@ drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
 
 map_chr <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = "", ...)
+map_int <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = 0L, ...)
 map_lgl <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = TRUE, ...)
 
 map2 <- function(.x, .y, .f, ...) {
@@ -153,3 +156,18 @@ reorder_names <- function(..., last = NULL) {
 }
 
 is_windows <- function() identical(.Platform$OS.type, "windows")
+
+
+is_scalar <- function(x) identical(length(x), 1L)
+
+replace_val <- function(x, old, new) {
+  if (!is_scalar(new)) {
+    stop(
+      "Unexpected length of replacement value in replace_val().\n",
+      "`new` must be length 1, not ",
+      length(new)
+    )
+  }
+  x[x %in% old] <- new
+  x
+}
