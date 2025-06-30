@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+* New chunker `markdown_chunk()` with support for chunk heading context generation,
+  semantic boundary selection, overlapping chunks, document segmentation, and more. (#56)
+
 * New function `embed_google_vertex()` (@dfalbel, #49)
 
 * New function `embed_databricks()` (@atheriel, #45)

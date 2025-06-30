@@ -1,20 +1,21 @@
 #' @importFrom rvest html_text html_text2 html_elements read_html html_attr
-#' @importFrom stringi stri_length stri_locate_all_boundaries stri_split_fixed
-#'   stri_startswith_fixed stri_sub stri_trim_both stri_flatten
-#'   stri_match_first_regex stri_locate_all_fixed stri_detect_fixed stri_flatten
-#'   stri_c stri_split_lines stri_numbytes stri_extract_first_regex
-#'   stri_extract_last_regex stri_startswith_charclass stri_locate_first_regex
-#'   stri_replace_last_regex stri_replace_all_regex stri_replace_all_fixed
-#'   stri_split_lines1 stri_replace_first_regex stri_replace_na
-#'   stri_replace_first_fixed stri_replace_last_fixed stri_count_fixed
-#'   stri_endswith_fixed stri_trim_both stri_split_charclass stri_read_lines
-#'   stri_trim_right stri_split_boundaries
+#' @importFrom stringi stri_c stri_count_fixed stri_detect_fixed
+#'   stri_endswith_fixed stri_extract_first_regex stri_extract_last_regex
+#'   stri_flatten stri_length stri_locate_all_boundaries stri_locate_all_fixed
+#'   stri_locate_first_regex stri_match_first_regex stri_numbytes
+#'   stri_read_lines stri_replace_all_fixed stri_replace_all_regex
+#'   stri_replace_first_fixed stri_replace_first_regex stri_replace_last_fixed
+#'   stri_replace_last_regex stri_replace_na stri_split_boundaries
+#'   stri_split_charclass stri_split_fixed stri_split_lines stri_split_lines1
+#'   stri_startswith_charclass stri_startswith_fixed stri_sub stri_trim_both
+#'   stri_trim_right
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr bind_rows select mutate filter slice_min slice_max
-#'   rename_with left_join join_by rename
+#' @importFrom dplyr bind_rows coalesce filter join_by left_join mutate na_if
+#'   rename rename_with select slice_max slice_min starts_with
 #' @importFrom tidyr unchop unnest
+#' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
 #'   vec_chop vec_ptype
@@ -25,13 +26,10 @@
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @importFrom utils head
-#' @useDynLib ragnar, .registration = TRUE
-NULL
-
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
 #' @import rlang
 #' @import S7
-
+#' @useDynLib ragnar, .registration = TRUE
 NULL
 
 `%error%` <- rlang::zap_srcref(
@@ -47,6 +45,7 @@ drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
 
 map_chr <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = "", ...)
+map_int <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = 0L, ...)
 map_lgl <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = TRUE, ...)
 
 map2 <- function(.x, .y, .f, ...) {
@@ -157,6 +156,18 @@ reorder_names <- function(..., last = NULL) {
 is_windows <- function() identical(.Platform$OS.type, "windows")
 
 
-prepend <- function(body, head) {
-  c(head, body)
+prepend <- function(body, head) c(head, body)
+
+is_scalar <- function(x) identical(length(x), 1L)
+
+replace_val <- function(x, old, new) {
+  if (!is_scalar(new)) {
+    stop(
+      "Unexpected length of replacement value in replace_val().\n",
+      "`new` must be length 1, not ",
+      length(new)
+    )
+  }
+  x[x %in% old] <- new
+  x
 }

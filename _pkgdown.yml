@@ -27,6 +27,7 @@ reference:
       - ragnar_chunk
       - ragnar_segment
       - ragnar_chunk_segments
+      - markdown_chunk
       - markdown_segment
       - markdown_frame
 
