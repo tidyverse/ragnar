@@ -246,9 +246,9 @@ snap_nearest <- function(x, candidates, max_dist = NULL) {
   left_idx <- findInterval(
     x,
     candidates,
-    all.inside = TRUE,
-    checkSorted = FALSE,
-    checkNA = FALSE
+    all.inside = TRUE
+    ## checkSorted and checkNA added in 4.5
+    # , checkSorted = FALSE, checkNA = FALSE
   )
   right_idx <- left_idx + 1L
 
