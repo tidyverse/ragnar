@@ -17,4 +17,5 @@
 ^.*chat\.Rmd$
 ^_chats$
 ^cran-comments\.md$
+\.ruff_cache
 ^CRAN-SUBMISSION$
