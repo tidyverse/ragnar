@@ -14,7 +14,7 @@ maybe_on_cran <- function() {
 
 maybe_set_threads <- function(store) {
   if (maybe_on_cran()) {
-    DBI::dbExecute(store@.con, "SET threads TO 1;")
+    DBI::dbExecute(store@conn, "SET threads TO 1;")
   }
   store
 }

@@ -63,7 +63,7 @@ ragnar_retrieve_vss <- function(
     )---"
   )
 
-  as_tibble(dbGetQuery(store@.con, query))
+  as_tibble(dbGetQuery(store@conn, query))
 }
 
 # if we ever export it, this can be used as
@@ -183,7 +183,7 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
     stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
     stringi::stri_c(collapse = ",")
 
-  text <- dbQuoteString(store@.con, text)
+  text <- dbQuoteString(store@conn, text)
   sql_query <- glue(
     r"---(
     SELECT
@@ -198,11 +198,11 @@ ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
     )---"
   )
 
-  as_tibble(dbGetQuery(store@.con, sql_query))
+  as_tibble(dbGetQuery(store@conn, sql_query))
 }
 
 calculate_bm25 <- function(store, text) {
-  text <- dbQuoteString(store@.con, text)
+  text <- dbQuoteString(store@conn, text)
   glue::glue("fts_main_chunks.match_bm25(id, {text})")
 }
 

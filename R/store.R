@@ -205,7 +205,8 @@ ragnar_store_create <- function(
   DuckDBRagnarStore(
     embed = embed,
     schema = schema,
-    .con = con,
+    conn = con,
+    # .con = con,
     name = name,
     title = title
   )
@@ -409,7 +410,7 @@ ragnar_store_update <- function(store, chunks) {
     {
       # Insert the new chunks into a temporary table
       DBI::dbWriteTable(
-        store@.con,
+        store@conn,
         "tmp_chunks",
         chunks |> dplyr::select("origin", "hash") |> dplyr::distinct(),
         temporary = TRUE,
@@ -419,7 +420,7 @@ ragnar_store_update <- function(store, chunks) {
       # We want to insert into the chunks table all chunks whose origin and hash
       # are not already in the chunks table.
       chunks_to_insert <- DBI::dbGetQuery(
-        store@.con,
+        store@conn,
         "SELECT * FROM tmp_chunks
       EXCEPT
       SELECT DISTINCT origin, hash FROM chunks"
@@ -432,7 +433,7 @@ ragnar_store_update <- function(store, chunks) {
         by = c("origin", "hash")
       )
       # We've already done everything we needed, we can simply throw out the transaction.
-      dbExecute(store@.con, "DROP TABLE tmp_chunks;")
+      dbExecute(store@conn, "DROP TABLE tmp_chunks;")
     },
     error = function(e) {
       cli::cli_abort("Failed to filter chunks to insert", parent = e)
@@ -443,14 +444,14 @@ ragnar_store_update <- function(store, chunks) {
     return(invisible(store))
   }
 
-  dbExecute(store@.con, "BEGIN TRANSACTION;")
+  dbExecute(store@conn, "BEGIN TRANSACTION;")
   tryCatch(
     {
       # Remove rows that have the same origin as those that will be included
-      origins <- DBI::dbQuoteString(store@.con, unique(chunks$origin)) |>
+      origins <- DBI::dbQuoteString(store@conn, unique(chunks$origin)) |>
         stri_c(collapse = ", ")
       dbExecute(
-        store@.con,
+        store@conn,
         glue("DELETE FROM chunks WHERE origin IN ({origins})")
       )
 
@@ -458,10 +459,10 @@ ragnar_store_update <- function(store, chunks) {
       ragnar_store_insert(store, chunks)
 
       # Finally commit
-      dbExecute(store@.con, "COMMIT;")
+      dbExecute(store@conn, "COMMIT;")
     },
     error = function(e) {
-      dbExecute(store@.con, "ROLLBACK;")
+      dbExecute(store@conn, "ROLLBACK;")
       cli::cli_abort("Failed to update the store", parent = e)
     }
   )
@@ -544,9 +545,9 @@ ragnar_store_insert <- function(store, chunks) {
         ")"
       )
     } else if (is.character(col)) {
-      DBI::dbQuoteString(store@.con, col)
+      DBI::dbQuoteString(store@conn, col)
     } else if (is.numeric(col)) {
-      DBI::dbQuoteLiteral(store@.con, col)
+      DBI::dbQuoteLiteral(store@conn, col)
     } else {
       cli::cli_abort("Unsupported type {.cls {class(col)}}")
     }
@@ -561,7 +562,7 @@ ragnar_store_insert <- function(store, chunks) {
     rows
   )
 
-  dbExecute(store@.con, insert_statement)
+  dbExecute(store@conn, insert_statement)
 
   invisible(store)
 }
@@ -579,7 +580,7 @@ ragnar_store_insert <- function(store, chunks) {
 #' @export
 ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   if (S7_inherits(store, DuckDBRagnarStore)) {
-    con <- store@.con
+    con <- store@conn
   } else if (methods::is(store, "DBIConnection")) {
     con <- store
   } else {
@@ -591,7 +592,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
     # the VSS index with a warning.
     # First detect we're in motherduck
     loaded <- DBI::dbGetQuery(
-      store@.con,
+      store@conn,
       "SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name='motherduck' and loaded=TRUE"
     )
     loaded <- nrow(loaded) > 0
@@ -644,7 +645,21 @@ DuckDBRagnarStore <- new_class(
   "DuckDBRagnarStore",
   RagnarStore,
   properties = list(
-    .con = methods::getClass("DBIConnection")
+    conn = methods::getClass("DBIConnection"),
+    .con = new_property(
+      # methods::getClass("DBIConnection"),
+      getter = function(self) {
+        warning("@.con renamed to @conn, please update your code")
+        self@conn
+      },
+      setter = function(self, value) {
+        if (!is.null(value)) {
+          warning("@.con renamed to @conn, please update your code")
+          self@conn <- value
+        }
+        self
+      }
+    )
   )
 )
 
@@ -667,6 +682,6 @@ ragnar_store_inspect <- function(store, ...) {
 
 #' @importFrom dplyr tbl sql arrange collect
 method(tbl, ragnar:::DuckDBRagnarStore) <- function(src, from = "chunks", ...) {
-  tbl(src@.con, from)
+  tbl(src@conn, from)
 }
 rm(tbl)

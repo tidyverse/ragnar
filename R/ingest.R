@@ -138,15 +138,15 @@ ragnar_store_create_v2 <- function(
   DuckDBRagnarStore(
     embed = embed,
     # schema = schema,
-    .con = conn,
-    name = name
-    # title = title
+    conn = conn,
+    name = name,
+    title = title
   )
 }
 
 ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
   if (S7_inherits(store, DuckDBRagnarStore)) {
-    conn <- store@.con
+    conn <- store@conn
   } else if (methods::is(store, "DBIConnection")) {
     conn <- store
   } else {
@@ -219,17 +219,17 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
 }
 
 #' Workhorse that inserts a document and its chunks into the store.
-#' Relies on lazy evaluation to not evaluate `chunks` unless needed. 
+#' Relies on lazy evaluation to not evaluate `chunks` unless needed.
 ragnar_store_update_document_and_chunks <- function(store, document, chunks) {
   stopifnot(is.data.frame(document) && nrow(document) == 1L)
   # we don't typecheck chunks until later because we rely on lazy evaluation to not
   # evaluate chunks if it's not needed.
-  
+
   on.exit({
     duckdb::duckdb_unregister(conn, "_ragnar_insert_temp_view")
   })
-  
-  conn <- store@.con
+
+  conn <- store@conn
 
   already_present <- dbGetQuery(
     conn,
@@ -394,7 +394,7 @@ ragnar_retrieve_vss_v2 <- function(
   top_k = 3L,
   method = "cosine_distance"
 ) {
-  conn <- store@.con
+  conn <- store@conn
   retrieve_df <- data_frame(
     query = query,
     embedding = store@embed(query)
@@ -457,7 +457,7 @@ ragnar_store_from <- function(
   ragnar_store_ingest(store, sources, ...)
   ragnar_store_build_index_v2(store)
   if (location != ":memory:") {
-    dbDisconnect(store@.con)
+    dbDisconnect(store@conn)
     store <- ragnar_store_connect_v2(location, read_only = TRUE)
   }
   store
@@ -488,7 +488,7 @@ ragnar_deoverlap <- chunks_deoverlap <- function(store, chunks) {
   tmp_ <- deoverlapped |>
     select(doc_id, doc_char_start_idx, doc_char_end_idx, tmp_chunk_id)
 
-  conn <- store@.con
+  conn <- store@conn
   tmp_name <- "_ragnar_tmp_rechunk"
   on.exit(duckdb::duckdb_unregister(conn, tmp_name))
   duckdb::duckdb_register(conn, tmp_name, tmp_, overwrite = TRUE)
@@ -579,7 +579,7 @@ if (FALSE) {
       )
     )
     ragnar_store_build_index_v2(store)
-    dbDisconnect(store@.con)
+    dbDisconnect(store@conn)
   }
   store <- ragnar_store_connect_v2(
     "duckdb_docs.ragnar2.duckdb",
