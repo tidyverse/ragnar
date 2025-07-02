@@ -307,5 +307,49 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #'   dplyr::filter(category == "meal") |>
 #'   ragnar_retrieve("carbs")
 ragnar_retrieve <- function(store, text, top_k = 3L) {
-  ragnar_retrieve_vss_and_bm25(store, text, top_k)
+  chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k)
+  if (store@version == 2) {
+    chunks <- deoverlap_chunks(store, chunks)
+  }
+  chunks
+}
+
+
+deoverlap_chunks <- function(store, chunks) {
+  deoverlapped <- chunks |>
+    arrange(origin, start) |>
+    mutate(
+      .by = origin,
+      overlap_grp = cumsum(start > lag(end, default = -1L))
+    ) |>
+    summarise(
+      .by = c(origin, overlap_grp),
+      origin = first(origin),
+      ids = list(id),
+      start = first(start),
+      end = last(end),
+      headings = first(headings)
+    ) |>
+    select(-overlap_grp)
+
+  local_duckdb_register(
+    store@conn,
+    "_ragnar_tmp_rechunk",
+    deoverlapped |> mutate('deoverlapped_id' = row_number())
+  )
+
+  deoverlapped$text <- dbGetQuery(
+    store@conn,
+    "
+    SELECT
+    rechunked.deoverlapped_id,
+      doc.text[ rechunked.start: rechunked.end ] AS text
+    FROM _ragnar_tmp_rechunk rechunked
+    JOIN documents doc
+    USING (origin)
+    ORDER BY rechunked.deoverlapped_id
+    "
+  )$text
+
+  deoverlapped
 }
