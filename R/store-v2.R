@@ -84,7 +84,7 @@ ragnar_store_create_v2 <- function(
   dbExecute(
     conn,
     glue(
-      "
+      r"--(
       CREATE SEQUENCE chunk_id_seq START 1; -- need a unique id for fts
 
       CREATE OR REPLACE TABLE documents (
@@ -95,10 +95,10 @@ ragnar_store_create_v2 <- function(
       CREATE OR REPLACE TABLE embeddings (
         origin VARCHAR,
         FOREIGN KEY (origin) REFERENCES documents (origin),
-        chunk_id INTEGER DEFAULT nextval('chunk_id_seq'),
+        id INTEGER DEFAULT nextval('chunk_id_seq'),
         start INTEGER,
-        end_ INTEGER,
-        PRIMARY KEY (origin, start, end_),
+        "end" INTEGER,
+        PRIMARY KEY (origin, start, "end"),
         headings VARCHAR,
         {extra_cols}
         embedding FLOAT[{embedding_size}]
@@ -106,9 +106,8 @@ ragnar_store_create_v2 <- function(
 
       CREATE OR REPLACE VIEW chunks AS (
         SELECT
-          d.origin,
           e.*,
-          d.text[ e.start : e.end_ ] as text
+          d.text[ e.start : e."end" ] as text
         FROM
           documents d
         JOIN
@@ -116,7 +115,7 @@ ragnar_store_create_v2 <- function(
         USING
           (origin)
       );
-      "
+    )--"
     )
   )
 
@@ -182,8 +181,8 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
       DROP INDEX IF EXISTS store_hnsw_ip_index;
 
       CREATE INDEX store_hnsw_cosine_index ON embeddings USING HNSW (embedding) WITH (metric = 'cosine');
-      CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq');
-      CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');
+      -- CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq'); -- array_distance?
+      -- CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');  -- array_dot_product
       )--"
     )
   }
@@ -199,8 +198,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         ALTER VIEW chunks RENAME TO chunks_view;
 
         CREATE TABLE chunks AS
-        SELECT chunk_id, headings, text
-        FROM chunks_view;
+          SELECT id, headings, text FROM chunks_view;
         )--"
       )
       dbExecute(
@@ -208,7 +206,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         r"--(
         PRAGMA create_fts_index(
           'chunks',            -- input_table
-          'chunk_id',          -- input_id
+          'id',                -- input_id
           'headings', 'text',  -- *input_values
           overwrite = 1
         );
@@ -246,14 +244,14 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   existing <- dbGetQuery(
     conn,
-    "SELECT start, end_, headings, text FROM chunks WHERE origin = ?",
+    r"(SELECT start, "end", headings, text FROM chunks WHERE origin = ?)",
     params = list(chunks@document@origin)
   )
 
   new_chunks <- anti_join(
     chunks,
     existing,
-    by = join_by(start, end == end_, headings, text)
+    by = join_by(start, end, headings, text)
   )
   if (!nrow(new_chunks)) {
     return(invisible(store))
@@ -262,7 +260,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
   documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
     mutate(embedding = store@embed(stri_c(headings, "\n", text))) |>
-    select(origin, start, end_ = end, headings, embedding)
+    select(origin, start, end, headings, embedding)
 
   local_duckdb_register(conn, "documents_to_upsert", documents)
 
@@ -310,11 +308,12 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
   conn <- store@conn
   documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
-    select(start, end_ = end, headings, embedding) |> # TODO: extra_cols
+    select(start, end, headings, embedding) |> # TODO: extra_cols
     mutate(origin = chunks@document@origin)
 
   dbWithTransaction(conn, {
     dbAppendTable(conn, "documents", documents)
     dbAppendTable(conn, "embeddings", embeddings)
   })
+  invisible(store)
 }
