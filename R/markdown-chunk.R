@@ -244,6 +244,16 @@ str_locate_boundary_starts1 <- function(string, type) {
 
 
 snap_nearest <- function(x, candidates, max_dist = NULL) {
+  if ((n_candidates <- length(candidates)) == 0L) {
+    return(rep(NA, length(x)))
+  }
+  if (n_candidates == 1L) {
+    out <- rep(candidates, length(x))
+    if (!is.null(max_dist)) {
+      out[abs(x - out) > max_dist] <- NA
+    }
+    return(out)
+  }
   left_idx <- findInterval(
     x,
     candidates,
