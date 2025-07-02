@@ -149,6 +149,23 @@ process_embed_func <- function(embed) {
 }
 
 
+check_store_overwrite <- function(location, overwrite) {
+  check_bool(overwrite)
+  if (location == ":memory:") {
+    return()
+  }
+
+  paths <- c(location, location.wal <- paste0(location, ".wal"))
+  if (any(file.exists(paths))) {
+    if (overwrite) {
+      unlink(c(location, location.wal), force = TRUE)
+    } else {
+      stop("File already exists: ", location)
+    }
+  }
+}
+
+
 #' Connect to `RagnarStore`
 #'
 #' @param location string, a filepath location.
