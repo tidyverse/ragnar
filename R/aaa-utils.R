@@ -12,8 +12,8 @@
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr bind_rows coalesce filter join_by left_join mutate na_if
-#'   rename rename_with select slice_max slice_min starts_with
+#' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
+#'   na_if rename rename_with select slice_max slice_min starts_with
 #' @importFrom tidyr unchop unnest
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
@@ -22,7 +22,7 @@
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token req_error req_user_agent
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
-#'   dbWriteTable dbListTables dbReadTable
+#'   dbWriteTable dbListTables dbReadTable dbQuoteIdentifier
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @importFrom utils head
@@ -170,4 +170,103 @@ replace_val <- function(x, old, new) {
   }
   x[x %in% old] <- new
   x
+}
+
+as_bare_list <- function(x, ...) {
+  out <- as.list(x, ...)
+  attributes(out) <- NULL
+  out
+}
+
+`:=` <- function(name, value) {
+  name <- substitute(name)
+  if (!is.symbol(name)) {
+    stop("left hand side must be a symbol")
+  }
+  value <- substitute(value)
+  if (!is.call(value)) {
+    stop("right hand side must be a call")
+  }
+
+  value <- as.call(c(as.list(value), list(name = as.character(name))))
+  eval(call("<-", name, value), parent.frame())
+}
+
+local_duckdb_register <- function(
+  conn,
+  name,
+  table,
+  overwrite = TRUE,
+  ...,
+  .local_envir = parent.frame()
+) {
+  defer(duckdb::duckdb_unregister(conn, name), .local_envir)
+  duckdb::duckdb_register(conn, name, table, overwrite, ...)
+}
+
+defer <- function(expr, envir = parent.frame(), priority = c("first", "last")) {
+  thunk <- as.call(list(function() expr))
+  after <- match.arg(priority) == "last"
+  do.call(base::on.exit, list(thunk, TRUE, after), envir = envir)
+}
+
+
+new_scalar_validator <- function(
+  allow_null = FALSE,
+  allow_na = FALSE,
+  additional_checks = NULL,
+  env = baseenv()
+) {
+  checks <- c(
+    if (allow_null) quote(if (is.null(value)) return()),
+    quote(if (length(value) != 1L) return("must be a scalar")),
+    if (!allow_na) quote(if (anyNA(value)) return("must not be NA")),
+    additional_checks
+  )
+
+  new_function(
+    args = alist(value = ),
+    body = as.call(c(quote(`{`), checks)),
+    env = env
+  )
+}
+
+
+prop_bool <- function(
+  default,
+  allow_null = FALSE,
+  allow_na = FALSE,
+  set_once = FALSE
+) {
+  stopifnot(is_bool(set_once), is_bool(allow_null), is_bool(allow_na))
+
+  new_property(
+    class = if (allow_null) NULL | class_logical else class_logical,
+    setter = new_setter(set_once = set_once),
+    validator = new_scalar_validator(
+      allow_null = allow_null,
+      allow_na = allow_na
+    ),
+    default = default
+  )
+}
+
+
+prop_string <- function(
+  default = NULL,
+  allow_null = FALSE,
+  allow_na = FALSE,
+  coerce = FALSE,
+  set_once = FALSE
+) {
+  stopifnot(is_bool(set_once), is_bool(allow_null), is_bool(allow_na))
+
+  new_property(
+    class = if (allow_null) NULL | class_character else class_character,
+    default = default,
+    validator = new_scalar_validator(
+      allow_null = allow_null,
+      allow_na = allow_na
+    )
+  )
 }
