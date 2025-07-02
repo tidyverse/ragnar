@@ -25,80 +25,58 @@
 #' @export
 ragnar_retrieve_vss <- function(
   store,
-  text,
+  query,
   top_k = 3L,
-  method = c(
-    "cosine_distance",
-    "cosine_similarity",
-    "euclidean_distance",
-    "dot_product",
-    "negative_dot_product"
-  )
+  method = "cosine_similarity"
 ) {
-  check_string(text)
+  method <- match.arg(method)
+  check_string(query)
   check_number_whole(top_k)
-  method <- rlang::arg_match(method)
   if (inherits(store, "tbl_sql")) {
     tbl <- store
-    return(ragnar_retrieve_vss_tbl(tbl, text, top_k, method))
+    # TODO: might be better to register tbl as a temporary view
+    return(ragnar_retrieve_vss_tbl(tbl, query, top_k, method))
   }
 
-  cols <- names(store@schema) |>
-    stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
-    stringi::stri_c(collapse = ",")
+  retrieve_df <- data_frame(query = query, embedding = store@embed(query))
+  local_duckdb_register(store@conn, "_ragnar_retrieve_query", retrieve_df)
 
-  .[.., order_key] <- method_to_info(method)
-
-  # TODO: support specifying a minimum distance threshold too, in addition to `top_k`.
-  query <- glue(
-    r"---(
+  .[method_func, order_direction] <- method_to_info(method)
+  sql_query <- glue(
+    "
     SELECT
-      id,
+      *,
       '{method}' as metric_name,
-      {calculate_vss(store, text, method)} as metric_value,
-      {cols}
+      {method_func}(
+         embedding,
+         (SELECT embedding FROM _ragnar_retrieve_query)
+      ) as metric_value
     FROM chunks
-    ORDER BY metric_value {order_key}
+    ORDER BY metric_value {order_direction}
     LIMIT {top_k};
-    )---"
+    "
   )
 
-  as_tibble(dbGetQuery(store@conn, query))
+  as_tibble(dbGetQuery(store@conn, sql_query))
 }
 
-# if we ever export it, this can be used as
-# store |> dplyr::mutate(score = calculate_vss(store, text))
-# using dbplyr
-calculate_vss <- function(store, text, method) {
-  embed <- get_store_embed(store)
-  if (is.null(embed)) {
-    cli::cli_abort("Store must have an embed function but got {.code NULL}")
-  }
-
-  embedded_text <- embed(text)
-  embedding_size <- ncol(embedded_text)
-
-  .[method_function, ..] <- method_to_info(method)
-  glue::glue(
-    r"---(
-    {method_function}(
-      embedding,
-      [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
-    )
-    )---"
-  )
-}
 
 method_to_info <- function(method) {
   # see possible distances:
   # https://duckdb.org/docs/stable/sql/functions/array.html#array-native-functions
   switch(
     method,
-    cosine_distance = c("array_cosine_distance", "ASC"),
-    euclidean_distance = c("array_distance", "ASC"),
-    negative_dot_product = c("array_negative_dot_product", "ASC"),
     cosine_similarity = c("array_cosine_similarity", "DESC"),
+    euclidean_distance = c("array_distance", "ASC"), # sqrt((x-y)^2)
+    cosine_distance = c("array_cosine_distance", "ASC"),
+
+    ## most embedding providers normalize the embedding vector, which means
+    ## dot_product == cosine_similarity
     dot_product = c("array_dot_product", "DESC"),
+    negative_dot_product = c("array_negative_dot_product", "ASC"),
+
+    ## array_inner_product is an alias for array_dot_product
+    ## array_negative_inner_product is an alias for array_negative_dot_product
     stop("Unknown method")
   )
 }
@@ -133,16 +111,17 @@ get_store_embed <- function(x) {
 
 ragnar_retrieve_vss_tbl <- function(tbl, text, top_k, method) {
   rlang::check_installed("dbplyr")
-  .[.., order_key] <- method_to_info(method)
+  .[.., order_direction] <- method_to_info(method)
   tbl |>
     mutate(
       metric_value = sql(calculate_vss(tbl, text, method)),
       metric_name = method
     ) |>
     select(-"embedding") |>
-    arrange(sql(glue("metric_value {order_key}"))) |>
+    arrange(sql(glue("metric_value {order_direction}"))) |>
     head(n = top_k) |>
-    collect()
+    collect() |>
+    as_tibble()
 }
 
 ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
@@ -164,6 +143,30 @@ ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
     collect()
 }
 
+# if we ever export it, this can be used as
+# store |> dplyr::mutate(score = calculate_vss(store, text))
+# using dbplyr
+calculate_vss <- function(store, text, method) {
+  embed <- get_store_embed(store)
+  if (is.null(embed)) {
+    cli::cli_abort("Store must have an embed function but got {.code NULL}")
+  }
+
+  embedded_text <- embed(text)
+  embedding_size <- ncol(embedded_text)
+
+  .[method_function, ..] <- method_to_info(method)
+  glue(
+    r"---(
+    {method_function}(
+      embedding,
+      [{stri_flatten(embedded_text, ", ")}]::FLOAT[{embedding_size}]
+    )
+    )---"
+  )
+}
+
+
 
 #' Retrieves chunks using the BM25 score
 #'
@@ -173,37 +176,31 @@ ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
 #' @family ragnar_retrieve
 #' @export
 ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
-  check_string(text)
   check_number_whole(top_k)
   if (inherits(store, "tbl_sql")) {
     return(ragnar_retrieve_bm25_tbl(store, text, top_k))
   }
-
-  cols <- names(store@schema) |>
-    stringi::stri_subset_regex("^embedding$", negate = TRUE) |>
-    stringi::stri_c(collapse = ",")
-
-  text <- dbQuoteString(store@conn, text)
-  sql_query <- glue(
-    r"---(
-    SELECT
-      id,
-      'bm25' as metric_name,
-      {calculate_bm25(store, text)} as metric_value,
-      {cols}
-    FROM chunks
-    WHERE metric_value IS NOT NULL
-    ORDER BY metric_value
-    LIMIT {top_k};
-    )---"
-  )
-
-  as_tibble(dbGetQuery(store@conn, sql_query))
+  as_tibble(dbGetQuery(
+    store@conn,
+    glue(
+      "
+      SELECT
+        *,
+        'bm25' as metric_name,
+        fts_main_chunks.match_bm25(id, ?) as metric_value
+      FROM chunks
+      WHERE metric_value IS NOT NULL
+      ORDER BY metric_value
+      LIMIT {top_k};
+      "
+    ),
+    params = list(text)
+  ))
 }
 
 calculate_bm25 <- function(store, text) {
   text <- dbQuoteString(store@conn, text)
-  glue::glue("fts_main_chunks.match_bm25(id, {text})")
+  glue("fts_main_chunks.match_bm25(id, {text})")
 }
 
 #' Retrieve VSS and BM25

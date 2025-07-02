@@ -13,7 +13,7 @@
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
-#'   na_if rename rename_with select slice_max slice_min starts_with
+#'   na_if rename rename_with select slice_max slice_min starts_with collect
 #' @importFrom tidyr unchop unnest
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
@@ -22,7 +22,8 @@
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token req_error req_user_agent
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
-#'   dbWriteTable dbListTables dbReadTable dbQuoteIdentifier
+#'   dbWriteTable dbListTables dbReadTable dbQuoteIdentifier dbWithTransaction
+#'   dbAppendTable
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @importFrom utils head

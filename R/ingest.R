@@ -55,76 +55,6 @@ ragnar_store_ingest <- function(store, paths, ...) {
   invisible(store)
 }
 
-
-ragnar_retrieve_vss_v2 <- function(
-  store,
-  query,
-  top_k = 3L,
-  method = "cosine_distance"
-) {
-  conn <- store@conn
-  retrieve_df <- data_frame(
-    query = query,
-    embedding = store@embed(query)
-  )
-  tmp_name <- "_ragnar_retrieve_query"
-  on.exit(duckdb::duckdb_unregister(conn, tmp_name))
-  duckdb::duckdb_register(conn, tmp_name, retrieve_df, overwrite = TRUE)
-
-  top_k <- as.integer(top_k)
-  method <- "cosine_distance"
-  .[method_func, order_key_direction] <- method_to_info(method)
-  dbGetQuery(
-    conn,
-    glue(
-      "
-      SELECT
-        *,
-        '{method}' as metric_name,
-        {method_func}(
-           embedding,
-           (SELECT embedding FROM _ragnar_retrieve_query)
-        ) as metric_value
-       FROM chunks
-       ORDER BY metric_value {order_key_direction}
-       LIMIT {top_k};
-       "
-    )
-  )
-  # tbl(con, "chunks") |>
-  #   mutate(
-  #     metric_name = method,
-  #     metric_value = array_cosine_distance(
-  #       embedding,
-  #       embedded_query
-  #     )
-  #   ) |>
-  #   arrange(metric_value) |>
-  #   head(n = 10) |>
-  #   show_query()
-}
-
-
-ragnar_retrieve_bm25_v2 <- function(store, text, top_k = 3L) {
-  conn <- store@conn
-  dbGetQuery(
-    conn,
-    glue(
-      "
-      SELECT
-        *,
-        'bm25' as metric_name,
-        fts_main_chunks.match_bm25( chunk_id, ?) as metric_value
-      FROM chunks
-      WHERE metric_value IS NOT NULL
-      ORDER BY metric_value
-      LIMIT {top_k};
-      "
-    ),
-    params = list(text)
-  )
-}
-
 ragnar_store_from <- function(
   sources,
   embed = embed_ollama(model = "snowflake-arctic-embed2:568m"),
@@ -142,58 +72,6 @@ ragnar_store_from <- function(
   store
 }
 
-
-ragnar_deoverlap <- chunks_deoverlap <- function(store, chunks) {
-  deoverlapped <- chunks |>
-    group_by(doc_id) |>
-    arrange(doc_chunk_idx, .by_group = TRUE) |>
-    mutate(
-      overlap_grp = cumsum(
-        doc_char_start_idx > lag(doc_char_end_idx, default = -1L)
-      )
-    ) |>
-    group_by(doc_id, overlap_grp) |>
-    summarise(
-      origin = first(origin),
-      chunk_ids = list(chunk_id),
-      doc_chunk_idxs = list(doc_chunk_idx),
-      doc_char_start_idx = min(doc_char_start_idx),
-      doc_char_end_idx = max(doc_char_end_idx),
-      headings = first(headings),
-      .groups = "drop"
-    ) |>
-    mutate(tmp_chunk_id = row_number())
-
-  tmp_ <- deoverlapped |>
-    select(doc_id, doc_char_start_idx, doc_char_end_idx, tmp_chunk_id)
-
-  conn <- store@conn
-  tmp_name <- "_ragnar_tmp_rechunk"
-  on.exit(duckdb::duckdb_unregister(conn, tmp_name))
-  duckdb::duckdb_register(conn, tmp_name, tmp_, overwrite = TRUE)
-
-  new_text <- dbGetQuery(
-    conn,
-    glue(
-      "
-      SELECT
-        c.tmp_chunk_id,
-        d.text[ c.doc_char_start_idx : c.doc_char_end_idx ] AS text
-      FROM {tmp_name} c
-      JOIN documents d
-      USING (doc_id)
-      "
-    )
-  )
-
-  deoverlapped <- deoverlapped |>
-    full_join(
-      new_text,
-      by = join_by(tmp_chunk_id)
-    )
-  deoverlapped |>
-    select(-overlap_grp, -tmp_chunk_id)
-}
 
 pluck_augmented_text <- function(chunks) {
   # c()
