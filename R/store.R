@@ -189,7 +189,7 @@ ragnar_store_connect <- function(
   if (is_motherduck_location(location)) {
     con <- motherduck_connection(location, create = FALSE, overwrite = FALSE)
   } else {
-    con <- dbConnect(
+    conn <- dbConnect(
       duckdb::duckdb(),
       dbdir = location,
       read_only = read_only,
@@ -211,7 +211,7 @@ ragnar_store_connect <- function(
 
   metadata <- dbReadTable(conn, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
-  schema <- unserialize(metadata$schema[[1L]])
+  schema <- switch(version, unserialize(metadata$schema[[1L]]), NULL)
   name <- metadata$name %||% unique_store_name()
 
   # attach function to externalptr, so we can retrieve it from just the connection.
@@ -303,7 +303,7 @@ RagnarStore <- new_class(
   "RagnarStore",
   properties = list(
     embed = S7::new_union(class_function, NULL),
-    schema = class_data.frame,
+    schema = NULL | class_data.frame,
     name = class_character,
     title = S7::new_union(NULL, class_character)
   ),
