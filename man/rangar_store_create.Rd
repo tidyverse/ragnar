@@ -4,12 +4,7 @@
 \alias{ragnar_store_connect}
 \title{Connect to \code{RagnarStore}}
 \usage{
-ragnar_store_connect(
-  location = ":memory:",
-  ...,
-  read_only = FALSE,
-  build_index = FALSE
-)
+ragnar_store_connect(location, ..., read_only = TRUE)
 }
 \arguments{
 \item{location}{string, a filepath location.}

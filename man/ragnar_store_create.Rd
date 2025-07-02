@@ -12,7 +12,8 @@ ragnar_store_create(
   ...,
   extra_cols = NULL,
   name = NULL,
-  title = NULL
+  title = NULL,
+  version = 2
 )
 }
 \arguments{
@@ -25,9 +26,9 @@ matrix of embeddings. Note this function will be serialized and then
 deserialized in new R sessions, so it cannot reference to any objects in
 the global or parent environments. Make sure to namespace all function
 calls with \code{::}. If additional R objects must be available in the function,
-you can optionally supply a \code{carrier::crate()} with packaged data.
-It can also be \code{NULL} for stores that don't need to embed their texts, for example,
-if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
+you can optionally supply a \code{carrier::crate()} with packaged data. It can
+also be \code{NULL} for stores that don't need to embed their texts, for
+example, if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
 
 \item{embedding_size}{integer}
 
@@ -35,9 +36,9 @@ if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_r
 
 \item{...}{Unused. Must be empty.}
 
-\item{extra_cols}{A zero row data frame used to specify additional columns that
-should be added to the store. Such columns can be used for adding additional
-context when retrieving. See the examples for more information.
+\item{extra_cols}{A zero row data frame used to specify additional columns
+that should be added to the store. Such columns can be used for adding
+additional context when retrieving. See the examples for more information.
 \code{\link[vctrs:vec_cast]{vctrs::vec_cast()}} is used to consistently perform type checks and casts
 when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.}
 
@@ -46,6 +47,14 @@ regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_
 
 \item{title}{A title for the store, used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}}
 when the store is registered with an \link[ellmer:Chat]{ellmer::Chat} object.}
+
+\item{version}{integer. The version of the store to create. Version 1 stores
+a single flat table consisting of individual chunks. This provides
+opportunities to modify (augment) chunks in-place for embedding and
+retrieval. Version 2 stores whole documents and separately embeddings for chunk
+ranges. This provides opportunities for chunk de-overlapping or extracting
+arbitrary ranges from a source document, and works well with overlapping
+and automatic context generation. Version 2 is the default.}
 }
 \value{
 a \code{DuckDBRagnarStore} object

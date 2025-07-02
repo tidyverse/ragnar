@@ -8,7 +8,7 @@
 embed_ollama(
   x,
   base_url = "http://localhost:11434",
-  model = "all-minilm",
+  model = "snowflake-arctic-embed2:568m",
   batch_size = 10L
 )
 

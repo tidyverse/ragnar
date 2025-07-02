@@ -13,8 +13,6 @@ it. When you pass a \code{tbl}, you may use usual dplyr verbs (e.g.
 similarity scoring. Avoid dropping essential columns such as
 \code{text}, \code{embedding}, \code{origin}, and \code{hash}.}
 
-\item{text}{A string to find the nearest match too}
-
 \item{top_k}{Integer, maximum amount of document chunks to retrieve}
 }
 \value{
@@ -28,16 +26,12 @@ BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more inf
 \details{
 The supported methods are:
 \itemize{
-\item \strong{cosine_distance}: Measures the dissimilarity between two vectors based on
-the cosine of the angle between them. Defined as \eqn{1 - cos(\theta)},
-where \eqn{cos(\theta)} is the cosine similarity.
 \item \strong{cosine_similarity}: Measures the similarity between two vectors based on
 the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
 with 0 indicating orthogonality.
 \item \strong{euclidean_distance}: Computes the straight-line (L2) distance between
 two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
 \item \strong{dot_product}: Computes the sum of the element-wise products of two vectors.
-\item \strong{negative_dot_product}: The negation of the dot product.
 }
 }
 \section{Pre-filtering with dplyr}{

@@ -10,16 +10,12 @@
 #'
 #' @details
 #' The supported methods are:
-#' - **cosine_distance**: Measures the dissimilarity between two vectors based on
-#'   the cosine of the angle between them. Defined as \eqn{1 - cos(\theta)},
-#'   where \eqn{cos(\theta)} is the cosine similarity.
 #' - **cosine_similarity**: Measures the similarity between two vectors based on
 #'   the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
 #'   with 0 indicating orthogonality.
 #' - **euclidean_distance**: Computes the straight-line (L2) distance between
 #'   two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
 #' - **dot_product**: Computes the sum of the element-wise products of two vectors.
-#' - **negative_dot_product**: The negation of the dot product.
 #'
 #' @family ragnar_retrieve
 #' @export
@@ -29,7 +25,6 @@ ragnar_retrieve_vss <- function(
   top_k = 3L,
   method = "cosine_similarity"
 ) {
-  method <- match.arg(method)
   check_string(query)
   check_number_whole(top_k)
   if (inherits(store, "tbl_sql")) {
@@ -165,7 +160,6 @@ calculate_vss <- function(store, text, method) {
     )---"
   )
 }
-
 
 
 #' Retrieves chunks using the BM25 score
@@ -319,10 +313,10 @@ deoverlap_chunks <- function(store, chunks) {
       .by = origin,
       overlap_grp = cumsum(start > lag(end, default = -1L))
     ) |>
-    summarise(
+    summarize(
       .by = c(origin, overlap_grp),
       origin = first(origin),
-      ids = list(id),
+      id = list(id),
       start = first(start),
       end = last(end),
       headings = first(headings)
