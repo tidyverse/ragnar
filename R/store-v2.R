@@ -231,41 +231,35 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
 ragnar_store_update_v2 <- function(store, chunks) {
   stopifnot(
     store@version == 2,
-    is.data.frame(chunks),
-    all(c("origin", "document", "start", "end", "headings") %in% names(chunks))
+    S7_inherits(chunks, ChunkedMarkdownDocument)
   )
 
   if ("text" %in% names(chunks)) {
-    if (with(chunks, !identical(text, stri_sub(document, start, end)))) {
+    if (with(chunks, !identical(text, stri_sub(chunks@document, start, end)))) {
       stop("modifying chunks$text is not supported with store@version == 2")
     }
   } else {
-    chunks <- chunks |> mutate(text = stri_sub(document, start, end))
+    chunks <- chunks |> mutate(text = stri_sub(chunks@document, start, end))
   }
 
   conn <- store@conn
 
   existing <- dbGetQuery(
     conn,
-    "SELECT origin, start, end_, headings, text FROM chunks WHERE origin = ?",
-    params = list(unique(chunks$origin))
+    "SELECT start, end_, headings, text FROM chunks WHERE origin = ?",
+    params = list(chunks@document@origin)
   )
 
-  origins_to_update <- anti_join(
+  new_chunks <- anti_join(
     chunks,
     existing,
-    by = join_by(origin, start, end == end_, headings, text)
-  ) |>
-    _$origin |>
-    unique()
-
-  if (!length(origins_to_update)) {
+    by = join_by(start, end == end_, headings, text)
+  )
+  if (!nrow(new_chunks)) {
     return(invisible(store))
   }
 
-  chunks <- chunks[chunks$origin %in% origins_to_update, ]
-
-  documents <- distinct(select(chunks, origin, text = document))
+  documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
     mutate(embedding = store@embed(stri_c(headings, "\n", text))) |>
     select(origin, start, end_ = end, headings, embedding)
@@ -293,28 +287,31 @@ ragnar_store_update_v2 <- function(store, chunks) {
 ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
   stopifnot(
     store@version == 2,
-    is.data.frame(chunks),
-    all(c("origin", "document", "start", "end", "headings") %in% names(chunks))
+    S7_inherits(chunks, ChunkedMarkdownDocument)
   )
 
   if ("text" %in% names(chunks)) {
-    if (!identical(text, stri_sub(chunks$document, chunks$start, chunks$end))) {
+    if (
+      !identical(
+        chunks$text,
+        stri_sub(chunks@document, chunks$start, chunks$end)
+      )
+    ) {
       stop("modifying chunks$text is not supported with store@version == 2")
     }
   } else {
-    chunks <- chunks |> mutate(text = stri_sub(document, start, end))
+    chunks$text <- stri_sub(chunks@document, chunks$start, chunks$end)
   }
 
   if (!"embedding" %in% names(chunks)) {
-    chunks <- chunks |>
-      mutate(embedding = store@embed(stri_c(headings, "\n", text)))
+    chunks$embedding <- store@embed(with(chunks, stri_c(headings, "\n", text)))
   }
 
   conn <- store@conn
-  documents <- distinct(select(chunks, origin, text = document))
+  documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
-    mutate(embedding = store@embed(stri_c(headings, "\n", text))) |>
-    select(origin, start, end_ = end, headings, embedding)
+    select(start, end_ = end, headings, embedding) |> # TODO: extra_cols
+    mutate(origin = chunks@document@origin)
 
   dbWithTransaction(conn, {
     dbAppendTable(conn, "documents", documents)

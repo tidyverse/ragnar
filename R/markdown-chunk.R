@@ -76,6 +76,7 @@ markdown_chunk <- function(
   pre_segment_heading_levels = integer(),
   text = TRUE
 ) {
+  S7_inherits(md, MarkdownDocument)
   check_dots_empty()
 
   md_len <- stri_length(md)
@@ -166,7 +167,7 @@ markdown_chunk <- function(
     chunks <- chunks |> mutate(text = stri_sub(md, start, end))
   }
 
-  chunks
+  ChunkedMarkdownDocument(chunks, document = md)
 }
 
 markdown_node_positions <- function(md, type = NULL, text = FALSE) {

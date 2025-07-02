@@ -125,6 +125,7 @@ read_as_markdown <- function(
   html_zap_selectors = c("nav")
 ) {
   check_string(path)
+  origin <- path
   if (startsWith(path, "~")) {
     x <- path.expand(x)
   }
@@ -143,7 +144,11 @@ read_as_markdown <- function(
     md <- read_as_markdown_cli(path, ...)
   }
 
-  # normalize
+  MarkdownDocument(md, origin = origin)
+}
+
+
+markdown_normalize <- function(md) {
   md |>
     stri_split_lines() |>
     unlist() |>
@@ -154,10 +159,65 @@ read_as_markdown <- function(
       normalize = TRUE,
       footnotes = TRUE,
       extensions = TRUE
-    ) |>
-    as_glue()
+    )
 }
 
+
+MarkdownDocument := new_class(
+  parent = class_character,
+  properties = list(origin = prop_string()),
+  constructor = function(text, origin) {
+    text <- markdown_normalize(text)
+    new_object(Document(text, origin = origin))
+  },
+  validator = function(self) {
+    if (!is_scalar(self)) {
+      "must be a string (length 1 character)"
+    }
+  }
+)
+
+ChunkedMarkdownDocument := new_class(
+  parent = new_S3_class(c("tbl_df", "tbl", "data.frame")),
+  validator = function(self) {
+    if (!all(c("start", "end", "headings") %in% names(self))) {
+      "must have names 'start', 'end' and 'headings'"
+    }
+  },
+  constructor = function(chunks, document) {
+    new_object(as_tibble(chunks), document = document)
+  },
+  properties = list(
+    document = MarkdownDocument
+  )
+)
+
+
+#' @exportS3Method pillar::tbl_sum
+"tbl_sum.ragnar::ChunkedMarkdownDocument" <- function(x, ...) {
+  default_header <- NextMethod()
+  c(
+    "@document@origin" = x@document@origin,
+    default_header
+  )
+}
+
+local({
+  method(vec_proxy, ChunkedMarkdownDocument) <- function(x, ...) {
+    as_tibble(x)
+  }
+})
+
+
+# ## maybe we specialize on markdown in the store.
+# ## I really think we specialize on markdown completely.
+#
+# MarkdownChunk
+#
+# ragnar_chunk := new_generic("x")
+# ragnar_augment := new_generic("x")
+
+# ragnar_chunk_regex
 
 #' Read a document as Markdown
 #'
@@ -191,6 +251,7 @@ coalesce_names <- function(x) {
 read_as_markdown_cli <- function(x, ...) {
   # use the markitdown cli API, (much) slower, but can be isolated from
   # reticulated python.
+  # TODO: would be nice to spin this up in a server thread
   # TODO: apply markitdown monkeypatches in cli interface too
 
   check_dots_empty()

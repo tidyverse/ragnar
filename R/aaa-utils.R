@@ -18,7 +18,7 @@
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
-#'   vec_chop vec_ptype
+#'   vec_chop vec_ptype vec_proxy vec_restore
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
 #'   resp_body_json req_retry req_auth_bearer_token req_error req_user_agent
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
