@@ -1,5 +1,6 @@
 test_that("ragnar_store_update/insert", {
   store <- ragnar_store_create(
+    version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
   maybe_set_threads(store)
@@ -66,6 +67,7 @@ test_that("ragnar_store_update/insert", {
 
 test_that("behavior when no hash/origin are provided", {
   store <- ragnar_store_create(
+    version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
   maybe_set_threads(store)
@@ -111,6 +113,7 @@ test_that("behavior when no hash/origin are provided", {
 
 test_that("additional columns", {
   store <- ragnar_store_create(
+    version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
     extra_cols = data.frame(h1 = character(0))
   )
@@ -151,7 +154,7 @@ test_that("additional columns", {
 })
 
 test_that("Allow a NULL embedding function", {
-  store <- ragnar_store_create(embed = NULL)
+  store <- ragnar_store_create(embed = NULL, version = 1)
   maybe_set_threads(store)
   chunks <- data.frame(
     origin = c("foo", "bar"),
@@ -171,6 +174,7 @@ test_that("works with MotherDuck", {
   testthat::skip_if(Sys.getenv("motherduck_token", "") == "")
 
   store <- ragnar_store_create(
+    version = 1,
     "md:ragnartest",
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
     overwrite = TRUE
