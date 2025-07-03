@@ -303,10 +303,12 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   check_string(text)
   check_number_whole(top_k)
 
-  out <- vctrs::vec_rbind(
-    ragnar_retrieve_vss(store, text, top_k, ...),
-    ragnar_retrieve_bm25(store, text, top_k, ...)
-  )
+  vss <- ragnar_retrieve_vss(store, text, top_k, ...)
+  vss[["embedding"]] <- NULL
+
+  bm25 <- ragnar_retrieve_bm25(store, text, top_k, ...)
+
+  out <- vctrs::vec_rbind(vss, bm25)
 
   # maybe reorder cols, id first, text last
   out <- out[reorder_names("id", names(out), last = "text")]
