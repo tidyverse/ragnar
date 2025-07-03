@@ -14,7 +14,7 @@
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
 #'   na_if rename rename_with select slice_max slice_min starts_with collect
-#'   summarize row_number anti_join
+#'   summarize row_number anti_join lag any_of lag
 #' @importFrom tidyr unchop unnest
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
@@ -24,7 +24,7 @@
 #'   resp_body_json req_retry req_auth_bearer_token req_error req_user_agent
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
 #'   dbWriteTable dbListTables dbReadTable dbQuoteIdentifier dbWithTransaction
-#'   dbAppendTable
+#'   dbAppendTable dbDisconnect
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @importFrom utils head
@@ -213,6 +213,13 @@ defer <- function(expr, envir = parent.frame(), priority = c("first", "last")) {
 }
 
 
+coalesce_names <- function(x) {
+  out <- names2(x)
+  empty <- out == ""
+  out[empty] <- as.character(x[empty])
+  out
+}
+
 new_scalar_validator <- function(
   allow_null = FALSE,
   allow_na = FALSE,
@@ -237,14 +244,12 @@ new_scalar_validator <- function(
 prop_bool <- function(
   default,
   allow_null = FALSE,
-  allow_na = FALSE,
-  set_once = FALSE
+  allow_na = FALSE
 ) {
-  stopifnot(is_bool(set_once), is_bool(allow_null), is_bool(allow_na))
+  stopifnot(is_bool(allow_null), is_bool(allow_na))
 
   new_property(
     class = if (allow_null) NULL | class_logical else class_logical,
-    setter = new_setter(set_once = set_once),
     validator = new_scalar_validator(
       allow_null = allow_null,
       allow_na = allow_na
@@ -257,11 +262,9 @@ prop_bool <- function(
 prop_string <- function(
   default = NULL,
   allow_null = FALSE,
-  allow_na = FALSE,
-  coerce = FALSE,
-  set_once = FALSE
+  allow_na = FALSE
 ) {
-  stopifnot(is_bool(set_once), is_bool(allow_null), is_bool(allow_na))
+  stopifnot(is_bool(allow_null), is_bool(allow_na))
 
   new_property(
     class = if (allow_null) NULL | class_character else class_character,

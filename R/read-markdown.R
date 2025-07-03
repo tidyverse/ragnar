@@ -219,34 +219,7 @@ local({
 
 # ragnar_chunk_regex
 
-#' Read a document as Markdown
-#'
-#' `ragnar_read()` uses [markitdown](https://github.com/microsoft/markitdown) to
-#' convert a document to markdown.
-#' @param x file path or url.
-#' @param ... passed on `markitdown.convert`.
-#'
-#' @returns
-#' Always returns a data frame with the columns:
-#'   - `origin`: the file path or url
-#'   - `text`: the markdown content
-#'
-#' @export
-ragnar_read <- function(paths, ...) {
-  origin <- coalesce_names(paths)
-  text <- map_chr(paths, read_as_markdown, ...)
-  tibble(origin, text)
-}
-
-
 # ------ utils ----
-
-coalesce_names <- function(x) {
-  out <- names2(x)
-  empty <- out == ""
-  out[empty] <- as.character(x[empty])
-  out
-}
 
 read_as_markdown_cli <- function(x, ...) {
   # use the markitdown cli API, (much) slower, but can be isolated from

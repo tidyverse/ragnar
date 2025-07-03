@@ -455,3 +455,15 @@ chunks_deoverlap <- function(store, chunks) {
 
   deoverlapped
 }
+
+
+utils::globalVariables(c(
+  # retrieve and helpers
+  "origin",
+  "overlap_grp",
+  "headings",
+  "id",
+  "metric_value",
+  "array_slice",
+  "embedding"
+))

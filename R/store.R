@@ -335,12 +335,12 @@ DuckDBRagnarStore <- new_class(
 )
 
 local({
-  method(print, DuckDBRagnarStore) <- function(object, ...) {
+  method(print, DuckDBRagnarStore) <- function(x, ...) {
     cat("<ragnar::DuckDBRagnarStore>\n")
-    nms <- prop_names(object) |> setdiff(c(".con", "conn"))
+    nms <- prop_names(x) |> setdiff(c(".con", "conn"))
     for (nm in nms) {
       cat(" @", nm, ":")
-      str(prop(object, nm))
+      str(prop(x, nm))
     }
     cat(" @", "conn : <DBI::DBIConnection>\n")
   }
