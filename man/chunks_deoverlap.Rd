@@ -9,15 +9,19 @@ chunks_deoverlap(store, chunks)
 \arguments{
 \item{store}{A \code{RagnarStore} object. Must have \verb{@version == 2}.}
 
-\item{chunks}{A dataframe of retrieved chunks, such as the output of \code{\link[=ragnar_retrieve]{ragnar_retrieve()}}.}
+\item{chunks}{A dataframe of retrieved chunks, such as the output of
+\code{\link[=ragnar_retrieve]{ragnar_retrieve()}}.}
 }
 \value{
-A dataframe of de-overlapped chunks, where each row represents a non-overlapping region.
+A dataframe of de-overlapped chunks, where each row represents a
+non-overlapping region.
 }
 \description{
-Groups and merges overlapping text chunks from the same origin in the retrieval results.
+Groups and merges overlapping text chunks from the same origin in the
+retrieval results.
 }
 \details{
-When multiple retrieved chunks from the same origin have overlapping character ranges,
-this function combines them into a single chunk per overlap group.
+When multiple retrieved chunks from the same origin have overlapping
+character ranges, this function combines them into a single chunk per overlap
+group.
 }

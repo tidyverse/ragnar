@@ -397,16 +397,19 @@ ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
 
 #' Merge Overlapping Chunks in Retrieved Results
 #'
-#' Groups and merges overlapping text chunks from the same origin in the retrieval results.
+#' Groups and merges overlapping text chunks from the same origin in the
+#' retrieval results.
 #'
 #' @param store A `RagnarStore` object. Must have `@version == 2`.
-#' @param chunks A dataframe of retrieved chunks, such as the output of [ragnar_retrieve()].
+#' @param chunks A dataframe of retrieved chunks, such as the output of
+#'   [ragnar_retrieve()].
 #'
-#' @details
-#' When multiple retrieved chunks from the same origin have overlapping character ranges,
-#' this function combines them into a single chunk per overlap group.
+#' @details When multiple retrieved chunks from the same origin have overlapping
+#' character ranges, this function combines them into a single chunk per overlap
+#' group.
 #'
-#' @return A dataframe of de-overlapped chunks, where each row represents a non-overlapping region.
+#' @return A dataframe of de-overlapped chunks, where each row represents a
+#'   non-overlapping region.
 #'
 #' @export
 chunks_deoverlap <- function(store, chunks) {
