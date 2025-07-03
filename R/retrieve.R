@@ -53,18 +53,18 @@ ragnar_retrieve_vss <- function(
   ## It's pretty similar to the sql I'd write by hand, and optimizes to
   ## an essentially identical physical plan.
 
-  tbl <- tbl(store@conn, switch(store@version, "embeddings", "chunks"))
-  if (!missing(filter)) {
-    tbl <- dplyr::filter(tbl, {{ filter }})
-  }
-
   .[method_func, order_direction] <- method_to_info(method)
   embedded_query <- store@embed(query)
   metric_value <- sql(sprintf(
     "%s(embedding, %s)",
     method_func,
-    sql_float_array_value(embedded_query),
+    sql_float_array_value(embedded_query)
   ))
+
+  tbl <- tbl(store@conn, switch(store@version, "chunks", "embeddings"))
+  if (!missing(filter)) {
+    tbl <- dplyr::filter(tbl, {{ filter }})
+  }
 
   tbl <- tbl |>
     mutate(
