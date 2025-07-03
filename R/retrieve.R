@@ -382,16 +382,32 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' dplyr::tbl(store) |>
 #'   dplyr::filter(category == "meal") |>
 #'   ragnar_retrieve("carbs")
-ragnar_retrieve <- function(store, text, top_k = 3L, ...) {
+ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
   chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k, ...)
-  if (store@version == 2) {
-    chunks <- deoverlap_chunks(store, chunks)
+  if (deoverlap && store@version == 2) {
+    chunks <- chunks_deoverlap(store, chunks)
   }
   chunks
 }
 
-
-deoverlap_chunks <- function(store, chunks) {
+#' Merge Overlapping Chunks in Retrieved Results
+#'
+#' Groups and merges overlapping text chunks from the same origin in the retrieval results.
+#'
+#' @param store A `RagnarStore` object. Must have `@version == 2`.
+#' @param chunks A dataframe of retrieved chunks, such as the output of [ragnar_retrieve()].
+#'
+#' @details
+#' When multiple retrieved chunks from the same origin have overlapping character ranges,
+#' this function combines them into a single chunk per overlap group.
+#'
+#' @return A dataframe of de-overlapped chunks, where each row represents a non-overlapping region.
+#'
+#' @export
+chunks_deoverlap <- function(store, chunks) {
+  if (store@version < 2) {
+    stop("chunks_deoverlap() only supported with store@verion == 2")
+  }
   deoverlapped <- chunks |>
     arrange(origin, start) |>
     mutate(
@@ -401,7 +417,7 @@ deoverlap_chunks <- function(store, chunks) {
     summarize(
       .by = c(origin, overlap_grp),
       origin = first(origin),
-      id = list(id),
+      id = list(unlist(id)),
       start = first(start),
       end = last(end),
       headings = first(headings)

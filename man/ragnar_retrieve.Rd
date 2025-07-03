@@ -4,7 +4,7 @@
 \alias{ragnar_retrieve}
 \title{Retrieve chunks from a \code{RagnarStore}}
 \usage{
-ragnar_retrieve(store, text, top_k = 3L, ...)
+ragnar_retrieve(store, text, top_k = 3L, ..., deoverlap = TRUE)
 }
 \arguments{
 \item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from

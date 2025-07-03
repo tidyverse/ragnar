@@ -10,7 +10,7 @@ ragnar_retrieve_vss(
   top_k = 3L,
   ...,
   method = "cosine_distance",
-  filter = NULL
+  filter
 )
 }
 \arguments{
@@ -37,12 +37,12 @@ and uses this similarity to rank the documents.
 \details{
 The supported methods are:
 \itemize{
-\item \strong{cosine_similarity}: Measures the similarity between two vectors based on
+\item \strong{cosine_distance}: Measures the similarity between two vectors based on
 the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
 with 0 indicating orthogonality.
 \item \strong{euclidean_distance}: Computes the straight-line (L2) distance between
 two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
-\item \strong{dot_product}: Computes the sum of the element-wise products of two vectors.
+\item \strong{negative_inner_product}: Computes the sum of the element-wise products of two vectors.
 }
 }
 \section{Pre-filtering with dplyr}{
