@@ -228,6 +228,7 @@ ragnar_store_connect <- function(
   )
 }
 
+
 #' Inserts or updates chunks in a `RagnarStore`
 #'
 #' @inheritParams ragnar_store_insert
@@ -332,6 +333,19 @@ DuckDBRagnarStore <- new_class(
     )
   )
 )
+
+local({
+  method(print, DuckDBRagnarStore) <- function(object, ...) {
+    cat("<ragnar::DuckDBRagnarStore>\n")
+    nms <- prop_names(object) |> setdiff(c(".con", "conn"))
+    for (nm in nms) {
+      cat(" @", nm, ":")
+      str(prop(object, nm))
+    }
+    cat(" @", "conn : <DBI::DBIConnection>\n")
+  }
+})
+
 
 #' Launches the Ragnar Inspector Tool
 #'
