@@ -259,9 +259,11 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
-    mutate(embedding = store@embed(stri_c(headings, "\n", text))) |>
-    select(origin, start, end, headings, embedding)
-
+    mutate(
+      origin = chunks@document@origin,
+      embedding = store@embed(stri_c(headings, "\n", text)),
+      text = NULL
+    )
   local_duckdb_register(conn, "documents_to_upsert", documents)
 
   dbWithTransaction(conn, {
@@ -275,7 +277,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
     dbExecute(
       conn,
       "DELETE FROM embeddings WHERE origin = ?;",
-      params = list(origins_to_update)
+      params = list(chunks@document@origin)
     )
     dbAppendTable(conn, "embeddings", embeddings)
   })
