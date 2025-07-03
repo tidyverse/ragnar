@@ -29,6 +29,7 @@
 #' @importFrom methods is
 #' @importFrom utils head
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
+#' @importFrom lifecycle deprecated
 #' @import rlang
 #' @import S7
 #' @useDynLib ragnar, .registration = TRUE

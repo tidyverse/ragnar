@@ -35,6 +35,7 @@ Imports:
     duckdb (>= 1.2.2),
     glue,
     httr2,
+
     methods,
     reticulate (>= 1.42.0),
     rlang (>= 1.1.0),
@@ -49,6 +50,7 @@ Imports:
 Suggests:
     dbplyr,
     ellmer (>= 0.2.0),
+    lifecycle,
     knitr,
     pandoc,
     paws.common,

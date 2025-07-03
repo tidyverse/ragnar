@@ -3,6 +3,7 @@
 \name{ragnar_chunk}
 \alias{ragnar_chunk}
 \alias{ragnar_segment}
+\alias{ragnar_chunk_segments}
 \title{Chunk text}
 \usage{
 ragnar_chunk(
@@ -15,6 +16,8 @@ ragnar_chunk(
 )
 
 ragnar_segment(x, boundaries = "sentence", ..., trim = FALSE, simplify = TRUE)
+
+ragnar_chunk_segments(x, max_size = 1600L, ..., simplify = TRUE, trim = TRUE)
 }
 \arguments{
 \item{x}{A character vector, list of character vectors, or data frame containing a \code{text} column.}
@@ -49,12 +52,20 @@ strings are \code{unlist()}ed, and dataframes are \code{tidyr::unchop()}ed.}
 }
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+}
+\details{
+These functions are deprecated in favor of \code{markdown_chunk()}, which is more
+flexible, supports overlapping chunks, enables deoverlapping or rechunking
+downstream by \code{ragnar_retrieve()}, and automatically builds a \code{headings}
+context for each chunk instead of requiring manual string interpolation from
+extracted headings.
+
 Functions for chunking text into smaller pieces while preserving meaningful
 semantics. These functions provide flexible ways to split text based on
 various boundaries (sentences, words, etc.) while controlling chunk sizes and
 overlap.
-}
-\details{
+
 Chunking is the combination of two fundamental operations:
 \itemize{
 \item identifying boundaries: finding character positions where it makes sense to split a string.
