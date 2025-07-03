@@ -10,12 +10,12 @@
 #'
 #' @details
 #' The supported methods are:
-#' - **cosine_similarity**: Measures the similarity between two vectors based on
+#' - **cosine_distance**: Measures the similarity between two vectors based on
 #'   the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
 #'   with 0 indicating orthogonality.
 #' - **euclidean_distance**: Computes the straight-line (L2) distance between
 #'   two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
-#' - **dot_product**: Computes the sum of the element-wise products of two vectors.
+#' - **negative_inner_product**: Computes the sum of the element-wise products of two vectors.
 #'
 #' @family ragnar_retrieve
 #' @export
@@ -23,36 +23,79 @@ ragnar_retrieve_vss <- function(
   store,
   query,
   top_k = 3L,
-  method = "cosine_similarity"
+  ...,
+  method = "cosine_distance",
+  filter
 ) {
   check_string(query)
   check_number_whole(top_k)
   if (inherits(store, "tbl_sql")) {
+    warning(
+      "Passing a `tbl()` to ragnar_retrieve_vss() is no longer supported ",
+      "and will be removed in a future replease. Instead, pass a `filter` expression directly."
+    )
     tbl <- store
-    # TODO: might be better to register tbl as a temporary view
     return(ragnar_retrieve_vss_tbl(tbl, query, top_k, method))
   }
 
-  retrieve_df <- data_frame(query = query, embedding = store@embed(query))
-  local_duckdb_register(store@conn, "_ragnar_retrieve_query", retrieve_df)
+  # The VSS extension is strict about using the hnsw index. To make sure the
+  # index scan is used:
+  # - `ORDER BY ... LIMIT N` must be applied directly to the result from one of:
+  #     array_distance(), array_cosine_distance(), array_negative_inner_product().
+  #   Even a simple transform (e.g., -dist, 1-dist) or alias call (e.g., array_negative_dot_product())
+  #   forces a sequential scan.
+  # - The second argument to the distance function must is a constant vector.
+  #   Using a parameterized queries or temporary tables to pass the query
+  #   embedding vector forces a sequental scan; The `query` string embedding must
+  #   must be serialized in the SQL string.
+
+  ## to support user supplied `filter` args we use dbplyr to generate the sql.
+  ## It's pretty similar to the sql I'd write by hand, and optimizes to
+  ## an essentially identical physical plan.
+
+  tbl <- tbl(store@conn, switch(store@version, "embeddings", "chunks"))
+  if (!missing(filter)) {
+    tbl <- dplyr::filter(tbl, {{ filter }})
+  }
 
   .[method_func, order_direction] <- method_to_info(method)
-  sql_query <- glue(
-    "
-    SELECT
-      *,
-      '{method}' as metric_name,
-      {method_func}(
-         embedding,
-         (SELECT embedding FROM _ragnar_retrieve_query)
-      ) as metric_value
-    FROM chunks
-    ORDER BY metric_value {order_direction}
-    LIMIT {top_k};
-    "
-  )
+  embedded_query <- store@embed(query)
+  metric_value <- sql(sprintf(
+    "%s(embedding, %s)",
+    method_func,
+    sql_float_array_value(embedded_query),
+  ))
 
-  as_tibble(dbGetQuery(store@conn, sql_query))
+  tbl <- tbl |>
+    mutate(
+      metric_name = .env$method,
+      metric_value = .env$metric_value
+    ) |>
+    arrange(metric_value) |>
+    head(top_k)
+
+  if (store@version == 2L) {
+    tbl <- tbl |>
+      left_join(dplyr::tbl(store@conn, "documents"), by = "origin") |>
+      mutate(text = array_slice(text, start, end))
+  }
+
+  # # to confirm HNSW_INDEX_SCAN is being used:
+  # {
+  #   sql_query_string <- dbplyr::remote_query(tbl)
+  #   dbGetQuery(store@conn, paste("EXPLAIN", sql_query_string))
+  # }
+  collect(tbl)
+}
+
+
+sql_float_array_value <- function(...) {
+  x <- unlist(c(...))
+  n <- length(x)
+  x <- paste0(as.character(x), collapse = ",")
+  sql(sprintf("[%s]::FLOAT[%i]", x, n))
+  # x <- paste0("(", as.character(x), ")::FLOAT", collapse = ", ")
+  # sql(sprintf("array_value(%s)", x))
 }
 
 
@@ -61,17 +104,35 @@ method_to_info <- function(method) {
   # https://duckdb.org/docs/stable/sql/functions/array.html#array-native-functions
   switch(
     method,
-    cosine_similarity = c("array_cosine_similarity", "DESC"),
-    euclidean_distance = c("array_distance", "ASC"), # sqrt((x-y)^2)
+
+    ## the vss extension only currently supports three array distance functions
+    ## these must exact matches to the array funciton name, using an alias or
+    ## trivial transform means that the index won't be used. index scan is only performed for
+    ## ORDER BY array_distance(), array_cosine_distance(), or array_negative_inner_product()
     cosine_distance = c("array_cosine_distance", "ASC"),
+    euclidean_distance = c("array_distance", "ASC"), # sqrt((x-y)^2)
+    negative_inner_product = c("array_negative_inner_product", "ASC"),
 
-    ## most embedding providers normalize the embedding vector, which means
-    ## dot_product == cosine_similarity
-    dot_product = c("array_dot_product", "DESC"),
-    negative_dot_product = c("array_negative_dot_product", "ASC"),
+    ## These other methods are commented out because they cannot be used by the
+    ## vss hnsw index (In an `ORDER BY ... LIMIT n` expression, they always
+    ## perform a sequential scan). Also, they each have equivalent counterparts
+    ## that _do_ support an index, so no meaningful capability is lost.
 
-    ## array_inner_product is an alias for array_dot_product
-    ## array_negative_inner_product is an alias for array_negative_dot_product
+    ## Most embedding model providers normalize the embedding vector, which
+    ## means that: inner_product == cosine_similarity
+
+    # # 1 - cosine_distance
+    # cosine_similarity = c("array_cosine_similarity", "DESC"),
+
+    # # -negative_inner_product
+    # inner_product = c("array_inner_product", "DESC")
+
+    # # alias for inner_product
+    # dot_product = c("array_dot_product", "DESC"),
+
+    # # alias for negative_inner_product
+    # negative_dot_product = c("array_negative_dot_product", "ASC"),
+
     stop("Unknown method")
   )
 }
@@ -297,8 +358,8 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' dplyr::tbl(store) |>
 #'   dplyr::filter(category == "meal") |>
 #'   ragnar_retrieve("carbs")
-ragnar_retrieve <- function(store, text, top_k = 3L) {
-  chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k)
+ragnar_retrieve <- function(store, text, top_k = 3L, ...) {
+  chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k, ...)
   if (store@version == 2) {
     chunks <- deoverlap_chunks(store, chunks)
   }

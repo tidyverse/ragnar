@@ -4,7 +4,14 @@
 \alias{ragnar_retrieve_vss}
 \title{Uses vector similarity search}
 \usage{
-ragnar_retrieve_vss(store, query, top_k = 3L, method = "cosine_similarity")
+ragnar_retrieve_vss(
+  store,
+  query,
+  top_k = 3L,
+  ...,
+  method = "cosine_distance",
+  filter = NULL
+)
 }
 \arguments{
 \item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from
