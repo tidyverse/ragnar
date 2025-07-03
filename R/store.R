@@ -187,7 +187,7 @@ ragnar_store_connect <- function(
   check_dots_empty()
 
   if (is_motherduck_location(location)) {
-    con <- motherduck_connection(location, create = FALSE, overwrite = FALSE)
+    conn <- motherduck_connection(location, create = FALSE, overwrite = FALSE)
   } else {
     conn <- dbConnect(
       duckdb::duckdb(),

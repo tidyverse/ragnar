@@ -224,6 +224,7 @@ test_that("embed functions get the defaults stored", {
   expect_snapshot(store@embed)
 
   # test other embed funcs
+  skip_if(inherits(try(silent = TRUE, ragnar::embed_ollama("hi")), "try-error"))
   store <- ragnar_store_create(embed = function(x) ragnar::embed_ollama(x))
   expect_snapshot(store@embed)
 })
