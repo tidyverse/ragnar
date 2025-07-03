@@ -225,32 +225,56 @@ calculate_vss <- function(store, text, method) {
 
 #' Retrieves chunks using the BM25 score
 #'
-#' BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more information.
+#' BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more
+#' information.
 #'
+#' @param conjunctive	Whether to make the query conjunctive i.e., all terms in
+#'   the query string must be present in order for a chunk to be retrieved
 #' @inherit ragnar_retrieve_vss
 #' @family ragnar_retrieve
 #' @export
-ragnar_retrieve_bm25 <- function(store, text, top_k = 3L) {
+ragnar_retrieve_bm25 <- function(
+  store,
+  text,
+  top_k = 3L,
+  ...,
+  conjunctive = FALSE,
+  filter
+) {
+  check_string(text)
   check_number_whole(top_k)
+  check_bool(conjunctive)
+  conjunctive <- as.integer(conjunctive)
+
   if (inherits(store, "tbl_sql")) {
+    warning(
+      "passing a tbl() to ragnar_retrieve() is no longer supported and will ",
+      "be removed in a future release. Please pass a filter expression directly."
+    )
     return(ragnar_retrieve_bm25_tbl(store, text, top_k))
   }
-  as_tibble(dbGetQuery(
-    store@conn,
-    glue(
-      "
-      SELECT
-        *,
-        'bm25' as metric_name,
-        fts_main_chunks.match_bm25(id, ?) as metric_value
-      FROM chunks
-      WHERE metric_value IS NOT NULL
-      ORDER BY metric_value
-      LIMIT {top_k};
-      "
-    ),
-    params = list(text)
-  ))
+
+  tbl <- tbl(store@conn, "chunks") |>
+    mutate(
+      metric_name = "bm25",
+      metric_value = sql(glue(
+        "fts_main_chunks.match_bm25(id, ?, conjunctive := {conjunctive})"
+      ))
+    )
+
+  filters <- c(
+    if (!missing(filter)) list(enquo(filter)),
+    list(sql('metric_value IS NOT NULL'))
+  )
+  tbl <- dplyr::filter(tbl, !!!filters)
+
+  sql_query <- tbl |>
+    arrange(metric_value) |>
+    select(-any_of("embedding")) |>
+    head(n = top_k) |>
+    dbplyr::remote_query()
+
+  as_tibble(dbGetQuery(store@conn, sql_query, params = list(text)))
 }
 
 calculate_bm25 <- function(store, text) {
@@ -276,7 +300,7 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 
   out <- vctrs::vec_rbind(
     ragnar_retrieve_vss(store, text, top_k, ...),
-    ragnar_retrieve_bm25(store, text, top_k)
+    ragnar_retrieve_bm25(store, text, top_k, ...)
   )
 
   # maybe reorder cols, id first, text last
