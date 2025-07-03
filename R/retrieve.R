@@ -230,6 +230,7 @@ calculate_vss <- function(store, text, method) {
 #'
 #' @param conjunctive	Whether to make the query conjunctive i.e., all terms in
 #'   the query string must be present in order for a chunk to be retrieved
+#' @param k,b \eqn{k_1} and \eqn{b} parameters in the Okapi BM25 retrieval model.
 #' @inherit ragnar_retrieve_vss
 #' @family ragnar_retrieve
 #' @export
@@ -238,12 +239,16 @@ ragnar_retrieve_bm25 <- function(
   text,
   top_k = 3L,
   ...,
+  k = 1.2,
+  b = 0.75,
   conjunctive = FALSE,
   filter
 ) {
   check_string(text)
   check_number_whole(top_k)
   check_bool(conjunctive)
+  check_number_decimal(k)
+  check_number_decimal(b)
   conjunctive <- as.integer(conjunctive)
 
   if (inherits(store, "tbl_sql")) {
@@ -258,7 +263,7 @@ ragnar_retrieve_bm25 <- function(
     mutate(
       metric_name = "bm25",
       metric_value = sql(glue(
-        "fts_main_chunks.match_bm25(id, ?, conjunctive := {conjunctive})"
+        "fts_main_chunks.match_bm25(id, ?, k := {k}, b := {b}, conjunctive := {conjunctive})"
       ))
     )
 

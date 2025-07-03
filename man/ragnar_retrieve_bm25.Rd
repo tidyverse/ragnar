@@ -4,7 +4,16 @@
 \alias{ragnar_retrieve_bm25}
 \title{Retrieves chunks using the BM25 score}
 \usage{
-ragnar_retrieve_bm25(store, text, top_k = 3L, ..., conjunctive = FALSE, filter)
+ragnar_retrieve_bm25(
+  store,
+  text,
+  top_k = 3L,
+  ...,
+  k = 1.2,
+  b = 0.75,
+  conjunctive = FALSE,
+  filter
+)
 }
 \arguments{
 \item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from
@@ -14,6 +23,8 @@ similarity scoring. Avoid dropping essential columns such as
 \code{text}, \code{embedding}, \code{origin}, and \code{hash}.}
 
 \item{top_k}{Integer, maximum amount of document chunks to retrieve}
+
+\item{k, b}{\eqn{k_1} and \eqn{b} parameters in the Okapi BM25 retrieval model.}
 
 \item{conjunctive}{Whether to make the query conjunctive i.e., all terms in
 the query string must be present in order for a chunk to be retrieved}
