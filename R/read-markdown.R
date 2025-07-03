@@ -168,7 +168,7 @@ MarkdownDocument := new_class(
   properties = list(origin = prop_string()),
   constructor = function(text, origin) {
     text <- markdown_normalize(text)
-    new_object(Document(text, origin = origin))
+    new_object(text, origin = origin)
   },
   validator = function(self) {
     if (!is_scalar(self)) {
