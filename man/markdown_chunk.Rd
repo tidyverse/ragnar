@@ -16,7 +16,7 @@ markdown_chunk(
 )
 }
 \arguments{
-\item{md}{A length-one character vector containing Markdown.}
+\item{md}{A \code{MarkdownDocument}, or a length-one character vector containing Markdown. Can c}
 
 \item{target_size}{Integer. Target chunk size in characters. Default: \code{1600}
 (≈ 400 tokens, or 1 page of text).}

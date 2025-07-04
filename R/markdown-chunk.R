@@ -6,7 +6,7 @@
 #' It returns a tibble recording the character ranges of each chunk and, if
 #' requested, the heading context and the text itself.
 #'
-#' @param md A length-one character vector containing Markdown.
+#' @param md A `MarkdownDocument`, or a length-one character vector containing Markdown. Can c
 #' @param target_size Integer. Target chunk size in characters. Default: `1600`
 #'   (≈ 400 tokens, or 1 page of text).
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
@@ -76,8 +76,10 @@ markdown_chunk <- function(
   pre_segment_heading_levels = integer(),
   text = TRUE
 ) {
-  S7_inherits(md, MarkdownDocument)
   check_dots_empty()
+  if (!S7_inherits(md, MarkdownDocument)) {
+    md <- convert(md, MarkdownDocument)
+  }
 
   md_len <- stri_length(md)
   md_positions <-

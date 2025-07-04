@@ -165,10 +165,10 @@ markdown_normalize <- function(md) {
 
 MarkdownDocument := new_class(
   parent = class_character,
-  properties = list(origin = prop_string()),
-  constructor = function(text, origin) {
+  properties = list(origin = prop_string(allow_na = TRUE)),
+  constructor = function(text, origin = attr(text, "origin", TRUE)) {
     text <- markdown_normalize(text)
-    new_object(text, origin = origin)
+    new_object(text, origin = as.character(origin %||% NA_character_))
   },
   validator = function(self) {
     if (!is_scalar(self)) {
@@ -176,6 +176,13 @@ MarkdownDocument := new_class(
     }
   }
 )
+
+local({
+  method(convert, list(class_character, MarkdownDocument)) <-
+    function(from, to, ...) {
+      MarkdownDocument(from, ...)
+    }
+})
 
 ChunkedMarkdownDocument := new_class(
   parent = new_S3_class(c("tbl_df", "tbl", "data.frame")),
