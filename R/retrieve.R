@@ -25,6 +25,7 @@ ragnar_retrieve_vss <- function(
   top_k = 3L,
   ...,
   method = "cosine_distance",
+  query_vector = store@embed(query),
   filter
 ) {
   check_string(query)
@@ -55,79 +56,150 @@ ragnar_retrieve_vss <- function(
   ## an essentially identical physical plan.
 
   .[method_func, order_direction] <- method_to_info(method)
-  embedded_query <- store@embed(query)
+  query_vector
   metric_value <- sql(sprintf(
     "%s(embedding, %s)",
     method_func,
-    sql_float_array_value(embedded_query)
+    sql_float_array_value(query_vector)
   ))
   con <- store@conn
 
   if (missing(filter)) {
     ## simplest case
-    sql_query <- glue(
+    sql_query <- glue(switch(
+      store@version,
+      # store@version 1
       "
+      SELECT
+        *,
+        'cosine_distance' AS metric_name,
+        {metric_value} AS metric_value
+      FROM chunks
+      ORDER BY metric_value
+      LIMIT {top_k}
+      ",
+      # store@version 2
+      "
+      SELECT
+        e.*,
+        doc.text[ e.start: e.end ] AS text
+      FROM (
+        SELECT
+          *,
+          'cosine_distance' AS metric_name,
+          {metric_value} AS metric_value
+        FROM embeddings
+        ORDER BY metric_value
+        LIMIT {top_k}
+      ) AS e
+      JOIN documents doc USING (origin)
+      "
+    ))
+    # check_hnsw_index_scan_used(con, sql_query)
+    res <- dbGetQuery(con, sql_query)
+    return(as_tibble(res))
+  }
+
+  ## - The DuckDB VSS extension will segfault if a query that uses the hnsw index has a WHERE clause.
+  ## https://github.com/duckdb/duckdb-vss/issues/62
+  ## - If LIMIT is greater than 5000, then the index is not used
+  ## - If we force `metric_value` in the WHERE clause like metrics_value > -99999,
+  ##   we avoid a segfault but then the HNSW index is not used.
+  ## Simply nesting the inner query, an outer `WHERE` is automatically pushed down, causes a segfault
+  ## However, nesting *and* forcing metric_value in the outer query is optimized
+  ## into a streaming plan.
+  ## This is an ugly but practical workarounds to make sure we use the hnsw index,
+  ## don't segfault, and work well (fast) in the common case, and correctly in the uncommon case.
+
+  # inner query
+  sql_query <- glue(switch(
+    store@version,
+    # store@version 1
+    "
+    SELECT
+      *,
+      'cosine_distance' AS metric_name,
+      {metric_value} AS metric_value
+    FROM chunks
+    ORDER BY metric_value
+    LIMIT 5000
+    ",
+    # store@version 2
+    "
+    SELECT
+      e.*,
+      doc.text[ e.start: e.end ] AS text
+    FROM (
       SELECT
         *,
         'cosine_distance' AS metric_name,
         {metric_value} AS metric_value
       FROM embeddings
       ORDER BY metric_value
-      LIMIT {top_k}
-      "
-    )
-    res <- dbGetQuery(con, sql_query)
-    return(as_tibble(res))
-  }
-
-  ## The DuckDB VSS extension will segfault in R if the query has a WHERE clause.
-  ## https://github.com/duckdb/duckdb-vss/issues/62
-  ## If LIMIT is greater than 5000, then the index is not used
-  ## If we force `metric_value` in the WHERE clause like metrics_value > -99999,
-  ## we avoid a segfault but then the HNSW index is not used.
-  ## Simply nesting the inner query, an outer `WHERE` is automatically pushed down, causes a segfault
-  ## However, nesting *and* forcing metric_value in the outer query is optimized
-  ## into a streaming plan.
-  ## This is an ugly but working workarounds to make sure we use the hnsw index,
-  ## don't segfault, and work well (fast) in the common case, and correctly in the uncommon case.
-
-  # inner query
-  sql_query <- glue(
+      LIMIT 5000
+    ) AS e
+    JOIN documents doc USING (origin)
     "
-    SELECT
-      *,
-      'cosine_distance' AS metric_name,
-      {metric_value} AS metric_value
-    FROM embeddings
-    ORDER BY metric_value
-    LIMIT 5000
-    "
-  )
-  # use dbplyr to interpert the supplied filter R expression
+  ))
+
+  # use dbplyr to interpret the supplied filter R expression
   # and build the outer sql query around the inner query
-  tbl <- tbl(con, sql(sql_query), vars = dbListFields(con, "embeddings"))
+  tbl <- tbl(
+    src = con,
+    from = sql(sql_query),
+    vars = dbListFields(con, switch(store@version, "chunks", "embeddings"))
+  )
   tbl <- dplyr::filter(tbl, {{ filter }})
   tbl <- tbl |> head(top_k)
   sql_query <- dbplyr::remote_query(tbl)
-  res <- dbGetQuery(con, sql_query)
-  if (nrow(res) == top_k) {
-    # if we have enough rows, return it
-    res <- as_tibble(res) |> arrange(metric_value)
-    return(res)
+
+  if (top_k <= 5000L) {
+    # check_hnsw_index_scan_used(con, sql_query)
+    res <- dbGetQuery(con, sql_query)
+    if (nrow(res) == top_k) {
+      # if we have enough rows, return it
+      res <- res |> as_tibble() |> arrange(metric_value)
+      return(res)
+    }
+    ## earlier we set LIMIT 5000 on the inner query because anything higher than
+    ## that forces a sequential scan. This is a slow fall back - it will force a
+    ## sequential scan (not use the hnsw index) but will return the correct result.
+    sql_query <- sql_query |>
+      stri_replace_last_fixed("LIMIT 5000\n", "OFFSET 5000\n")
+  } else {
+    # hnsw index cannot be used with top_k > 5000,
+    # remove the inner query limit, this will cause the inner
+    # query to use a sequential scan.
+    sql_query <- sql_query |>
+      stri_replace_last_fixed("LIMIT 5000\n", "")
+    res <- NULL
   }
 
-  ## earlier we set LIMIT 5000 on the inner query because anything higher than
-  ## that forces a sequential scan. This is a slow fall back - it will force a
-  ## sequential scan (not use the hnsw index) but will return the correct result.
-  n_total_chunks <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM embeddings")$n
-  sql_query <- sql_query |>
-    stri_replace_last_fixed(
-      "LIMIT 5000",
-      paste("LIMIT", n_total_chunks + 1L, "OFFSET 5000")
-    )
+  # if we got here, it's because either top_k > 5000, or the combination
+  # of the inner query with LIMIT 5000 and streaming filter on the outer query
+  # did not produce enough (top_k) rows, so we have to do a sequential scan of the
+  # entire db.
   res2 <- dbGetQuery(con, sql_query)
   out <- vec_rbind(res, res2) |> as_tibble() |> arrange(metric_value)
   out
+}
+
+
+check_hnsw_index_scan_used <- function(con, sql, show_query = FALSE) {
+  plan <- dbGetQuery(con, paste("EXPLAIN", sql))
+  # print(plan)
+  used <- any(grepl("HNSW_INDEX_SCAN", unlist(plan)))
+  if (isTRUE(show_query)) {
+    cat("HNSW_INDEX_SCAN ", if (!used) "not ", "used by query:\n", sql)
+  } else if (isFALSE(show_query)) {
+    cat("HNSW_INDEX_SCAN ", if (!used) "not ", "used\n")
+  } else {
+    if (used) {
+      cat("HNSW_INDEX_SCAN used\n")
+    } else {
+      cat("HNSW_INDEX_SCAN not used by query:\n", sql)
+    }
+  }
 }
 
 
@@ -481,6 +553,8 @@ chunks_deoverlap <- function(store, chunks) {
     "_ragnar_tmp_rechunk",
     deoverlapped |> mutate('deoverlapped_id' = row_number())
   )
+
+  # browser()
 
   deoverlapped$text <- dbGetQuery(
     store@conn,
