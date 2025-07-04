@@ -10,21 +10,8 @@ text <- "How can I subset a dataframe with a logical vector?"
 #' # Retrieving Chunks
 #' Once the store is set up, retrieve the most relevant text chunks like this
 
-embedding_near_chunks <- ragnar_retrieve_vss(store, text, top_k = 3)
-embedding_near_chunks
-embedding_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
+(relevant_chunks <- ragnar_retrieve(store, text))
 
-bm25_near_chunks <- ragnar_retrieve_bm25(store, text, top_k = 3)
-bm25_near_chunks
-bm25_near_chunks$text[1] |> cat(sep = "\n~~~~~~~~\n")
-
-# get both vss and bm26
-relevant_chunks <- ragnar_retrieve(
-  store,
-  text,
-  top_k = 3
-)
-relevant_chunks
 
 #'  Register ellmer tool
 #' You can register an ellmer tool to let the LLM retrieve chunks.
