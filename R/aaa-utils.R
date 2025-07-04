@@ -24,7 +24,7 @@
 #'   resp_body_json req_retry req_auth_bearer_token req_error req_user_agent
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
 #'   dbWriteTable dbListTables dbReadTable dbQuoteIdentifier dbWithTransaction
-#'   dbAppendTable dbDisconnect
+#'   dbAppendTable dbDisconnect dbListFields
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @importFrom utils head

@@ -88,12 +88,12 @@ ragnar_store_create_v2 <- function(
       CREATE SEQUENCE chunk_id_seq START 1; -- need a unique id for fts
 
       CREATE OR REPLACE TABLE documents (
-        origin VARCHAR PRIMARY KEY,
+        origin VARCHAR NOT NULL PRIMARY KEY, -- default  hash(text)??
         text VARCHAR,
       );
 
       CREATE OR REPLACE TABLE embeddings (
-        origin VARCHAR,
+        origin VARCHAR NOT NULL,
         FOREIGN KEY (origin) REFERENCES documents (origin),
         id INTEGER DEFAULT nextval('chunk_id_seq'),
         start INTEGER,
@@ -181,8 +181,8 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
       DROP INDEX IF EXISTS store_hnsw_ip_index;
 
       CREATE INDEX store_hnsw_cosine_index ON embeddings USING HNSW (embedding) WITH (metric = 'cosine');
-      -- CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq'); -- array_distance?
-      -- CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');  -- array_dot_product
+      CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq'); -- array_distance?
+      CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');  -- array_dot_product
       )--"
     )
   }
