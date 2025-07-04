@@ -29,6 +29,7 @@ ragnar_retrieve_vss <- function(
 ) {
   check_string(query)
   check_number_whole(top_k)
+  top_k <- as.integer(top_k)
   if (inherits(store, "tbl_sql")) {
     warning(
       "Passing a `tbl()` to ragnar_retrieve_vss() is no longer supported ",
@@ -60,32 +61,73 @@ ragnar_retrieve_vss <- function(
     method_func,
     sql_float_array_value(embedded_query)
   ))
+  con <- store@conn
 
-  tbl <- tbl(store@conn, switch(store@version, "chunks", "embeddings"))
-  if (!missing(filter)) {
-    tbl <- dplyr::filter(tbl, {{ filter }})
+  if (missing(filter)) {
+    ## simplest case
+    sql_query <- glue(
+      "
+      SELECT
+        *,
+        'cosine_distance' AS metric_name,
+        {metric_value} AS metric_value
+      FROM embeddings
+      ORDER BY metric_value
+      LIMIT {top_k}
+      "
+    )
+    res <- dbGetQuery(con, sql_query)
+    return(as_tibble(res))
   }
 
-  tbl <- tbl |>
-    mutate(
-      metric_name = .env$method,
-      metric_value = .env$metric_value
-    ) |>
-    arrange(metric_value) |>
-    head(top_k)
+  ## The DuckDB VSS extension will segfault in R if the query has a WHERE clause.
+  ## https://github.com/duckdb/duckdb-vss/issues/62
+  ## If LIMIT is greater than 5000, then the index is not used
+  ## If we force `metric_value` in the WHERE clause like metrics_value > -99999,
+  ## we avoid a segfault but then the HNSW index is not used.
+  ## Simply nesting the inner query, an outer `WHERE` is automatically pushed down, causes a segfault
+  ## However, nesting *and* forcing metric_value in the outer query is optimized
+  ## into a streaming plan.
+  ## This is an ugly but working workarounds to make sure we use the hnsw index,
+  ## don't segfault, and work well (fast) in the common case, and correctly in the uncommon case.
 
-  if (store@version == 2L) {
-    tbl <- tbl |>
-      left_join(dplyr::tbl(store@conn, "documents"), by = "origin") |>
-      mutate(text = array_slice(text, start, end))
+  # inner query
+  sql_query <- glue(
+    "
+    SELECT
+      *,
+      'cosine_distance' AS metric_name,
+      {metric_value} AS metric_value
+    FROM embeddings
+    ORDER BY metric_value
+    LIMIT 5000
+    "
+  )
+  # use dbplyr to interpert the supplied filter R expression
+  # and build the outer sql query around the inner query
+  tbl <- tbl(con, sql(sql_query), vars = dbListFields(con, "embeddings"))
+  tbl <- dplyr::filter(tbl, {{ filter }})
+  tbl <- tbl |> head(top_k)
+  sql_query <- dbplyr::remote_query(tbl)
+  res <- dbGetQuery(con, sql_query)
+  if (nrow(res) == top_k) {
+    # if we have enough rows, return it
+    res <- as_tibble(res) |> arrange(metric_value)
+    return(res)
   }
 
-  # # to confirm HNSW_INDEX_SCAN is being used:
-  # {
-  #   sql_query_string <- dbplyr::remote_query(tbl)
-  #   dbGetQuery(store@conn, paste("EXPLAIN", sql_query_string))
-  # }
-  collect(tbl)
+  ## earlier we set LIMIT 5000 on the inner query because anything higher than
+  ## that forces a sequential scan. This is a slow fall back - it will force a
+  ## sequential scan (not use the hnsw index) but will return the correct result.
+  n_total_chunks <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM embeddings")$n
+  sql_query <- sql_query |>
+    stri_replace_last_fixed(
+      "LIMIT 5000",
+      paste("LIMIT", n_total_chunks + 1L, "OFFSET 5000")
+    )
+  res2 <- dbGetQuery(con, sql_query)
+  out <- vec_rbind(res, res2) |> as_tibble() |> arrange(metric_value)
+  out
 }
 
 
