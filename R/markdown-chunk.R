@@ -169,8 +169,9 @@ markdown_chunk <- function(
     chunks <- chunks |> mutate(text = stri_sub(md, start, end))
   }
 
-  ChunkedMarkdownDocument(chunks, document = md)
+  MarkdownDocumentChunks(chunks, document = md)
 }
+
 
 markdown_node_positions <- function(md, type = NULL, text = FALSE) {
   check_string(md)

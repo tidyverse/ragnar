@@ -1,0 +1,130 @@
+#' Markdown documents
+#'
+#' @description `MarkdownDocument` represents a complete Markdown document
+#' stored as a single character string.  The constructor normalises the text
+#' with `commonmark::markdown_commonmark()` so downstream code can rely on a
+#' consistent format.
+#'
+#' For day-to-day work you almost never need to call the constructor directly:
+#' [`read_as_markdown()`] is the recommended way to create a `MarkdownDocument`.
+#' The class itself is exported only so advanced users can construct one by
+#' other means when needed.
+#'
+#' @param text \[string] Markdown text.
+#' @param origin \[string] Optional source path or URL. Defaults to the
+#'   `"origin"` attribute of `text`, if present, otherwise `NA`.
+#'
+#' @return An S7 object that inherits from `MarkdownDocument`, which is a length
+#'   1 string of markdown text and an `@origin` property.
+#' @export
+#'
+#' @name MarkdownDocument
+#' @examples
+#' md <- MarkdownDocument("# Title\n\nSome text.", origin = "example.md")
+#' md
+MarkdownDocument := new_class(
+  parent = class_character,
+  properties = list(origin = prop_string(allow_na = TRUE)),
+  constructor = function(text, origin = attr(text, "origin", TRUE)) {
+    text <- markdown_normalize(text)
+    new_object(text, origin = as.character(origin %||% NA_character_))
+  },
+  validator = function(self) {
+    if (!is_scalar(self)) {
+      "must be a string (length 1 character)"
+    }
+  }
+)
+
+markdown_normalize <- function(md) {
+  md |>
+    stri_split_lines() |>
+    unlist() |>
+    enc2utf8() |>
+    stri_trim_right() |>
+    stri_flatten("\n") |>
+    commonmark::markdown_commonmark(
+      normalize = TRUE,
+      footnotes = TRUE,
+      extensions = TRUE
+    )
+}
+
+local({
+  method(convert, list(class_character, MarkdownDocument)) <-
+    function(from, to, ...) {
+      MarkdownDocument(from, ...)
+    }
+})
+
+
+#' Markdown documents chunks
+#'
+#' @description
+#'
+#' `MarkdownDocumentChunks` stores information about candidate chunks in a
+#' Markdown document. It is a tibble with three required columns:
+#'
+#' * `start`, `end` — integers. These are character positions (1-based, inclusive) in the source
+#' `MarkdownDocument`, so that `substr(md, start, end)` yields the chunk. Ranges
+#' can overlap or even be nested.
+#'
+#' * `headings` — a character column; this is combined with the chunk text to augment
+#' a text before generating embeddings ragnar_store_insert() in  used to
+#' contextualize each chunk by `ragnar_store_insert()` when generating
+#' embeddings, and also, returned by `ragnar_retrieve()`. When deoverlapping or
+#' combining chunks, only the `headings` value for the first chunk in an
+#' overlapping group is kept.
+#'
+#' The original document is available via the `@document` property.
+#'
+#' For normal use, chunk a Markdown document with [`markdown_chunk()`]; the
+#' class itself is exported only so advanced users can generate or tweak chunks
+#' by other means.
+#'
+#' @param chunks A data frame containing `start`, `end`, and `headings` columns, and optionally other columns.
+#' @param document A `MarkdownDocument`.
+#'
+#' @return An S7 object that inherits from `MarkdownDocumentChunks`, which is
+#'   also a `tibble`.
+#' @export
+#' @name MarkdownDocumentChunks
+#' @examples
+#' doc <- MarkdownDocument("# A\n\nB\n\n## C\n\nD")
+#' chunk_positions <- tibble::tibble(
+#'   start    = c(1L, 5L),
+#'   end      = c(3L, 7L),
+#'   headings = c("A", "A\nC")
+#' )
+#' chunks <- MarkdownDocumentChunks(chunk_positions, doc)
+#' identical(chunks@document, doc)
+MarkdownDocumentChunks := new_class(
+  parent = new_S3_class(c("tbl_df", "tbl", "data.frame")),
+  validator = function(self) {
+    if (!all(c("start", "end", "headings") %in% names(self))) {
+      "must have names 'start', 'end' and 'headings'"
+    }
+  },
+  constructor = function(chunks, document) {
+    new_object(as_tibble(chunks), document = document)
+  },
+  properties = list(
+    document = MarkdownDocument
+  )
+)
+
+
+#' @exportS3Method pillar::tbl_sum
+"tbl_sum.ragnar::MarkdownDocumentChunks" <- function(x, ...) {
+  default_header <- NextMethod()
+  c(
+    "@document@origin" = x@document@origin,
+    default_header
+  )
+}
+
+local({
+  method(vec_proxy, MarkdownDocumentChunks) <- function(x, ...) {
+    as_tibble(x)
+  }
+})
