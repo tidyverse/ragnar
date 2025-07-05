@@ -16,88 +16,24 @@ ragnar_retrieve_bm25(
 )
 }
 \arguments{
-\item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from
-it. When you pass a \code{tbl}, you may use usual dplyr verbs (e.g.
-\code{filter()}, \code{slice()}) to restrict the rows examined before
-similarity scoring. Avoid dropping essential columns such as
-\code{text}, \code{embedding}, \code{origin}, and \code{hash}.}
+\item{store}{A \code{RagnarStore} object returned by \code{ragnar_store_connect()} or \code{ragnar_store_create()}.}
 
-\item{top_k}{Integer, maximum amount of document chunks to retrieve}
+\item{text}{String, the text to search for.}
 
-\item{k, b}{\eqn{k_1} and \eqn{b} parameters in the Okapi BM25 retrieval model.}
+\item{top_k}{Integer. Number of nearest entries to find per method.}
+
+\item{...}{Additional arguments passed to the lower-level retrieval functions.}
+
+\item{k, b}{\eqn{k_1} and \eqn{b} parameters in the Okapi BM25 retrieval method.}
 
 \item{conjunctive}{Whether to make the query conjunctive i.e., all terms in
-the query string must be present in order for a chunk to be retrieved}
-}
-\value{
-A dataframe of retrieved chunks. Each row corresponds to an
-individual chunk in the store. It always contains a column named \code{text}
-that contains the chunks.
+the query string must be present in order for a chunk to be retrieved.}
+
+\item{filter}{Optional. A filter expression evaluated with \code{dplyr::filter()}.}
 }
 \description{
 BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more
 information.
-}
-\details{
-The supported methods are:
-\itemize{
-\item \strong{cosine_distance}: Measures the similarity between two vectors based on
-the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
-with 0 indicating orthogonality.
-\item \strong{euclidean_distance}: Computes the straight-line (L2) distance between
-two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
-\item \strong{negative_inner_product}: Computes the sum of the element-wise products of two vectors.
-}
-}
-\section{Pre-filtering with dplyr}{
-
-The store behaves like a lazy table backed by DuckDB, so row‑wise
-filtering is executed directly in the database. This lets you narrow the
-search space efficiently without pulling data into R.
-}
-
-\examples{
-\dontshow{if ((rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-# Basic usage
-store <- ragnar_store_create(
-  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small")
-)
-ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
-ragnar_store_build_index(store)
-ragnar_retrieve(store, "foo")
-
-# More Advanced: store metadata, retrieve with pre-filtering
-store <- ragnar_store_create(
-  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),
-  extra_cols = data.frame(category = character())
-)
-
-ragnar_store_insert(
-  store,
-  data.frame(
-    category = "desert",
-    text = c("ice cream", "cake", "cookies")
-  )
-)
-
-ragnar_store_insert(
-  store,
-  data.frame(
-    category = "meal",
-    text = c("steak", "potatoes", "salad")
-  )
-)
-
-ragnar_store_build_index(store)
-
-# simple retrieve
-ragnar_retrieve(store, "carbs")
-
-# retrieve with pre-filtering
-dplyr::tbl(store) |>
-  dplyr::filter(category == "meal") |>
-  ragnar_retrieve("carbs")
-\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other ragnar_retrieve: 

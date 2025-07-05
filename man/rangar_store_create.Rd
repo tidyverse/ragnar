@@ -13,9 +13,6 @@ ragnar_store_connect(location, ..., read_only = TRUE)
 
 \item{read_only}{logical, whether the returned connection can be used to
 modify the store.}
-
-\item{build_index}{logical, whether to call \code{ragnar_store_build_index()} when
-creating the connection}
 }
 \value{
 a \code{RagnarStore} object.

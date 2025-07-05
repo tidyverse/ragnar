@@ -19,7 +19,7 @@ ragnar_store_create(
 \arguments{
 \item{location}{filepath, or \verb{:memory:}. Location can also be a database name
 specified with \code{md:dbname}, in this case the database will be created in
-MotherDuck after a connection is etablished.}
+MotherDuck after a connection is established.}
 
 \item{embed}{A function that is called with a character vector and returns a
 matrix of embeddings. Note this function will be serialized and then
@@ -48,24 +48,40 @@ regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_
 \item{title}{A title for the store, used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}}
 when the store is registered with an \link[ellmer:Chat]{ellmer::Chat} object.}
 
-\item{version}{integer. The version of the store to create. Version 1 stores
-a single flat table consisting of individual chunks. This provides
-opportunities to modify (augment) chunks in-place for embedding and
-retrieval. Version 2 stores whole documents and separately embeddings for chunk
-ranges. This provides opportunities for chunk de-overlapping or extracting
-arbitrary ranges from a source document, and works well with overlapping
-and automatic context generation. Version 2 is the default.}
+\item{version}{integer. The version of the store to create. See details.}
 }
 \value{
 a \code{DuckDBRagnarStore} object
 }
 \description{
-Create and connect to a vector store
+\subsection{Store versions}{
+
+If \code{version = 1} is provided, ragnar will store a single flat table
+consisting of individual chunks. This simplifies ingestion, and also,
+provides opportunities to modify chunks directly in-place to improve for
+embedding and retrieval. Dynamic rechunking (deoverlapping), is not
+supported. If there is a need for using \code{ragnar_store_update()}, then the
+value of \code{rlang::hash(original_full_document)} must be explicitly provided
+for each chunk.
+
+If \code{version = 2} is provided, then ragnar will store whole documents and
+separately, the integers position ranges of chunk text. This simplifies
+retrieval, updating, and enables robust dynamic context augmentation (e.g.,
+markdown headings in scope for each chunk), but it comes at the expense of a
+little less flexibility in the initial store ingestion pipeline.
+\code{ragnar_store_insert} for version 2 stores requires a \code{MarkdownDocumentChunks} object.
+
+the embeddings for chunk ranges. This provides opportunities for chunk
+de-overlapping or extracting arbitrary ranges from a source document, and
+works well with overlapping and automatic context generation. Version 2 is
+the default.
+}
 }
 \examples{
 # A store with a dummy embedding
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+  version = 1
 )
 ragnar_store_insert(store, data.frame(text = "hello"))
 
@@ -74,6 +90,7 @@ ragnar_store_insert(store, data.frame(text = "hello"))
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
   extra_cols = data.frame(area = character()),
+  version = 1
 )
 ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
 
@@ -83,6 +100,7 @@ chunks <- data.frame(text = letters, area = "rag")
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
   extra_cols = vctrs::vec_ptype(chunks),
+  version = 1
 )
 ragnar_store_insert(store, chunks)
 

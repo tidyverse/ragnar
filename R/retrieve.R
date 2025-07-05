@@ -1,21 +1,35 @@
-#' Uses vector similarity search
+#' Vector Similarity Search Retrieval
 #'
-#' Computes a similarity measure between the query and the documents embeddings
-#' and uses this similarity to rank the documents.
+#' Computes a similarity measure between the query and the document embeddings
+#' and uses this similarity to rank and retrieve document chunks.
 #'
 #' @inherit ragnar_retrieve
-#' @param top_k Integer, maximum amount of document chunks to retrieve
-#' @param method A string specifying the method used to compute the similarity
-#'   between the query and the document chunks embeddings store in the database.
+#' @param query Character. The query string to embed and use for similarity
+#'   search.
+#' @param top_k Integer. Maximum number of document chunks to retrieve.
+#'   Defaults to 3.
+#' @param ... Additional arguments passed to methods.
+#' @param method Character. Similarity method to use: `"cosine_distance"`,
+#'   `"euclidean_distance"`, or `"negative_inner_product"`. Defaults to
+#'   `"cosine_distance"`.
+#' @param query_vector Numeric vector. The embedding for `query`.
+#'   Defaults to `store@embed(query)`.
+#' @param filter Optional. A filter expression evaluated with
+#'   `dplyr::filter()`.
 #'
 #' @details
-#' The supported methods are:
-#' - **cosine_distance**: Measures the similarity between two vectors based on
-#'   the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
-#'   with 0 indicating orthogonality.
-#' - **euclidean_distance**: Computes the straight-line (L2) distance between
-#'   two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
-#' - **negative_inner_product**: Computes the sum of the element-wise products of two vectors.
+#' Supported methods:
+#' * **cosine_distance** – cosine of the angle between two vectors.
+#' * **euclidean_distance** – L2 distance between vectors.
+#' * **negative_inner_product** – negative sum of element-wise products.
+#'
+#' If `filter` is supplied, the function first performs the similarity
+#' search, then applies the filter in an outer SQL query. It uses the HNSW
+#' index when possible and falls back to a sequential scan for large result
+#' sets or filtered queries.
+#'
+#' @return A `tibble` with the top_k retrieved chunks,
+#'   ordered by `metric_value`.
 #'
 #' @family ragnar_retrieve
 #' @export
@@ -343,9 +357,11 @@ calculate_vss <- function(store, text, method) {
 #' information.
 #'
 #' @param conjunctive	Whether to make the query conjunctive i.e., all terms in
-#'   the query string must be present in order for a chunk to be retrieved
-#' @param k,b \eqn{k_1} and \eqn{b} parameters in the Okapi BM25 retrieval model.
-#' @inherit ragnar_retrieve_vss
+#'   the query string must be present in order for a chunk to be retrieved.
+#' @param k,b \eqn{k_1} and \eqn{b} parameters in the Okapi BM25 retrieval method.
+#' @param filter Optional. A filter expression evaluated with `dplyr::filter()`.
+#' @param text String, the text to search for.
+#' @inheritParams ragnar_retrieve
 #' @family ragnar_retrieve
 #' @export
 ragnar_retrieve_bm25 <- function(
@@ -412,7 +428,7 @@ calculate_bm25 <- function(store, text) {
 #' @param ... Forwarded to [ragnar_retrieve_vss()]
 #' @param top_k Integer, the number of entries to retrieve using **per method**.
 #' @family ragnar_retrieve
-#' @export
+#' @keywords internal
 ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   check_string(text)
   check_number_whole(top_k)
@@ -441,91 +457,84 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 
 #' Retrieve chunks from a `RagnarStore`
 #'
-#' [ragnar_retrieve()] is a thin wrapper around [ragnar_retrieve_vss_and_bm25()]
-#' using the recommended best practices.
+#' Combines both `vss` and `bm25` search and returns the
+#' union of chunks retrieved by both methods.
 #'
-#' @param store A `RagnarStore` object or a `dplyr::tbl()` derived from
-#'   it. When you pass a `tbl`, you may use usual dplyr verbs (e.g.
-#'   `filter()`, `slice()`) to restrict the rows examined before
-#'   similarity scoring. Avoid dropping essential columns such as
-#'   `text`, `embedding`, `origin`, and `hash`.
-#' @param text A string to find the nearest match too
-#' @param top_k Integer, the number of nearest entries to find *per method*.
+#' @note The results are not re-ranked after identifying the unique values.
 #'
-#' @returns A dataframe of retrieved chunks. Each row corresponds to an
-#'   individual chunk in the store. It always contains a column named `text`
-#'   that contains the chunks.
+#' @param store A `RagnarStore` object returned by `ragnar_store_connect()` or `ragnar_store_create()`.
+#' @param text Character. Query string to match.
+#' @param top_k Integer. Number of nearest entries to find per method.
+#' @param ... Additional arguments passed to the lower-level retrieval functions.
+#' @param deoverlap Logical. If `TRUE` (default) and `store@version == 2`,
+#'   overlapping chunks are merged with [chunks_deoverlap()].
 #'
-#' @section Pre-filtering with dplyr:
-#' The store behaves like a lazy table backed by DuckDB, so row‑wise
-#' filtering is executed directly in the database. This lets you narrow the
-#' search space efficiently without pulling data into R.
+#' @return A `tibble` of retrieved chunks. Each row
+#'   represents a chunk and always contains a `text` column.
 #'
 #' @family ragnar_retrieve
-#' @export
 #' @examplesIf (rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")))
-#' # Basic usage
-#' store <- ragnar_store_create(
-#'   embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small")
-#' )
-#' ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
-#' ragnar_store_build_index(store)
-#' ragnar_retrieve(store, "foo")
-#'
-#' # More Advanced: store metadata, retrieve with pre-filtering
+#' ## Build a small store with categories
 #' store <- ragnar_store_create(
 #'   embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),
-#'   extra_cols = data.frame(category = character())
+#'   extra_cols = data.frame(category = character()),
+#'   version = 1 # store text chunks directly
 #' )
 #'
 #' ragnar_store_insert(
 #'   store,
 #'   data.frame(
-#'     category = "desert",
-#'     text = c("ice cream", "cake", "cookies")
+#'     category = c(rep("pets", 3), rep("dessert", 3)),
+#'     text     = c("playful puppy", "sleepy kitten", "curious hamster",
+#'                  "chocolate cake", "strawberry tart", "vanilla ice cream")
 #'   )
 #' )
-#'
-#' ragnar_store_insert(
-#'   store,
-#'   data.frame(
-#'     category = "meal",
-#'     text = c("steak", "potatoes", "salad")
-#'   )
-#' )
-#'
 #' ragnar_store_build_index(store)
 #'
-#' # simple retrieve
-#' ragnar_retrieve(store, "carbs")
+#' # Top 3 chunks without filtering
+#' ragnar_retrieve(store, "sweet")
 #'
-#' # retrieve with pre-filtering
-#' dplyr::tbl(store) |>
-#'   dplyr::filter(category == "meal") |>
-#'   ragnar_retrieve("carbs")
+#' # Combine filter with similarity search
+#' ragnar_retrieve(store, "sweet", filter = category == "dessert")
+#' @export
 ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
   chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k, ...)
-  if (deoverlap && store@version == 2) {
-    chunks <- chunks_deoverlap(store, chunks)
+  !S7_inherits(store, RagnarStore)
+  {
+    # back-compat with tbl() supplied for store
+    return(chunks)
   }
+  switch(
+    store@version,
+    {
+      # @version == 1
+      chunks[["hash"]] <- NULL
+    },
+    {
+      # @version == 2
+      if (deoverlap) {
+        chunks <- chunks_deoverlap(store, chunks)
+      }
+    }
+  )
+
   chunks
 }
 
-#' Merge Overlapping Chunks in Retrieved Results
+#' Merge overlapping chunks in retrieved results
 #'
 #' Groups and merges overlapping text chunks from the same origin in the
 #' retrieval results.
 #'
 #' @param store A `RagnarStore` object. Must have `@version == 2`.
-#' @param chunks A dataframe of retrieved chunks, such as the output of
-#'   [ragnar_retrieve()].
+#' @param chunks A [tibble][tibble::tibble] of retrieved chunks, such as the
+#'   output of [ragnar_retrieve()].
 #'
 #' @details When multiple retrieved chunks from the same origin have overlapping
-#' character ranges, this function combines them into a single chunk per overlap
-#' group.
+#' character ranges, this function combines them into a single non-overlapping
+#' region.
 #'
-#' @return A dataframe of de-overlapped chunks, where each row represents a
-#'   non-overlapping region.
+#' @return A [tibble][tibble::tibble] of de-overlapped chunks.
 #'
 #' @export
 chunks_deoverlap <- function(store, chunks) {
@@ -553,8 +562,6 @@ chunks_deoverlap <- function(store, chunks) {
     "_ragnar_tmp_rechunk",
     deoverlapped |> mutate('deoverlapped_id' = row_number())
   )
-
-  # browser()
 
   deoverlapped$text <- dbGetQuery(
     store@conn,

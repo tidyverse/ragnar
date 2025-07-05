@@ -229,7 +229,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
 ragnar_store_update_v2 <- function(store, chunks) {
   stopifnot(
     store@version == 2,
-    S7_inherits(chunks, ChunkedMarkdownDocument)
+    S7_inherits(chunks, MarkdownDocumentChunks)
   )
 
   if ("text" %in% names(chunks)) {
@@ -287,7 +287,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
 ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
   stopifnot(
     store@version == 2,
-    S7_inherits(chunks, ChunkedMarkdownDocument)
+    S7_inherits(chunks, MarkdownDocumentChunks)
   )
 
   if ("text" %in% names(chunks)) {

@@ -2,7 +2,7 @@
 #'
 #' @param location filepath, or `:memory:`. Location can also be a database name
 #'   specified with `md:dbname`, in this case the database will be created in
-#'   MotherDuck after a connection is etablished.
+#'   MotherDuck after a connection is established.
 #' @param embed A function that is called with a character vector and returns a
 #'   matrix of embeddings. Note this function will be serialized and then
 #'   deserialized in new R sessions, so it cannot reference to any objects in
@@ -24,18 +24,39 @@
 #' @param title A title for the store, used by [ragnar_register_tool_retrieve()]
 #'   when the store is registered with an [ellmer::Chat] object.
 #'
-#' @param version integer. The version of the store to create. Version 1 stores
-#'   a single flat table consisting of individual chunks. This provides
-#'   opportunities to modify (augment) chunks in-place for embedding and
-#'   retrieval. Version 2 stores whole documents and separately embeddings for chunk
-#'   ranges. This provides opportunities for chunk de-overlapping or extracting
-#'   arbitrary ranges from a source document, and works well with overlapping
-#'   and automatic context generation. Version 2 is the default.
+#' @param version integer. The version of the store to create. See details.
 #'
+#' @description
+#'
+#' ## Store versions
+#'
+#' If `version = 1` is provided, ragnar will store a single flat table
+#' consisting of individual chunks. This simplifies ingestion, and also,
+#' provides opportunities to modify chunks directly in-place to improve for
+#' embedding and retrieval. Dynamic rechunking (deoverlapping), is not
+#' supported. If there is a need for using `ragnar_store_update()`, then the
+#' value of `rlang::hash(original_full_document)` must be explicitly provided
+#' for each chunk.
+#'
+#' If `version = 2` is provided, then ragnar will store whole documents and
+#' separately, the integers position ranges of chunk text. This simplifies
+#' retrieval, updating, and enables robust dynamic context augmentation (e.g.,
+#' markdown headings in scope for each chunk), but it comes at the expense of a
+#' little less flexibility in the initial store ingestion pipeline.
+#' `ragnar_store_insert` for version 2 stores requires a `MarkdownDocumentChunks` object.
+#'
+#' the embeddings for chunk ranges. This provides opportunities for chunk
+#' de-overlapping or extracting arbitrary ranges from a source document, and
+#' works well with overlapping and automatic context generation. Version 2 is
+#' the default.
+#'
+#'
+
 #' @examples
 #' # A store with a dummy embedding
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+#'   version = 1
 #' )
 #' ragnar_store_insert(store, data.frame(text = "hello"))
 #'
@@ -44,6 +65,7 @@
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
 #'   extra_cols = data.frame(area = character()),
+#'   version = 1
 #' )
 #' ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
 #'
@@ -53,6 +75,7 @@
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
 #'   extra_cols = vctrs::vec_ptype(chunks),
+#'   version = 1
 #' )
 #' ragnar_store_insert(store, chunks)
 #'
@@ -172,8 +195,6 @@ check_store_overwrite <- function(location, overwrite) {
 #' @param ... unused; must be empty.
 #' @param read_only logical, whether the returned connection can be used to
 #'   modify the store.
-#' @param build_index logical, whether to call `ragnar_store_build_index()` when
-#'   creating the connection
 #'
 #' @returns a `RagnarStore` object.
 #' @export

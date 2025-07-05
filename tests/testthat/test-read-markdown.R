@@ -5,8 +5,7 @@ test_that("ragnar_read", {
   # Reading the document without any arguments yields a single row data frame
   document <- ragnar_read(doc)
   expect_equal(nrow(document), 1)
-  expect_equal(colnames(document), c("origin", "text"))
-
+  expect_equal(colnames(document), c("origin", "hash", "text"))
 })
 
 
