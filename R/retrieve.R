@@ -78,6 +78,7 @@ ragnar_retrieve_vss <- function(
   ))
   con <- store@con
 
+  # TODO: if "text" %in% all.names(filter_expr), use v1 query w/ warning.
   if (missing(filter)) {
     ## simplest case
     sql_query <- glue(switch(

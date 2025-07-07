@@ -361,7 +361,7 @@ local({
     embed <- sub("function ?\\(", "\\\\(", embed)
     embed <- sub(") +", ") ", embed)
 
-    # TODO: restore  @schema:
+    # TODO: restore @schema:
     cat(glue(
       '
     <ragnar::DuckDBRagnarStore>
