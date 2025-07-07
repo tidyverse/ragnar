@@ -357,14 +357,30 @@ DuckDBRagnarStore <- new_class(
 
 local({
   method(print, DuckDBRagnarStore) <- function(x, ...) {
-    cat("<ragnar::DuckDBRagnarStore>\n")
-    nms <- prop_names(x) |> setdiff(c(".con", "conn"))
-    for (nm in nms) {
-      cat(" @", nm, ":")
-      str(prop(x, nm))
-    }
-    cat(" @", "conn : <DBI::DBIConnection>\n")
+    embed <- deparse1(x@embed)
+    embed <- sub("function ?\\(", "\\\\(", embed)
+    embed <- sub(") +", ") ", embed)
+
+    # TODO: restore  @schema:
+    cat(glue(
+      '
+    <ragnar::DuckDBRagnarStore>
+     @ embed   : {embed}
+     @ name    : {x@name}
+     @ title   : {x@title %||% "NULL"}
+     @ con     : <DBI::DBIConnection>
+     @ version : {x@version}
+    '
+    ))
   }
+})
+
+#' @importFrom dplyr tbl sql arrange collect
+local({
+  method(tbl, ragnar:::DuckDBRagnarStore) <-
+    function(src, from = "chunks", ...) {
+      tbl(src@con, from)
+    }
 })
 
 
@@ -384,11 +400,3 @@ ragnar_store_inspect <- function(store, ...) {
   })
   invisible(NULL)
 }
-
-#' @importFrom dplyr tbl sql arrange collect
-local({
-  method(tbl, ragnar:::DuckDBRagnarStore) <-
-    function(src, from = "chunks", ...) {
-      tbl(src@conn, from)
-    }
-})
