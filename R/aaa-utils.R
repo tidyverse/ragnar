@@ -1,37 +1,37 @@
 #' @importFrom rvest html_text html_text2 html_elements read_html html_attr
-#' @importFrom stringi stri_length stri_locate_all_boundaries stri_split_fixed
-#'   stri_startswith_fixed stri_sub stri_trim_both stri_flatten
-#'   stri_match_first_regex stri_locate_all_fixed stri_detect_fixed stri_flatten
-#'   stri_c stri_split_lines stri_numbytes stri_extract_first_regex
-#'   stri_extract_last_regex stri_startswith_charclass stri_replace_last_regex
-#'   stri_replace_all_regex stri_replace_all_fixed stri_split_lines1
-#'   stri_replace_first_regex stri_replace_na stri_replace_first_fixed
-#'   stri_locate_first_regex stri_replace_last_fixed stri_count_fixed
-#'   stri_endswith_fixed stri_trim_both stri_split_charclass stri_read_lines
-#'   stri_trim_right stri_split_boundaries
+#' @importFrom stringi stri_c stri_count_fixed stri_detect_fixed
+#'   stri_endswith_fixed stri_extract_first_regex stri_extract_last_regex
+#'   stri_flatten stri_length stri_locate_all_boundaries stri_locate_all_fixed
+#'   stri_locate_first_regex stri_match_first_regex stri_numbytes
+#'   stri_read_lines stri_replace_all_fixed stri_replace_all_regex
+#'   stri_replace_first_fixed stri_replace_first_regex stri_replace_last_fixed
+#'   stri_replace_last_regex stri_replace_na stri_split_boundaries
+#'   stri_split_charclass stri_split_fixed stri_split_lines stri_split_lines1
+#'   stri_startswith_charclass stri_startswith_fixed stri_sub stri_trim_both
+#'   stri_trim_right
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom tibble tibble as_tibble
-#' @importFrom dplyr bind_rows select mutate filter slice_min slice_max
-#'   left_join rename_with join_by coalesce na_if starts_with
+#' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
+#'   na_if rename rename_with select slice_max slice_min starts_with collect
+#'   summarize row_number anti_join lag any_of lag
+#' @importFrom tidyr unchop unnest
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
-#'   vec_chop
+#'   vec_chop vec_ptype vec_proxy vec_restore
 #' @importFrom httr2 request req_url_path_append req_body_json req_perform
-#'   resp_body_json req_retry req_auth_bearer_token req_user_agent
+#'   resp_body_json req_retry req_auth_bearer_token req_error req_user_agent
 #' @importFrom DBI dbExecute dbConnect dbExistsTable dbGetQuery dbQuoteString
-#'   dbWriteTable dbListTables dbReadTable
+#'   dbWriteTable dbListTables dbReadTable dbQuoteIdentifier dbWithTransaction
+#'   dbAppendTable dbDisconnect dbListFields
 #' @importFrom glue glue glue_data as_glue
 #' @importFrom methods is
 #' @importFrom utils head
-#' @useDynLib ragnar, .registration = TRUE
-NULL
-
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
 #' @import rlang
 #' @import S7
-
+#' @useDynLib ragnar, .registration = TRUE
 NULL
 
 `%error%` <- rlang::zap_srcref(
@@ -158,6 +158,8 @@ reorder_names <- function(..., last = NULL) {
 is_windows <- function() identical(.Platform$OS.type, "windows")
 
 
+prepend <- function(body, head) c(head, body)
+
 is_scalar <- function(x) identical(length(x), 1L)
 
 replace_val <- function(x, old, new) {
@@ -170,4 +172,106 @@ replace_val <- function(x, old, new) {
   }
   x[x %in% old] <- new
   x
+}
+
+as_bare_list <- function(x, ...) {
+  out <- as.list(x, ...)
+  attributes(out) <- NULL
+  out
+}
+
+`:=` <- function(name, value) {
+  name <- substitute(name)
+  if (!is.symbol(name)) {
+    stop("left hand side must be a symbol")
+  }
+  value <- substitute(value)
+  if (!is.call(value)) {
+    stop("right hand side must be a call")
+  }
+
+  value <- as.call(c(as.list(value), list(name = as.character(name))))
+  eval(call("<-", name, value), parent.frame())
+}
+
+local_duckdb_register <- function(
+  con,
+  name,
+  table,
+  overwrite = TRUE,
+  ...,
+  .local_envir = parent.frame()
+) {
+  defer(duckdb::duckdb_unregister(con, name), .local_envir)
+  duckdb::duckdb_register(con, name, table, overwrite, ...)
+}
+
+defer <- function(expr, envir = parent.frame(), priority = c("first", "last")) {
+  thunk <- as.call(list(function() expr))
+  after <- match.arg(priority) == "last"
+  do.call(base::on.exit, list(thunk, TRUE, after), envir = envir)
+}
+
+
+coalesce_names <- function(x) {
+  out <- names2(x)
+  empty <- out == ""
+  out[empty] <- as.character(x[empty])
+  out
+}
+
+new_scalar_validator <- function(
+  allow_null = FALSE,
+  allow_na = FALSE,
+  additional_checks = NULL,
+  env = baseenv()
+) {
+  checks <- c(
+    if (allow_null) quote(if (is.null(value)) return()),
+    quote(if (length(value) != 1L) return("must be a scalar")),
+    if (!allow_na) quote(if (anyNA(value)) return("must not be NA")),
+    additional_checks
+  )
+
+  new_function(
+    args = alist(value = ),
+    body = as.call(c(quote(`{`), checks)),
+    env = env
+  )
+}
+
+
+prop_bool <- function(
+  default,
+  allow_null = FALSE,
+  allow_na = FALSE
+) {
+  stopifnot(is_bool(allow_null), is_bool(allow_na))
+
+  new_property(
+    class = if (allow_null) NULL | class_logical else class_logical,
+    validator = new_scalar_validator(
+      allow_null = allow_null,
+      allow_na = allow_na
+    ),
+    default = default
+  )
+}
+
+
+prop_string <- function(
+  default = NULL,
+  allow_null = FALSE,
+  allow_na = FALSE
+) {
+  stopifnot(is_bool(allow_null), is_bool(allow_na))
+
+  new_property(
+    class = if (allow_null) NULL | class_character else class_character,
+    default = default,
+    validator = new_scalar_validator(
+      allow_null = allow_null,
+      allow_na = allow_na
+    )
+  )
 }

@@ -15,20 +15,10 @@ store <- ragnar_store_create(
 for (page in pages) {
   message("ingesting: ", page)
   chunks <- page |>
-    ragnar_read(frame_by_tags = c("h1", "h2", "h3")) |>
-    ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
-    # add context to chunks
-    dplyr::mutate(
-      text = glue::glue(
-        r"---(
-        # Excerpt from '{page}'
-        Title: {h1}
-        Heading: {h2}
-        Subheading: {h3}
-        Text: {text}
-
-        )---"
-      )
+    read_as_markdown() |>
+    markdown_chunk(
+      pre_segment_heading_levels = 2,
+      max_snap_dist = 1600
     )
 
   ragnar_store_insert(store, chunks)

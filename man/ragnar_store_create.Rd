@@ -2,6 +2,7 @@
 % Please edit documentation in R/store.R
 \name{ragnar_store_create}
 \alias{ragnar_store_create}
+\alias{ragnar_store_connect}
 \title{Create and connect to a vector store}
 \usage{
 ragnar_store_create(
@@ -12,32 +13,33 @@ ragnar_store_create(
   ...,
   extra_cols = NULL,
   name = NULL,
-  title = NULL
+  title = NULL,
+  version = 2
 )
+
+ragnar_store_connect(location, ..., read_only = TRUE)
 }
 \arguments{
-\item{location}{filepath, or \verb{:memory:}. Location can also be a database name
-specified with \code{md:dbname}, in this case the database will be created in
-MotherDuck after a connection is etablished.}
+\item{location}{string, a filepath location.}
 
 \item{embed}{A function that is called with a character vector and returns a
 matrix of embeddings. Note this function will be serialized and then
 deserialized in new R sessions, so it cannot reference to any objects in
 the global or parent environments. Make sure to namespace all function
 calls with \code{::}. If additional R objects must be available in the function,
-you can optionally supply a \code{carrier::crate()} with packaged data.
-It can also be \code{NULL} for stores that don't need to embed their texts, for example,
-if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
+you can optionally supply a \code{carrier::crate()} with packaged data. It can
+also be \code{NULL} for stores that don't need to embed their texts, for
+example, if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
 
 \item{embedding_size}{integer}
 
 \item{overwrite}{logical, what to do if \code{location} already exists}
 
-\item{...}{Unused. Must be empty.}
+\item{...}{unused; must be empty.}
 
-\item{extra_cols}{A zero row data frame used to specify additional columns that
-should be added to the store. Such columns can be used for adding additional
-context when retrieving. See the examples for more information.
+\item{extra_cols}{A zero row data frame used to specify additional columns
+that should be added to the store. Such columns can be used for adding
+additional context when retrieving. See the examples for more information.
 \code{\link[vctrs:vec_cast]{vctrs::vec_cast()}} is used to consistently perform type checks and casts
 when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.}
 
@@ -46,17 +48,44 @@ regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_
 
 \item{title}{A title for the store, used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}}
 when the store is registered with an \link[ellmer:Chat]{ellmer::Chat} object.}
+
+\item{version}{integer. The version of the store to create. See details.}
+
+\item{read_only}{logical, whether the returned connection can be used to
+modify the store.}
 }
 \value{
 a \code{DuckDBRagnarStore} object
 }
 \description{
-Create and connect to a vector store
+\subsection{Store versions}{
+
+If \code{version = 1} is provided, ragnar will store a single flat table
+consisting of individual chunks. This simplifies ingestion, and also,
+provides opportunities to modify chunks directly in-place to improve for
+embedding and retrieval. Dynamic rechunking (deoverlapping), is not
+supported. If there is a need for using \code{ragnar_store_update()}, then the
+value of \code{rlang::hash(original_full_document)} must be explicitly provided
+for each chunk.
+
+If \code{version = 2} is provided, then ragnar will store whole documents and
+separately, the integers position ranges of chunk text. This simplifies
+retrieval, updating, and enables robust dynamic context augmentation (e.g.,
+markdown headings in scope for each chunk), but it comes at the expense of a
+little less flexibility in the initial store ingestion pipeline.
+\code{ragnar_store_insert} for version 2 stores requires a \code{MarkdownDocumentChunks} object.
+
+the embeddings for chunk ranges. This provides opportunities for chunk
+de-overlapping or extracting arbitrary ranges from a source document, and
+works well with overlapping and automatic context generation. Version 2 is
+the default.
+}
 }
 \examples{
 # A store with a dummy embedding
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
+  version = 1
 )
 ragnar_store_insert(store, data.frame(text = "hello"))
 
@@ -65,6 +94,7 @@ ragnar_store_insert(store, data.frame(text = "hello"))
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
   extra_cols = data.frame(area = character()),
+  version = 1
 )
 ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
 
@@ -74,6 +104,7 @@ chunks <- data.frame(text = letters, area = "rag")
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
   extra_cols = vctrs::vec_ptype(chunks),
+  version = 1
 )
 ragnar_store_insert(store, chunks)
 

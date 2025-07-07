@@ -35,7 +35,7 @@ NULL
 embed_ollama <- function(
   x,
   base_url = "http://localhost:11434",
-  model = "all-minilm",
+  model = "snowflake-arctic-embed2:568m",
   batch_size = 10L
 ) {
   if (missing(x) || is.null(x)) {
@@ -68,7 +68,10 @@ embed_ollama <- function(
     req <- request(base_url) |>
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/api/embed") |>
-      req_body_json(list(model = model, input = x[start:end]))
+      req_body_json(list(model = model, input = x[start:end])) |>
+      req_error(body = \(resp) {
+        resp_body_json(resp)$error
+      })
 
     resp <- req_perform(req)
     resp_body_json(resp, simplifyVector = TRUE)$embeddings

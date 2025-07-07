@@ -117,8 +117,10 @@ store <- ragnar_store_create(
 )
 ```
 
-To generate embeddings, you can use `embed_openai()`, an open-source
-model via `embed_ollama()`, or your own function.
+To generate embeddings, you can use an open-source model via
+`embed_ollama()`, models from commercial providers via `embed_openai()`,
+`embed_google_vertex()`, `embed_bedrock()`, and `embed_databricks()`, or
+your own function.
 
 #### Identify Documents for Processing
 
@@ -134,7 +136,7 @@ paths <- ragnar_find_links("https://quarto.org/", depth = 3)
 
 For some sites, it may be easier to clone and build the site locally,
 then reference the files from the local file system. You can also
-process the sitemap if one is available.
+process a [sitemap](https://quarto.org/sitemap.xml) if one is available.
 
 At the end of this step, you should have a character vector of file
 paths and URLs.
@@ -145,17 +147,16 @@ Convert each document to markdown. Markdown is preferred because it's
 plain text, easy to inspect, keeps token counts low, and works well for
 both humans and LLMs.
 
-For this step, ragnar provides `read_as_markdown()` and `ragnar_read()`,
-which can accept a wide variety of formats (pdf, docx, pptx, html, zip
-files, epubs, etc.). In many cases it works well, but for specialized
-needs you can opt for a more custom-tailored approach. See the help in
-`?read_as_markdown` for some guidance on alternatives if you'd like to
-improve on the default conversion. (But only begin optimizing once you
-have a basic app working.)
+For this step, ragnar provides `read_as_markdown()`, which can accept a
+wide variety of formats (pdf, docx, pptx, html, zip files, epubs, etc.).
+In many cases it works well, but for specialized needs you can opt for a
+more custom-tailored approach. See the help in `?read_as_markdown` for
+some guidance on alternatives if you'd like to improve on the default
+conversion. (But only begin optimizing once you have a basic app
+working.)
 
-`ragnar_read()` does the same thing as `read_as_markdown()`, but instead
-of returning a string, it returns a dataframe that also includes
-`origin` and `hash` columns, and possibly other metadata.
+`read_as_markdown()` returns a `MarkdownDocument` object, which is a
+normalized string of markdown text with `@origin` property.
 
 #### Chunk and Augment
 
@@ -173,42 +174,16 @@ chunk’s origin--such as URL, title, headings, and subheadings--both so
 the LLM can provide links back to the source, and so the LLM and
 embedding models can better situate the chunk’s content.
 
-To help with these tasks, use `ragnar_read()` and `ragnar_chunk()`.
+To help with these tasks, use `markdown_chunk()`.
 
-`ragnar_read()` can split a document using markdown headings, while also
-extracting the heading titles as columns in the dataframe. Use the
-`frame_by_tags` argument and select the document heading levels you want
-to segment by. If you’re starting from already converted markdown
-content, use `markdown_frame()` or `markdown_segment()` instead.
+`markdown_chunk()` splits the document into chunks and nudges each
+chunk’s edges to the nearest semantic break. By default, a chunk is
+about 1,600 characters--roughly one page--with a 50% overlap between
+chunks.
 
-`ragnar_chunk()` then chunks the text further, trying to split at
-semantic boundaries (like paragraphs or sentences) with progressively
-finer granularity as needed, using the boundary types and chunk size you
-specify. The default chunk size is 1600 characters, which is about one
-page.
-
-To augment chunks, use `glue` string interpolation and include the
-metadata extracted by `ragnar_read()`. Since you'll be doing this for
-every document, it's helpful to wrap this step in a function.
-
-``` r
-read_and_chunk <- function(path) {
-  path |>
-    ragnar_read(frame_by_tags = c("h1", "h2", "h3")) |>
-    ragnar_chunk(boundaries = c("paragraph", "sentence")) |>
-    dplyr::mutate(
-      text = glue::glue(
-        r"---(
-        > Excerpt from: {origin}
-        > {h1}
-        > {h2}
-        > {h3}
-        {text}
-        )---"
-      )
-    )
-}
-```
+`markdown_chunk` also extracts any markdown headings in scope for each
+chunk start. These headings are added as context during embedding and
+retrieval, helping the LLM produce better answers.
 
 Note that an alternative approach for augmenting chunks with context can
 be to use an LLM with instructions to "situate this excerpt from this
@@ -239,7 +214,9 @@ Once you're done processing the documents, call
 
 ``` r
 for (path in paths) {
-  chunks <- read_and_chunk(path)
+  chunks <- path |>
+    read_as_markdown() |>
+    markdown_chunk()
   ragnar_store_insert(store, chunks)
 }
 
@@ -329,24 +306,28 @@ rag_retrieve_quarto_excerpts <- local({
   retrieved_chunk_ids <- integer()
   function(text) {
     # Search, excluding previously seen chunks
-    chunks <- dplyr::tbl(store) |>
-      dplyr::filter(!.data$id %in% retrieved_chunk_ids) |>
-      ragnar::ragnar_retrieve(text, top_k = 10)
+    chunks <- ragnar::ragnar_retrieve(
+      text,
+      top_k = 10,
+      filter = !.data$id %in% retrieved_chunk_ids
+    )
 
     # Update seen chunks
-    retrieved_chunk_ids <<- unique(c(retrieved_chunk_ids, chunks$id))
+    retrieved_chunk_ids <<- unique(unlist(c(retrieved_chunk_ids, chunks$id)))
 
-    # Return formatted excerpts delimited with pseudo-xml tags.
-    stringi::stri_c(
-      "<excerpt>",
-      chunks$text,
-      "</excerpt>",
-      sep = "\n",
-      collapse = "\n"
-    )
+    # Return the chunks dataframe directly;
+    # ellmer will format this to json as a row-oriented list of objects.
+    chunks
   }
 })
 ```
+
+This approach presents retrieved content directly in json. Presenting
+content in a defined structure helps prevent the LLM from confusing
+retrieved content with user queries, and confusing chunk metadata (like
+headings or origin) with the chunk text. The row-oriented format also
+ensures that all metadata (such as headings) stays attached to each row,
+so the context for each chunk appears next to its content.
 
 Register the custom tool:
 
@@ -358,8 +339,7 @@ client$register_tool(ellmer::tool(
     Use this tool to retrieve the most relevant excerpts from the Quarto
     knowledge store for a given text input. This function:
     - uses both vector (semantic) similarity and BM25 text search,
-    - never returns the same excerpt twice in the same session,
-    - returns results as plain text wrapped in <excerpt> tags.
+    - never returns the same excerpt twice in the same session
     "
   ),
   text = ellmer::type_string()
@@ -397,7 +377,7 @@ creation pipeline until retrieval returns meaningful excerpts.
 Some things you can try:
 
 -   Increase the chunk size.
--   Specify coarser or custom boundaries in `ragnar_chunk()`.
+-   Specify coarser or custom boundaries in `markdown_chunk()`.
 -   Augment chunks with additional context.
 -   Try a different embedding model.
 -   Try a different LLM.

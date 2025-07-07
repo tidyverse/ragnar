@@ -21,10 +21,25 @@ vector.}
 Inserts or updates chunks in a \code{RagnarStore}
 }
 \details{
+\subsection{Store Version 2:}{
+
+chunks must be a data frame containing columns:
+\itemize{
+\item origin: character, the source of the document (e.g., a url or file path). This is used as a unique key for documents in the store
+\item document: character, the full document
+\item start: integer, the character index of the chunk
+\item end: integer, the character index of the chunk
+\item headings: character, the markdown headings in scope at \code{start}. This is used to assemble the context.
+}
+}
+
+\subsection{Store Version 1:}{
+
 \code{chunks} must be a data frame containing \code{origin} and \code{hash} columns.
 We first filter out chunks for which \code{origin} and \code{hash} are already in the store.
 If an \code{origin} is in the store, but with a different \code{hash}, we all of its chunks
 with the new chunks. Otherwise, a regular insert is performed.
 
 This can help spending less time computing embeddings for chunks that are already in the store.
+}
 }

@@ -2,102 +2,87 @@
 % Please edit documentation in R/retrieve.R
 \name{ragnar_retrieve_vss}
 \alias{ragnar_retrieve_vss}
-\title{Uses vector similarity search}
+\title{Vector Similarity Search Retrieval}
 \usage{
 ragnar_retrieve_vss(
   store,
-  text,
+  query,
   top_k = 3L,
-  method = c("cosine_distance", "cosine_similarity", "euclidean_distance", "dot_product",
-    "negative_dot_product")
+  ...,
+  method = "cosine_distance",
+  query_vector = store@embed(query),
+  filter
 )
 }
 \arguments{
-\item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from
-it. When you pass a \code{tbl}, you may use usual dplyr verbs (e.g.
-\code{filter()}, \code{slice()}) to restrict the rows examined before
-similarity scoring. Avoid dropping essential columns such as
-\code{text}, \code{embedding}, \code{origin}, and \code{hash}.}
+\item{store}{A \code{RagnarStore} object returned by \code{ragnar_store_connect()} or \code{ragnar_store_create()}.}
 
-\item{text}{A string to find the nearest match too}
+\item{query}{Character. The query string to embed and use for similarity
+search.}
 
-\item{top_k}{Integer, maximum amount of document chunks to retrieve}
+\item{top_k}{Integer. Maximum number of document chunks to retrieve.
+Defaults to 3.}
 
-\item{method}{A string specifying the method used to compute the similarity
-between the query and the document chunks embeddings store in the database.}
+\item{...}{Additional arguments passed to methods.}
+
+\item{method}{Character. Similarity method to use: \code{"cosine_distance"},
+\code{"euclidean_distance"}, or \code{"negative_inner_product"}. Defaults to
+\code{"cosine_distance"}.}
+
+\item{query_vector}{Numeric vector. The embedding for \code{query}.
+Defaults to \code{store@embed(query)}.}
+
+\item{filter}{Optional. A filter expression evaluated with
+\code{dplyr::filter()}.}
 }
 \value{
-A dataframe of retrieved chunks. Each row corresponds to an
-individual chunk in the store. It always contains a column named \code{text}
-that contains the chunks.
+A \code{tibble} with the top_k retrieved chunks,
+ordered by \code{metric_value}.
 }
 \description{
-Computes a similarity measure between the query and the documents embeddings
-and uses this similarity to rank the documents.
+Computes a similarity measure between the query and the document embeddings
+and uses this similarity to rank and retrieve document chunks.
 }
 \details{
-The supported methods are:
+Supported methods:
 \itemize{
-\item \strong{cosine_distance}: Measures the dissimilarity between two vectors based on
-the cosine of the angle between them. Defined as \eqn{1 - cos(\theta)},
-where \eqn{cos(\theta)} is the cosine similarity.
-\item \strong{cosine_similarity}: Measures the similarity between two vectors based on
-the cosine of the angle between them. Ranges from -1 (opposite) to 1 (identical),
-with 0 indicating orthogonality.
-\item \strong{euclidean_distance}: Computes the straight-line (L2) distance between
-two points in a multidimensional space. Defined as \eqn{\sqrt{\sum(x_i - y_i)^2}}.
-\item \strong{dot_product}: Computes the sum of the element-wise products of two vectors.
-\item \strong{negative_dot_product}: The negation of the dot product.
-}
-}
-\section{Pre-filtering with dplyr}{
-
-The store behaves like a lazy table backed by DuckDB, so row‑wise
-filtering is executed directly in the database. This lets you narrow the
-search space efficiently without pulling data into R.
+\item \strong{cosine_distance} – cosine of the angle between two vectors.
+\item \strong{euclidean_distance} – L2 distance between vectors.
+\item \strong{negative_inner_product} – negative sum of element-wise products.
 }
 
+If \code{filter} is supplied, the function first performs the similarity
+search, then applies the filter in an outer SQL query. It uses the HNSW
+index when possible and falls back to a sequential scan for large result
+sets or filtered queries.
+}
+\note{
+The results are not re-ranked after identifying the unique values.
+}
 \examples{
 \dontshow{if ((rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-# Basic usage
-store <- ragnar_store_create(
-  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small")
-)
-ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
-ragnar_store_build_index(store)
-ragnar_retrieve(store, "foo")
-
-# More Advanced: store metadata, retrieve with pre-filtering
+## Build a small store with categories
 store <- ragnar_store_create(
   embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),
-  extra_cols = data.frame(category = character())
+  extra_cols = data.frame(category = character()),
+  version = 1 # store text chunks directly
 )
 
 ragnar_store_insert(
   store,
   data.frame(
-    category = "desert",
-    text = c("ice cream", "cake", "cookies")
+    category = c(rep("pets", 3), rep("dessert", 3)),
+    text     = c("playful puppy", "sleepy kitten", "curious hamster",
+                 "chocolate cake", "strawberry tart", "vanilla ice cream")
   )
 )
-
-ragnar_store_insert(
-  store,
-  data.frame(
-    category = "meal",
-    text = c("steak", "potatoes", "salad")
-  )
-)
-
 ragnar_store_build_index(store)
 
-# simple retrieve
-ragnar_retrieve(store, "carbs")
+# Top 3 chunks without filtering
+ragnar_retrieve(store, "sweet")
 
-# retrieve with pre-filtering
-dplyr::tbl(store) |>
-  dplyr::filter(category == "meal") |>
-  ragnar_retrieve("carbs")
+# Combine filter with similarity search
+ragnar_retrieve(store, "sweet", filter = category == "dessert")
 \dontshow{\}) # examplesIf}
 }
 \seealso{

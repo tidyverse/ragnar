@@ -53,7 +53,6 @@ to Markdown.
 
 Key functions:
 
--   `ragnar_read()`: Convert a file or URL to a dataframe
 -   `read_as_markdown`: Convert a file or URL to markdown
 -   `ragnar_find_links()`: Find all links in a webpage
 
@@ -65,39 +64,30 @@ of opportunities to tweak the approach.
 
 Key functions:
 
--   `ragnar_chunk()`: Higher-level function that both identifies
-    semantic boundaries and chunks text.
--   `ragnar_segment()`: Lower-level function that identifies semantic
-    boundaries.
--   `ragnar_chunk_segments()`: Lower-level function that chunks
-    pre-segmented text.
+-   `markdown_chunk()`: Full-featured chunker that identifies semantic
+    boundaries and intelligently chunks text.
 
 ### 3. Context Augmentation (Optional)
 
 RAG applications benefit from augmenting text chunks with additional
 context, such as document headings and subheadings. `ragnar` makes it
-easy to keep track of headings and subheadings as part of chunking,
-which can then be used to support template-based augmentation. (See
-examples below)
+easy to keep track of headings and subheadings as part of chunking.
 
-Key functions:
-
--   `ragnar_read()`: Use `frame_by_tags` and/or `split_by_tags`
-    arguments to associate text chunks with their document position.
--   `markdown_segment()`: Segment markdown text into a character vector
-    using semantic tags (e.g., headings, paragraphs, or code chunks).
--   `markdown_frame()`: Convert markdown text into a dataframe.
+`markdown_chunk()` automatically associates each chunk with the headings
+that are in scope for that chunk.
 
 ### 4. Embedding
 
 `ragnar` can help compute embeddings for each chunk. The goal is for
 `ragnar` to provide access to embeddings from popular LLM providers.
-Currently `ollama` and `openai` providers are supported.
 
 Key functions:
 
 -   `embed_ollama()`
 -   `embed_openai()`
+-   `embed_bedrock()`
+-   `embed_databricks()`
+-   `embed_google_vertex()`
 
 Note that calling the embedding function directly is typically not
 necessary. Instead, the embedding function is specified when a store is
@@ -129,6 +119,7 @@ Key functions:
     extension](https://duckdb.org/docs/stable/core_extensions/vss)
 -   `ragnar_retrieve_bm25()`: Retrieve using
     [`full-text search DuckDB extension`](https://duckdb.org/docs/stable/core_extensions/full_text_search)
+-   `chunks_deoverlap()`: Consolidates retrieved chunks that overlap.
 
 ### 7. Chat Augmentation
 

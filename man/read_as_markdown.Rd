@@ -37,7 +37,7 @@ A single string of Markdown.
 Convert files to Markdown
 }
 \examples{
-\dontshow{if (reticulate::py_available()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (reticulate::py_module_available("markitdown")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Convert HTML
 read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
   substr(1, 500) |>

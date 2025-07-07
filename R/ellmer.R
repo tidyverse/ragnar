@@ -44,22 +44,26 @@ ragnar_register_tool_retrieve <- function(
   title <- title %||% store@title
 
   chat$register_tool(
-    ellmer::tool(
-      .name = name,
-      function(text) {
-        ragnar_retrieve(store, text, ...)$text |>
-          stringi::stri_flatten("\n\n---\n\n")
-      },
-      glue::glue(
-        "Given a string, retrieve the most relevent excerpts from {store_description}."
-      ),
-      text = ellmer::type_string(
-        "The text to find the most relevent matches for."
-      ),
-      .annotations = ellmer::tool_annotations(
-        title = title,
-        read_only_hint = TRUE,
-        open_world_hint = FALSE
+    suppressWarnings(
+      ## TODO: ellmer::tool() changed in v 0.3.0, need to update
+      ellmer::tool(
+        .name = name,
+        function(text) {
+          chunks <- ragnar_retrieve(store, text, ...)
+          chunks[c("id", "start", "end")] <- NULL
+          chunks
+        },
+        glue::glue(
+          "Given a string, retrieve the most relevent excerpts from {store_description}."
+        ),
+        text = ellmer::type_string(
+          "The text to find the most relevent matches for."
+        ),
+        .annotations = ellmer::tool_annotations(
+          title = title,
+          read_only_hint = TRUE,
+          open_world_hint = FALSE
+        )
       )
     )
   )

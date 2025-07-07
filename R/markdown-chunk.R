@@ -6,7 +6,8 @@
 #' It returns a tibble recording the character ranges of each chunk and, if
 #' requested, the heading context and the text itself.
 #'
-#' @param md A length-one character vector containing Markdown.
+#' @param md A `MarkdownDocument`, or a length-one character vector containing
+#'   Markdown.
 #' @param target_size Integer. Target chunk size in characters. Default: `1600`
 #'   (≈ 400 tokens, or 1 page of text).
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
@@ -77,6 +78,9 @@ markdown_chunk <- function(
   text = TRUE
 ) {
   check_dots_empty()
+  if (!S7_inherits(md, MarkdownDocument)) {
+    md <- convert(md, MarkdownDocument)
+  }
 
   md_len <- stri_length(md)
   md_positions <-
@@ -166,8 +170,9 @@ markdown_chunk <- function(
     chunks <- chunks |> mutate(text = stri_sub(md, start, end))
   }
 
-  chunks
+  MarkdownDocumentChunks(chunks, document = md)
 }
+
 
 markdown_node_positions <- function(md, type = NULL, text = FALSE) {
   check_string(md)
@@ -243,6 +248,16 @@ str_locate_boundary_starts1 <- function(string, type) {
 
 
 snap_nearest <- function(x, candidates, max_dist = NULL) {
+  if ((n_candidates <- length(candidates)) == 0L) {
+    return(rep(NA, length(x)))
+  }
+  if (n_candidates == 1L) {
+    out <- rep(candidates, length(x))
+    if (!is.null(max_dist)) {
+      out[abs(x - out) > max_dist] <- NA
+    }
+    return(out)
+  }
   left_idx <- findInterval(
     x,
     candidates,

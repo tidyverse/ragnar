@@ -4,76 +4,55 @@
 \alias{ragnar_retrieve}
 \title{Retrieve chunks from a \code{RagnarStore}}
 \usage{
-ragnar_retrieve(store, text, top_k = 3L)
+ragnar_retrieve(store, text, top_k = 3L, ..., deoverlap = TRUE)
 }
 \arguments{
-\item{store}{A \code{RagnarStore} object or a \code{dplyr::tbl()} derived from
-it. When you pass a \code{tbl}, you may use usual dplyr verbs (e.g.
-\code{filter()}, \code{slice()}) to restrict the rows examined before
-similarity scoring. Avoid dropping essential columns such as
-\code{text}, \code{embedding}, \code{origin}, and \code{hash}.}
+\item{store}{A \code{RagnarStore} object returned by \code{ragnar_store_connect()} or \code{ragnar_store_create()}.}
 
-\item{text}{A string to find the nearest match too}
+\item{text}{Character. Query string to match.}
 
-\item{top_k}{Integer, the number of nearest entries to find \emph{per method}.}
+\item{top_k}{Integer. Number of nearest entries to find per method.}
+
+\item{...}{Additional arguments passed to the lower-level retrieval functions.}
+
+\item{deoverlap}{Logical. If \code{TRUE} (default) and \code{store@version == 2},
+overlapping chunks are merged with \code{\link[=chunks_deoverlap]{chunks_deoverlap()}}.}
 }
 \value{
-A dataframe of retrieved chunks. Each row corresponds to an
-individual chunk in the store. It always contains a column named \code{text}
-that contains the chunks.
+A \code{tibble} of retrieved chunks. Each row
+represents a chunk and always contains a \code{text} column.
 }
 \description{
-\code{\link[=ragnar_retrieve]{ragnar_retrieve()}} is a thin wrapper around \code{\link[=ragnar_retrieve_vss_and_bm25]{ragnar_retrieve_vss_and_bm25()}}
-using the recommended best practices.
+Combines both \code{vss} and \code{bm25} search and returns the
+union of chunks retrieved by both methods.
 }
-\section{Pre-filtering with dplyr}{
-
-The store behaves like a lazy table backed by DuckDB, so row‑wise
-filtering is executed directly in the database. This lets you narrow the
-search space efficiently without pulling data into R.
+\note{
+The results are not re-ranked after identifying the unique values.
 }
-
 \examples{
 \dontshow{if ((rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-# Basic usage
-store <- ragnar_store_create(
-  embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small")
-)
-ragnar_store_insert(store, data.frame(text = c("foo", "bar")))
-ragnar_store_build_index(store)
-ragnar_retrieve(store, "foo")
-
-# More Advanced: store metadata, retrieve with pre-filtering
+## Build a small store with categories
 store <- ragnar_store_create(
   embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),
-  extra_cols = data.frame(category = character())
+  extra_cols = data.frame(category = character()),
+  version = 1 # store text chunks directly
 )
 
 ragnar_store_insert(
   store,
   data.frame(
-    category = "desert",
-    text = c("ice cream", "cake", "cookies")
+    category = c(rep("pets", 3), rep("dessert", 3)),
+    text     = c("playful puppy", "sleepy kitten", "curious hamster",
+                 "chocolate cake", "strawberry tart", "vanilla ice cream")
   )
 )
-
-ragnar_store_insert(
-  store,
-  data.frame(
-    category = "meal",
-    text = c("steak", "potatoes", "salad")
-  )
-)
-
 ragnar_store_build_index(store)
 
-# simple retrieve
-ragnar_retrieve(store, "carbs")
+# Top 3 chunks without filtering
+ragnar_retrieve(store, "sweet")
 
-# retrieve with pre-filtering
-dplyr::tbl(store) |>
-  dplyr::filter(category == "meal") |>
-  ragnar_retrieve("carbs")
+# Combine filter with similarity search
+ragnar_retrieve(store, "sweet", filter = category == "dessert")
 \dontshow{\}) # examplesIf}
 }
 \seealso{

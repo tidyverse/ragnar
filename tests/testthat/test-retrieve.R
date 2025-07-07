@@ -1,6 +1,7 @@
 test_that("retrieving works as expected", {
   # Create a simple store and insert some chunks
   store <- ragnar_store_create(
+    version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
   maybe_set_threads(store)

@@ -49,6 +49,7 @@ Imports:
 Suggests:
     dbplyr,
     ellmer (>= 0.2.0),
+    lifecycle,
     knitr,
     pandoc,
     paws.common,
