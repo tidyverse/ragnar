@@ -196,10 +196,8 @@ check_store_overwrite <- function(location, overwrite) {
 #' @param read_only logical, whether the returned connection can be used to
 #'   modify the store.
 #'
-#' @returns a `RagnarStore` object.
 #' @export
-#'
-#' @rdname rangar_store_create
+#' @rdname ragnar_store_create
 ragnar_store_connect <- function(
   location,
   ...,

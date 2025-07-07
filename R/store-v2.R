@@ -91,7 +91,7 @@ ragnar_store_create_v2 <- function(
 
       CREATE OR REPLACE TABLE documents (
         origin VARCHAR NOT NULL PRIMARY KEY, -- default  hash(text)??
-        text VARCHAR,
+        text VARCHAR
       );
 
       CREATE OR REPLACE TABLE embeddings (

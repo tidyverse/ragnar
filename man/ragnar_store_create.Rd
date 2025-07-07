@@ -2,6 +2,7 @@
 % Please edit documentation in R/store.R
 \name{ragnar_store_create}
 \alias{ragnar_store_create}
+\alias{ragnar_store_connect}
 \title{Create and connect to a vector store}
 \usage{
 ragnar_store_create(
@@ -15,11 +16,11 @@ ragnar_store_create(
   title = NULL,
   version = 2
 )
+
+ragnar_store_connect(location, ..., read_only = TRUE)
 }
 \arguments{
-\item{location}{filepath, or \verb{:memory:}. Location can also be a database name
-specified with \code{md:dbname}, in this case the database will be created in
-MotherDuck after a connection is established.}
+\item{location}{string, a filepath location.}
 
 \item{embed}{A function that is called with a character vector and returns a
 matrix of embeddings. Note this function will be serialized and then
@@ -34,7 +35,7 @@ example, if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]
 
 \item{overwrite}{logical, what to do if \code{location} already exists}
 
-\item{...}{Unused. Must be empty.}
+\item{...}{unused; must be empty.}
 
 \item{extra_cols}{A zero row data frame used to specify additional columns
 that should be added to the store. Such columns can be used for adding
@@ -49,6 +50,9 @@ regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_
 when the store is registered with an \link[ellmer:Chat]{ellmer::Chat} object.}
 
 \item{version}{integer. The version of the store to create. See details.}
+
+\item{read_only}{logical, whether the returned connection can be used to
+modify the store.}
 }
 \value{
 a \code{DuckDBRagnarStore} object
