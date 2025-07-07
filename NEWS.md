@@ -1,5 +1,22 @@
 # ragnar (development version)
 
+* `ragnar_store_create()` gains a new argument: `version`, with default `2`.
+  Store version 2 adds support for chunk deoverlapping on retrieval and automatic chunk augmentation with headings.
+  To support these features, the internal schema and ingestion requirements are different.
+  See `markdown_chunk()` and new S7 classes `MarkdownDocument` and `MarkdownDocumentChunks`.
+  Backwards compatibility is maintained with version = 1. (#58, #39, #36)
+
+* `ragnar_retrieve()` and friends gain a `filter` argument, adding support for efficiently
+  filtering retrieval results.
+
+* `ragnar_retrieve_bm25()` gains arguments `b`, `k`, and `conjunctive` (#56).
+
+* `ragnar_retrieve_vss()` gains argument `query_vector`, supporting workflows that preprocess the query string before embedding.
+
+* `ragnar_retrieve_vss()` set of valid `method` choices have been updated to a narrower set to ensure that an `HNSW` index scan is used.
+
+* Passing a `tbl(store)` to `ragnar_retrieve()` is deprecated.
+
 * New chunker `markdown_chunk()` with support for chunk heading context generation,
   semantic boundary selection, overlapping chunks, document segmentation, and more. (#56)
 

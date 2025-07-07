@@ -87,7 +87,7 @@ ragnar_retrieve_vss <- function(
       "
       SELECT
         *,
-        'cosine_distance' AS metric_name,
+        '{method}' AS metric_name,
         {metric_value} AS metric_value
       FROM chunks
       ORDER BY metric_value
@@ -101,7 +101,7 @@ ragnar_retrieve_vss <- function(
       FROM (
         SELECT
           *,
-          'cosine_distance' AS metric_name,
+          '{method}' AS metric_name,
           {metric_value} AS metric_value
         FROM embeddings
         ORDER BY metric_value
@@ -133,7 +133,7 @@ ragnar_retrieve_vss <- function(
     "
     SELECT
       *,
-      'cosine_distance' AS metric_name,
+      '{method}' AS metric_name,
       {metric_value} AS metric_value
     FROM chunks
     ORDER BY metric_value
@@ -147,7 +147,7 @@ ragnar_retrieve_vss <- function(
     FROM (
       SELECT
         *,
-        'cosine_distance' AS metric_name,
+        '{method}' AS metric_name,
         {metric_value} AS metric_value
       FROM embeddings
       ORDER BY metric_value
