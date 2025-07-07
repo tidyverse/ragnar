@@ -214,8 +214,8 @@ Once you're done processing the documents, call
 
 ``` r
 for (path in paths) {
-  chunks <- path |> 
-    read_as_markdown() |> 
+  chunks <- path |>
+    read_as_markdown() |>
     markdown_chunk()
   ragnar_store_insert(store, chunks)
 }
@@ -314,19 +314,20 @@ rag_retrieve_quarto_excerpts <- local({
 
     # Update seen chunks
     retrieved_chunk_ids <<- unique(unlist(c(retrieved_chunk_ids, chunks$id)))
-    
-    # Return the chunks dataframe directly; 
+
+    # Return the chunks dataframe directly;
     # ellmer will format this to json as a row-oriented list of objects.
     chunks
   }
 })
 ```
 
-This approach presents retrieved content directly, and maintaining a
-defined structure helps prevent the LLM from confusing retrieved content
-with user queries. The row-oriented format also ensures that all
-metadata (such as headings) stays attached to each row, so the context
-for each chunk appears next to its content.
+This approach presents retrieved content directly in json. Presenting
+content in a defined structure helps prevent the LLM from confusing
+retrieved content with user queries, and confusing chunk metadata (like
+headings or origin) with the chunk text. The row-oriented format also
+ensures that all metadata (such as headings) stays attached to each row,
+so the context for each chunk appears next to its content.
 
 Register the custom tool:
 

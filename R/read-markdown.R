@@ -148,15 +148,10 @@ read_as_markdown <- function(
 }
 
 
-# ## maybe we specialize on markdown in the store.
-# ## I really think we specialize on markdown completely.
-#
-# MarkdownChunk
-#
+# For when we support additional document types:
+
 # ragnar_chunk := new_generic("x")
 # ragnar_augment := new_generic("x")
-
-# ragnar_chunk_regex
 
 # ------ utils ----
 
