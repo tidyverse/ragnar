@@ -15,11 +15,11 @@ RagnarStoreV2 <- R6::R6Class(
   private = list(
     conn_ = NULL,
     finalize = function() {
-      DBI::dbDisconnect(self$conn)
+      DBI::dbDisconnect(self$con)
     }
   ),
   active = list(
-    conn = function(x) {
+    con = function(x) {
       if (!missing(x)) {
         stop(
           "RagnarStore$conn cannot be changed after the store is created",

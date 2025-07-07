@@ -76,7 +76,7 @@ ragnar_retrieve_vss <- function(
     method_func,
     sql_float_array_value(query_vector)
   ))
-  con <- store@conn
+  con <- store@con
 
   if (missing(filter)) {
     ## simplest case
@@ -389,7 +389,7 @@ ragnar_retrieve_bm25 <- function(
     return(ragnar_retrieve_bm25_tbl(store, text, top_k))
   }
 
-  tbl <- tbl(store@conn, "chunks") |>
+  tbl <- tbl(store@con, "chunks") |>
     mutate(
       metric_name = "bm25",
       metric_value = sql(glue(
@@ -409,11 +409,11 @@ ragnar_retrieve_bm25 <- function(
     head(n = top_k) |>
     dbplyr::remote_query()
 
-  as_tibble(dbGetQuery(store@conn, sql_query, params = list(text)))
+  as_tibble(dbGetQuery(store@con, sql_query, params = list(text)))
 }
 
 calculate_bm25 <- function(store, text) {
-  text <- dbQuoteString(store@conn, text)
+  text <- dbQuoteString(store@con, text)
   glue("fts_main_chunks.match_bm25(id, {text})")
 }
 
@@ -558,13 +558,13 @@ chunks_deoverlap <- function(store, chunks) {
     select(-overlap_grp)
 
   local_duckdb_register(
-    store@conn,
+    store@con,
     "_ragnar_tmp_rechunk",
     deoverlapped |> mutate('deoverlapped_id' = row_number())
   )
 
   deoverlapped$text <- dbGetQuery(
-    store@conn,
+    store@con,
     "
     SELECT
     rechunked.deoverlapped_id,

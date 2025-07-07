@@ -208,9 +208,9 @@ ragnar_store_connect <- function(
   check_dots_empty()
 
   if (is_motherduck_location(location)) {
-    conn <- motherduck_connection(location, create = FALSE, overwrite = FALSE)
+    con <- motherduck_connection(location, create = FALSE, overwrite = FALSE)
   } else {
-    conn <- dbConnect(
+    con <- dbConnect(
       duckdb::duckdb(),
       dbdir = location,
       read_only = read_only,
@@ -218,7 +218,7 @@ ragnar_store_connect <- function(
     )
   }
 
-  tables <- dbListTables(conn)
+  tables <- dbListTables(con)
   if (all(c("documents", "embeddings", "metadata") %in% tables)) {
     version <- 2L
   } else if (all(c("chunks", "metadata") %in% tables)) {
@@ -227,22 +227,22 @@ ragnar_store_connect <- function(
     stop("Store must be created with ragnar_store_create()")
   }
 
-  dbExecute(conn, "INSTALL fts; INSTALL vss;")
-  dbExecute(conn, "LOAD fts; LOAD vss;")
+  dbExecute(con, "INSTALL fts; INSTALL vss;")
+  dbExecute(con, "LOAD fts; LOAD vss;")
 
-  metadata <- dbReadTable(conn, "metadata")
+  metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
   schema <- switch(version, unserialize(metadata$schema[[1L]]), NULL)
   name <- metadata$name %||% unique_store_name()
 
   # attach function to externalptr, so we can retrieve it from just the connection.
-  ptr <- conn@conn_ref
+  ptr <- con@conn_ref
   attr(ptr, "embed_function") <- embed
 
   DuckDBRagnarStore(
     embed = embed,
     schema = schema,
-    conn = conn,
+    con = con,
     name = name,
     title = metadata$title,
     version = version
@@ -336,18 +336,18 @@ DuckDBRagnarStore <- new_class(
   "DuckDBRagnarStore",
   RagnarStore,
   properties = list(
-    conn = methods::getClass("DBIConnection"),
+    con = methods::getClass("DBIConnection"),
     version = class_integer,
     .con = new_property(
       # methods::getClass("DBIConnection"),
       getter = function(self) {
-        warning("@.con renamed to @conn, please update your code")
-        self@conn
+        warning("@.con renamed to @con, please update your code")
+        self@con
       },
       setter = function(self, value) {
         if (!is.null(value)) {
-          warning("@.con renamed to @conn, please update your code")
-          self@conn <- value
+          warning("@.con renamed to @con, please update your code")
+          self@con <- value
         }
         self
       }

@@ -17,7 +17,7 @@ ragnar_store_create_v2 <- function(
   stopifnot(grepl("^[a-zA-Z0-9_-]+$", name))
   check_string(title, allow_null = TRUE)
 
-  conn <- dbConnect(
+  con <- dbConnect(
     duckdb::duckdb(),
     dbdir = location,
     array = "matrix",
@@ -42,20 +42,20 @@ ragnar_store_create_v2 <- function(
     name = name,
     title = title
   )
-  dbWriteTable(conn, "metadata", metadata, overwrite = TRUE)
+  dbWriteTable(con, "metadata", metadata, overwrite = TRUE)
 
   # read back in embed, so any problems with an R function that doesn't
   # serialize correctly flush out early.
-  metadata <- dbReadTable(conn, "metadata")
+  metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
   name <- metadata$name
 
   # attach function to externalptr, so we can retrieve it from just the connection.
-  ptr <- conn@conn_ref
+  ptr <- con@conn_ref
   attr(ptr, "embed_function") <- embed
 
   dbExecute(
-    conn,
+    con,
     glue(
       r"--(
       DROP VIEW IF EXISTS chunks CASCADE;
@@ -68,8 +68,8 @@ ragnar_store_create_v2 <- function(
   )
 
   if (length(extra_cols)) {
-    extra_col_types <- DBI::dbDataType(conn, extra_cols)
-    extra_col_names <- dbQuoteIdentifier(conn, names(extra_col_types))
+    extra_col_types <- DBI::dbDataType(con, extra_cols)
+    extra_col_names <- dbQuoteIdentifier(con, names(extra_col_types))
     extra_cols <- paste0(
       extra_col_names,
       " ",
@@ -82,7 +82,7 @@ ragnar_store_create_v2 <- function(
   }
 
   dbExecute(
-    conn,
+    con,
     glue(
       r"--(
       CREATE SEQUENCE chunk_id_seq START 1; -- need a unique id for fts
@@ -122,7 +122,7 @@ ragnar_store_create_v2 <- function(
   DuckDBRagnarStore(
     embed = embed,
     # schema = schema,
-    conn = conn,
+    con = con,
     name = name,
     title = title,
     version = 2L
@@ -132,23 +132,23 @@ ragnar_store_create_v2 <- function(
 
 #
 # ragnar_store_connect_v2 <- function(location, read_only = TRUE) {
-#   conn <- dbConnect(
+#   con <- dbConnect(
 #     duckdb::duckdb(),
 #     dbdir = location,
 #     read_only = read_only,
 #     array = "matrix"
 #   )
-#   dbExecute(conn, "INSTALL fts; INSTALL vss;")
-#   dbExecute(conn, "LOAD fts; LOAD vss;")
-#   metadata <- dbReadTable(conn, "metadata")
+#   dbExecute(con, "INSTALL fts; INSTALL vss;")
+#   dbExecute(con, "LOAD fts; LOAD vss;")
+#   metadata <- dbReadTable(con, "metadata")
 #   embed <- unserialize(metadata$embed_func[[1L]])
 #
-#   ptr <- conn@conn_ref
+#   ptr <- con@conn_ref
 #   attr(ptr, "embed_function") <- embed
 #
 #   DuckDBRagnarStore(
 #     embed = embed,
-#     conn = conn,
+#     con = con,
 #     name = metadata$name,
 #     title = metadata$title,
 #     version = 2L
@@ -157,9 +157,9 @@ ragnar_store_create_v2 <- function(
 
 ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
   if (S7_inherits(store, DuckDBRagnarStore)) {
-    conn <- store@conn
+    con <- store@con
   } else if (methods::is(store, "DBIConnection")) {
-    conn <- store
+    con <- store
   } else {
     stop("`store` must be a RagnarStore")
   }
@@ -170,9 +170,9 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
     # in the R interface. https://duckdb.org/docs/stable/core_extensions/vss#usage
 
     # TODO: expose way to select vss index metric types in api
-    dbExecute(conn, "INSTALL vss; LOAD vss;")
+    dbExecute(con, "INSTALL vss; LOAD vss;")
     dbExecute(
-      conn,
+      con,
       r"--(
       SET hnsw_enable_experimental_persistence = true;
 
@@ -188,12 +188,12 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
   }
 
   if ("fts" %in% type) {
-    dbExecute(conn, "INSTALL fts; LOAD fts;")
+    dbExecute(con, "INSTALL fts; LOAD fts;")
     # fts index builder takes many options, e.g., stemmer, stopwords, etc.
     # Expose a way to pass along args. https://duckdb.org/docs/stable/core_extensions/full_text_search
-    dbWithTransaction(conn, {
+    dbWithTransaction(con, {
       dbExecute(
-        conn,
+        con,
         r"--(
         ALTER VIEW chunks RENAME TO chunks_view;
 
@@ -202,7 +202,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         )--"
       )
       dbExecute(
-        conn,
+        con,
         r"--(
         PRAGMA create_fts_index(
           'chunks',            -- input_table
@@ -213,7 +213,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         )--"
       )
       dbExecute(
-        conn,
+        con,
         r"--(
         DROP TABLE chunks;
         ALTER VIEW chunks_view RENAME TO chunks
@@ -240,10 +240,10 @@ ragnar_store_update_v2 <- function(store, chunks) {
     chunks <- chunks |> mutate(text = stri_sub(chunks@document, start, end))
   }
 
-  conn <- store@conn
+  con <- store@con
 
   existing <- dbGetQuery(
-    conn,
+    con,
     r"(SELECT start, "end", headings, text FROM chunks WHERE origin = ?)",
     params = list(chunks@document@origin)
   )
@@ -264,22 +264,22 @@ ragnar_store_update_v2 <- function(store, chunks) {
       embedding = store@embed(stri_c(headings, "\n", text)),
       text = NULL
     )
-  local_duckdb_register(conn, "documents_to_upsert", documents)
+  local_duckdb_register(con, "documents_to_upsert", documents)
 
-  dbWithTransaction(conn, {
+  dbWithTransaction(con, {
     dbExecute(
-      conn,
+      con,
       "
       INSERT OR REPLACE INTO documents BY NAME
       SELECT origin, text FROM documents_to_upsert;
       "
     )
     dbExecute(
-      conn,
+      con,
       "DELETE FROM embeddings WHERE origin = ?;",
       params = list(chunks@document@origin)
     )
-    dbAppendTable(conn, "embeddings", embeddings)
+    dbAppendTable(con, "embeddings", embeddings)
   })
 }
 
@@ -314,15 +314,15 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
     chunks$embedding <- store@embed(with(chunks, stri_c(headings, "\n", text)))
   }
 
-  conn <- store@conn
+  con <- store@con
   documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
     select(start, end, headings, embedding) |> # TODO: extra_cols
     mutate(origin = chunks@document@origin)
 
-  dbWithTransaction(conn, {
-    dbAppendTable(conn, "documents", documents)
-    dbAppendTable(conn, "embeddings", embeddings)
+  dbWithTransaction(con, {
+    dbAppendTable(con, "documents", documents)
+    dbAppendTable(con, "embeddings", embeddings)
   })
   invisible(store)
 }

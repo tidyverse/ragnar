@@ -154,8 +154,7 @@ ragnar_store_create_v1 <- function(
   DuckDBRagnarStore(
     embed = embed,
     schema = schema,
-    conn = con,
-    # .con = con,
+    con = con,
     name = name,
     title = title,
     version = 1L
@@ -187,7 +186,7 @@ ragnar_store_update_v1 <- function(store, chunks) {
     {
       # Insert the new chunks into a temporary table
       DBI::dbWriteTable(
-        store@conn,
+        store@con,
         "tmp_chunks",
         chunks |> dplyr::select("origin", "hash") |> dplyr::distinct(),
         temporary = TRUE,
@@ -197,7 +196,7 @@ ragnar_store_update_v1 <- function(store, chunks) {
       # We want to insert into the chunks table all chunks whose origin and hash
       # are not already in the chunks table.
       chunks_to_insert <- DBI::dbGetQuery(
-        store@conn,
+        store@con,
         "SELECT * FROM tmp_chunks
       EXCEPT
       SELECT DISTINCT origin, hash FROM chunks"
@@ -210,7 +209,7 @@ ragnar_store_update_v1 <- function(store, chunks) {
         by = c("origin", "hash")
       )
       # We've already done everything we needed, we can simply throw out the transaction.
-      dbExecute(store@conn, "DROP TABLE tmp_chunks;")
+      dbExecute(store@con, "DROP TABLE tmp_chunks;")
     },
     error = function(e) {
       cli::cli_abort("Failed to filter chunks to insert", parent = e)
@@ -221,14 +220,14 @@ ragnar_store_update_v1 <- function(store, chunks) {
     return(invisible(store))
   }
 
-  dbExecute(store@conn, "BEGIN TRANSACTION;")
+  dbExecute(store@con, "BEGIN TRANSACTION;")
   tryCatch(
     {
       # Remove rows that have the same origin as those that will be included
-      origins <- DBI::dbQuoteString(store@conn, unique(chunks$origin)) |>
+      origins <- DBI::dbQuoteString(store@con, unique(chunks$origin)) |>
         stri_c(collapse = ", ")
       dbExecute(
-        store@conn,
+        store@con,
         glue("DELETE FROM chunks WHERE origin IN ({origins})")
       )
 
@@ -236,10 +235,10 @@ ragnar_store_update_v1 <- function(store, chunks) {
       ragnar_store_insert(store, chunks)
 
       # Finally commit
-      dbExecute(store@conn, "COMMIT;")
+      dbExecute(store@con, "COMMIT;")
     },
     error = function(e) {
-      dbExecute(store@conn, "ROLLBACK;")
+      dbExecute(store@con, "ROLLBACK;")
       cli::cli_abort("Failed to update the store", parent = e)
     }
   )
@@ -318,9 +317,9 @@ ragnar_store_insert_v1 <- function(store, chunks) {
         ")"
       )
     } else if (is.character(col)) {
-      DBI::dbQuoteString(store@conn, col)
+      DBI::dbQuoteString(store@con, col)
     } else if (is.numeric(col)) {
-      DBI::dbQuoteLiteral(store@conn, col)
+      DBI::dbQuoteLiteral(store@con, col)
     } else {
       cli::cli_abort("Unsupported type {.cls {class(col)}}")
     }
@@ -335,7 +334,7 @@ ragnar_store_insert_v1 <- function(store, chunks) {
     rows
   )
 
-  dbExecute(store@conn, insert_statement)
+  dbExecute(store@con, insert_statement)
 
   invisible(store)
 }
@@ -343,7 +342,7 @@ ragnar_store_insert_v1 <- function(store, chunks) {
 
 ragnar_store_build_index_v1 <- function(store, type = c("vss", "fts")) {
   if (S7_inherits(store, DuckDBRagnarStore)) {
-    con <- store@conn
+    con <- store@con
   } else if (methods::is(store, "DBIConnection")) {
     con <- store
   } else {
@@ -355,7 +354,7 @@ ragnar_store_build_index_v1 <- function(store, type = c("vss", "fts")) {
     # the VSS index with a warning.
     # First detect we're in motherduck
     loaded <- DBI::dbGetQuery(
-      store@conn,
+      store@con,
       "SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name='motherduck' and loaded=TRUE"
     )
     loaded <- nrow(loaded) > 0

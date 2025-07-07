@@ -195,15 +195,15 @@ as_bare_list <- function(x, ...) {
 }
 
 local_duckdb_register <- function(
-  conn,
+  con,
   name,
   table,
   overwrite = TRUE,
   ...,
   .local_envir = parent.frame()
 ) {
-  defer(duckdb::duckdb_unregister(conn, name), .local_envir)
-  duckdb::duckdb_register(conn, name, table, overwrite, ...)
+  defer(duckdb::duckdb_unregister(con, name), .local_envir)
+  duckdb::duckdb_register(con, name, table, overwrite, ...)
 }
 
 defer <- function(expr, envir = parent.frame(), priority = c("first", "last")) {
