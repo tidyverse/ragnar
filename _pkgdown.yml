@@ -15,21 +15,29 @@ reference:
   - title: Document processing
     desc: Ingest documents from the web, PDFs, Word, or local Markdown.
     contents:
-      - ragnar_read
-      - ragnar_read_document
       - ragnar_find_links
       - read_as_markdown
-      - ragnar_chunks_view
+      - MarkdownDocument
+
+      ## store v1
+      # - ragnar_read
+      # - ragnar_read_document
 
   - title: Text chunking
     desc: Chunk and augment text context.
     contents:
-      - ragnar_chunk
-      - ragnar_segment
-      - ragnar_chunk_segments
       - markdown_chunk
-      - markdown_segment
-      - markdown_frame
+      - MarkdownDocumentChunks
+      - ragnar_chunks_view
+
+      # store v1
+      # - ragnar_chunk
+      # - ragnar_segment
+      # - ragnar_chunk_segments
+
+      ## lower-level md utils / store v1
+      # - markdown_segment
+      # - markdown_frame
 
   - title: Store
     desc: Store embeddings in DuckDB for fast, local queries.
@@ -51,4 +59,4 @@ reference:
     contents:
       - starts_with("ragnar_retrieve")
       - ragnar_register_tool_retrieve
-
+      - chunks_deoverlap

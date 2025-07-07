@@ -9,6 +9,7 @@
 #' @returns A named character vector. Names will correspond to `tags`, or `""`
 #'   for content in between tags.
 #' @export
+#' @keywords internal
 #'
 #' @examples
 #' md <- r"---(
@@ -66,6 +67,7 @@
 #' markdown_segment(md, c("li"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 #' markdown_segment(md, c("table"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 #' markdown_segment(md, c("ul"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
+# NOTE: this is used in promptdown
 markdown_segment <- function(
   text,
   tags = c("h1", "h2", "h3", "h4"),

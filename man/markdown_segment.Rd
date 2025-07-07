@@ -90,3 +90,4 @@ markdown_segment(md, c("li"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe
 markdown_segment(md, c("table"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 markdown_segment(md, c("ul"), trim = TRUE, omit_empty = TRUE) |> tibble::enframe()
 }
+\keyword{internal}

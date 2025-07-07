@@ -22,7 +22,9 @@ html_text3 <- function(
   split_tags = c("h1", "h2", "h3", "p"),
   doc = read_html(file)
 ) {
-  if ("p" %in% split_tags) split_tags <- unique(c("p", split_tags))
+  if ("p" %in% split_tags) {
+    split_tags <- unique(c("p", split_tags))
+  }
 
   if (
     any(stri_detect_fixed(
@@ -113,14 +115,16 @@ vec_frame_flattened_tree <- function(
   check_character(nodes)
   check_string(leaves)
   check_string(names)
-  if (anyDuplicated(c(nodes, leaves, names)))
+  if (anyDuplicated(c(nodes, leaves, names))) {
     stop("target names must be unique")
+  }
 
   frame <- vec_frame_flattened_tree_impl(vec, nodes, leaves, names)
 
   # reorder, drop names, normalize row.names
-  for (missing_node in setdiff(c(nodes, leaves, names), names(frame)))
+  for (missing_node in setdiff(c(nodes, leaves, names), names(frame))) {
     frame[[missing_node]] <- NA_character_
+  }
   frame <- as.list(frame)[c(nodes, names, leaves)]
   frame <- lapply(frame, `names<-`, NULL)
   vctrs::new_data_frame(frame)
@@ -193,6 +197,7 @@ vec_frame_flattened_tree_impl <-
 #' If both `frame_by_tags` and `split_by_tags` are `NULL`, then a string
 #' (length-1 character vector) is returned.
 #' @export
+#' @keywords internal
 #'
 #' @examples
 #' file <- tempfile(fileext = ".html")
@@ -295,7 +300,9 @@ ragnar_read_document <- function(
     return(text)
   }
 
-  if (!inherits(x, "xml_node")) x <- read_html(x)
+  if (!inherits(x, "xml_node")) {
+    x <- read_html(x)
+  }
 
   text <- html_text3(
     doc = x,
@@ -314,7 +321,9 @@ ragnar_read_document <- function(
     leaves = "text"
   )
 
-  if (base::setequal(split_by_tags, frame_by_tags)) frame[["tag"]] <- NULL
+  if (base::setequal(split_by_tags, frame_by_tags)) {
+    frame[["tag"]] <- NULL
+  }
 
   as_tibble(frame)
 }
@@ -477,7 +486,9 @@ html_find_links <- function(x, absolute = TRUE) {
   links <- stri_replace_last_regex(links, "/$", "") # strip trailing /
   links <- sort(unique(links))
 
-  if (absolute) links <- url_absolute2(links, xml_url2(x))
+  if (absolute) {
+    links <- url_absolute2(links, xml_url2(x))
+  }
 
   links
 }
