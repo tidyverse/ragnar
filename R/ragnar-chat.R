@@ -118,6 +118,19 @@ RagnarChat <- R6::R6Class(
       )
     },
 
+    stream_async = function(..., tool_mode = c("concurrent", "sequential"), stream = c("text", "content")) {
+      result <- private$callback_user_turn(...)
+      do.call(
+        super$stream_async,
+        append(result, list(tool_mode = tool_mode, stream = stream))
+      )
+    },
+
+    stream = function(..., stream = c("text", "content")) {
+      result <- private$callback_user_turn(...)
+      do.call(super$stream, append(result, list(stream = stream)))
+    },
+
     #' @field ragnar_tool A function that retrieves relevant chunks from the store.
     #'  This is the function that is registered as a tool in the chat.
     ragnar_tool = function(query) {
@@ -413,6 +426,34 @@ RagnarChat <- R6::R6Class(
         ...,
         ContentRagnarDocuments(text = documents)
       )
+    },
+
+    #' @description
+    #' Summarizes the tools calls in the chat history. The assistant tool
+    #' call request is redacted, and the chunks are summarized. 
+    #' 
+    #' The ellmer::ToolCallRequest becomes a `ellmer::ContentText` with:
+    #' ```
+    #' <Redacted by summarization tool: query={}>
+    #' ```
+    #' 
+    #' The `ellmer::ContentToolResult` becomes a `ellmer::ContentText` with
+    #' a summary of the chunks given by the `summarize_chunks` callback.
+    #' `summarize_chunks` takes a list of `chunks` as argument.
+    #' 
+    turns_summarize_tool_calls = function(summarize_chunks) {
+      turns <- self$get_turns() |> 
+        turns_modify_tool_calls(function(assistant_turn, user_turn) {
+          summarize_tool_call(
+            assistant_turn = assistant_turn,
+            user_turn = user_turn, 
+            summarize_chunks, 
+            tool_name = self$ragnar_tool_def@name
+          )
+        },
+        tool_name = self$ragnar_tool_def@name
+      )
+      self$set_turns(turns)
     }
   ),
 
@@ -457,3 +498,60 @@ content_set_chunks <- function(x, chunks) {
   }
   x
 }
+
+#' Applies a function to pairs of turns that represent tool calls.
+#' Otherwise keep them unchanged.
+#' @noRd
+turns_modify_tool_calls <- function(turns, fn, tool_name = NULL) {
+  i <- 1
+  while (i < length(turns)) {
+    if (turns[[i]]@role == "user") {
+      i <- i + 1; next
+    };
+    if (!is_tool_call(turns[[i]], tool_name)) {
+      i <- i + 1; next;
+    }
+
+    turns[c(i, i+1)] <- fn(turns[[i]], turns[[i+1]])
+    i <- i + 2
+  }
+  turns
+}
+
+is_tool_call <- function(x, tool_name = NULL) {
+  for (content in x@contents) {
+    if (S7::S7_inherits(content, ellmer::ContentToolRequest)) {
+      if (length(x@contents) > 1) {
+        cli::cli_warn(
+          "Tool call request found in turn with multiple contents, this may lead to unexpected results."
+        )
+      }
+      if (!is.null(tool_name) && content@tool@name != tool_name) {
+        return(FALSE)
+      }
+
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
+summarize_tool_call <- function(assistant_turn, user_turn, summarize, tool_name) {
+  assistant_turn@contents <- list(
+    ellmer::ContentText(
+      text = paste0(
+        "<Redacted by summarization tool: query=",
+        user_turn@contents[[1]]@request@arguments$query, ">"
+      )
+    )
+  )
+
+  summary <- lapply(user_turn@contents, \(x) content_get_chunks(x, tool_name)) |> 
+    unlist(recursive = FALSE) |> 
+    summarize()
+
+  user_turn@contents <- list(ellmer::ContentText(text = summary))
+
+  list(assistant_turn, user_turn)
+}
+

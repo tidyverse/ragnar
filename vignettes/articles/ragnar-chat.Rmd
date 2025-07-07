@@ -68,9 +68,9 @@ Now we create a `ragnar_chat` object that uses the `query_rewrite` function to r
 
 ```{r}
 chat <- chat_ragnar(
-  ellmer::chat_openai,
-  .store = store,
-  .retrieve = function(self, query) {
+  \() ellmer::chat_openai(),
+  store = store,
+  retrieve = function(self, query) {
     queries <- query_rewrite(query)
     cli::cli_inform(
       i = "Rewriten queries:",
@@ -104,13 +104,13 @@ Here's an example of how to implement this callback:
 
 ```{r}
 chat <- chat_ragnar(
-  ellmer::chat_openai, 
-  .store = store,
+  \() ellmer::chat_openai(), 
+  store = store,
   # We explicitly avoid registering the store so the LLM is not capable of making tool
   # calls to the store. Instead, it relies on the documents inserted at the top of
   # the chat history to answer the question.
-  .register_store = FALSE,
-  .on_user_turn = function(self, ...) {
+  register_store = FALSE,
+  on_user_turn = function(self, ...) {
     self$turns_prune_chunks()
     # Inserts documents relevant to the query at the top of the chat history.
     self$turns_insert_documents(
@@ -125,3 +125,31 @@ chat <- chat_ragnar(
 cat(chat$chat("What is the difference between a vector and a list in R?"))
 ```
 
+## Summarize tool calls
+
+To save tokens, it's common to summarize the results of the tool calls after the chunks
+were used to produce the LLM response. With this, the next message in the chat won't need
+to use the full text of the chunks, but rather a summary of the results.
+
+This can be acomplished by customizing the `on_user_turn` callback to summarise the
+results of the previous tool calls. For example:
+
+```{r}
+summarize_chunks <- function(chunks) {
+  json <- jsonlite::toJSON(chunks)
+  ellmer::chat_openai(
+    model = "gpt-4.1-nano",
+    system_prompt = "Summarize the following chunks of text.",
+    echo = FALSE
+  )$chat(json, echo = FALSE)
+}
+
+chat <- chat_ragnar(
+  \() ellmer::chat_openai(), 
+  store = store,
+  on_user_turn = function(self, ...) {
+    self$turns_summarize_tool_calls(summarize_chunks)
+    self$turns_insert_tool_call_request(..., query = paste(..., collapse = " "))
+  }
+)
+```

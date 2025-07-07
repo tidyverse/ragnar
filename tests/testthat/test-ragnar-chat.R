@@ -131,3 +131,31 @@ test_that("Can insert chunks premptively in the user chat", {
   expect_equal(length(chat$get_turns()), 2)
   expect_equal(length(chat$get_turns()[[1]]@contents), 1)
 })
+
+test_that("Can summarize tool calls", {
+
+  store <- test_store()
+  chat <- chat_ragnar(
+    \() ellmer::chat_openai(model = "gpt-4.1-nano"), 
+    store = store
+  )
+
+  x <- chat$chat("functional")
+
+  summarize_chunks <- function(chunks) {
+    json <- jsonlite::toJSON(chunks)
+    ellmer::chat_openai(
+      model = "gpt-4.1-nano",
+      system_prompt = "Summarize the following chunks of text.",
+      echo = FALSE
+    )$chat(json, echo = FALSE)
+  }
+
+  chat$turns_summarize_tool_calls(summarize_chunks)
+
+  turns <- chat$get_turns()
+  expect_equal(length(turns), 4) # 2 user + 2 assistant
+  expect_equal(turns[[2]]@role, "assistant")
+  expect_true(grepl("Redacted by summarization tool", turns[[2]]@contents[[1]]@text))
+  expect_true(S7::S7_inherits(turns[[3]]@contents[[1]], ellmer::ContentText))
+})
