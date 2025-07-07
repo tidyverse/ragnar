@@ -33,6 +33,7 @@ Imports:
     dotty,
     dplyr,
     duckdb (>= 1.2.2),
+    ellmer (>= 0.2.0),
     glue,
     httr2,
     methods,
@@ -48,7 +49,6 @@ Imports:
     xml2
 Suggests:
     dbplyr,
-    ellmer (>= 0.2.0),
     lifecycle,
     knitr,
     pandoc,
