@@ -280,6 +280,7 @@ ragnar_store_update <- function(store, chunks) {
     ragnar_store_update_v1(store, chunks),
     ragnar_store_update_v2(store, chunks)
   )
+  invisible(store)
 }
 
 #' Insert chunks into a `RagnarStore`
