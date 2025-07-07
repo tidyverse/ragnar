@@ -6,6 +6,9 @@
 <url><loc>https://ragnar.tidyverse.org/dev/authors.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/index.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/news/index.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/dev/reference/MarkdownDocument.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/dev/reference/MarkdownDocumentChunks.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/dev/reference/chunks_deoverlap.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/embed_bedrock.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/embed_databricks.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/embed_google_vertex.html</loc></url>
@@ -29,7 +32,6 @@
 <url><loc>https://ragnar.tidyverse.org/dev/reference/ragnar_store_insert.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/ragnar_store_inspect.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/ragnar_store_update.html</loc></url>
-<url><loc>https://ragnar.tidyverse.org/dev/reference/rangar_store_create.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/read_as_markdown.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/dev/reference/reexports.html</loc></url>
 </urlset>

@@ -84,15 +84,32 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># reticulate::py_available()</span></span></span>
-<span class="r-in"><span><span class="co"># Convert HTML</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Convert HTML</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/base-R.html"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R – R for Data Science (2e)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## 27.1 Introduction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> To finish off the programming section, we’re going to give you a quick tour of the most important base R functions that we don’t otherwise discuss in the book. These tools are particularly useful as you do more programming and will help you read code you’ll encounter in the wild.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> This is a good place to remind you that the tidyverse is not the only way to solve data science problems. We</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/base-R.html"</span>, canonical <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R – R for Data Science (2e)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # 27  A field guide to base R</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## 27.1 Introduction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> To finish off the programming section, we’re going to give you a quick tour of the most important base R functions that we don’t otherwise discuss in the book. These tools are particularly useful as you do more programming and will help you read code you’ll encounter in the wild.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> This is a good place to remind you that the tidyverse is not the only way to solve data science problems. We</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># When converting HTML, you might want to omit certain elements, like</span></span></span>
 <span class="r-in"><span><span class="co"># sidebars, headers, footers, etc. You can pass CSS selector strings</span></span></span>
@@ -111,9 +128,39 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 <span class="r-in"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://duckdb.org/code_of_conduct"</span></span></span>
 <span class="r-in"><span><span class="co"># Includes the sidebar and other navigational elements</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">url</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # Code of Conduct – DuckDB</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Search Shortcut cmd + k | ctrl + k</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Installation](/docs/stable/installation/index)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Documentation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;!-- end list --&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Getting Started](/docs/stable/index)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Connect</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;!-- end list --&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Overview](/docs/stable/connect/overview)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Concurrency](/docs/stable/connect/concurrency)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;!-- end list --&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Data Import</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;!-- end list --&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Overview](/docs/stable/data/overview)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Data Sources](/docs/stable/data/data_sources)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - CSV Files</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;!-- end </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Extract the main content</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">url</span>, html_extract_selectors <span class="op">=</span> <span class="st">"#main_content_wrap"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ragnar::MarkdownDocument&gt; chr "# Code of Conduct – DuckDB\n\nDocumentation\n\nCode of Conduct\n\n**All creatures are welcome**: We aim to crea"| __truncated__</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ origin: chr "https://duckdb.org/code_of_conduct"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Alternative approach: exclude nodes</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span></span></span>
@@ -125,6 +172,17 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 <span class="r-in"><span>    <span class="st">"#sidebar"</span>         <span class="co"># node ID</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # Code of Conduct – DuckDB</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Documentation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Code of Conduct</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> **All creatures are welcome**: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> **Be excellent to each other**: We do not tolerate verbal or physical harassment, violence or intimidation.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> We do not tolerate life forms who refuse to share this op</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Quarto example</span></span></span>
 <span class="r-in"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://quarto.org/docs/computations/python.html"</span></span></span>
@@ -135,10 +193,33 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 <span class="r-in"><span>  html_extract_selectors <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  html_zap_selectors <span class="op">=</span> <span class="cn">NULL</span></span></span>
 <span class="r-in"><span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # Using Python – Quarto</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [![Quarto logo.](../../quarto.png)](../../index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Overview](../../index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Get Started](../../docs/get-started/index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Guide](../../docs/guide/index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Extensions](../../docs/extensions/index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Reference](../../docs/reference/index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Gallery](../../docs/gallery/index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - [Blog](../../docs/blog/index.html)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Help</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       - [Report a Bug](https://github.com/quarto-dev/quarto-cli/issues)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       - [Ask a Question](htt</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Exclude content outside &lt;main&gt;</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">url</span>, html_extract_selectors <span class="op">=</span> <span class="st">"main"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # Using Python – Quarto</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # Using Python</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## Overview</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Quarto supports executable Python code blocks within markdown. This allows you to create fully reproducible documents and reports—the Python code required to produce your output is part of the document itself, and is automatically re-run whenever the document is rendered.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> If you have Python and the `jupyter` package installed then you have all you need to render documents that contain embedded Python code (if you don’t, we’ll cover this in t</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Exclude specific matching nodes</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span></span></span>
@@ -152,10 +233,53 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 <span class="r-in"><span>    <span class="st">"nav"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # Using Python – Quarto</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## Overview</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Quarto supports executable Python code blocks within markdown. This allows you to create fully reproducible documents and reports—the Python code required to produce your output is part of the document itself, and is automatically re-run whenever the document is rendered.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> If you have Python and the `jupyter` package installed then you have all you need to render documents that contain embedded Python code (if you don’t, we’ll cover this in the [installation</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Convert PDF</span></span></span>
 <span class="r-in"><span><span class="va">pdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Rhome.html" class="external-link">R.home</a></span><span class="op">(</span><span class="st">"doc"</span><span class="op">)</span>, <span class="st">"NEWS.pdf"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">pdf</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS for R version 4.5.1 (2025-06-13)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R News</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CHANGES IN R 4.5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NEW FEATURES:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) The internal method of unzip() now follows unzip 6.00 in how it handles extracted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:28)le paths which contain "../". With thanks to Ivan Krylov.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> INSTALLATION:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Standalone nmath can be built with early-2025 versions of clang-based compilers</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> such as LLVM clang 20, Apple clang 17 and Intel icx 2025.0.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Tcl/Tk 9 can be used to build package tcltk: this has become the default in some</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Linux distributions. N.B. several third-party packages currently require Tcl/Tk 8 or</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> even 8.6 without declaring so.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BUG FIXES:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) Java detection in javareconf could not detect ‘libjvm.\*’ in the zero variant of the</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> JDK (PR\#18884). All valid variants as of JDK 24u are now supported.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) factanal(.., rotation=\*) now correctly updates rotmat, (cid:28)xing PR\#18886.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) dnbinom(&lt;large&gt;, &lt;muchlarger&gt;, ..) now is 0 correctly, instead of NaN or Inf</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sometimes.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136)</span>
 <span class="r-in"><span><span class="co">## Alternative:</span></span></span>
 <span class="r-in"><span><span class="co"># pdftools::pdf_text(pdf) |&gt; substr(1, 2000) |&gt; cat()</span></span></span>
 <span class="r-in"><span></span></span>
@@ -183,7 +307,6 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 <span class="r-in"><span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span>echo <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"Describe this image"</span>, <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/content_image_url.html" class="external-link">content_image_file</a></span><span class="op">(</span><span class="va">jpg</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

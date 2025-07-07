@@ -68,7 +68,8 @@ requested, the heading context and the text itself.</p>
 
 
 <dl><dt id="arg-md">md<a class="anchor" aria-label="anchor" href="#arg-md"></a></dt>
-<dd><p>A length-one character vector containing Markdown.</p></dd>
+<dd><p>A <code>MarkdownDocument</code>, or a length-one character vector containing
+Markdown.</p></dd>
 
 
 <dt id="arg-target-size">target_size<a class="anchor" aria-label="anchor" href="#arg-target-size"></a></dt>
@@ -145,101 +146,57 @@ contents. Default: <code>TRUE</code>.</p></dd>
 <span class="r-in"><span><span class="st">"</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">markdown_chunk</span><span class="op">(</span><span class="va">md</span>, target_size <span class="op">=</span> <span class="fl">40</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    start end</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      1  39</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     25  60</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3     40  79</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4     61 101</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5     80 120</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6    102 134</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7    121 166</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8    135 178</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9    167 206</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   179 226</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11   207 238</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12   227 266</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13   239 281</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14   267 301</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15   268 302</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      headings</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                            </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                       # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                       # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                       # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                       # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                       # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                     # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                       # Title\n## Section 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                      # Title\n## Section 2\n### Section 2.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                     # Title\n## Section 2\n### Section 2.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                     # Title\n## Section 2\n### Section 2.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12 # Title\n## Section 2\n### Section 2.1\n#### Section 2.1.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13 # Title\n## Section 2\n### Section 2.1\n#### Section 2.1.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14 # Title\n## Section 2\n### Section 2.1\n#### Section 2.1.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                    # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                  text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        \n# Title\n\n## Section 1\n\nSome text that </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                Some text that is long enough to be </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          is long enough to be chunked.\n\nA second </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4         chunked.\n\nA second paragraph to make the </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5         paragraph to make the text even longer.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6               text even longer.\n\n## Section 2\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7  ## Section 2\n\nMore text here.\n\n### Section 2.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8    More text here.\n\n### Section 2.1\n\nSome text </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9          \n\nSome text under a level three heading.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10 under a level three heading.\n\n#### Section 2.1.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11               \n\n#### Section 2.1.1\n\nSome text </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12        \n\nSome text under a level four heading.\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13    under a level four heading.\n\n## Section 3\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14             \n## Section 3\n\nEven more text here.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15             ## Section 3\n\nEven more text here.\n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># @document@origin: NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble:         14 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    start   end headings                                           text </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>     1    41 <span style="color: #949494;">""</span>                                                 <span style="color: #949494;">"</span># T…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>    24    59 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                            <span style="color: #949494;">"</span>Som…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>    42    78 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                            <span style="color: #949494;">"</span>lon…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>    60   100 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                            <span style="color: #949494;">"</span>chu…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>    79   119 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                            <span style="color: #949494;">"</span>par…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>   101   138 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                            <span style="color: #949494;">"</span>tex…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>   120   166 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                          <span style="color: #949494;">"</span>## …</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>   139   183 <span style="color: #949494;">"</span># Title\n## Section 2<span style="color: #949494;">"</span>                            <span style="color: #949494;">"</span>tex…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>   167   206 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1<span style="color: #949494;">"</span>           <span style="color: #949494;">"</span>\nS…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>   184   226 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1<span style="color: #949494;">"</span>           <span style="color: #949494;">"</span>a l…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span>   207   243 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1<span style="color: #949494;">"</span>           <span style="color: #949494;">"</span>\n#…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span>   227   266 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1\n#### Sec… <span style="color: #949494;">"</span>\nS…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span>   244   280 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1\n#### Sec… <span style="color: #949494;">"</span>a l…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span>   267   301 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                          <span style="color: #949494;">"</span>## …</span>
 <span class="r-in"><span><span class="fu">markdown_chunk</span><span class="op">(</span><span class="va">md</span>, target_size <span class="op">=</span> <span class="fl">40</span>, target_overlap <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   start end                                                   headings</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1  39                                                           </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    40  70                                      # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    71 120                                      # Title\n## Section 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   121 151                                                    # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   152 208                                      # Title\n## Section 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6   209 228                     # Title\n## Section 2\n### Section 2.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7   229 267 # Title\n## Section 2\n### Section 2.1\n#### Section 2.1.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8   268 302                                                    # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                            text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                  \n# Title\n\n## Section 1\n\nSome text that </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                             is long enough to be chunked.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          A second paragraph to make the text even longer.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                           ## Section 2\n\nMore text here.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 ### Section 2.1\n\nSome text under a level three heading.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                        #### Section 2.1.1\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                     Some text under a level four heading.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                        ## Section 3\n\nEven more text here.\n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># @document@origin: NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble:         8 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   start   end headings                                            text </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     1    41 <span style="color: #949494;">""</span>                                                  <span style="color: #949494;">"</span># T…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>    42    69 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                             <span style="color: #949494;">"</span>lon…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>    70   119 <span style="color: #949494;">"</span># Title\n## Section 1<span style="color: #949494;">"</span>                             <span style="color: #949494;">"</span>A s…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>   120   150 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                           <span style="color: #949494;">"</span>## …</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>   151   207 <span style="color: #949494;">"</span># Title\n## Section 2<span style="color: #949494;">"</span>                             <span style="color: #949494;">"</span>###…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span>   208   227 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1<span style="color: #949494;">"</span>            <span style="color: #949494;">"</span>###…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">7</span>   228   280 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1\n#### Sect… <span style="color: #949494;">"</span>Som…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">8</span>   267   301 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                           <span style="color: #949494;">"</span>## …</span>
 <span class="r-in"><span><span class="fu">markdown_chunk</span><span class="op">(</span><span class="va">md</span>, target_size <span class="op">=</span> <span class="fl">400</span>, pre_segment_heading_levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   start end headings</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1   1         </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     2  10         </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    11 120  # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   121 267  # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   268 302  # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                                                                              text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                                                                                              \n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                                                                                     # Title\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                            ## Section 1\n\nSome text that is long enough to be chunked.\n\nA second paragraph to make the text even longer.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 ## Section 2\n\nMore text here.\n\n### Section 2.1\n\nSome text under a level three heading.\n\n#### Section 2.1.1\n\nSome text under a level four heading.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                                                                          ## Section 3\n\nEven more text here.\n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># @document@origin: NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble:         4 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   start   end headings  text                                           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     1     9 <span style="color: #949494;">""</span>        <span style="color: #949494;">"</span># Title\n\n<span style="color: #949494;">"</span>                                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>    10   119 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span> <span style="color: #949494;">"</span>## Section 1\n\nSome text that is long enough…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>   120   266 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span> <span style="color: #949494;">"</span>## Section 2\n\nMore text here.\n\n### Sectio…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>   267   301 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span> <span style="color: #949494;">"</span>## Section 3\n\nEven more text here.\n<span style="color: #949494;">"</span>       </span>
 <span class="r-in"><span><span class="fu">markdown_chunk</span><span class="op">(</span><span class="va">md</span>, target_size <span class="op">=</span> <span class="fl">40</span>, max_snap_dist <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   start end                               headings</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1  10                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    11 120                                # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3   121 151                                # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   152 208                  # Title\n## Section 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   209 267 # Title\n## Section 2\n### Section 2.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6   268 302                                # Title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                                   text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                                        \n# Title\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 ## Section 1\n\nSome text that is long enough to be chunked.\n\nA second paragraph to make the text even longer.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                  ## Section 2\n\nMore text here.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                        ### Section 2.1\n\nSome text under a level three heading.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                      #### Section 2.1.1\n\nSome text under a level four heading.\n\n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                               ## Section 3\n\nEven more text here.\n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># @document@origin: NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble:         6 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   start   end headings                                 text            </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     1     9 <span style="color: #949494;">""</span>                                       <span style="color: #949494;">"</span># Title\n\n<span style="color: #949494;">"</span>   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>    10   119 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                <span style="color: #949494;">"</span>## Section 1\n…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>   120   150 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                <span style="color: #949494;">"</span>## Section 2\n…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>   151   207 <span style="color: #949494;">"</span># Title\n## Section 2<span style="color: #949494;">"</span>                  <span style="color: #949494;">"</span>### Section 2.…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>   208   266 <span style="color: #949494;">"</span># Title\n## Section 2\n### Section 2.1<span style="color: #949494;">"</span> <span style="color: #949494;">"</span>#### Section 2…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span>   267   301 <span style="color: #949494;">"</span># Title<span style="color: #949494;">"</span>                                <span style="color: #949494;">"</span>## Section 3\n…</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

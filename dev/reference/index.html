@@ -44,18 +44,6 @@
 
       <dl><dt>
 
-          <code><a href="ragnar_read.html">ragnar_read()</a></code>
-
-        </dt>
-        <dd>Read a document as Markdown</dd>
-      </dl><dl><dt>
-
-          <code><a href="ragnar_read_document.html">ragnar_read_document()</a></code>
-
-        </dt>
-        <dd>Read an HTML document</dd>
-      </dl><dl><dt>
-
           <code><a href="ragnar_find_links.html">ragnar_find_links()</a></code>
 
         </dt>
@@ -68,10 +56,10 @@
         <dd>Convert files to Markdown</dd>
       </dl><dl><dt>
 
-          <code><a href="ragnar_chunks_view.html">ragnar_chunks_view()</a></code>
+          <code><a href="MarkdownDocument.html">MarkdownDocument</a></code>
 
         </dt>
-        <dd>View chunks with the store inspector</dd>
+        <dd>Markdown documents</dd>
       </dl></div><div class="section level2">
       <h2 id="text-chunking">Text chunking<a class="anchor" aria-label="anchor" href="#text-chunking"></a></h2>
 
@@ -85,22 +73,22 @@
 
       <dl><dt>
 
-          <code><a href="ragnar_chunk.html">ragnar_chunk()</a></code> <code><a href="ragnar_chunk.html">ragnar_segment()</a></code> <code><a href="ragnar_chunk.html">ragnar_chunk_segments()</a></code>
-
-        </dt>
-        <dd>Chunk text</dd>
-      </dl><dl><dt>
-
           <code><a href="markdown_chunk.html">markdown_chunk()</a></code>
 
         </dt>
         <dd>Chunk a Markdown document</dd>
       </dl><dl><dt>
 
-          <code><a href="markdown_segment.html">markdown_segment()</a></code> <code><a href="markdown_segment.html">markdown_frame()</a></code>
+          <code><a href="MarkdownDocumentChunks.html">MarkdownDocumentChunks</a></code>
 
         </dt>
-        <dd>Segment markdown text</dd>
+        <dd>Markdown documents chunks</dd>
+      </dl><dl><dt>
+
+          <code><a href="ragnar_chunks_view.html">ragnar_chunks_view()</a></code>
+
+        </dt>
+        <dd>View chunks with the store inspector</dd>
       </dl></div><div class="section level2">
       <h2 id="store">Store<a class="anchor" aria-label="anchor" href="#store"></a></h2>
 
@@ -114,16 +102,10 @@
 
       <dl><dt>
 
-          <code><a href="ragnar_store_create.html">ragnar_store_create()</a></code>
+          <code><a href="ragnar_store_create.html">ragnar_store_create()</a></code> <code><a href="ragnar_store_create.html">ragnar_store_connect()</a></code>
 
         </dt>
         <dd>Create and connect to a vector store</dd>
-      </dl><dl><dt>
-
-          <code><a href="rangar_store_create.html">ragnar_store_connect()</a></code>
-
-        </dt>
-        <dd>Connect to <code>RagnarStore</code></dd>
       </dl><dl><dt>
 
           <code><a href="ragnar_store_insert.html">ragnar_store_insert()</a></code>
@@ -211,19 +193,19 @@
           <code><a href="ragnar_retrieve_vss.html">ragnar_retrieve_vss()</a></code>
 
         </dt>
-        <dd>Uses vector similarity search</dd>
-      </dl><dl><dt>
-
-          <code><a href="ragnar_retrieve_vss_and_bm25.html">ragnar_retrieve_vss_and_bm25()</a></code>
-
-        </dt>
-        <dd>Retrieve VSS and BM25</dd>
+        <dd>Vector Similarity Search Retrieval</dd>
       </dl><dl><dt>
 
           <code><a href="ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code>
 
         </dt>
         <dd>Register a 'retrieve' tool with ellmer</dd>
+      </dl><dl><dt>
+
+          <code><a href="chunks_deoverlap.html">chunks_deoverlap()</a></code>
+
+        </dt>
+        <dd>Merge overlapping chunks in retrieved results</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

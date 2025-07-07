@@ -63,11 +63,29 @@ vector.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><code>chunks</code> must be a data frame containing <code>origin</code> and <code>hash</code> columns.
+
+<div class="section">
+<h3 id="store-version-">Store Version 2:<a class="anchor" aria-label="anchor" href="#store-version-"></a></h3>
+
+
+<p>chunks must be a data frame containing columns:</p><ul><li><p>origin: character, the source of the document (e.g., a url or file path). This is used as a unique key for documents in the store</p></li>
+<li><p>document: character, the full document</p></li>
+<li><p>start: integer, the character index of the chunk</p></li>
+<li><p>end: integer, the character index of the chunk</p></li>
+<li><p>headings: character, the markdown headings in scope at <code>start</code>. This is used to assemble the context.</p></li>
+</ul></div>
+
+<div class="section">
+<h3 id="store-version--1">Store Version 1:<a class="anchor" aria-label="anchor" href="#store-version--1"></a></h3>
+
+
+<p><code>chunks</code> must be a data frame containing <code>origin</code> and <code>hash</code> columns.
 We first filter out chunks for which <code>origin</code> and <code>hash</code> are already in the store.
 If an <code>origin</code> is in the store, but with a different <code>hash</code>, we all of its chunks
 with the new chunks. Otherwise, a regular insert is performed.</p>
 <p>This can help spending less time computing embeddings for chunks that are already in the store.</p>
+</div>
+
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
