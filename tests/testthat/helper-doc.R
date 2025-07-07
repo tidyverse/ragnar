@@ -25,7 +25,7 @@ test_store <- function() {
   )
   
   doc <- test_doc()
-  chunks <- ragnar_read(doc, frame_by_tags = c("h1", "h2", "h3"))
+  chunks <- read_as_markdown(doc) |> markdown_chunk()
   ragnar_store_insert(store, chunks)
   ragnar_store_build_index(store)
 }

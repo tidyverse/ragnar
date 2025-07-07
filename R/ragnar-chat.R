@@ -29,12 +29,15 @@ chat_ragnar <- function(
   },
   retrieve = function(self, query) {
     retrieved_ids <- self$turns_list_chunks() |>
-      sapply(\(x) x$id)
+      sapply(\(x) x$id) |> 
+      unlist()
 
     self$ragnar_store |>
-      dplyr::tbl() |>
-      dplyr::filter(!.data$id %in% retrieved_ids) |>
-      ragnar::ragnar_retrieve(query, top_k = 10)
+      ragnar::ragnar_retrieve(
+        query, 
+        top_k = 10,
+        filter = !.data$id %in% retrieved_ids
+      )
   }
 ) {
   chat <- chat()
