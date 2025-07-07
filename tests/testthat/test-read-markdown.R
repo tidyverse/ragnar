@@ -43,7 +43,7 @@ test_that("ragnar_read() empty doc", {
 
 test_that("ragnar_read() doc in ~", {
   withr::with_tempfile("tilde_file", tmpdir = "~", fileext = ".md", {
-    fs::file_copy(system.file("store-inspector","README.md", package = "ragnar"), tilde_file)
+    file.copy(system.file("store-inspector","README.md", package = "ragnar"), tilde_file)
     expect_no_error(ragnar_read(tilde_file))
   })
 
