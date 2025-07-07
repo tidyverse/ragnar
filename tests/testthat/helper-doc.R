@@ -18,3 +18,14 @@ maybe_set_threads <- function(store) {
   }
   store
 }
+
+test_store <- function() {
+  store <- ragnar_store_create(
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+  
+  doc <- test_doc()
+  chunks <- read_as_markdown(doc) |> markdown_chunk()
+  ragnar_store_insert(store, chunks)
+  ragnar_store_build_index(store)
+}
