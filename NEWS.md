@@ -5,6 +5,8 @@
   To support these features, the internal schema and ingestion requirements are different.
   See `markdown_chunk()` and new S7 classes `MarkdownDocument` and `MarkdownDocumentChunks`.
   Backwards compatibility is maintained with version = 1. (#58, #39, #36)
+  
+* `ragnar_store_create()` now supports Date and POSIXct classes supplied `extra_cols`.
 
 * `ragnar_retrieve()` and friends gain a `filter` argument, adding support for efficiently
   filtering retrieval results.
