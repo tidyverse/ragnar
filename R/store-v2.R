@@ -285,6 +285,13 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
 
 ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
+  if (!S7_inherits(chunks, MarkdownDocumentChunks)) {
+    stop(glue::trim(
+      "Invalid input for store. `store@version == 2`, but input provided is store version 1.,
+       Either call `ragnar_store_create(..., version = 1)` or use `markdown_chunk()` to
+       prepare inputs."
+    ))
+  }
   stopifnot(
     store@version == 2,
     S7_inherits(chunks, MarkdownDocumentChunks)
