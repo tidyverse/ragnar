@@ -27,6 +27,8 @@ ragnar_store_create_v2 <- function(
   if (is.null(embed)) {
     embedding_size <- NULL
   } else {
+    # make sure to force and process `embed()` before forcing `embedding_size`
+    embed <- process_embed_func(embed)
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
 

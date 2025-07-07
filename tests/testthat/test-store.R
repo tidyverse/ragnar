@@ -13,7 +13,7 @@ test_that("ragnar_store_update/insert", {
   )
   ragnar_store_update(store, chunks)
 
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(val, chunks)
 
   # now try to update the store again - without changing the hash
@@ -25,7 +25,7 @@ test_that("ragnar_store_update/insert", {
   ragnar_store_update(store, chunks2)
 
   # Expect that the text is not updated, because the hash is the same
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(val, chunks)
 
   # now try to update the store again - changing the hash
@@ -37,7 +37,7 @@ test_that("ragnar_store_update/insert", {
   ragnar_store_update(store, chunks2)
 
   # Expect that the text is updated
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(val, chunks2)
 
   # Finally, try adding a new origin - even with the same hash
@@ -49,7 +49,7 @@ test_that("ragnar_store_update/insert", {
   ragnar_store_update(store, chunks2)
 
   # Expect the origin is added
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(nrow(val), 2)
 
   # Try adding with insert
@@ -61,7 +61,7 @@ test_that("ragnar_store_update/insert", {
   ragnar_store_insert(store, chunks2)
 
   # Since we used insert, there's no checking if the hash is the same
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(nrow(val), 3)
 })
 
@@ -83,7 +83,7 @@ test_that("behavior when no hash/origin are provided", {
   # they can insert though
   ragnar_store_insert(store, chunks)
 
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(
     val,
     data.frame(origin = NA_character_, hash = rlang::hash("foo"), text = "foo")
@@ -93,7 +93,7 @@ test_that("behavior when no hash/origin are provided", {
   ragnar_store_insert(store, chunks)
 
   # Expect that the text is not updated, because the hash is the same
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(
     val,
     rbind(
@@ -138,7 +138,7 @@ test_that("additional columns", {
     h1 = "hello"
   )
   ragnar_store_insert(store, chunks)
-  val <- dbGetQuery(store@conn, "select text, h1 from chunks")
+  val <- dbGetQuery(store@con, "select text, h1 from chunks")
   expect_equal(val, chunks)
 
   # It's fine to insert a chunk if it has an additional column. It's
@@ -149,7 +149,7 @@ test_that("additional columns", {
     h2 = "bye"
   )
   ragnar_store_insert(store, chunks)
-  val <- dbGetQuery(store@conn, "select text, h1 from chunks")
+  val <- dbGetQuery(store@con, "select text, h1 from chunks")
   expect_equal(nrow(val), 2)
 })
 
@@ -194,14 +194,14 @@ test_that("works with MotherDuck", {
   expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
 
   # Since we used insert, there's no checking if the hash is the same
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(nrow(val), 1)
 
   # connect to the motherduck store
   store <- ragnar_store_connect("md:ragnartest")
   expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
 
-  val <- dbGetQuery(store@conn, "select origin, hash, text from chunks")
+  val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(nrow(val), 1)
 })
 
