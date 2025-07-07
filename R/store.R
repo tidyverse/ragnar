@@ -338,17 +338,9 @@ DuckDBRagnarStore <- new_class(
     con = methods::getClass("DBIConnection"),
     version = class_integer,
     .con = new_property(
-      # methods::getClass("DBIConnection"),
       getter = function(self) {
         warning("@.con renamed to @con, please update your code")
         self@con
-      },
-      setter = function(self, value) {
-        if (!is.null(value)) {
-          warning("@.con renamed to @con, please update your code")
-          self@con <- value
-        }
-        self
       }
     )
   )
