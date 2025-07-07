@@ -126,7 +126,7 @@ read_as_markdown <- function(
 ) {
   check_string(path)
   if (startsWith(path, "~")) {
-    x <- path.expand(x)
+    path <- path.expand(path)
   }
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {

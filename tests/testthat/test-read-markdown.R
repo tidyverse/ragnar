@@ -41,6 +41,14 @@ test_that("ragnar_read() empty doc", {
   expect_no_error(ragnar_read(jpg, frame_by_tags = "h1"))
 })
 
+test_that("ragnar_read() doc in ~", {
+  withr::with_tempfile("tilde_file", tmpdir = "~", fileext = ".md", {
+    file.copy(system.file("store-inspector","README.md", package = "ragnar"), tilde_file)
+    expect_no_error(ragnar_read(tilde_file))
+  })
+
+})
+
 
 test_that("markitdown patches", {
   skip_if_offline()
