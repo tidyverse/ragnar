@@ -121,7 +121,6 @@ ragnar_store_create_v2 <- function(
 
   DuckDBRagnarStore(
     embed = embed,
-    # schema = schema,
     con = con,
     name = name,
     title = title,

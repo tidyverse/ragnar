@@ -49,7 +49,9 @@ ragnar_register_tool_retrieve <- function(
       ellmer::tool(
         .name = name,
         function(text) {
-          ragnar_retrieve(store, text, ...)
+          chunks <- ragnar_retrieve(store, text, ...)
+          chunks[c("id", "start", "end")] <- NULL
+          chunks
         },
         glue::glue(
           "Given a string, retrieve the most relevent excerpts from {store_description}."
