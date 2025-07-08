@@ -89,31 +89,48 @@ storeInspectorServer <- function(id, store) {
     })
 
     selectedDocumentId <- listDocumentsServer("document_list", documents)
-    selectedDocumentText <- shiny::reactive({
+
+    selectedDocument <- shiny::reactive({
       if (is.null(selectedDocumentId())) {
         return(NULL)
       }
       docs <- documents()
-      docs$text[docs$id == selectedDocumentId()]
+      docs[docs$id == selectedDocumentId(),,drop=FALSE]
     })
+    
     preview_type <- switchServer("markdown")
 
     output$preview <- shiny::renderUI({
-      if (is.null(selectedDocumentText())) {
+      if (is.null(selectedDocument()$text)) {
         return(tags$div("Select a document to preview"))
       }
 
-      if (preview_type() == "Preview") {
+      preview <- if (preview_type() == "Preview") {
         shiny::tags$iframe(
-          class = "size-full text-pretty",
-          srcdoc = shiny::markdown(selectedDocumentText())
+          class="size-full text-pretty",
+          srcdoc = shiny::markdown(selectedDocument()$text)
         )
       } else {
         shiny::tags$pre(
-          class = "text-xs text-pretty overflow-auto size-full",
-          selectedDocumentText()
+          class = "text-xs text-pretty",
+          selectedDocument()$text
         )
       }
+
+      metadata <- selectedDocument() |> 
+        dplyr::select(headings, dplyr::all_of(names(store@schema)))
+
+      shiny::div(
+        class = "flex flex-col gap-2 size-full overflow-hidden",
+        shiny::div(
+          class = "border-b pb-2 border-gray-200",
+          shiny::pre(
+            class = "text-xs",
+            jsonlite::toJSON(as.list(metadata), pretty = TRUE)
+          )
+        ),
+        preview
+      )
     })
   })
 }
