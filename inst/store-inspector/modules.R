@@ -47,7 +47,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
             switchInput(ns("markdown"), c("Preview", "Raw Text"))
           ),
           shiny::uiOutput(
-            class = "h-full",
+            class = "h-full overflow-hidden",
             ns("preview")
           )
         )
@@ -105,12 +105,12 @@ storeInspectorServer <- function(id, store) {
 
       if (preview_type() == "Preview") {
         shiny::tags$iframe(
-          class = "size-full",
+          class = "size-full text-pretty",
           srcdoc = shiny::markdown(selectedDocumentText())
         )
       } else {
         shiny::tags$pre(
-          class = "text-xs text-pretty",
+          class = "text-xs text-pretty overflow-auto size-full",
           selectedDocumentText()
         )
       }
