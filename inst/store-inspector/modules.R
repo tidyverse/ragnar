@@ -126,7 +126,13 @@ storeInspectorServer <- function(id, store) {
           class = "border-b pb-2 border-gray-200",
           shiny::pre(
             class = "text-xs text-pretty",
-            jsonlite::toJSON(as.list(metadata), pretty = TRUE)
+            yaml::as.yaml(
+              as.list(metadata), 
+              handlers = list(
+                POSIXct = as.character,
+                Date = as.character
+              )
+            )
           )
         ),
         preview
