@@ -83,6 +83,12 @@ ragnar_store_create_v2 <- function(
     extra_cols <- ""
   }
 
+  embedding <- if (is.null(embed)) {
+    ""
+  } else {
+    glue("embedding FLOAT[{embedding_size}]")
+  }
+
   dbExecute(
     con,
     glue(
@@ -103,7 +109,7 @@ ragnar_store_create_v2 <- function(
         PRIMARY KEY (origin, start, "end"),
         headings VARCHAR,
         {extra_cols}
-        embedding FLOAT[{embedding_size}]
+        {embedding}
       );
 
       CREATE OR REPLACE VIEW chunks AS (
@@ -286,6 +292,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
 
 ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
+  browser()
   if (!S7_inherits(chunks, MarkdownDocumentChunks)) {
     stop(glue::trim(
       "Invalid input for store. `store@version == 2`, but input provided is store version 1.,
@@ -311,16 +318,17 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
     chunks$text <- stri_sub(chunks@document, chunks$start, chunks$end)
   }
 
-  if (!"embedding" %in% names(chunks)) {
+  if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
     chunks$embedding <- store@embed(with(chunks, stri_c(headings, "\n", text)))
   }
 
   con <- store@con
   documents <- tibble(origin = chunks@document@origin, text = chunks@document)
   embeddings <- chunks |>
-    select(start, end, headings, embedding) |> # TODO: extra_cols
+    select(start, end, headings, any_of("embedding")) |> # TODO: extra_cols
     mutate(origin = chunks@document@origin)
 
+  # TODO: rename embeddings -> chunks_info?
   dbWithTransaction(con, {
     dbAppendTable(con, "documents", documents)
     dbAppendTable(con, "embeddings", embeddings)
