@@ -25,7 +25,7 @@ test_that("extra cols works", {
   # Can't insert chunks that don't match the types
   expect_error(
     ragnar_store_insert(store, chunks_not_ok),
-    regexp = "Can't convert"
+    regexp = "Could not convert string"
   )
   
   chunks_ok <- chunks |> mutate(
