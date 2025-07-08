@@ -18,3 +18,5 @@ maybe_set_threads <- function(store) {
   }
   store
 }
+
+as_bare_df <- function(x) as.data.frame(as.list(x))

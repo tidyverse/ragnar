@@ -108,6 +108,7 @@ ragnar_retrieve_vss <- function(
         LIMIT {top_k}
       ) AS e
       JOIN documents doc USING (origin)
+      ORDER BY metric_value
       "
     ))
     # check_hnsw_index_scan_used(con, sql_query)
@@ -154,6 +155,7 @@ ragnar_retrieve_vss <- function(
       LIMIT 5000
     ) AS e
     JOIN documents doc USING (origin)
+    ORDER BY metric_value
     "
   ))
 

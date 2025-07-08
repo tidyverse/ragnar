@@ -83,6 +83,12 @@ ragnar_store_create_v2 <- function(
     extra_cols <- ""
   }
 
+  embedding <- if (is.null(embed)) {
+    ""
+  } else {
+    glue("embedding FLOAT[{embedding_size}]")
+  }
+
   dbExecute(
     con,
     glue(
@@ -103,7 +109,7 @@ ragnar_store_create_v2 <- function(
         PRIMARY KEY (origin, start, "end"),
         headings VARCHAR,
         {extra_cols}
-        embedding FLOAT[{embedding_size}]
+        {embedding}
       );
 
       CREATE OR REPLACE VIEW chunks AS (
@@ -192,7 +198,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
     dbExecute(con, "INSTALL fts; LOAD fts;")
     # fts index builder takes many options, e.g., stemmer, stopwords, etc.
     # Expose a way to pass along args. https://duckdb.org/docs/stable/core_extensions/full_text_search
-    dbWithTransaction(con, {
+    dbWithTransaction2(con, {
       dbExecute(
         con,
         r"--(
@@ -267,7 +273,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
     )
   local_duckdb_register(con, "documents_to_upsert", documents)
 
-  dbWithTransaction(con, {
+  dbWithTransaction2(con, {
     dbExecute(
       con,
       "
@@ -311,19 +317,46 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
     chunks$text <- stri_sub(chunks@document, chunks$start, chunks$end)
   }
 
-  if (!"embedding" %in% names(chunks)) {
+  if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
     chunks$embedding <- store@embed(with(chunks, stri_c(headings, "\n", text)))
   }
 
   con <- store@con
-  documents <- tibble(origin = chunks@document@origin, text = chunks@document)
+  documents <- tibble(
+    origin = chunks@document@origin,
+    text = as.character(chunks@document)
+  )
   embeddings <- chunks |>
-    select(start, end, headings, embedding) |> # TODO: extra_cols
+    select(start, end, headings, any_of("embedding")) |> # TODO: extra_cols
     mutate(origin = chunks@document@origin)
 
-  dbWithTransaction(con, {
+  # TODO: rename embeddings -> chunks_info?
+  dbWithTransaction2(con, {
     dbAppendTable(con, "documents", documents)
     dbAppendTable(con, "embeddings", embeddings)
   })
   invisible(store)
+}
+
+
+dbWithTransaction2 <- function(con, code, ...) {
+  ## DBI::dbWithTransaction() swallows the actual user-meaningful error message,
+  ## and replaces it with something cryptic and non-actionable like:
+  ##   TransactionContext Error: Current transaction is aborted (please ROLLBACK).
+  ## Here, we capture and rethrow the inner (first thrown) error which is more helpful,
+  ## e.g.,:
+  ##   Constraint Error: Duplicate key "origin" violates primary key constraint.
+  errors <- list()
+  collect_error <- function(e) errors <<- c(errors, list(e))
+  tryCatch(
+    dbWithTransaction(
+      con,
+      withCallingHandlers(code, error = collect_error),
+      ...
+    ),
+    error = function(e) {
+      # rethrow just the first error
+      stop(errors[[1L]])
+    }
+  )
 }

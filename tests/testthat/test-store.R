@@ -1,4 +1,4 @@
-test_that("ragnar_store_update/insert", {
+test_that("ragnar_store_update/insert, v1", {
   store <- ragnar_store_create(
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
@@ -63,6 +63,67 @@ test_that("ragnar_store_update/insert", {
   # Since we used insert, there's no checking if the hash is the same
   val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
   expect_equal(nrow(val), 3)
+})
+
+test_that("ragnar_store_update/insert", {
+  store <- ragnar_store_create(
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+  maybe_set_threads(store)
+  expect_true(grepl("^store_[0-9]+$", store@name))
+
+  doc <- MarkdownDocument(c("foo", "bar", "faz"), 'someorigin')
+  chunks <- doc |> markdown_chunk(target_size = 4, target_overlap = 0)
+  ragnar_store_update(store, chunks)
+
+  val <- dbGetQuery(
+    store@con,
+    'select start, "end", "headings", text, from chunks'
+  )
+  expect_equal(val, as_bare_df(chunks))
+
+  # now try to update the store with the same content
+  chunks2 <- doc |> markdown_chunk(target_size = 4, target_overlap = 0)
+  ragnar_store_update(store, chunks2)
+
+  # Expect that the text is not updated
+  val <- dbGetQuery(store@con, "select origin, text from chunks order by start")
+  expect_equal(val$text, chunks$text)
+
+  # now try to update the store again - with different content
+  doc <- MarkdownDocument(c("abc", "def", "ghi"), 'someorigin')
+  chunks <- doc |> markdown_chunk(target_size = 4, target_overlap = 0)
+  ragnar_store_update(store, chunks)
+
+  # Expect that the text is updated
+  val <- dbGetQuery(
+    store@con,
+    'select start, "end", headings, text, origin, from chunks'
+  )
+  expect_equal(val, chunks |> as_bare_df() |> mutate(origin = 'someorigin'))
+  expect_equal(nrow(val), 3)
+
+  # Finally, try adding a new origin - even with the same text
+  doc2 <- doc |> set_props(origin = "some other origin")
+  chunks2 <- doc2 |> markdown_chunk(target_size = 4, target_overlap = 0)
+  ragnar_store_update(store, chunks2)
+
+  hoist_origin <- function(x) {
+    x$origin <- x@document@origin
+    x[unique(c("origin", names(x)))]
+  }
+
+  # Expect the origin is added
+  val <- dbGetQuery(store@con, "select * exclude (id, embedding) from chunks")
+  expect_equal(nrow(val), 6)
+  val <- val |> arrange(origin, start) |> as_bare_df()
+  expected <- vec_rbind(
+    chunks |> hoist_origin() |> as_bare_df(),
+    chunks2 |> hoist_origin() |> as_bare_df()
+  ) |>
+    arrange(origin, start)
+
+  expect_equal(expected, val)
 })
 
 test_that("behavior when no hash/origin are provided", {
