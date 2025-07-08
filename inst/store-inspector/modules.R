@@ -103,7 +103,7 @@ storeInspectorServer <- function(id, store) {
         return(tags$div("Select a document to preview"))
       }
 
-      if (preview_type() == "Markdown") {
+      if (preview_type() == "Preview") {
         shiny::tags$iframe(
           class = "size-full",
           srcdoc = shiny::markdown(selectedDocumentText())
