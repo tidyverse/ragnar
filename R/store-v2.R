@@ -70,7 +70,8 @@ ragnar_store_create_v2 <- function(
   )
 
   if (length(extra_cols)) {
-    extra_col_types <- DBI::dbDataType(con, extra_cols)
+    schema <- extra_cols_to_schema(extra_cols)
+    extra_col_types <- DBI::dbDataType(con, schema)
     extra_col_names <- dbQuoteIdentifier(con, names(extra_col_types))
     extra_cols <- paste0(
       extra_col_names,
@@ -80,6 +81,7 @@ ragnar_store_create_v2 <- function(
       collapse = "\n"
     )
   } else {
+    schema <- NULL
     extra_cols <- ""
   }
 
@@ -132,10 +134,27 @@ ragnar_store_create_v2 <- function(
     con = con,
     name = name,
     title = title,
+    schema = schema,
     version = 2L
   )
 }
 
+extra_cols_to_schema <- function(extra_cols) {
+  ptype <- vctrs::vec_ptype(extra_cols)
+  
+  disallowd_cols <- c(
+    "origin", "text", "start", "end", "headings", "embedding"
+  )
+
+  if (any(names(ptype) %in% disallowd_cols)) {
+    stop(
+      "The following column names are not allowed in `extra_cols`: ",
+      paste(disallowd_cols, collapse = ", ")
+    )
+  }
+
+  ptype
+}
 
 #
 # ragnar_store_connect_v2 <- function(location, read_only = TRUE) {
