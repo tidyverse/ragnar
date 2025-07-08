@@ -11,7 +11,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
       ),
     ),
     shiny::tags$body(
-      class = "flex flex-col max-h-screen min-h-screen h-full",
+      class = "flex flex-col max-h-screen min-h-screen h-full bg-white",
       shiny::div(
         class = "flex-none bg-blue-500 p-2 gap-2",
         shiny::div(
