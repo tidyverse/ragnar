@@ -101,11 +101,11 @@ storeInspectorServer <- function(id, store) {
     preview_type <- switchServer("markdown")
 
     output$preview <- shiny::renderUI({
-      if (is.null(selectedDocument()$text)) {
+      if (is.null(selectedDocument()$text) || nrow(selectedDocument()) == 0) {
         return(tags$div("Select a document to preview"))
       }
 
-      preview <- if (preview_type() == "Preview") {
+      preview <- if (is.null(preview_type()) || preview_type() == "Preview") {
         shiny::tags$iframe(
           class="size-full text-pretty",
           srcdoc = shiny::markdown(selectedDocument()$text)
@@ -125,7 +125,7 @@ storeInspectorServer <- function(id, store) {
         shiny::div(
           class = "border-b pb-2 border-gray-200",
           shiny::pre(
-            class = "text-xs",
+            class = "text-xs text-pretty",
             jsonlite::toJSON(as.list(metadata), pretty = TRUE)
           )
         ),
