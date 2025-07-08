@@ -110,7 +110,7 @@ storeInspectorServer <- function(id, store) {
         )
       } else {
         shiny::tags$pre(
-          class = "text-xs",
+          class = "text-xs text-pretty",
           selectedDocumentText()
         )
       }
