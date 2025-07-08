@@ -1,6 +1,6 @@
 # see ragnar_store_inspect() for instructions tousing the app
 local({
-  source("modules.R")
+  source("modules.R", local = TRUE)
   store <- getOption("ragnar_inspector_store", NULL)
 
   if (is.null(store@embed)) {
