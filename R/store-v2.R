@@ -270,7 +270,8 @@ ragnar_store_update_v2 <- function(store, chunks) {
       origin = chunks@document@origin,
       embedding = store@embed(stri_c(headings, "\n", text)),
       text = NULL
-    )
+    ) |>
+    select(any_of(dbListFields(con, "embeddings")))
   local_duckdb_register(con, "documents_to_upsert", documents)
 
   dbWithTransaction2(con, {
@@ -326,8 +327,9 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
     origin = chunks@document@origin,
     text = as.character(chunks@document)
   )
+
   embeddings <- chunks |>
-    select(start, end, headings, any_of("embedding")) |> # TODO: extra_cols
+    select(any_of(dbListFields(con, "embeddings"))) |>
     mutate(origin = chunks@document@origin)
 
   # TODO: rename embeddings -> chunks_info?
