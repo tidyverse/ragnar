@@ -176,7 +176,7 @@ process_embed_func <- function(embed) {
 
 check_store_overwrite <- function(location, overwrite) {
   check_bool(overwrite)
-  if (location == ":memory:") {
+  if (location == ":memory:" || is_motherduck_location(location)) {
     return()
   }
 
