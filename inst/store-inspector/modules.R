@@ -11,7 +11,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
       ),
     ),
     shiny::tags$body(
-      class = "flex flex-col max-h-screen min-h-screen h-full",
+      class = "flex flex-col max-h-screen min-h-screen h-full bg-white",
       shiny::div(
         class = "flex-none bg-blue-500 p-2 gap-2",
         shiny::div(
@@ -47,7 +47,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
             switchInput(ns("markdown"), c("Preview", "Raw Text"))
           ),
           shiny::uiOutput(
-            class = "h-full",
+            class = "h-full overflow-hidden",
             ns("preview")
           )
         )
@@ -89,31 +89,54 @@ storeInspectorServer <- function(id, store) {
     })
 
     selectedDocumentId <- listDocumentsServer("document_list", documents)
-    selectedDocumentText <- shiny::reactive({
+
+    selectedDocument <- shiny::reactive({
       if (is.null(selectedDocumentId())) {
         return(NULL)
       }
       docs <- documents()
-      docs$text[docs$id == selectedDocumentId()]
+      docs[docs$id == selectedDocumentId(),,drop=FALSE]
     })
+    
     preview_type <- switchServer("markdown")
 
     output$preview <- shiny::renderUI({
-      if (is.null(selectedDocumentText())) {
+      if (is.null(selectedDocument()$text) || nrow(selectedDocument()) == 0) {
         return(tags$div("Select a document to preview"))
       }
 
-      if (preview_type() == "Markdown") {
+      preview <- if (is.null(preview_type()) || preview_type() == "Preview") {
         shiny::tags$iframe(
-          class = "size-full",
-          srcdoc = shiny::markdown(selectedDocumentText())
+          class="size-full text-pretty",
+          srcdoc = shiny::markdown(selectedDocument()$text)
         )
       } else {
         shiny::tags$pre(
-          class = "text-xs",
-          selectedDocumentText()
+          class = "text-xs text-pretty",
+          selectedDocument()$text
         )
       }
+
+      metadata <- selectedDocument() |> 
+        dplyr::select(context, dplyr::all_of(names(store@schema)))
+
+      shiny::div(
+        class = "flex flex-col gap-2 size-full overflow-hidden",
+        shiny::div(
+          class = "border-b pb-2 border-gray-200",
+          shiny::pre(
+            class = "text-xs text-pretty",
+            yaml::as.yaml(
+              as.list(metadata), 
+              handlers = list(
+                POSIXct = as.character,
+                Date = as.character
+              )
+            )
+          )
+        ),
+        preview
+      )
     })
   })
 }
