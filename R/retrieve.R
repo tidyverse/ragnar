@@ -545,6 +545,7 @@ chunks_deoverlap <- function(store, chunks) {
     stop("chunks_deoverlap() only supported with store@verion == 2")
   }
   deoverlapped <- chunks |>
+    mutate(embedding = NULL) |>
     arrange(origin, start) |>
     mutate(
       .by = origin,
@@ -553,17 +554,24 @@ chunks_deoverlap <- function(store, chunks) {
     summarize(
       .by = c(origin, overlap_grp),
       origin = first(origin),
-      id = list(unlist(id)),
       start = first(start),
       end = last(end),
       context = first(context),
+      across(-all_of(origin, start, end, context), \(x) list(unlist(x)))
     ) |>
     select(-overlap_grp)
 
   local_duckdb_register(
     store@con,
     "_ragnar_tmp_rechunk",
-    deoverlapped |> mutate('deoverlapped_id' = row_number())
+    deoverlapped |>
+      mutate(
+        origin,
+        start,
+        end,
+        'deoverlapped_id' = row_number(),
+        .keep = "none"
+      )
   )
 
   deoverlapped$text <- dbGetQuery(
@@ -587,7 +595,6 @@ utils::globalVariables(c(
   # retrieve and helpers
   "origin",
   "overlap_grp",
-  "headings",
   "id",
   "metric_value",
   "array_slice",
