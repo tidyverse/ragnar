@@ -8,8 +8,11 @@
 #'
 #' @param md A `MarkdownDocument`, or a length-one character vector containing
 #'   Markdown.
-#' @param target_size Integer. Target chunk size in characters. Default: `1600`
-#'   (≈ 400 tokens, or 1 page of text).
+#' @param target_size Integer. Target chunk size in characters. Default: 1600 (≈
+#'   400 tokens, or 1 page of text). Actual chunk size may differ from the
+#'   target by up to `2 * max_snap_dist`. When set to `NA` or `Inf` and used with
+#'   `segment_by_heading_levels`, chunk size is unbounded and each chunk
+#'   corresponds to a segment.
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
 #'   between successive chunks. Default: `0.5`. Even when `0`, some overlap can
 #'   occur because the last chunk is anchored to the document end.
@@ -77,10 +80,22 @@ markdown_chunk <- function(
   pre_segment_heading_levels = integer(),
   text = TRUE
 ) {
-  check_dots_empty()
+  # arg checks
+  check_number_whole(
+    target_size,
+    min = 1,
+    allow_infinite = TRUE,
+    allow_na = TRUE,
+    allow_null = TRUE
+  )
+  if (is.null(target_size) || is.na(target_size)) {
+    target_size <- Inf
+  }
+  check_number_decimal(target_overlap, min = 0, max = 1)
   if (!S7_inherits(md, MarkdownDocument)) {
     md <- convert(md, MarkdownDocument)
   }
+  # end arg checks
 
   md_len <- stri_length(md)
   md_positions <-
