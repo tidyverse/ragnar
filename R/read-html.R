@@ -343,8 +343,7 @@ ragnar_read_document <- function(
 #'   page. Note that regardless of this setting, only child links are followed
 #'   when `depth > 0`.
 #'
-#' @param progress Logical, draw a progress bar if `depth > 0`. A separate
-#'   progress bar is drawn per recursion level.
+#' @param progress Logical, draw a progress bar if `depth > 0`.
 #'
 #' @param ... Currently unused. Must be empty.
 #'
@@ -402,14 +401,21 @@ ragnar_find_links <- function(
 
   deque <- reticulate::import("collections")$deque()
   visited <- reticulate::import_builtins()$set()
+  resolved <- reticulate::dict()
+  collected <- reticulate::import_builtins()$set()
   problems <- list()
 
   deque$append(list(url = xml_url2(x), depth = 0))
+  if (!depth) {
+    progress <- FALSE
+  }
 
-  pb <- cli::cli_progress_bar(
-    format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(deque)} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
-    total = NA
-  )
+  if (progress) {
+    pb <- cli::cli_progress_bar(
+      format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(deque)} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
+      total = NA
+    )
+  }
 
   # This is wrapped into a try catch so users interrupts are captured and
   # we are able to return the current set of visited pages.
@@ -417,12 +423,19 @@ ragnar_find_links <- function(
     {
       while (length(deque) > 0) {
         item <- deque$popleft()
-        cli::cli_progress_update()
+        if (progress) {
+          cli::cli_progress_update()
+        }
 
         visited$add(item$url)
-
         links <- tryCatch(
-          html_find_links(item$url),
+          {
+            page <- read_html2(item$url)
+            resolved_url <- xml_url2(page) # maybe redirected
+            resolved[item$url] <- resolved_url
+            html_find_links(page)
+          },
+
           error = function(e) {
             # if there's an issue finding child links we log it into the `problems` table
             # which is included in the output as an attribute.
@@ -430,6 +443,7 @@ ragnar_find_links <- function(
               link = item$url,
               problem = conditionMessage(e)
             )
+            resolved[item$url] <- ""
             character(0)
           }
         )
@@ -446,16 +460,22 @@ ragnar_find_links <- function(
           }
         }
 
-        visited$update(as.list(links))
+        collected$update(as.list(links))
       }
     },
     interrupt = function(e) {
       cli::cli_inform(c(i = "User interrupted. Returning the current set!"))
     }
   )
-  cli::cli_progress_update(force = TRUE)
+  if (progress) {
+    cli::cli_progress_update(force = TRUE)
+  }
 
-  out <- sort(reticulate::import_builtins()$list(visited))
+  out <- visited$union(collected)
+  get_resolved <- reticulate::py_to_r(resolved$get)
+  out <- reticulate::iterate(out, \(x) get_resolved(x) %||% x)
+  out <- out[nzchar(out)]
+  out <- unique(sort(url_filter_fn(out)))
 
   if (length(problems)) {
     cli::cli_warn(
