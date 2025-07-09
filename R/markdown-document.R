@@ -125,6 +125,10 @@ MarkdownDocumentChunks := new_class(
 
 local({
   method(vec_proxy, MarkdownDocumentChunks) <- function(x, ...) {
-    as_tibble(x)
+    # drop S7 class, properties, convert to simple data.frame
+    out <- x
+    attributes(out) <- NULL
+    names(out) <- names(x)
+    new_data_frame(out)
   }
 })
