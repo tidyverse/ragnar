@@ -78,7 +78,7 @@ test_that("ragnar_store_update/insert", {
 
   val <- dbGetQuery(
     store@con,
-    'select start, "end", "headings", text, from chunks'
+    'select start, "end", "context", text, from chunks'
   )
   expect_equal(val, as_bare_df(chunks))
 
@@ -98,7 +98,7 @@ test_that("ragnar_store_update/insert", {
   # Expect that the text is updated
   val <- dbGetQuery(
     store@con,
-    'select start, "end", headings, text, origin, from chunks'
+    'select start, "end", context, text, origin, from chunks'
   )
   expect_equal(val, chunks |> as_bare_df() |> mutate(origin = 'someorigin'))
   expect_equal(nrow(val), 3)

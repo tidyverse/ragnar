@@ -57,9 +57,9 @@ strings are \code{unlist()}ed, and dataframes are \code{tidyr::unchop()}ed.}
 \details{
 These functions are deprecated in favor of \code{markdown_chunk()}, which is more
 flexible, supports overlapping chunks, enables deoverlapping or rechunking
-downstream by \code{ragnar_retrieve()}, and automatically builds a \code{headings}
-context for each chunk instead of requiring manual string interpolation from
-extracted headings.
+downstream by \code{ragnar_retrieve()}, and automatically builds a \code{context}
+string of in-scope markdown headings for each chunk instead of requiring
+manual string interpolation from extracted headings.
 
 Functions for chunking text into smaller pieces while preserving meaningful
 semantics. These functions provide flexible ways to split text based on

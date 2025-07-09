@@ -8,9 +8,9 @@
 ragnar_store_create(
   location = ":memory:",
   embed = embed_ollama(),
+  ...,
   embedding_size = ncol(embed("foo")),
   overwrite = FALSE,
-  ...,
   extra_cols = NULL,
   name = NULL,
   title = NULL,
@@ -20,7 +20,9 @@ ragnar_store_create(
 ragnar_store_connect(location, ..., read_only = TRUE)
 }
 \arguments{
-\item{location}{string, a filepath location.}
+\item{location}{filepath, or \verb{:memory:}. Location can also be a database name
+specified with \code{md:dbname}, in this case the database will be created in
+MotherDuck after a connection is established.}
 
 \item{embed}{A function that is called with a character vector and returns a
 matrix of embeddings. Note this function will be serialized and then
@@ -31,11 +33,11 @@ you can optionally supply a \code{carrier::crate()} with packaged data. It can
 also be \code{NULL} for stores that don't need to embed their texts, for
 example, if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
 
+\item{...}{unused; must be empty.}
+
 \item{embedding_size}{integer}
 
 \item{overwrite}{logical, what to do if \code{location} already exists}
-
-\item{...}{unused; must be empty.}
 
 \item{extra_cols}{A zero row data frame used to specify additional columns
 that should be added to the store. Such columns can be used for adding
@@ -58,27 +60,33 @@ modify the store.}
 a \code{DuckDBRagnarStore} object
 }
 \description{
+Create and connect to a vector store
+}
+\details{
 \subsection{Store versions}{
 
-If \code{version = 1} is provided, ragnar will store a single flat table
-consisting of individual chunks. This simplifies ingestion, and also,
-provides opportunities to modify chunks directly in-place to improve for
-embedding and retrieval. Dynamic rechunking (deoverlapping), is not
-supported. If there is a need for using \code{ragnar_store_update()}, then the
-value of \code{rlang::hash(original_full_document)} must be explicitly provided
-for each chunk.
+\strong{Version 2 – documents with chunk ranges} (default)
 
-If \code{version = 2} is provided, then ragnar will store whole documents and
-separately, the integers position ranges of chunk text. This simplifies
-retrieval, updating, and enables robust dynamic context augmentation (e.g.,
-markdown headings in scope for each chunk), but it comes at the expense of a
-little less flexibility in the initial store ingestion pipeline.
-\code{ragnar_store_insert} for version 2 stores requires a \code{MarkdownDocumentChunks} object.
+With \code{version = 2}, ragnar stores each document once and records the start
+and end positions of its chunks. This provides strong support for overlapping
+chunk ranges with de-overlapping at retrieval, and generally allows
+retrieving arbitrary ranges from source documents, but does not support
+modifying chunks directly before insertion. Chunks can be augmented via the
+\code{context} field and with additional fields passed to \code{extra_cols}. The
+easiest way to prepare \code{chunks} for \code{version = 2} is with
+\code{read_as_markdown()} and \code{markdown_chunk()}.
 
-the embeddings for chunk ranges. This provides opportunities for chunk
-de-overlapping or extracting arbitrary ranges from a source document, and
-works well with overlapping and automatic context generation. Version 2 is
-the default.
+\strong{Version 1 – flat chunks}
+
+With \code{version = 1}, ragnar keeps all chunks in a single table. This lets you
+easily modify chunk text before insertion. However, dynamic rechunking
+(de-overlapping) or extracting arbitrary ranges from source documents is not
+supported, since the original full documents are no longer available. Chunks
+can be augmented by modifying the chunk text directly (e.g., with \code{glue()}).
+Additionally, if you intend to call \code{ragnar_store_update()}, it is your
+responsibility to provide \code{rlang::hash(original_full_document)} with each
+chunk. The easiest way to prepare \code{chunks} for \code{version = 1} is with
+\code{ragnar_read()} and \code{ragnar_chunk()}.
 }
 }
 \examples{

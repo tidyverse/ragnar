@@ -8,8 +8,11 @@
 #'
 #' @param md A `MarkdownDocument`, or a length-one character vector containing
 #'   Markdown.
-#' @param target_size Integer. Target chunk size in characters. Default: `1600`
-#'   (≈ 400 tokens, or 1 page of text).
+#' @param target_size Integer. Target chunk size in characters. Default: 1600 (≈
+#'   400 tokens, or 1 page of text). Actual chunk size may differ from the
+#'   target by up to `2 * max_snap_dist`. When set to `NA` or `Inf` and used with
+#'   `segment_by_heading_levels`, chunk size is unbounded and each chunk
+#'   corresponds to a segment.
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
 #'   between successive chunks. Default: `0.5`. Even when `0`, some overlap can
 #'   occur because the last chunk is anchored to the document end.
@@ -17,12 +20,16 @@
 #'   may move to reach a boundary. Defaults to one third of the stride size
 #'   between target chunk starts. Chunks that end up on identical boundaries are
 #'   merged.
-#' @param ... Must be empty.
-#' @param headings Logical. Add a `headings` column containing the Markdown
+#' @inheritParams rlang::args_dots_empty
+#' @param context Logical. Add a `context` column containing the Markdown
 #'   headings in scope at each chunk start. Default: `TRUE`.
-#' @param pre_segment_heading_levels Integer vector with possible values `1:6`.
-#'   Headings at these levels are treated as hard segment breaks before
-#'   chunking. Default: disabled.
+#' @param segment_by_heading_levels Integer vector with possible values `1:6`.
+#'   Headings at these levels are treated as segment boundaries; chunking is
+#'   performed independently for each segment. No chunk will overlap a segment
+#'   boundary, and any future deoverlapping will not combine segments. Each
+#'   segment will have a chunk that starts at the segment start and a chunk that
+#'   starts at the segment end (these may be the same chunk or overlap
+#'   substantially if the segment is short). Default: disabled.
 #' @param text Logical. If `TRUE`, include a `text` column with the chunk
 #'   contents. Default: `TRUE`.
 #'
@@ -33,7 +40,7 @@
 #' - `start`: 1-based start position of the chunk in `md`.
 #' - `end`:  inclusive end position.
 #'
-#' Additional `headings` and/or `text` columns are present when requested.
+#' Additional `context` and/or `text` columns are present when requested.
 #'
 #' @export
 #' @examples
@@ -65,7 +72,7 @@
 #'
 #' markdown_chunk(md, target_size = 40)
 #' markdown_chunk(md, target_size = 40, target_overlap = 0)
-#' markdown_chunk(md, target_size = 400, pre_segment_heading_levels = c(1, 2))
+#' markdown_chunk(md, target_size = NA, segment_by_heading_levels = c(1, 2))
 #' markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 markdown_chunk <- function(
   md,
@@ -73,14 +80,37 @@ markdown_chunk <- function(
   target_overlap = .5,
   ...,
   max_snap_dist = target_size * (1 - target_overlap) / 3,
-  headings = TRUE,
-  pre_segment_heading_levels = integer(),
+  context = TRUE,
+  segment_by_heading_levels = integer(),
   text = TRUE
 ) {
-  check_dots_empty()
+  # arg checks
+  check_number_whole(
+    target_size,
+    min = 1,
+    allow_infinite = TRUE,
+    allow_na = TRUE,
+    allow_null = TRUE
+  )
+  if (is.null(target_size) || is.na(target_size)) {
+    target_size <- Inf
+  }
+  check_number_decimal(target_overlap, min = 0, max = 1)
+  segment_by_heading_levels <- sort(unique(as.integer(c(
+    segment_by_heading_levels,
+    list(...)$pre_segment_heading_levels
+  ))))
+  if ("pre_segment_heading_levels" %in% ...names()) {
+    warning(
+      "`pre_segment_heading_levels` has been renamed to `segment_by_heading_levels`"
+    )
+  } else {
+    check_dots_empty()
+  }
   if (!S7_inherits(md, MarkdownDocument)) {
     md <- convert(md, MarkdownDocument)
   }
+  # end arg checks
 
   md_len <- stri_length(md)
   md_positions <-
@@ -88,7 +118,7 @@ markdown_chunk <- function(
   md_headings <- markdown_headings(md, md_positions)
 
   segment_breaks <-
-    filter(md_headings, level %in% as.integer(pre_segment_heading_levels))$start
+    filter(md_headings, level %in% as.integer(segment_by_heading_levels))$start
   chunk_targets <- make_chunk_targets(
     md_len = md_len,
     segment_breaks = segment_breaks,
@@ -158,8 +188,8 @@ markdown_chunk <- function(
 
   check_uncovered_gaps(chunks, md_len)
 
-  if (headings) {
-    chunks$headings <-
+  if (context) {
+    chunks$context <-
       markdown_position_headings(md, chunks$start, md_headings) |>
       map_chr(\(h) {
         stri_flatten(h$text, "\n", na_empty = TRUE, omit_empty = TRUE)

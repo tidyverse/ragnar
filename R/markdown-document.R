@@ -66,15 +66,17 @@ local({
 #' Markdown document. It is a tibble with three required columns:
 #'
 #' * `start`, `end` — integers. These are character positions (1-based, inclusive) in the source
-#' `MarkdownDocument`, so that `substr(md, start, end)` yields the chunk. Ranges
-#' can overlap or even be nested.
+#' `MarkdownDocument`, so that `substr(md, start, end)` yields the chunk text.
+#' Ranges can overlap.
 #'
-#' * `headings` — a character column; this is combined with the chunk text to augment
-#' a text before generating embeddings ragnar_store_insert() in  used to
-#' contextualize each chunk by `ragnar_store_insert()` when generating
-#' embeddings, and also, returned by `ragnar_retrieve()`. When deoverlapping or
-#' combining chunks, only the `headings` value for the first chunk in an
-#' overlapping group is kept.
+#' * `context` — character.
+#' A general-purpose field for adding context to a chunk. This column is
+#' combined with `text` to augment chunk content when generating embeddings with
+#' `ragnar_store_insert()`, and is also returned by `ragnar_retrieve()`. Keep in
+#' mind that when chunks are deoverlapped (in `ragnar_retrieve()` or
+#' `chunks_deoverlap()`), only the context value from the first chunk is kept.
+#' `markdown_chunk()` by default populates this column with all the markdown
+#' headings that are in-scope at the chunk start position.
 #'
 #' The original document is available via the `@document` property.
 #'
@@ -82,7 +84,8 @@ local({
 #' class itself is exported only so advanced users can generate or tweak chunks
 #' by other means.
 #'
-#' @param chunks A data frame containing `start`, `end`, and `headings` columns, and optionally other columns.
+#' @param chunks A data frame containing `start`, `end`, and `context` columns,
+#'   and optionally other columns.
 #' @param document A `MarkdownDocument`.
 #'
 #' @return An S7 object that inherits from `MarkdownDocumentChunks`, which is
@@ -94,15 +97,16 @@ local({
 #' chunk_positions <- tibble::tibble(
 #'   start    = c(1L, 5L),
 #'   end      = c(3L, 7L),
-#'   headings = c("A", "A\nC")
+#'   context = c("A", "A\nC")
 #' )
 #' chunks <- MarkdownDocumentChunks(chunk_positions, doc)
 #' identical(chunks@document, doc)
 MarkdownDocumentChunks := new_class(
   parent = new_S3_class(c("tbl_df", "tbl", "data.frame")),
   validator = function(self) {
-    if (!all(c("start", "end", "headings") %in% names(self))) {
-      "must have names 'start', 'end' and 'headings'"
+    # TODO: make context optional
+    if (!all(c("start", "end", "context") %in% names(self))) {
+      "must have names 'start', 'end' and 'context'"
     }
   },
   constructor = function(chunks, document) {
@@ -125,6 +129,10 @@ MarkdownDocumentChunks := new_class(
 
 local({
   method(vec_proxy, MarkdownDocumentChunks) <- function(x, ...) {
-    as_tibble(x)
+    # drop S7 class, properties, convert to simple data.frame
+    out <- x
+    attributes(out) <- NULL
+    names(out) <- names(x)
+    new_data_frame(out)
   }
 })

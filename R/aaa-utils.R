@@ -14,7 +14,7 @@
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
 #'   na_if rename rename_with select slice_max slice_min starts_with collect
-#'   summarize row_number anti_join lag any_of lag
+#'   summarize row_number anti_join lag any_of all_of across lag
 #' @importFrom tidyr unchop unnest
 #' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches

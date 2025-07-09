@@ -1,5 +1,32 @@
 #' Create and connect to a vector store
 #'
+#' @details
+#'
+#' ## Store versions
+#'
+#' **Version 2 – documents with chunk ranges** (default)
+#'
+#' With `version = 2`, ragnar stores each document once and records the start
+#' and end positions of its chunks. This provides strong support for overlapping
+#' chunk ranges with de-overlapping at retrieval, and generally allows
+#' retrieving arbitrary ranges from source documents, but does not support
+#' modifying chunks directly before insertion. Chunks can be augmented via the
+#' `context` field and with additional fields passed to `extra_cols`. The
+#' easiest way to prepare `chunks` for `version = 2` is with
+#' `read_as_markdown()` and `markdown_chunk()`.
+#'
+#' **Version 1 – flat chunks**
+#'
+#' With `version = 1`, ragnar keeps all chunks in a single table. This lets you
+#' easily modify chunk text before insertion. However, dynamic rechunking
+#' (de-overlapping) or extracting arbitrary ranges from source documents is not
+#' supported, since the original full documents are no longer available. Chunks
+#' can be augmented by modifying the chunk text directly (e.g., with `glue()`).
+#' Additionally, if you intend to call `ragnar_store_update()`, it is your
+#' responsibility to provide `rlang::hash(original_full_document)` with each
+#' chunk. The easiest way to prepare `chunks` for `version = 1` is with
+#' `ragnar_read()` and `ragnar_chunk()`.
+#'
 #' @param location filepath, or `:memory:`. Location can also be a database name
 #'   specified with `md:dbname`, in this case the database will be created in
 #'   MotherDuck after a connection is established.
@@ -26,32 +53,7 @@
 #'
 #' @param version integer. The version of the store to create. See details.
 #'
-#' @description
 #'
-#' ## Store versions
-#'
-#' If `version = 1` is provided, ragnar will store a single flat table
-#' consisting of individual chunks. This simplifies ingestion, and also,
-#' provides opportunities to modify chunks directly in-place to improve for
-#' embedding and retrieval. Dynamic rechunking (deoverlapping), is not
-#' supported. If there is a need for using `ragnar_store_update()`, then the
-#' value of `rlang::hash(original_full_document)` must be explicitly provided
-#' for each chunk.
-#'
-#' If `version = 2` is provided, then ragnar will store whole documents and
-#' separately, the integers position ranges of chunk text. This simplifies
-#' retrieval, updating, and enables robust dynamic context augmentation (e.g.,
-#' markdown headings in scope for each chunk), but it comes at the expense of a
-#' little less flexibility in the initial store ingestion pipeline.
-#' `ragnar_store_insert` for version 2 stores requires a `MarkdownDocumentChunks` object.
-#'
-#' the embeddings for chunk ranges. This provides opportunities for chunk
-#' de-overlapping or extracting arbitrary ranges from a source document, and
-#' works well with overlapping and automatic context generation. Version 2 is
-#' the default.
-#'
-#'
-
 #' @examples
 #' # A store with a dummy embedding
 #' store <- ragnar_store_create(
@@ -85,9 +87,9 @@
 ragnar_store_create <- function(
   location = ":memory:",
   embed = embed_ollama(),
+  ...,
   embedding_size = ncol(embed("foo")),
   overwrite = FALSE,
-  ...,
   extra_cols = NULL,
   name = NULL,
   title = NULL,
@@ -189,9 +191,6 @@ check_store_overwrite <- function(location, overwrite) {
 }
 
 
-#' Connect to `RagnarStore`
-#'
-#' @param location string, a filepath location.
 #' @param ... unused; must be empty.
 #' @param read_only logical, whether the returned connection can be used to
 #'   modify the store.
@@ -251,24 +250,24 @@ ragnar_store_connect <- function(
 #' Inserts or updates chunks in a `RagnarStore`
 #'
 #' @inheritParams ragnar_store_insert
+#' @param chunks Content to update. The precise input structure depends on
+#'   `store@version`. See Details.
 #' @details
 #'
-#' ### Store Version 2:
-#' chunks must be a data frame containing columns:
-#' - origin: character, the source of the document (e.g., a url or file path). This is used as a unique key for documents in the store
-#' - document: character, the full document
-#' - start: integer, the character index of the chunk
-#' - end: integer, the character index of the chunk
-#' - headings: character, the markdown headings in scope at `start`. This is used to assemble the context.
+#' **Store Version 2**
 #'
-#' ### Store Version 1:
+#' `chunks` must be `MarkdownDocumentChunks` object.
 #'
-#' `chunks` must be a data frame containing `origin` and `hash` columns.
-#' We first filter out chunks for which `origin` and `hash` are already in the store.
-#' If an `origin` is in the store, but with a different `hash`, we all of its chunks
-#' with the new chunks. Otherwise, a regular insert is performed.
+#' **Store Version 1**
 #'
-#' This can help spending less time computing embeddings for chunks that are already in the store.
+#' `chunks` must be a data frame containing `origin`, `hash`, and `text`
+#' columns. We first filter out chunks for which `origin` and `hash` are already
+#' in the store. If an `origin` is in the store, but with a different `hash`, we
+#' replace all of its chunks with the new chunks. Otherwise, a regular insert is
+#' performed.
+#'
+#' This can help avoid needing to compute embeddings for chunks that are already
+#' in the store.
 #'
 #' @returns `store`, invisibly.
 #' @export

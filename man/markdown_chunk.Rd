@@ -10,8 +10,8 @@ markdown_chunk(
   target_overlap = 0.5,
   ...,
   max_snap_dist = target_size * (1 - target_overlap)/3,
-  headings = TRUE,
-  pre_segment_heading_levels = integer(),
+  context = TRUE,
+  segment_by_heading_levels = integer(),
   text = TRUE
 )
 }
@@ -19,26 +19,33 @@ markdown_chunk(
 \item{md}{A \code{MarkdownDocument}, or a length-one character vector containing
 Markdown.}
 
-\item{target_size}{Integer. Target chunk size in characters. Default: \code{1600}
-(≈ 400 tokens, or 1 page of text).}
+\item{target_size}{Integer. Target chunk size in characters. Default: 1600 (≈
+400 tokens, or 1 page of text). Actual chunk size may differ from the
+target by up to \code{2 * max_snap_dist}. When set to \code{NA} or \code{Inf} and used with
+\code{segment_by_heading_levels}, chunk size is unbounded and each chunk
+corresponds to a segment.}
 
 \item{target_overlap}{Numeric in \verb{[0, 1)}. Fraction of desired overlap
 between successive chunks. Default: \code{0.5}. Even when \code{0}, some overlap can
 occur because the last chunk is anchored to the document end.}
 
-\item{...}{Must be empty.}
+\item{...}{These dots are for future extensions and must be empty.}
 
 \item{max_snap_dist}{Integer. Furthest distance (in characters) a cut point
 may move to reach a boundary. Defaults to one third of the stride size
 between target chunk starts. Chunks that end up on identical boundaries are
 merged.}
 
-\item{headings}{Logical. Add a \code{headings} column containing the Markdown
+\item{context}{Logical. Add a \code{context} column containing the Markdown
 headings in scope at each chunk start. Default: \code{TRUE}.}
 
-\item{pre_segment_heading_levels}{Integer vector with possible values \code{1:6}.
-Headings at these levels are treated as hard segment breaks before
-chunking. Default: disabled.}
+\item{segment_by_heading_levels}{Integer vector with possible values \code{1:6}.
+Headings at these levels are treated as segment boundaries; chunking is
+performed independently for each segment. No chunk will overlap a segment
+boundary, and any future deoverlapping will not combine segments. Each
+segment will have a chunk that starts at the segment start and a chunk that
+starts at the segment end (these may be the same chunk or overlap
+substantially if the segment is short). Default: disabled.}
 
 \item{text}{Logical. If \code{TRUE}, include a \code{text} column with the chunk
 contents. Default: \code{TRUE}.}
@@ -50,7 +57,7 @@ A tibble with at least:
 \item \code{end}:  inclusive end position.
 }
 
-Additional \code{headings} and/or \code{text} columns are present when requested.
+Additional \code{context} and/or \code{text} columns are present when requested.
 }
 \description{
 \code{markdown_chunk()} splits a single Markdown string into fixed-length,
@@ -88,6 +95,6 @@ Even more text here.
 
 markdown_chunk(md, target_size = 40)
 markdown_chunk(md, target_size = 40, target_overlap = 0)
-markdown_chunk(md, target_size = 400, pre_segment_heading_levels = c(1, 2))
+markdown_chunk(md, target_size = NA, segment_by_heading_levels = c(1, 2))
 markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 }
