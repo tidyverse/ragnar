@@ -43,29 +43,30 @@ ragnar_register_tool_retrieve <- function(
   name <- name %||% glue::glue("rag_retrieve_from_{store@name}")
   title <- title %||% store@title
 
-  chat$register_tool(
-    suppressWarnings(
-      ## TODO: ellmer::tool() changed in v 0.3.0, need to update
-      ellmer::tool(
-        .name = name,
-        function(text) {
-          chunks <- ragnar_retrieve(store, text, ...)
-          chunks[c("id", "start", "end")] <- NULL
-          chunks
-        },
-        glue::glue(
-          "Given a string, retrieve the most relevent excerpts from {store_description}."
-        ),
-        text = ellmer::type_string(
-          "The text to find the most relevent matches for."
-        ),
-        .annotations = ellmer::tool_annotations(
-          title = title,
-          read_only_hint = TRUE,
-          open_world_hint = FALSE
-        )
+  withr::local_options(lifecycle_verbosity = "quiet")
+  tool_def <- suppressWarnings(suppressMessages(
+    ## TODO: ellmer::tool() changed in dev version (slated next v0.3.0)
+    ## need to update once ellmer v0.3.0 is on CRAN
+    ellmer::tool(
+      .name = name,
+      function(text) {
+        chunks <- ragnar_retrieve(store, text, ...)
+        chunks[c("id", "start", "end")] <- NULL
+        chunks
+      },
+      glue::glue(
+        "Given a string, retrieve the most relevent excerpts from {store_description}."
+      ),
+      text = ellmer::type_string(
+        "The text to find the most relevent matches for."
+      ),
+      .annotations = ellmer::tool_annotations(
+        title = title,
+        read_only_hint = TRUE,
+        open_world_hint = FALSE
       )
     )
-  )
+  ))
+  chat$register_tool(tool_def)
   invisible(chat)
 }
