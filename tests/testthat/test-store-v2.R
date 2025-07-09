@@ -14,7 +14,7 @@ test_that("ragnar_store_update/insert, v2", {
     tbl(store@con, "chunks") |> collect() |> nrow(),
     nrow(chunks)
   )
-  
+
   # same chunks, different origin -----
   chunks2 <- chunks
   chunks2@document@origin <- "foo"
@@ -22,14 +22,14 @@ test_that("ragnar_store_update/insert, v2", {
 
   expect_equal(
     tbl(store@con, "chunks") |> collect() |> nrow(),
-    nrow(chunks)*2
+    nrow(chunks) * 2
   )
 
   # same chunks again, no insert
   ragnar_store_update(store, chunks) # this doesn't insert again
   expect_equal(
     tbl(store@con, "chunks") |> collect() |> nrow(),
-    nrow(chunks)*2
+    nrow(chunks) * 2
   )
 
   # same origin, differnt chunks ------
@@ -39,7 +39,7 @@ test_that("ragnar_store_update/insert, v2", {
   expect_equal(chunks@document@origin, chunks3@document@origin)
   expect_equal(
     tbl(store@con, "chunks") |> collect() |> nrow(),
-    nrow(chunks2)+nrow(chunks)
+    nrow(chunks2) + nrow(chunks)
   )
 
   # fails to insert duplicated document
@@ -47,7 +47,6 @@ test_that("ragnar_store_update/insert, v2", {
     ragnar_store_insert(store, chunks3),
     regexp = 'Duplicate key "origin'
   )
-
 })
 
 test_that("insert chunks with pre-compuited embeddings", {
@@ -58,12 +57,13 @@ test_that("insert chunks with pre-compuited embeddings", {
 
   chunks <- test_doc() |> read_as_markdown() |> markdown_chunk()
   embeddings <- matrix(nrow = nrow(chunks), ncol = 100, as.numeric(1:100))
-  chunks <- chunks |> mutate(
-    embedding = embeddings
-  ) 
-  
+  chunks <- chunks |>
+    mutate(
+      embedding = embeddings
+    )
+
   ragnar_store_insert(store, chunks)
-  chunks_ret <- tbl(store@con, "chunks") |> 
+  chunks_ret <- tbl(store@con, "chunks") |>
     collect()
 
   # pre computed embeddings are used
@@ -83,15 +83,17 @@ test_that("update + extra cols", {
   )
 
   chunks <- test_doc() |> read_as_markdown() |> markdown_chunk()
-  chunks <- chunks |> mutate(
-    number = 1.23
-  )
+  chunks <- chunks |>
+    mutate(
+      number = 1.23
+    )
 
   ragnar_store_insert(store, chunks)
 
-  chunks <- chunks |> mutate(
-    number = 10
-  )
+  chunks <- chunks |>
+    mutate(
+      number = 10
+    )
 
   ragnar_store_update(store, chunks)
 
@@ -101,7 +103,9 @@ test_that("update + extra cols", {
 
   # calling it again shouldn't change the db
   # since embed raises, adding chunks will raise if it incorrectly detects they are already equal
-  store@embed <- function(x) stop("something went wrong, tried inserting chunks")
+  store@embed <- function(x) {
+    stop("something went wrong, tried inserting chunks")
+  }
   expect_error(
     ragnar_store_update(store, chunks),
     regexp = NA
@@ -119,8 +123,8 @@ test_that("works with MotherDuck", {
 
   expect_true(is_motherduck_con(store@con))
 
-  chunks <- test_doc() |> 
-    read_as_markdown() |> 
+  chunks <- test_doc() |>
+    read_as_markdown() |>
     markdown_chunk()
 
   expect_error(ragnar_store_insert(store, chunks), regexp = NA)
@@ -140,4 +144,15 @@ test_that("works with MotherDuck", {
 
   val <- tbl(store@con, "chunks") |> collect()
   expect_equal(nrow(val), nrow(chunks))
+
+  expect_error(
+    {
+      store <- ragnar_store_create(
+        "md:ragnartest",
+        embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
+        overwrite = FALSE
+      )
+    },
+    regexp = "Database already exists"
+  )
 })
