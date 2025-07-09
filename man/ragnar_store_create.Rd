@@ -57,7 +57,7 @@ when the store is registered with an \link[ellmer:Chat]{ellmer::Chat} object.}
 modify the store.}
 }
 \value{
-a \code{DuckDBRagnarStore} object
+a \code{RagnarStore} object
 }
 \description{
 Create and connect to a vector store
@@ -116,4 +116,16 @@ store <- ragnar_store_create(
 )
 ragnar_store_insert(store, chunks)
 
+# version = 2 (the default) has support for deoverlapping
+store <- ragnar_store_create(
+  embed = NULL # if embed = NULL, then only bm25 search is used (not vss)
+)
+doc <- MarkdownDocument(paste0(letters, collapse = ""), origin = "/some/where")
+chunks <- markdown_chunk(doc, target_size = 3, target_overlap = 2 / 3)
+chunks$context <- substr(chunks$text, 1, 1)
+chunks
+ragnar_store_insert(store, chunks)
+ragnar_store_build_index(store)
+ragnar_retrieve(store, "abc bcd xyz", deoverlap = FALSE)
+ragnar_retrieve(store, "abc bcd xyz", deoverlap = TRUE)
 }

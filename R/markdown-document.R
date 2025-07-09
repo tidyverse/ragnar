@@ -78,6 +78,8 @@ local({
 #' `markdown_chunk()` by default populates this column with all the markdown
 #' headings that are in-scope at the chunk start position.
 #'
+#' Additional columns can be included.
+#'
 #' The original document is available via the `@document` property.
 #'
 #' For normal use, chunk a Markdown document with [`markdown_chunk()`]; the
@@ -109,7 +111,7 @@ MarkdownDocumentChunks := new_class(
       "must have names 'start', 'end' and 'context'"
     }
   },
-  constructor = function(chunks, document) {
+  constructor = function(chunks, document = attr(chunks, "document", TRUE)) {
     new_object(as_tibble(chunks), document = document)
   },
   properties = list(

@@ -21,8 +21,8 @@ Markdown.}
 
 \item{target_size}{Integer. Target chunk size in characters. Default: 1600 (≈
 400 tokens, or 1 page of text). Actual chunk size may differ from the
-target by up to \code{2 * max_snap_dist}. When set to \code{NA} or \code{Inf} and used with
-\code{segment_by_heading_levels}, chunk size is unbounded and each chunk
+target by up to \code{2 * max_snap_dist}. When set to \code{NA} or \code{Inf} and used
+with \code{segment_by_heading_levels}, chunk size is unbounded and each chunk
 corresponds to a segment.}
 
 \item{target_overlap}{Numeric in \verb{[0, 1)}. Fraction of desired overlap
@@ -51,13 +51,10 @@ substantially if the segment is short). Default: disabled.}
 contents. Default: \code{TRUE}.}
 }
 \value{
-A tibble with at least:
-\itemize{
-\item \code{start}: 1-based start position of the chunk in \code{md}.
-\item \code{end}:  inclusive end position.
-}
-
-Additional \code{context} and/or \code{text} columns are present when requested.
+A \code{MarkdownDocumentChunks} object, which is a tibble (data.frame) with with
+columns \code{start} \code{end}, and optionally \code{context} and \code{text}. It also has a
+\verb{@document} property, which is the input \code{md} document (potentially
+normalized and converted to a \code{MarkdownDocument}).
 }
 \description{
 \code{markdown_chunk()} splits a single Markdown string into fixed-length,
