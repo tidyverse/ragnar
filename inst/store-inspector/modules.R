@@ -118,7 +118,7 @@ storeInspectorServer <- function(id, store) {
       }
 
       metadata <- selectedDocument() |> 
-        dplyr::select(headings, dplyr::all_of(names(store@schema)))
+        dplyr::select(context, dplyr::all_of(names(store@schema)))
 
       shiny::div(
         class = "flex flex-col gap-2 size-full overflow-hidden",
