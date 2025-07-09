@@ -20,12 +20,16 @@
 #'   may move to reach a boundary. Defaults to one third of the stride size
 #'   between target chunk starts. Chunks that end up on identical boundaries are
 #'   merged.
-#' @param ... Must be empty.
+#' @inheritParams rlang::args_dots_empty
 #' @param headings Logical. Add a `headings` column containing the Markdown
 #'   headings in scope at each chunk start. Default: `TRUE`.
-#' @param pre_segment_heading_levels Integer vector with possible values `1:6`.
-#'   Headings at these levels are treated as hard segment breaks before
-#'   chunking. Default: disabled.
+#' @param segment_by_heading_levels Integer vector with possible values 1:6.
+#'   Headings at these levels are treated as segment boundaries; chunking is
+#'   performed independently for each segment. No chunk will overlap a segment
+#'   boundary, and any future deoverlapping will not combine segments. Each
+#'   segment will have a chunk that starts at the segment start and a chunk that
+#'   starts at the segment end (these may be the same chunk or overlap
+#'   substantially if the segment is short). Default: disabled.
 #' @param text Logical. If `TRUE`, include a `text` column with the chunk
 #'   contents. Default: `TRUE`.
 #'
@@ -68,7 +72,7 @@
 #'
 #' markdown_chunk(md, target_size = 40)
 #' markdown_chunk(md, target_size = 40, target_overlap = 0)
-#' markdown_chunk(md, target_size = 400, pre_segment_heading_levels = c(1, 2))
+#' markdown_chunk(md, target_size = 400, segment_by_heading_levels = c(1, 2))
 #' markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 markdown_chunk <- function(
   md,
@@ -77,7 +81,7 @@ markdown_chunk <- function(
   ...,
   max_snap_dist = target_size * (1 - target_overlap) / 3,
   headings = TRUE,
-  pre_segment_heading_levels = integer(),
+  segment_by_heading_levels = integer(),
   text = TRUE
 ) {
   # arg checks
@@ -92,6 +96,17 @@ markdown_chunk <- function(
     target_size <- Inf
   }
   check_number_decimal(target_overlap, min = 0, max = 1)
+  segment_by_heading_levels <- sort(unique(as.integer(c(
+    segment_by_heading_levels,
+    list(...)$pre_segment_heading_levels
+  ))))
+  if ("pre_segment_heading_levels" %in% ...names()) {
+    warning(
+      "`pre_segment_heading_levels` has been renamed to `segment_by_heading_levels`"
+    )
+  } else {
+    check_dots_empty()
+  }
   if (!S7_inherits(md, MarkdownDocument)) {
     md <- convert(md, MarkdownDocument)
   }
@@ -103,7 +118,7 @@ markdown_chunk <- function(
   md_headings <- markdown_headings(md, md_positions)
 
   segment_breaks <-
-    filter(md_headings, level %in% as.integer(pre_segment_heading_levels))$start
+    filter(md_headings, level %in% as.integer(segment_by_heading_levels))$start
   chunk_targets <- make_chunk_targets(
     md_len = md_len,
     segment_breaks = segment_breaks,
