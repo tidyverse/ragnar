@@ -156,3 +156,45 @@ test_that("works with MotherDuck", {
     regexp = "Database already exists"
   )
 })
+
+test_that("ragnar_store_create overwrite is correct", {
+  temp <- tempfile(fileext = ".duckdb")
+
+  store <- ragnar_store_create(
+    location = temp,
+    version = 2,
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+
+  chunks <- test_doc() |>
+    read_as_markdown() |>
+    markdown_chunk()
+
+  ragnar_store_insert(store, chunks)
+  DBI::dbDisconnect(store@con)
+
+  expect_error(
+    {
+      ragnar_store_create(
+        location = temp,
+        version = 2,
+        embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
+        overwrite = FALSE
+      )
+    },
+    regexp = "File already exists"
+  )
+
+  expect_error(
+    {
+      store <- ragnar_store_create(
+        location = temp,
+        version = 2,
+        embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
+        overwrite = TRUE
+      )
+    },
+    regexp = NA
+  )
+
+})
