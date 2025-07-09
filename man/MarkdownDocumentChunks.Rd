@@ -4,7 +4,8 @@
 \alias{MarkdownDocumentChunks}
 \title{Markdown documents chunks}
 \arguments{
-\item{chunks}{A data frame containing \code{start}, \code{end}, and \code{headings} columns, and optionally other columns.}
+\item{chunks}{A data frame containing \code{start}, \code{end}, and \code{context} columns,
+and optionally other columns.}
 
 \item{document}{A \code{MarkdownDocument}.}
 }
@@ -17,14 +18,16 @@ also a \code{tibble}.
 Markdown document. It is a tibble with three required columns:
 \itemize{
 \item \code{start}, \code{end} — integers. These are character positions (1-based, inclusive) in the source
-\code{MarkdownDocument}, so that \code{substr(md, start, end)} yields the chunk. Ranges
-can overlap or even be nested.
-\item \code{headings} — a character column; this is combined with the chunk text to augment
-a text before generating embeddings ragnar_store_insert() in  used to
-contextualize each chunk by \code{ragnar_store_insert()} when generating
-embeddings, and also, returned by \code{ragnar_retrieve()}. When deoverlapping or
-combining chunks, only the \code{headings} value for the first chunk in an
-overlapping group is kept.
+\code{MarkdownDocument}, so that \code{substr(md, start, end)} yields the chunk text.
+Ranges can overlap.
+\item \code{context} — character.
+A general-purpose field for adding context to a chunk. This column is
+combined with \code{text} to augment chunk content when generating embeddings with
+\code{ragnar_store_insert()}, and is also returned by \code{ragnar_retrieve()}. Keep in
+mind that when chunks are deoverlapped (in \code{ragnar_retrieve()} or
+\code{chunks_deoverlap()}), only the context value from the first chunk is kept.
+\code{markdown_chunk()} by default populates this column with all the markdown
+headings that are in-scope at the chunk start position.
 }
 
 The original document is available via the \verb{@document} property.
@@ -38,7 +41,7 @@ doc <- MarkdownDocument("# A\n\nB\n\n## C\n\nD")
 chunk_positions <- tibble::tibble(
   start    = c(1L, 5L),
   end      = c(3L, 7L),
-  headings = c("A", "A\nC")
+  context = c("A", "A\nC")
 )
 chunks <- MarkdownDocumentChunks(chunk_positions, doc)
 identical(chunks@document, doc)

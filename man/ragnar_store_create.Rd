@@ -20,7 +20,9 @@ ragnar_store_create(
 ragnar_store_connect(location, ..., read_only = TRUE)
 }
 \arguments{
-\item{location}{string, a filepath location.}
+\item{location}{filepath, or \verb{:memory:}. Location can also be a database name
+specified with \code{md:dbname}, in this case the database will be created in
+MotherDuck after a connection is established.}
 
 \item{embed}{A function that is called with a character vector and returns a
 matrix of embeddings. Note this function will be serialized and then
@@ -59,26 +61,28 @@ a \code{DuckDBRagnarStore} object
 }
 \description{
 \subsection{Store versions}{
+}
+}
+\details{
+\subsection{\strong{Version 1 – flat chunks}}{
 
-If \code{version = 1} is provided, ragnar will store a single flat table
-consisting of individual chunks. This simplifies ingestion, and also,
-provides opportunities to modify chunks directly in-place to improve for
-embedding and retrieval. Dynamic rechunking (deoverlapping), is not
-supported. If there is a need for using \code{ragnar_store_update()}, then the
-value of \code{rlang::hash(original_full_document)} must be explicitly provided
-for each chunk.
+With \code{version = 1}, ragnar keeps every chunk in a single table. This lets you
+easily modify chunk text before insertion. However, dynamic rechunking
+(de-overlapping) or extracting arbritrary ranges from source documents is
+\strong{not} supported. Additionally, if you intend to call
+\code{ragnar_store_update()}, it is your responsibility to provide
+\code{rlang::hash(original_full_document)} for each chunk. The easiest way to
+prepare \code{chunks} for \code{version = 1} is with \code{ragnar_read()} and
+\code{ragnar_chunk()}.
 
-If \code{version = 2} is provided, then ragnar will store whole documents and
-separately, the integers position ranges of chunk text. This simplifies
-retrieval, updating, and enables robust dynamic context augmentation (e.g.,
-markdown headings in scope for each chunk), but it comes at the expense of a
-little less flexibility in the initial store ingestion pipeline.
-\code{ragnar_store_insert} for version 2 stores requires a \code{MarkdownDocumentChunks} object.
+\strong{Version 2 – documents with chunk ranges} (default)
 
-the embeddings for chunk ranges. This provides opportunities for chunk
-de-overlapping or extracting arbitrary ranges from a source document, and
-works well with overlapping and automatic context generation. Version 2 is
-the default.
+With \code{version = 2}, ragnar stores each document once and records the start and
+end positions of its chunks. This supports overlapping chunk ranges,
+de-overlapping at retrieval, and generally retrieving arbitrary ranges from
+source documents, but does not support modifying chunks directly before
+insertion. The easiest way to prepare \code{chunks} for \code{version = 2} is with
+\code{read_as_markdown()} and \code{markdown_chunk()}.
 }
 }
 \examples{
