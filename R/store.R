@@ -250,11 +250,15 @@ ragnar_store_connect <- function(
 #' Inserts or updates chunks in a `RagnarStore`
 #'
 #' @inheritParams ragnar_store_insert
+#' @param chunks Content to update. The precise input structure depends on
+#'   `store@version`. See Details.
 #' @details
 #'
-#' ### Store Version 2: chunks must be `MarkdownDocumentChunks` object.
+#' **Store Version 2**
 #'
-#' ### Store Version 1:
+#' `chunks` must be `MarkdownDocumentChunks` object.
+#'
+#' **Store Version 1**
 #'
 #' `chunks` must be a data frame containing `origin`, `hash`, and `text`
 #' columns. We first filter out chunks for which `origin` and `hash` are already
@@ -262,8 +266,8 @@ ragnar_store_connect <- function(
 #' replace all of its chunks with the new chunks. Otherwise, a regular insert is
 #' performed.
 #'
-#' This can help avoid needing to compute embeddings for chunks that are
-#' already in the store.
+#' This can help avoid needing to compute embeddings for chunks that are already
+#' in the store.
 #'
 #' @returns `store`, invisibly.
 #' @export
