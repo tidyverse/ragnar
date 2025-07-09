@@ -343,8 +343,7 @@ ragnar_read_document <- function(
 #'   page. Note that regardless of this setting, only child links are followed
 #'   when `depth > 0`.
 #'
-#' @param progress Logical, draw a progress bar if `depth > 0`. A separate
-#'   progress bar is drawn per recursion level.
+#' @param progress Logical, draw a progress bar if `depth > 0`.
 #'
 #' @param ... Currently unused. Must be empty.
 #'
@@ -405,11 +404,16 @@ ragnar_find_links <- function(
   problems <- list()
 
   deque$append(list(url = xml_url2(x), depth = 0))
+  if (!depth) {
+    progress <- FALSE
+  }
 
-  pb <- cli::cli_progress_bar(
-    format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(deque)} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
-    total = NA
-  )
+  if (progress) {
+    pb <- cli::cli_progress_bar(
+      format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(deque)} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
+      total = NA
+    )
+  }
 
   # This is wrapped into a try catch so users interrupts are captured and
   # we are able to return the current set of visited pages.
@@ -417,7 +421,9 @@ ragnar_find_links <- function(
     {
       while (length(deque) > 0) {
         item <- deque$popleft()
-        cli::cli_progress_update()
+        if (progress) {
+          cli::cli_progress_update()
+        }
 
         visited$add(item$url)
 
@@ -453,9 +459,9 @@ ragnar_find_links <- function(
       cli::cli_inform(c(i = "User interrupted. Returning the current set!"))
     }
   )
-  cli::cli_progress_update(force = TRUE)
-
-  out <- sort(reticulate::import_builtins()$list(visited))
+  if (progress) {
+    cli::cli_progress_update(force = TRUE)
+  }
 
   if (length(problems)) {
     cli::cli_warn(
