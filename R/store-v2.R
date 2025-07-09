@@ -107,7 +107,7 @@ ragnar_store_create_v2 <- function(
         start INTEGER,
         "end" INTEGER,
         PRIMARY KEY (origin, start, "end"),
-        headings VARCHAR,
+        context VARCHAR,
         {extra_cols}
         {embedding}
       );
@@ -205,7 +205,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         ALTER VIEW chunks RENAME TO chunks_view;
 
         CREATE TABLE chunks AS
-          SELECT id, headings, text FROM chunks_view;
+          SELECT id, context, text FROM chunks_view;
         )--"
       )
       dbExecute(
@@ -214,7 +214,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         PRAGMA create_fts_index(
           'chunks',            -- input_table
           'id',                -- input_id
-          'headings', 'text',  -- *input_values
+          'context', 'text',  -- *input_values
           overwrite = 1
         );
         )--"
@@ -251,14 +251,14 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   existing <- dbGetQuery(
     con,
-    r"(SELECT start, "end", headings, text FROM chunks WHERE origin = ?)",
+    r"(SELECT start, "end", context, text FROM chunks WHERE origin = ?)",
     params = list(chunks@document@origin)
   )
 
   new_chunks <- anti_join(
     chunks,
     existing,
-    by = join_by(start, end, headings, text)
+    by = join_by(start, end, context, text)
   )
   if (!nrow(new_chunks)) {
     return(invisible(store))
@@ -268,7 +268,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
   embeddings <- chunks |>
     mutate(
       origin = chunks@document@origin,
-      embedding = store@embed(stri_c(headings, "\n", text)),
+      embedding = store@embed(stri_c(context, "\n", text)),
       text = NULL
     ) |>
     select(any_of(dbListFields(con, "embeddings")))
@@ -319,7 +319,7 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
   }
 
   if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
-    chunks$embedding <- store@embed(with(chunks, stri_c(headings, "\n", text)))
+    chunks$embedding <- store@embed(with(chunks, stri_c(context, "\n", text)))
   }
 
   con <- store@con

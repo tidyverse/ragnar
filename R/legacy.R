@@ -143,9 +143,9 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
 #'
 #' These functions are deprecated in favor of `markdown_chunk()`, which is more
 #' flexible, supports overlapping chunks, enables deoverlapping or rechunking
-#' downstream by `ragnar_retrieve()`, and automatically builds a `headings`
-#' context for each chunk instead of requiring manual string interpolation from
-#' extracted headings.
+#' downstream by `ragnar_retrieve()`, and automatically builds a `context`
+#' string of in-scope markdown headings for each chunk instead of requiring
+#' manual string interpolation from extracted headings.
 #'
 #' Functions for chunking text into smaller pieces while preserving meaningful
 #' semantics. These functions provide flexible ways to split text based on

@@ -556,7 +556,7 @@ chunks_deoverlap <- function(store, chunks) {
       id = list(unlist(id)),
       start = first(start),
       end = last(end),
-      headings = first(headings)
+      context = first(context),
     ) |>
     select(-overlap_grp)
 

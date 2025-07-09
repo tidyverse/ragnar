@@ -21,9 +21,9 @@
 #'   between target chunk starts. Chunks that end up on identical boundaries are
 #'   merged.
 #' @inheritParams rlang::args_dots_empty
-#' @param headings Logical. Add a `headings` column containing the Markdown
+#' @param context Logical. Add a `context` column containing the Markdown
 #'   headings in scope at each chunk start. Default: `TRUE`.
-#' @param segment_by_heading_levels Integer vector with possible values 1:6.
+#' @param segment_by_heading_levels Integer vector with possible values `1:6`.
 #'   Headings at these levels are treated as segment boundaries; chunking is
 #'   performed independently for each segment. No chunk will overlap a segment
 #'   boundary, and any future deoverlapping will not combine segments. Each
@@ -40,7 +40,7 @@
 #' - `start`: 1-based start position of the chunk in `md`.
 #' - `end`:  inclusive end position.
 #'
-#' Additional `headings` and/or `text` columns are present when requested.
+#' Additional `context` and/or `text` columns are present when requested.
 #'
 #' @export
 #' @examples
@@ -72,7 +72,7 @@
 #'
 #' markdown_chunk(md, target_size = 40)
 #' markdown_chunk(md, target_size = 40, target_overlap = 0)
-#' markdown_chunk(md, target_size = 400, segment_by_heading_levels = c(1, 2))
+#' markdown_chunk(md, target_size = NA, segment_by_heading_levels = c(1, 2))
 #' markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 markdown_chunk <- function(
   md,
@@ -80,7 +80,7 @@ markdown_chunk <- function(
   target_overlap = .5,
   ...,
   max_snap_dist = target_size * (1 - target_overlap) / 3,
-  headings = TRUE,
+  context = TRUE,
   segment_by_heading_levels = integer(),
   text = TRUE
 ) {
@@ -188,8 +188,8 @@ markdown_chunk <- function(
 
   check_uncovered_gaps(chunks, md_len)
 
-  if (headings) {
-    chunks$headings <-
+  if (context) {
+    chunks$context <-
       markdown_position_headings(md, chunks$start, md_headings) |>
       map_chr(\(h) {
         stri_flatten(h$text, "\n", na_empty = TRUE, omit_empty = TRUE)
