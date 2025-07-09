@@ -401,6 +401,8 @@ ragnar_find_links <- function(
 
   deque <- reticulate::import("collections")$deque()
   visited <- reticulate::import_builtins()$set()
+  resolved <- reticulate::dict()
+  collected <- reticulate::import_builtins()$set()
   problems <- list()
 
   deque$append(list(url = xml_url2(x), depth = 0))
@@ -426,9 +428,14 @@ ragnar_find_links <- function(
         }
 
         visited$add(item$url)
-
         links <- tryCatch(
-          html_find_links(item$url),
+          {
+            page <- read_html2(item$url)
+            resolved_url <- xml_url2(page) # maybe redirected
+            resolved[item$url] <- resolved_url
+            html_find_links(page)
+          },
+
           error = function(e) {
             # if there's an issue finding child links we log it into the `problems` table
             # which is included in the output as an attribute.
@@ -436,6 +443,7 @@ ragnar_find_links <- function(
               link = item$url,
               problem = conditionMessage(e)
             )
+            resolved[item$url] <- ""
             character(0)
           }
         )
@@ -452,7 +460,7 @@ ragnar_find_links <- function(
           }
         }
 
-        visited$update(as.list(links))
+        collected$update(as.list(links))
       }
     },
     interrupt = function(e) {
@@ -462,6 +470,12 @@ ragnar_find_links <- function(
   if (progress) {
     cli::cli_progress_update(force = TRUE)
   }
+
+  out <- visited$union(collected)
+  get_resolved <- reticulate::py_to_r(resolved$get)
+  out <- reticulate::iterate(out, \(x) get_resolved(x) %||% x)
+  out <- out[nzchar(out)]
+  out <- unique(sort(url_filter_fn(out)))
 
   if (length(problems)) {
     cli::cli_warn(
