@@ -51,10 +51,8 @@
 
 
 <dt id="arg-chunks">chunks<a class="anchor" aria-label="anchor" href="#arg-chunks"></a></dt>
-<dd><p>a character vector or a dataframe with a <code>text</code> column, and
-optionally, a pre-computed <code>embedding</code> matrix column. If <code>embedding</code> is not
-present, then <code>store@embed()</code> is used. <code>chunks</code> can also be a character
-vector.</p></dd>
+<dd><p>Content to update. The precise input structure depends on
+<code>store@version</code>. See Details.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -63,29 +61,16 @@ vector.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-
-<div class="section">
-<h3 id="store-version-">Store Version 2:<a class="anchor" aria-label="anchor" href="#store-version-"></a></h3>
-
-
-<p>chunks must be a data frame containing columns:</p><ul><li><p>origin: character, the source of the document (e.g., a url or file path). This is used as a unique key for documents in the store</p></li>
-<li><p>document: character, the full document</p></li>
-<li><p>start: integer, the character index of the chunk</p></li>
-<li><p>end: integer, the character index of the chunk</p></li>
-<li><p>headings: character, the markdown headings in scope at <code>start</code>. This is used to assemble the context.</p></li>
-</ul></div>
-
-<div class="section">
-<h3 id="store-version--1">Store Version 1:<a class="anchor" aria-label="anchor" href="#store-version--1"></a></h3>
-
-
-<p><code>chunks</code> must be a data frame containing <code>origin</code> and <code>hash</code> columns.
-We first filter out chunks for which <code>origin</code> and <code>hash</code> are already in the store.
-If an <code>origin</code> is in the store, but with a different <code>hash</code>, we all of its chunks
-with the new chunks. Otherwise, a regular insert is performed.</p>
-<p>This can help spending less time computing embeddings for chunks that are already in the store.</p>
-</div>
-
+    <p><strong>Store Version 2</strong></p>
+<p><code>chunks</code> must be <code>MarkdownDocumentChunks</code> object.</p>
+<p><strong>Store Version 1</strong></p>
+<p><code>chunks</code> must be a data frame containing <code>origin</code>, <code>hash</code>, and <code>text</code>
+columns. We first filter out chunks for which <code>origin</code> and <code>hash</code> are already
+in the store. If an <code>origin</code> is in the store, but with a different <code>hash</code>, we
+replace all of its chunks with the new chunks. Otherwise, a regular insert is
+performed.</p>
+<p>This can help avoid needing to compute embeddings for chunks that are already
+in the store.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
