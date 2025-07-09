@@ -143,7 +143,7 @@ extra_cols_to_schema <- function(extra_cols) {
   ptype <- vctrs::vec_ptype(extra_cols)
   
   disallowd_cols <- c(
-    "origin", "text", "start", "end", "headings", "embedding"
+    "origin", "text", "start", "end", "context", "embedding"
   )
 
   if (any(names(ptype) %in% disallowd_cols)) {
