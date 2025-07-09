@@ -352,13 +352,7 @@ ragnar_store_build_index_v1 <- function(store, type = c("vss", "fts")) {
   if ("vss" %in% type && !is.null(store@embed)) {
     # MotherDuck currently does not support VSS embedding, so we'll skip building
     # the VSS index with a warning.
-    # First detect we're in motherduck
-    loaded <- DBI::dbGetQuery(
-      store@con,
-      "SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name='motherduck' and loaded=TRUE"
-    )
-    loaded <- nrow(loaded) > 0
-    if (loaded) {
+    if (is_motherduck_con(store@con)) {
       warning("MotherDuck does not support building VSS index. Skipping.")
     } else {
       # TODO: duckdb has support for three different distance metrics that can be
@@ -389,4 +383,12 @@ ragnar_store_build_index_v1 <- function(store, type = c("vss", "fts")) {
   }
 
   invisible(store)
+}
+
+is_motherduck_con <- function(con) {
+  loaded <- DBI::dbGetQuery(
+    con,
+    "SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name='motherduck' and loaded=TRUE"
+  )
+  nrow(loaded) > 0
 }

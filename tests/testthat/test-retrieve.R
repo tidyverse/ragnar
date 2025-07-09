@@ -79,6 +79,7 @@ test_that("retrieving works as expected", {
   # in the store
   ret <- ragnar_retrieve_vss(store, "hello", top_k = 100)
   expect_equal(nrow(ret), 3)
+  expect_equal(order(ret$metric_value, decreasing = FALSE), seq_len(nrow(ret)))
 
   # Can retrieve with bm25
   ret <- ragnar_retrieve_bm25(store, "foo")
@@ -90,6 +91,7 @@ test_that("retrieving works as expected", {
   expect_true(all(
     setdiff(names(store@schema), "embedding") %in% names(ret)
   ))
+  expect_equal(order(ret$metric_value, decreasing = TRUE), seq_len(nrow(ret)))
 
   # Can retrieve using the combined method
   ret <- ragnar_retrieve_vss_and_bm25(store, "foo")

@@ -17,12 +17,16 @@ ragnar_store_create_v2 <- function(
   stopifnot(grepl("^[a-zA-Z0-9_-]+$", name))
   check_string(title, allow_null = TRUE)
 
-  con <- dbConnect(
-    duckdb::duckdb(),
-    dbdir = location,
-    array = "matrix",
-    overwrite = overwrite
-  )
+  con <- if (is_motherduck_location(location)) {
+    motherduck_connection(location, create = TRUE, overwrite)
+  } else {
+    dbConnect(
+      duckdb::duckdb(),
+      dbdir = location,
+      array = "matrix",
+      overwrite = overwrite
+    )
+  }
 
   if (is.null(embed)) {
     embedding_size <- NULL
@@ -141,9 +145,14 @@ ragnar_store_create_v2 <- function(
 
 extra_cols_to_schema <- function(extra_cols) {
   ptype <- vctrs::vec_ptype(extra_cols)
-  
+
   disallowd_cols <- c(
-    "origin", "text", "start", "end", "context", "embedding"
+    "origin",
+    "text",
+    "start",
+    "end",
+    "context",
+    "embedding"
   )
 
   if (any(names(ptype) %in% disallowd_cols)) {
@@ -196,21 +205,25 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
     # in the R interface. https://duckdb.org/docs/stable/core_extensions/vss#usage
 
     # TODO: expose way to select vss index metric types in api
-    dbExecute(con, "INSTALL vss; LOAD vss;")
-    dbExecute(
-      con,
-      r"--(
-      SET hnsw_enable_experimental_persistence = true;
+    if (is_motherduck_con(store@con)) {
+      warning("MotherDuck does not support VSS index, skipping.")
+    } else {
+      dbExecute(con, "INSTALL vss; LOAD vss;")
+      dbExecute(
+        con,
+        r"--(
+        SET hnsw_enable_experimental_persistence = true;
 
-      DROP INDEX IF EXISTS store_hnsw_cosine_index;
-      DROP INDEX IF EXISTS store_hnsw_l2sq_index;
-      DROP INDEX IF EXISTS store_hnsw_ip_index;
+        DROP INDEX IF EXISTS store_hnsw_cosine_index;
+        DROP INDEX IF EXISTS store_hnsw_l2sq_index;
+        DROP INDEX IF EXISTS store_hnsw_ip_index;
 
-      CREATE INDEX store_hnsw_cosine_index ON embeddings USING HNSW (embedding) WITH (metric = 'cosine');
-      CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq'); -- array_distance?
-      CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');  -- array_dot_product
-      )--"
-    )
+        CREATE INDEX store_hnsw_cosine_index ON embeddings USING HNSW (embedding) WITH (metric = 'cosine');
+        CREATE INDEX store_hnsw_l2sq_index   ON embeddings USING HNSW (embedding) WITH (metric = 'l2sq'); -- array_distance?
+        CREATE INDEX store_hnsw_ip_index     ON embeddings USING HNSW (embedding) WITH (metric = 'ip');  -- array_dot_product
+        )--"
+      )
+    }
   }
 
   if ("fts" %in% type) {
@@ -268,16 +281,15 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   con <- store@con
 
-  existing <- dbGetQuery(
-    con,
-    r"(SELECT start, "end", context, text FROM chunks WHERE origin = ?)",
-    params = list(chunks@document@origin)
-  )
+  existing <- tbl(con, "chunks") |>
+    filter(origin == !!chunks@document@origin) |>
+    select(start, end, context, text, !!!names(store@schema)) |>
+    collect()
 
   new_chunks <- anti_join(
     chunks,
     existing,
-    by = join_by(start, end, context, text)
+    by = join_by(start, end, context, text, !!!names(store@schema))
   )
   if (!nrow(new_chunks)) {
     return(invisible(store))
