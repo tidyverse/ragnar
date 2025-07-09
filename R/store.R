@@ -1,26 +1,31 @@
 #' Create and connect to a vector store
 #'
+#' @details
+#'
 #' ## Store versions
-#'
-#' ###  **Version 1 – flat chunks**
-#'
-#' With `version = 1`, ragnar keeps every chunk in a single table. This lets you
-#' easily modify chunk text before insertion. However, dynamic rechunking
-#' (de-overlapping) or extracting arbritrary ranges from source documents is
-#' **not** supported. Additionally, if you intend to call
-#' `ragnar_store_update()`, it is your responsibility to provide
-#' `rlang::hash(original_full_document)` for each chunk. The easiest way to
-#' prepare `chunks` for `version = 1` is with `ragnar_read()` and
-#' `ragnar_chunk()`.
 #'
 #' **Version 2 – documents with chunk ranges** (default)
 #'
-#' With `version = 2`, ragnar stores each document once and records the start and
-#' end positions of its chunks. This supports overlapping chunk ranges,
-#' de-overlapping at retrieval, and generally retrieving arbitrary ranges from
-#' source documents, but does not support modifying chunks directly before
-#' insertion. The easiest way to prepare `chunks` for `version = 2` is with
+#' With `version = 2`, ragnar stores each document once and records the start
+#' and end positions of its chunks. This provides strong support for overlapping
+#' chunk ranges with de-overlapping at retrieval, and generally allows
+#' retrieving arbitrary ranges from source documents, but does not support
+#' modifying chunks directly before insertion. Chunks can be augmented via the
+#' `context` field and with additional fields passed to `extra_cols`. The
+#' easiest way to prepare `chunks` for `version = 2` is with
 #' `read_as_markdown()` and `markdown_chunk()`.
+#'
+#' **Version 1 – flat chunks**
+#'
+#' With `version = 1`, ragnar keeps all chunks in a single table. This lets you
+#' easily modify chunk text before insertion. However, dynamic rechunking
+#' (de-overlapping) or extracting arbitrary ranges from source documents is not
+#' supported, since the original full documents are no longer available. Chunks
+#' can be augmented by modifying the chunk text directly (e.g., with `glue()`).
+#' Additionally, if you intend to call `ragnar_store_update()`, it is your
+#' responsibility to provide `rlang::hash(original_full_document)` with each
+#' chunk. The easiest way to prepare `chunks` for `version = 1` is with
+#' `ragnar_read()` and `ragnar_chunk()`.
 #'
 #' @param location filepath, or `:memory:`. Location can also be a database name
 #'   specified with `md:dbname`, in this case the database will be created in
@@ -82,9 +87,9 @@
 ragnar_store_create <- function(
   location = ":memory:",
   embed = embed_ollama(),
+  ...,
   embedding_size = ncol(embed("foo")),
   overwrite = FALSE,
-  ...,
   extra_cols = NULL,
   name = NULL,
   title = NULL,

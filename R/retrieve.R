@@ -541,7 +541,7 @@ ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
 #'
 #' @export
 chunks_deoverlap <- function(store, chunks) {
-  if (store@version < 2) {
+  if (store@version < 2L) {
     stop("chunks_deoverlap() only supported with store@verion == 2")
   }
   deoverlapped <- chunks |>
@@ -557,7 +557,10 @@ chunks_deoverlap <- function(store, chunks) {
       start = first(start),
       end = last(end),
       context = first(context),
-      across(-all_of(origin, start, end, context), \(x) list(unlist(x)))
+      across(
+        -all_of(c("origin", "start", "end", "context")),
+        \(x) list(unlist(x))
+      )
     ) |>
     select(-overlap_grp)
 
@@ -596,6 +599,7 @@ utils::globalVariables(c(
   "origin",
   "overlap_grp",
   "id",
+  "context",
   "metric_value",
   "array_slice",
   "embedding"

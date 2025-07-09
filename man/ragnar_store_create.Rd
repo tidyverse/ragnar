@@ -8,9 +8,9 @@
 ragnar_store_create(
   location = ":memory:",
   embed = embed_ollama(),
+  ...,
   embedding_size = ncol(embed("foo")),
   overwrite = FALSE,
-  ...,
   extra_cols = NULL,
   name = NULL,
   title = NULL,
@@ -33,11 +33,11 @@ you can optionally supply a \code{carrier::crate()} with packaged data. It can
 also be \code{NULL} for stores that don't need to embed their texts, for
 example, if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}}.}
 
+\item{...}{unused; must be empty.}
+
 \item{embedding_size}{integer}
 
 \item{overwrite}{logical, what to do if \code{location} already exists}
-
-\item{...}{unused; must be empty.}
 
 \item{extra_cols}{A zero row data frame used to specify additional columns
 that should be added to the store. Such columns can be used for adding
@@ -60,29 +60,33 @@ modify the store.}
 a \code{DuckDBRagnarStore} object
 }
 \description{
-\subsection{Store versions}{
-}
+Create and connect to a vector store
 }
 \details{
-\subsection{\strong{Version 1 – flat chunks}}{
-
-With \code{version = 1}, ragnar keeps every chunk in a single table. This lets you
-easily modify chunk text before insertion. However, dynamic rechunking
-(de-overlapping) or extracting arbritrary ranges from source documents is
-\strong{not} supported. Additionally, if you intend to call
-\code{ragnar_store_update()}, it is your responsibility to provide
-\code{rlang::hash(original_full_document)} for each chunk. The easiest way to
-prepare \code{chunks} for \code{version = 1} is with \code{ragnar_read()} and
-\code{ragnar_chunk()}.
+\subsection{Store versions}{
 
 \strong{Version 2 – documents with chunk ranges} (default)
 
-With \code{version = 2}, ragnar stores each document once and records the start and
-end positions of its chunks. This supports overlapping chunk ranges,
-de-overlapping at retrieval, and generally retrieving arbitrary ranges from
-source documents, but does not support modifying chunks directly before
-insertion. The easiest way to prepare \code{chunks} for \code{version = 2} is with
+With \code{version = 2}, ragnar stores each document once and records the start
+and end positions of its chunks. This provides strong support for overlapping
+chunk ranges with de-overlapping at retrieval, and generally allows
+retrieving arbitrary ranges from source documents, but does not support
+modifying chunks directly before insertion. Chunks can be augmented via the
+\code{context} field and with additional fields passed to \code{extra_cols}. The
+easiest way to prepare \code{chunks} for \code{version = 2} is with
 \code{read_as_markdown()} and \code{markdown_chunk()}.
+
+\strong{Version 1 – flat chunks}
+
+With \code{version = 1}, ragnar keeps all chunks in a single table. This lets you
+easily modify chunk text before insertion. However, dynamic rechunking
+(de-overlapping) or extracting arbitrary ranges from source documents is not
+supported, since the original full documents are no longer available. Chunks
+can be augmented by modifying the chunk text directly (e.g., with \code{glue()}).
+Additionally, if you intend to call \code{ragnar_store_update()}, it is your
+responsibility to provide \code{rlang::hash(original_full_document)} with each
+chunk. The easiest way to prepare \code{chunks} for \code{version = 1} is with
+\code{ragnar_read()} and \code{ragnar_chunk()}.
 }
 }
 \examples{
