@@ -436,8 +436,12 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   check_string(text)
   check_number_whole(top_k)
 
-  vss <- ragnar_retrieve_vss(store, text, top_k, ...)
-  vss[["embedding"]] <- NULL
+  if (!is.null(store@embed)) {
+    vss <- ragnar_retrieve_vss(store, text, top_k, ...)
+    vss[["embedding"]] <- NULL
+  } else {
+    vss <- NULL
+  }
 
   bm25 <- ragnar_retrieve_bm25(store, text, top_k, ...)
 
@@ -502,8 +506,7 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' @export
 ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
   chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k, ...)
-  !S7_inherits(store, RagnarStore)
-  {
+  if (!S7_inherits(store, RagnarStore)) {
     # back-compat with tbl() supplied for store
     return(chunks)
   }
@@ -558,7 +561,7 @@ chunks_deoverlap <- function(store, chunks) {
       end = last(end),
       context = first(context),
       across(
-        -all_of(c("origin", "start", "end", "context")),
+        -all_of(c("start", "end", "context", "text")),
         \(x) list(unlist(x))
       )
     ) |>

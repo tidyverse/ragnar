@@ -26,8 +26,7 @@ prefix) and collect links from those pages as well.}
 page. Note that regardless of this setting, only child links are followed
 when \code{depth > 0}.}
 
-\item{progress}{Logical, draw a progress bar if \code{depth > 0}. A separate
-progress bar is drawn per recursion level.}
+\item{progress}{Logical, draw a progress bar if \code{depth > 0}.}
 
 \item{...}{Currently unused. Must be empty.}
 
