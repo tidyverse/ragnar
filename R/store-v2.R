@@ -86,19 +86,21 @@ ragnar_store_create_v2 <- function(
     glue(
       r"--(
       CREATE SEQUENCE chunk_id_seq START 1; -- need a unique id for fts
+      CREATE SEQUENCE doc_id_seq START 1; 
 
       CREATE OR REPLACE TABLE documents (
-        origin VARCHAR NOT NULL PRIMARY KEY, -- default  hash(text)??
+        doc_id INTEGER PRIMARY KEY DEFAULT nextval('doc_id_seq'),
+        origin VARCHAR UNIQUE, 
         text VARCHAR
       );
 
       CREATE OR REPLACE TABLE embeddings (
-        origin VARCHAR NOT NULL,
-        FOREIGN KEY (origin) REFERENCES documents (origin),
+        doc_id INTEGER NOT NULL,
+        FOREIGN KEY (doc_id) REFERENCES documents (doc_id),
         chunk_id INTEGER DEFAULT nextval('chunk_id_seq'),
         start INTEGER,
         "end" INTEGER,
-        PRIMARY KEY (origin, start, "end"),
+        PRIMARY KEY (doc_id, start, "end"),
         context VARCHAR,
         {extra_cols}
         {embedding}
@@ -106,6 +108,7 @@ ragnar_store_create_v2 <- function(
 
       CREATE OR REPLACE VIEW chunks AS (
         SELECT
+          d.origin as origin,
           e.*,
           d.text[ e.start : e."end" ] as text
         FROM
@@ -113,7 +116,7 @@ ragnar_store_create_v2 <- function(
         JOIN
           embeddings e
         USING
-          (origin)
+          (doc_id)
       );
     )--"
     )
@@ -271,6 +274,11 @@ ragnar_store_update_v2 <- function(store, chunks) {
     S7_inherits(chunks, MarkdownDocumentChunks)
   )
 
+  # Chunks are not refering to any document, or the document doesn't have an origin.
+  if (is.null(chunks@document) || is.na(chunks@document@origin)) {
+    return(ragnar_store_insert(store, chunks))
+  }
+
   if ("text" %in% names(chunks)) {
     if (with(chunks, !identical(text, stri_sub(chunks@document, start, end)))) {
       stop("modifying chunks$text is not supported with store@version == 2")
@@ -282,13 +290,13 @@ ragnar_store_update_v2 <- function(store, chunks) {
   con <- store@con
 
   join_cols <- store@schema |> 
-    select(-origin, -embedding) |> 
+    select(-doc_id, -embedding) |> 
     names() |> 
     c("text")
 
   existing <- tbl(con, "chunks") |>
     filter(origin == !!chunks@document@origin) |>
-    select(dplyr::all_of(join_cols)) |>
+    select(doc_id, dplyr::all_of(join_cols)) |>
     collect()
 
   new_chunks <- anti_join(
@@ -296,33 +304,52 @@ ragnar_store_update_v2 <- function(store, chunks) {
     existing,
     by = join_by(!!!join_cols)
   )
+
   if (!nrow(new_chunks)) {
     return(invisible(store))
   }
 
-  documents <- tibble(origin = chunks@document@origin, text = chunks@document)
+  documents <- tibble(
+    origin = chunks@document@origin, 
+    text = as.character(chunks@document)
+  )
+
   embeddings <- chunks |>
     mutate(
-      origin = chunks@document@origin,
       embedding = store@embed(stri_c(context, "\n", text)),
       text = NULL
     ) |>
     select(any_of(dbListFields(con, "embeddings"))) |> 
     vctrs::vec_cast(store@schema)
-  local_duckdb_register(con, "documents_to_upsert", documents)
-
+  
   dbWithTransaction2(con, {
+
+    doc_id <- unique(existing$doc_id)
+
+    if (length(doc_id)) {
+      dbExecute(
+        con,
+        "DELETE FROM embeddings WHERE doc_id = ?;",
+        params = list(doc_id)
+      )
+    }
+    
+    if (!length(doc_id)) {
+      doc_id <- DBI::dbGetQuery(con, "SELECT nextval('doc_id_seq') as x;")$x
+    }
+
+    documents$doc_id <- doc_id
+    embeddings$doc_id <- doc_id
+
+    local_duckdb_register(con, "documents_to_upsert", documents)
     dbExecute(
       con,
       "
-      INSERT OR REPLACE INTO documents BY NAME
-      SELECT origin, text FROM documents_to_upsert;
+      INSERT INTO documents
+      SELECT doc_id, origin, text FROM documents_to_upsert
+      ON CONFLICT(doc_id) DO UPDATE SET
+        text = excluded.text;
       "
-    )
-    dbExecute(
-      con,
-      "DELETE FROM embeddings WHERE origin = ?;",
-      params = list(chunks@document@origin)
     )
     dbAppendTable(con, "embeddings", embeddings)
   })
@@ -367,12 +394,15 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
 
   embeddings <- chunks |>
     select(any_of(dbListFields(con, "embeddings"))) |>
-    mutate(origin = chunks@document@origin) |> 
     vctrs::vec_cast(store@schema)
 
   # TODO: rename embeddings -> chunks_info?
 
   dbWithTransaction2(con, {
+    doc_id <- dbGetQuery(con, "SELECT nextval('doc_id_seq') as x;")$x
+    documents$doc_id <- doc_id
+    embeddings$doc_id <- doc_id
+
     dbAppendTable(con, "documents", documents)
     dbAppendTable(con, "embeddings", embeddings)
   })
