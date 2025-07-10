@@ -118,26 +118,10 @@ ragnar_store_create_v1 <- function(
 
   # duckdb R interface does not support array columns yet,
   # so we hand-write the sql.
-  columns <- map2(names(schema), schema, function(nm, type) {
-    # TODO add support for more data types!
-    dbtype <- if (is.character(type)) {
-      "VARCHAR"
-    } else if (is.matrix(type) && is.integer(type)) {
-      glue::glue("INTEGER[{ncol(type)}]")
-    } else if (is.matrix(type) && is.double(type)) {
-      glue::glue("FLOAT[{ncol(type)}]")
-    } else if (is.integer(type)) {
-      "INTEGER"
-    } else if (is.double(type)) {
-      "FLOAT"
-    } else {
-      cli::cli_abort(
-        "Unexpected type for column {.val {nm}}: {.cls {class(type)}} / {.cls {typeof(type)}}"
-      )
-    }
-    nm <- DBI::dbQuoteIdentifier(con, nm)
-    glue("{nm} {dbtype}")
-  })
+  columns <- stri_c(
+    paste(DBI::dbQuoteIdentifier(con, names(schema)), dbDataType2(con, schema)),
+    collapse = ", "
+  )
 
   dbExecute(
     con,
@@ -146,7 +130,7 @@ ragnar_store_create_v1 <- function(
     CREATE SEQUENCE id_sequence START 1;
     CREATE TABLE chunks (
       id INTEGER DEFAULT nextval('id_sequence'),
-      {stri_c(columns, collapse = ',')}
+      {columns}
     )"
     )
   )
@@ -307,42 +291,15 @@ ragnar_store_insert_v1 <- function(store, chunks) {
     ))
   }
 
-  # Ideally this would use dbWriteTable, but we can't really because it currently
-  # doesn't support array columns.
-  cols <- imap(schema, function(ptype, name) {
-    # Ensures that the column in chunks has the expected ptype. (or at least
-    # something that can be cast to the correct ptype with no loss)
-    col <- vctrs::vec_cast(
-      chunks[[name]],
-      ptype,
-      x_arg = glue::glue("chunks${name}")
-    )
+  chunks <- chunks |> 
+    dplyr::select(dplyr::any_of(names(schema))) |> 
+    vctrs::vec_cast(store@schema)
 
-    if (is.matrix(col) && is.numeric(col)) {
-      stri_c(
-        "array_value(",
-        col |> asplit(1) |> map_chr(stri_flatten, ", "),
-        ")"
-      )
-    } else if (is.character(col)) {
-      DBI::dbQuoteString(store@con, col)
-    } else if (is.numeric(col)) {
-      DBI::dbQuoteLiteral(store@con, col)
-    } else {
-      cli::cli_abort("Unsupported type {.cls {class(col)}}")
-    }
-  })
-
-  rows <- stri_c("(", do.call(\(...) stri_c(..., sep = ","), cols), ")")
-  rows <- stri_c(rows, collapse = ",\n")
-
-  insert_statement <- sprintf(
-    "INSERT INTO chunks (%s) VALUES \n%s;",
-    stri_c(DBI::dbQuoteIdentifier(store@con, names(schema)), collapse = ", "),
-    rows
+  dbAppendTable(
+    store@con,
+    "chunks",
+    chunks
   )
-
-  dbExecute(store@con, insert_statement)
 
   invisible(store)
 }
@@ -399,4 +356,18 @@ is_motherduck_con <- function(con) {
     "SELECT extension_name, loaded FROM duckdb_extensions() WHERE extension_name='motherduck' and loaded=TRUE"
   )
   nrow(loaded) > 0
+}
+
+dbDataType2 <- function(con, x) {
+  dataTypes <- DBI::dbDataType(con, x)
+  for (nm in names(x)) {
+    if (nm == "embedding") {
+      # The embedding column must be FLOAT not DOUBLE as inferred
+      # by default.
+      dataTypes[nm] <- paste0("FLOAT[", ncol(x[[nm]]), "]")
+    } else if (is.matrix(x[[nm]])) {
+      dataTypes[i] <- paste0(dataTypes[i], "[", ncol(x[[i]]), "]")
+    }
+  }
+  dataTypes
 }
