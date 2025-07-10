@@ -255,6 +255,9 @@ ragnar_store_insert_v1 <- function(store, chunks) {
       chunks$origin <- chunks@document@origin
       chunks$hash <- rlang::hash(as.character(chunks@document))
     }
+    # unclass to avoid possible unwanted interactions between
+    # the S7 class and DBI
+    chunks <- as_bare_df(chunks)
   }
 
   if (is.null(chunks[["origin"]])) {
