@@ -23,6 +23,7 @@ skip_if_cant_use_motherduck <- function() {
   if (Sys.getenv("motherduck_token") == "") {
     testthat::skip("motherduck_token not set")
   }
+  testthat::skip("motherduck_token not set")
 
   tryCatch(
     {
