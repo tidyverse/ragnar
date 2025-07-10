@@ -113,7 +113,7 @@ test_that("update + extra cols", {
 })
 
 test_that("works with MotherDuck", {
-  testthat::skip_if(Sys.getenv("motherduck_token", "") == "")
+  skip_if_cant_use_motherduck()
 
   store <- ragnar_store_create(
     "md:ragnartest",

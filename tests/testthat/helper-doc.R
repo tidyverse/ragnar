@@ -20,3 +20,23 @@ maybe_set_threads <- function(store) {
 }
 
 as_bare_df <- function(x) as.data.frame(as.list(x))
+
+skip_if_cant_use_motherduck <- function() {
+  if (Sys.getenv("motherduck_token") == "") {
+    testthat::skip("motherduck_token not set")
+  }
+
+  tryCatch(
+    {
+      con <- DBI::dbConnect(duckdb::duckdb(), array = "matrix")
+      DBI::dbExecute(con, "INSTALL 'motherduck'")
+      DBI::dbExecute(con, "LOAD 'motherduck'")
+      DBI::dbExecute(con, "ATTACH 'md:'")
+    },
+    error = function(e) {
+      if (grepl("Please use DuckDB v", e$message, fixed = TRUE)) {
+        testthat::skip("DuckDB version not supported by MotherDuck")
+      }
+    }
+  )
+}
