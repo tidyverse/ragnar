@@ -255,7 +255,7 @@ ragnar_store_insert_v1 <- function(store, chunks) {
       dplyr::select(dplyr::any_of(names(store@schema)))
     if (is.null(chunks[["origin"]])) {
       chunks$origin <- chunks@document@origin
-      chunks$hash <- rlang::hash(as.character(doc))
+      chunks$hash <- rlang::hash(as.character(chunks@document))
     }
   }
 
