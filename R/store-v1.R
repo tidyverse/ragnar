@@ -118,7 +118,7 @@ ragnar_store_create_v1 <- function(
 
   columns <- stri_c(
     paste(DBI::dbQuoteIdentifier(con, names(schema)), dbDataType2(con, schema)),
-    collapse = ", "
+    collapse = ",\n  "
   )
 
   dbExecute(
