@@ -65,7 +65,7 @@
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p><code>ragnar</code> is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each steps. We don’t believe that you can fully automate the creation of a good RAG system, so it’s important that <code>ragnar</code> is not a black box. <code>ragnar</code> is designed to be transparent. You can inspect easily outputs at intermediate steps to understand what’s happening.</p>
+<p><code>ragnar</code> is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each step. We don’t believe that you can fully automate the creation of a good RAG system, so it’s important that <code>ragnar</code> is not a black box. <code>ragnar</code> is designed to be transparent. You can easily inspect outputs at intermediate steps to understand what’s happening.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -83,7 +83,7 @@
 <p>Key functions:</p>
 <ul>
 <li>
-<code>read_as_markdown</code>: Convert a file or URL to markdown</li>
+<code><a href="reference/read_as_markdown.html">read_as_markdown()</a></code>: Convert a file or URL to markdown</li>
 <li>
 <code><a href="reference/ragnar_find_links.html">ragnar_find_links()</a></code>: Find all links in a webpage</li>
 </ul>
@@ -91,7 +91,7 @@
 <div class="section level3">
 <h3 id="id_2-text-chunking">2. Text Chunking<a class="anchor" aria-label="anchor" href="#id_2-text-chunking"></a>
 </h3>
-<p>Next we divide each document into chunks. Ragnar defaults to a strategy that preserves some of the semantics of the document, but provide plenty of opportunities to tweak the approach.</p>
+<p>Next we divide each document into chunks. Ragnar defaults to a strategy that preserves some of the semantics of the document, but provides plenty of opportunities to tweak the approach.</p>
 <p>Key functions:</p>
 <ul>
 <li>
@@ -116,7 +116,7 @@
 <li><code><a href="reference/embed_databricks.html">embed_databricks()</a></code></li>
 <li><code><a href="reference/embed_google_vertex.html">embed_google_vertex()</a></code></li>
 </ul>
-<p>Note that calling the embedding function directly is typically not necessary. Instead, the embedding function is specified when a store is first created, and then automatically called when needed by <code>ragnar_retreive()</code> and <code><a href="reference/ragnar_store_insert.html">ragnar_store_insert()</a></code>.</p>
+<p>Note that calling the embedding function directly is typically not necessary. Instead, the embedding function is specified when a store is first created, and then automatically called when needed by <code><a href="reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> and <code><a href="reference/ragnar_store_insert.html">ragnar_store_insert()</a></code>.</p>
 </div>
 <div class="section level3">
 <h3 id="id_5-storage">5. Storage<a class="anchor" aria-label="anchor" href="#id_5-storage"></a>
@@ -135,7 +135,8 @@
 <p>Given a prompt, retrieve related chunks based on embedding distance or bm25 text search.</p>
 <p>Key functions:</p>
 <ul>
-<li><code><a href="reference/ragnar_retrieve.html">ragnar_retrieve()</a></code></li>
+<li>
+<code><a href="reference/ragnar_retrieve.html">ragnar_retrieve()</a></code>: high-level function that performs both <code>vss</code> and <code>bm25</code> search and de-overlaps retrieved results.</li>
 <li>
 <code><a href="reference/ragnar_retrieve_vss.html">ragnar_retrieve_vss()</a></code>: Retrieve using <a href="https://duckdb.org/docs/stable/core_extensions/vss" class="external-link"><code>vss</code> DuckDB extension</a>
 </li>
@@ -149,7 +150,7 @@
 <div class="section level3">
 <h3 id="id_7-chat-augmentation">7. Chat Augmentation<a class="anchor" aria-label="anchor" href="#id_7-chat-augmentation"></a>
 </h3>
-<p><code>ragnar</code> can equip an <code><a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a></code> object with a retrieve tool that enables an LLM to retreive content from a store on-demand.</p>
+<p><code>ragnar</code> can equip an <code><a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a></code> object with a retrieve tool that enables an LLM to retrieve content from a store on-demand.</p>
 <ul>
 <li>
 <code>ragnar_register_tool_retrieve(chat, store)</code>.</li>
@@ -165,7 +166,6 @@
 <span></span>
 <span><span class="va">base_url</span> <span class="op">&lt;-</span> <span class="st">"https://r4ds.hadley.nz"</span></span>
 <span><span class="va">pages</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_find_links.html">ragnar_find_links</a></span><span class="op">(</span><span class="va">base_url</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ⠙ Finding links: 38 | On queue: 0 | Current depth: 0 | [0s]</span></span>
 <span></span>
 <span><span class="va">store_location</span> <span class="op">&lt;-</span> <span class="st">"r4ds.ragnar.duckdb"</span></span>
 <span></span>
@@ -234,84 +234,67 @@
 <span><span class="co">#' Once the store is set up, retrieve the most relevant text chunks like this</span></span>
 <span></span>
 <span><span class="op">(</span><span class="va">relevant_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 6</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt;   origin                                  id        start   end headings   text </span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                                   &lt;list&gt;    &lt;int&gt; &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 1 https://r4ds.hadley.nz/functions.html   &lt;int [1]&gt;  2203  4021 "# 25  Fu… "```…</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 2 https://r4ds.hadley.nz/logicals.html    &lt;int [2]&gt;  1623  4210 "# 12  Lo… "```…</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 3 https://r4ds.hadley.nz/logicals.html    &lt;int [1]&gt; 19413 20827 "# 12  Lo… "Tha…</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 4 https://r4ds.hadley.nz/regexps.html     &lt;int [1]&gt; 24602 26543 "# 15  Re… "```…</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 5 https://r4ds.hadley.nz/webscraping.html &lt;int [1]&gt; 13433 15289 "# 24  We… "###…</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 8</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt;   origin                   id    start   end cosine_distance bm25  context text </span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                    &lt;lis&gt; &lt;int&gt; &lt;int&gt; &lt;list&gt;          &lt;lis&gt; &lt;chr&gt;   &lt;chr&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 1 https://r4ds.hadley.nz/… &lt;int&gt;  2203  4021 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 25 … "```…</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 2 https://r4ds.hadley.nz/… &lt;int&gt;  1623  4210 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 12 … "```…</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 3 https://r4ds.hadley.nz/… &lt;int&gt; 19413 20827 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 12 … "Tha…</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 4 https://r4ds.hadley.nz/… &lt;int&gt; 24602 26543 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 15 … "```…</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 5 https://r4ds.hadley.nz/… &lt;int&gt; 13433 15289 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 24 … "###…</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co">#'  Register ellmer tool</span></span>
 <span><span class="co">#' You can register an ellmer tool to let the LLM retrieve chunks.</span></span>
 <span><span class="va">system_prompt</span> <span class="op">&lt;-</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html" class="external-link">str_squish</a></span><span class="op">(</span></span>
-<span>  <span class="st">r"--(</span></span>
+<span>  <span class="st">"</span></span>
 <span><span class="st">  You are an expert R programmer and mentor. You are concise.</span></span>
-<span><span class="st">  You always respond by first direct quoting material from book or documentation,</span></span>
-<span><span class="st">  then adding your own additional context and interpertation.</span></span>
-<span><span class="st">  Always include links to the source materials used.</span></span>
-<span><span class="st">  )--"</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  Before responding, retrieve relevant material from the knowledge store. Quote or</span></span>
+<span><span class="st">  paraphrase passages, clearly marking your own words versus the source. Provide a</span></span>
+<span><span class="st">  working link for every source cited, as well as any additional relevant links.</span></span>
+<span><span class="st">  Do not answer unless you have retrieved and cited a source.</span></span>
+<span><span class="st">  "</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span></span>
 <span>  <span class="va">system_prompt</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-4.1"</span>,</span>
-<span>  params <span class="op">=</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/params.html" class="external-link">params</a></span><span class="op">(</span>temperature <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span></span>
+<span>  model <span class="op">=</span> <span class="st">"gpt-4.1"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve</a></span><span class="op">(</span><span class="va">chat</span>, <span class="va">store</span>, top_k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"How can I subset a dataframe?"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ◯ [tool call] rag_retrieve_from_store_001(text = "How can I subset a dataframe</span></span>
-<span><span class="co">#&gt; in R?")</span></span>
-<span><span class="co">#&gt; ● #&gt; [{"origin":"https://r4ds.hadley.nz/arrow.html","id":15,"start":9344,"end"…</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co">#&gt; From R for Data Science (2e):</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; &gt; "Here are a couple of examples:</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; &gt;</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; &gt; ```r</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; &gt; df &lt;- tibble(</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; &gt;   x = 1:3,</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; &gt;   y = c("a", "e", "f"),</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; &gt;   z = runif(3)</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; &gt; )</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; &gt;</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; &gt; # Select first row and second column</span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; &gt; df[1, 2]</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; &gt;</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; &gt; # Select all rows and columns x and y</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; &gt; df[, c("x" , "y")]</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; &gt;</span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; &gt; # Select rows where `x` is greater than 1 and all columns</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; &gt; df[df$x &gt; 1, ]</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; &gt; ```</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; &gt;</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; &gt; Several dplyr verbs are special cases of `[`:  </span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; &gt; - `filter()` is equivalent to subsetting the rows with a logical vector...  </span></span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; &gt; - `select()` is equivalent to subsetting columns by name or position."  </span></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; &gt; ([source](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames))</span></span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; **My interpretation:**  </span></span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; You can subset data frames in R using base R or the tidyverse:</span></span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; - **Base R:**  </span></span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt;   - `df[rows, columns]` where `rows` and `columns` can be numbers, names, or </span></span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; logical vectors.</span></span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt;   - Example: `df[1:5, c("x", "y")]` selects the first 5 rows and columns x and </span></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; y.</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt;   - Logical subsetting: `df[df$x &gt; 1, ]` selects rows where x &gt; 1.</span></span>
-<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt; - **dplyr (tidyverse):**  </span></span>
-<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="co">#&gt;   - Use `filter()` for rows: `df |&gt; filter(x &gt; 1)`</span></span>
-<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="co">#&gt;   - Use `select()` for columns: `df |&gt; select(x, y)`</span></span>
-<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="co">#&gt; See more:  </span></span>
-<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a><span class="co">#&gt; - [R4DS: Subsetting Data </span></span>
-<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a><span class="co">#&gt; Frames](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)</span></span>
-<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="co">#&gt; - [dplyr::filter()](https://dplyr.tidyverse.org/reference/filter.html)</span></span>
-<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a><span class="co">#&gt; - [dplyr::select()](https://dplyr.tidyverse.org/reference/select.html)</span></span></code></pre></div>
+<span><span class="co">#&gt; ◯ [tool call] rag_retrieve_from_store_001(text = "subset dataframe in R")</span></span>
+<span><span class="co">#&gt; ● #&gt; [{"origin":"https://r4ds.hadley.nz/arrow.html","cosine_distance":"NA","bm…</span></span>
+<span><span class="co">#&gt; To subset a dataframe in R, you can use either base R syntax or dplyr </span></span>
+<span><span class="co">#&gt; functions:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; **Base R**</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; - To select rows and columns: `df[rows, cols]`</span></span>
+<span><span class="co">#&gt;     - Example: `df[1:5, c("x", "y")]` selects rows 1–5 and columns x and y.</span></span>
+<span><span class="co">#&gt; - To filter rows by condition: `df[condition, ]`</span></span>
+<span><span class="co">#&gt;     - Example: `df[df$x &gt; 1, ]` keeps rows where x &gt; 1.</span></span>
+<span><span class="co">#&gt; - To select columns only: `df[, c("x", "y")]`</span></span>
+<span><span class="co">#&gt;     - `drop = FALSE` ensures result is always a data frame, not a vector: `df[,</span></span>
+<span><span class="co">#&gt; "x", drop = FALSE]`</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; **dplyr**</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; - To filter rows: `filter(df, condition)`</span></span>
+<span><span class="co">#&gt;     - Example: `filter(df, x &gt; 1)`</span></span>
+<span><span class="co">#&gt; - To select columns: `select(df, x, y)`</span></span>
+<span><span class="co">#&gt; - To chain operations: `df |&gt; filter(x &gt; 1) |&gt; select(y, z)`</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; For more, see R for Data Science, Section 27.2: [Selecting multiple elements </span></span>
+<span><span class="co">#&gt; with [ ]](https://r4ds.hadley.nz/base-R.html#sec-subset-many) and [dplyr </span></span>
+<span><span class="co">#&gt; equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents).</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Summary reference:  </span></span>
+<span><span class="co">#&gt; - https://r4ds.hadley.nz/base-R.html#sec-subset-many  </span></span>
+<span><span class="co">#&gt; - https://dplyr.tidyverse.org/reference/filter.html  </span></span>
+<span><span class="co">#&gt; - https://dplyr.tidyverse.org/reference/select.html</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
