@@ -116,8 +116,6 @@ ragnar_store_create_v1 <- function(
   ptr <- con@conn_ref
   attr(ptr, "embed_function") <- embed
 
-  # duckdb R interface does not support array columns yet,
-  # so we hand-write the sql.
   columns <- stri_c(
     paste(DBI::dbQuoteIdentifier(con, names(schema)), dbDataType2(con, schema)),
     collapse = ", "
