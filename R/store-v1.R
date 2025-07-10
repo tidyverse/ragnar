@@ -135,7 +135,7 @@ ragnar_store_create_v1 <- function(
         "Unexpected type for column {.val {nm}}: {.cls {class(type)}} / {.cls {typeof(type)}}"
       )
     }
-
+    nm <- DBI::dbQuoteIdentifier(con, nm)
     glue("{nm} {dbtype}")
   })
 
@@ -266,11 +266,19 @@ ragnar_store_insert_v1 <- function(store, chunks) {
     return(invisible(store))
   }
 
-  if (is.null(chunks$origin)) {
+  if (S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
+    chunks <- chunks |> 
+      dplyr::select(dplyr::any_of(names(store@schema)))
+    if (is.null(chunks[["origin"]])) {
+      chunks$origin <- chunks@document@origin
+    }
+  }
+
+  if (is.null(chunks[["origin"]])) {
     chunks$origin <- NA_character_
   }
 
-  if (is.null(chunks$hash)) {
+  if (is.null(chunks[["hash"]])) {
     chunks$hash <- vapply(chunks$text, rlang::hash, character(1))
   }
 
@@ -330,7 +338,7 @@ ragnar_store_insert_v1 <- function(store, chunks) {
 
   insert_statement <- sprintf(
     "INSERT INTO chunks (%s) VALUES \n%s;",
-    stri_c(names(schema), collapse = ", "),
+    stri_c(DBI::dbQuoteIdentifier(store@con, names(schema)), collapse = ", "),
     rows
   )
 
