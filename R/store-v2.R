@@ -283,7 +283,8 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   join_cols <- store@schema |> 
     select(-origin, -embedding) |> 
-    names()
+    names() |> 
+    c("text")
 
   existing <- tbl(con, "chunks") |>
     filter(origin == !!chunks@document@origin) |>
