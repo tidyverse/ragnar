@@ -36,7 +36,7 @@ to Markdown.
 
 Key functions:
 
-- `read_as_markdown`: Convert a file or URL to markdown
+- `read_as_markdown()`: Convert a file or URL to markdown
 - `ragnar_find_links()`: Find all links in a webpage
 
 ### 2. Text Chunking
