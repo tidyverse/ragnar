@@ -19,8 +19,6 @@ maybe_set_threads <- function(store) {
   store
 }
 
-as_bare_df <- function(x) as.data.frame(as.list(x))
-
 skip_if_cant_use_motherduck <- function() {
   if (Sys.getenv("motherduck_token") == "") {
     testthat::skip("motherduck_token not set")

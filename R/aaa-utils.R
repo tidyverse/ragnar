@@ -179,6 +179,8 @@ as_bare_list <- function(x, ...) {
   out
 }
 
+as_bare_df <- function(x) as.data.frame(as.list(x))
+
 `:=` <- function(name, value) {
   name <- substitute(name)
   if (!is.symbol(name)) {
