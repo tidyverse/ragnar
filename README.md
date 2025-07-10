@@ -216,7 +216,7 @@ system_prompt <- stringr::str_squish(
 
   Before responding, retrieve relevant material from the knowledge store. Quote or
   paraphrase passages, clearly marking your own words versus the source. Provide a
-  working link for every source cited, along with any other relevant links.
+  working link for every source cited, as well as any additional relevant links.
   Do not answer unless you have retrieved and cited a source.
   "
 )
@@ -228,53 +228,34 @@ chat <- ellmer::chat_openai(
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
-#> ◯ [tool call] rag_retrieve_from_store_001(text = "How to subset a dataframe in
-#> R")
+#> ◯ [tool call] rag_retrieve_from_store_001(text = "subset dataframe in R")
 #> ● #> [{"origin":"https://r4ds.hadley.nz/arrow.html","cosine_distance":"NA","bm…
+#> To subset a dataframe in R, you can use either base R syntax or dplyr 
+#> functions:
+#> 
+#> **Base R**
+#> 
+#> - To select rows and columns: `df[rows, cols]`
+#>     - Example: `df[1:5, c("x", "y")]` selects rows 1–5 and columns x and y.
+#> - To filter rows by condition: `df[condition, ]`
+#>     - Example: `df[df$x > 1, ]` keeps rows where x > 1.
+#> - To select columns only: `df[, c("x", "y")]`
+#>     - `drop = FALSE` ensures result is always a data frame, not a vector: `df[,
+#> "x", drop = FALSE]`
+#> 
+#> **dplyr**
+#> 
+#> - To filter rows: `filter(df, condition)`
+#>     - Example: `filter(df, x > 1)`
+#> - To select columns: `select(df, x, y)`
+#> - To chain operations: `df |> filter(x > 1) |> select(y, z)`
+#> 
+#> For more, see R for Data Science, Section 27.2: [Selecting multiple elements 
+#> with [ ]](https://r4ds.hadley.nz/base-R.html#sec-subset-many) and [dplyr 
+#> equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents).
+#> 
+#> Summary reference:  
+#> - https://r4ds.hadley.nz/base-R.html#sec-subset-many  
+#> - https://dplyr.tidyverse.org/reference/filter.html  
+#> - https://dplyr.tidyverse.org/reference/select.html
 ```
-
-    #> You can subset a dataframe in R in several ways:
-    #> 
-    #> **Base R subsetting:**
-    #> - By row and column indices: 
-    #>   ```r
-    #>   df[1, 2]  # First row, second column
-    #>   ```
-    #> - By column names:
-    #>   ```r
-    #>   df[, c("x", "y")]  # All rows, columns x and y
-    #>   ```
-    #> - Conditional subsetting:
-    #>   ```r
-    #>   df[df$x > 1, ]  # Rows where x > 1, all columns
-    #>   ```
-    #> - To always return a dataframe when subsetting one column, use `drop = FALSE`:
-    #>   ```r
-    #>   df[, "x", drop = FALSE]
-    #>   ```
-    #> - To extract a variable (column) as a vector:
-    #>   ```r
-    #>   df$x  # or df[["x"]]
-    #>   ```
-    #> 
-    #> **Using dplyr:**
-    #> - Filter rows:
-    #>   ```r
-    #>   df |> filter(x > 1)
-    #>   ```
-    #> - Select columns:
-    #>   ```r
-    #>   df |> select(x, y)
-    #>   ```
-    #> 
-    #> See examples and further details in [R4DS Chapter 27.2: Subsetting data 
-    #> frames](https://r4ds.hadley.nz/base-R.html#sec-subset-many).
-    #> 
-    #> For more complex subsetting (including functions for within-pipelines), see:
-    #> - [dplyr::filter()](https://dplyr.tidyverse.org/reference/filter.html)
-    #> - [dplyr::select()](https://dplyr.tidyverse.org/reference/select.html)
-    #> 
-    #> **Summary**: Use `[rows, cols]` for base R, or `filter()` and `select()` with 
-    #> dplyr for a tidyverse approach.  
-    #> Source: [R4DS: A field guide to base 
-    #> R](https://r4ds.hadley.nz/base-R.html#sec-subset-many)
