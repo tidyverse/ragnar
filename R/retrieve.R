@@ -48,7 +48,7 @@ ragnar_retrieve_vss <- function(
   if (inherits(store, "tbl_sql")) {
     warning(
       "Passing a `tbl()` to ragnar_retrieve_vss() is no longer supported ",
-      "and will be removed in a future replease. Instead, pass a `filter` expression directly."
+      "and will be removed in a future release. Instead, pass a `filter` expression directly."
     )
     tbl <- store
     return(ragnar_retrieve_vss_tbl(tbl, query, top_k, method))
@@ -436,15 +436,18 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   check_string(text)
   check_number_whole(top_k)
 
-  vss <- ragnar_retrieve_vss(store, text, top_k, ...)
-  vss[["embedding"]] <- NULL
+  if (is.null(store@embed)) {
+    vss <- NULL
+  } else {
+    vss <- ragnar_retrieve_vss(store, text, top_k, ...)
+    vss[["embedding"]] <- NULL
+  }
 
   bm25 <- ragnar_retrieve_bm25(store, text, top_k, ...)
 
   out <- vctrs::vec_rbind(vss, bm25)
 
-  # maybe reorder cols, id first, text last
-  out <- out[reorder_names("id", names(out), last = "text")]
+  # maybe reorder cols, origin first, context and text last
 
   # pivot to wide format
   out <- tidyr::pivot_wider(
@@ -452,6 +455,9 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
     names_from = "metric_name",
     values_from = "metric_value"
   )
+
+  out <- out |>
+    reorder_by_names(to_front = "origin", to_back = c("context", "text"))
 
   # TODO: come up with a nice reordering that doesn't involve too much compute.
   as_tibble(out)
@@ -502,8 +508,7 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' @export
 ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
   chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k, ...)
-  !S7_inherits(store, RagnarStore)
-  {
+  if (!S7_inherits(store, RagnarStore)) {
     # back-compat with tbl() supplied for store
     return(chunks)
   }
@@ -558,7 +563,7 @@ chunks_deoverlap <- function(store, chunks) {
       end = last(end),
       context = first(context),
       across(
-        -all_of(c("origin", "start", "end", "context")),
+        -all_of(c("start", "end", "context", "text")),
         \(x) list(unlist(x))
       )
     ) |>
@@ -590,7 +595,7 @@ chunks_deoverlap <- function(store, chunks) {
     "
   )$text
 
-  deoverlapped
+  deoverlapped |> reorder_by_names(names(chunks))
 }
 
 

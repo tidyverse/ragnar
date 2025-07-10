@@ -224,15 +224,15 @@ test_that("Allow a NULL embedding function", {
   )
   ragnar_store_update(store, chunks)
   # no error, vss is ignored
-  expect_error(ragnar_store_build_index(store), regexp = NA)
+  expect_no_error(ragnar_store_build_index(store))
 
   ragnar_store_build_index(store, type = "fts")
   ragnar_retrieve_bm25(store, "bar")
-  expect_error(ragnar_retrieve(store, "bar"))
+  expect_no_error(ragnar_retrieve(store, "bar"))
 })
 
 test_that("works with MotherDuck", {
-  testthat::skip_if(Sys.getenv("motherduck_token", "") == "")
+  skip_if_cant_use_motherduck()
 
   store <- ragnar_store_create(
     version = 1,

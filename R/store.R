@@ -53,7 +53,8 @@
 #'
 #' @param version integer. The version of the store to create. See details.
 #'
-#'
+#' @returns a `RagnarStore` object
+#' @export
 #' @examples
 #' # A store with a dummy embedding
 #' store <- ragnar_store_create(
@@ -81,9 +82,18 @@
 #' )
 #' ragnar_store_insert(store, chunks)
 #'
-#' @returns a `DuckDBRagnarStore` object
-#' @export
-#'
+#' # version = 2 (the default) has support for deoverlapping
+#' store <- ragnar_store_create(
+#'   embed = NULL # if embed = NULL, then only bm25 search is used (not vss)
+#' )
+#' doc <- MarkdownDocument(paste0(letters, collapse = ""), origin = "/some/where")
+#' chunks <- markdown_chunk(doc, target_size = 3, target_overlap = 2 / 3)
+#' chunks$context <- substr(chunks$text, 1, 1)
+#' chunks
+#' ragnar_store_insert(store, chunks)
+#' ragnar_store_build_index(store)
+#' ragnar_retrieve(store, "abc bcd xyz", deoverlap = FALSE)
+#' ragnar_retrieve(store, "abc bcd xyz", deoverlap = TRUE)
 ragnar_store_create <- function(
   location = ":memory:",
   embed = embed_ollama(),
@@ -313,7 +323,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   switch(
     store@version,
     ragnar_store_build_index_v1(store, type),
-    ragnar_store_build_index_v2(store, type),
+    ragnar_store_build_index_v2(store, type)
   )
 }
 

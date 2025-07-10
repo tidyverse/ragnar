@@ -1,4 +1,4 @@
-#' Embedd Text
+#' Embed Text
 #'
 #' @param x x can be:
 #'  - A character vector, in which case a matrix of embeddings is returned.

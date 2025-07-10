@@ -10,8 +10,8 @@
 #'   Markdown.
 #' @param target_size Integer. Target chunk size in characters. Default: 1600 (≈
 #'   400 tokens, or 1 page of text). Actual chunk size may differ from the
-#'   target by up to `2 * max_snap_dist`. When set to `NA` or `Inf` and used with
-#'   `segment_by_heading_levels`, chunk size is unbounded and each chunk
+#'   target by up to `2 * max_snap_dist`. When set to `NULL`, `NA` or `Inf` and used
+#'   with `segment_by_heading_levels`, chunk size is unbounded and each chunk
 #'   corresponds to a segment.
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
 #'   between successive chunks. Default: `0.5`. Even when `0`, some overlap can
@@ -35,12 +35,10 @@
 #'
 #' @return
 #'
-#' A tibble with at least:
-#'
-#' - `start`: 1-based start position of the chunk in `md`.
-#' - `end`:  inclusive end position.
-#'
-#' Additional `context` and/or `text` columns are present when requested.
+#' A `MarkdownDocumentChunks` object, which is a tibble (data.frame) with with
+#' columns `start` `end`, and optionally `context` and `text`. It also has a
+#' `@document` property, which is the input `md` document (potentially
+#' normalized and converted to a `MarkdownDocument`).
 #'
 #' @export
 #' @examples
@@ -384,7 +382,7 @@ check_uncovered_gaps <- function(chunks, md_len) {
   add(delta[chunks$end + 1]) <- -1L
   coverage <- drop_last(cumsum(delta))
   if (!isFALSE(any(coverage == 0))) {
-    print(rle(coverage))
+    # print(rle(coverage))
     stop(
       "markdown_chunk() failed to generate chunks. Please report
          this error https://github.com/tidyverse/ragnar/issues"

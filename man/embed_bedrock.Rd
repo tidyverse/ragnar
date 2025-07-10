@@ -24,7 +24,7 @@ You may look for available models in the Bedrock Model Catalog}
 
 \item{profile}{AWS profile to use.}
 
-\item{api_args}{Additional arguments to pass to the Bedrock API. Dependending
+\item{api_args}{Additional arguments to pass to the Bedrock API. Depending
 on the \code{model}, you might be able to provide different parameters. Check
 the documentation for the model you are using in the
 \href{https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html}{Bedrock user guide}.}

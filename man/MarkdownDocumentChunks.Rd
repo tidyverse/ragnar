@@ -30,6 +30,8 @@ mind that when chunks are deoverlapped (in \code{ragnar_retrieve()} or
 headings that are in-scope at the chunk start position.
 }
 
+Additional columns can be included.
+
 The original document is available via the \verb{@document} property.
 
 For normal use, chunk a Markdown document with \code{\link[=markdown_chunk]{markdown_chunk()}}; the

@@ -146,19 +146,13 @@ ragnar_store_create_v2 <- function(
 extra_cols_to_schema <- function(extra_cols) {
   ptype <- vctrs::vec_ptype(extra_cols)
 
-  disallowd_cols <- c(
-    "origin",
-    "text",
-    "start",
-    "end",
-    "context",
-    "embedding"
-  )
+  disallowed_cols <-
+    c("origin", "text", "start", "end", "context", "embedding")
 
-  if (any(names(ptype) %in% disallowd_cols)) {
+  if (any(names(ptype) %in% disallowed_cols)) {
     stop(
       "The following column names are not allowed in `extra_cols`: ",
-      paste(disallowd_cols, collapse = ", ")
+      paste(disallowed_cols, collapse = ", ")
     )
   }
 

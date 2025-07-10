@@ -29,10 +29,10 @@ unlink("r4ds.ragnar.duckdb")
 `ragnar` is an R package that helps implement Retrieval-Augmented
 Generation (RAG) workflows. It focuses on providing a complete solution
 with sensible defaults, while still giving the knowledgeable user
-precise control over each steps. We don't believe that you can fully
+precise control over each step. We don't believe that you can fully
 automate the creation of a good RAG system, so it's important that
 `ragnar` is not a black box. `ragnar` is designed to be transparent. You
-can inspect easily outputs at intermediate steps to understand what's
+can easily inspect outputs at intermediate steps to understand what's
 happening.
 
 ## Installation
@@ -53,14 +53,14 @@ to Markdown.
 
 Key functions:
 
--   `read_as_markdown`: Convert a file or URL to markdown
+-   `read_as_markdown()`: Convert a file or URL to markdown
 -   `ragnar_find_links()`: Find all links in a webpage
 
 ### 2. Text Chunking
 
 Next we divide each document into chunks. Ragnar defaults to a strategy
-that preserves some of the semantics of the document, but provide plenty
-of opportunities to tweak the approach.
+that preserves some of the semantics of the document, but provides
+plenty of opportunities to tweak the approach.
 
 Key functions:
 
@@ -92,7 +92,7 @@ Key functions:
 Note that calling the embedding function directly is typically not
 necessary. Instead, the embedding function is specified when a store is
 first created, and then automatically called when needed by
-`ragnar_retreive()` and `ragnar_store_insert()`.
+`ragnar_retrieve()` and `ragnar_store_insert()`.
 
 ### 5. Storage
 
@@ -114,7 +114,8 @@ bm25 text search.
 
 Key functions:
 
--   `ragnar_retrieve()`
+-   `ragnar_retrieve()`: high-level function that performs both `vss`
+    and `bm25` search and de-overlaps retrieved results.
 -   `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
     extension](https://duckdb.org/docs/stable/core_extensions/vss)
 -   `ragnar_retrieve_bm25()`: Retrieve using
@@ -124,7 +125,7 @@ Key functions:
 ### 7. Chat Augmentation
 
 `ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
-enables an LLM to retreive content from a store on-demand.
+enables an LLM to retrieve content from a store on-demand.
 
 -   `ragnar_register_tool_retrieve(chat, store)`.
 

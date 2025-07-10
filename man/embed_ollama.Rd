@@ -3,7 +3,7 @@
 \name{embed_ollama}
 \alias{embed_ollama}
 \alias{embed_openai}
-\title{Embedd Text}
+\title{Embed Text}
 \usage{
 embed_ollama(
   x,
@@ -55,7 +55,7 @@ matrix described in the previous sentence.
 A matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
 }
 \description{
-Embedd Text
+Embed Text
 }
 \examples{
 text <- c("a chunk of text", "another chunk of text", "one more chunk of text")

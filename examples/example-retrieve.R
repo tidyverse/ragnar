@@ -16,17 +16,18 @@ text <- "How can I subset a dataframe with a logical vector?"
 #'  Register ellmer tool
 #' You can register an ellmer tool to let the LLM retrieve chunks.
 system_prompt <- stringr::str_squish(
-  r"--(
+  "
   You are an expert R programmer and mentor. You are concise.
-  You always respond by first direct quoting material from book or documentation,
-  then adding your own additional context and interpertation.
-  Always include links to the source materials used.
-  )--"
+
+  Before responding, retrieve relevant material from the knowledge store. Quote or
+  paraphrase passages, clearly marking your own words versus the source. Provide a
+  working link for every source cited, as well as any additional relevant links.
+  Do not answer unless you have retrieved and cited a source.
+  "
 )
 chat <- ellmer::chat_openai(
   system_prompt,
-  model = "gpt-4.1",
-  params = ellmer::params(temperature = .5)
+  model = "gpt-4.1"
 )
 
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
