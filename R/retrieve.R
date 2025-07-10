@@ -436,19 +436,20 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   check_string(text)
   check_number_whole(top_k)
 
-  if (!is.null(store@embed)) {
+  if (is.null(store@embed)) {
+    vss <- NULL
+  } else {
     vss <- ragnar_retrieve_vss(store, text, top_k, ...)
     vss[["embedding"]] <- NULL
-  } else {
-    vss <- NULL
   }
 
   bm25 <- ragnar_retrieve_bm25(store, text, top_k, ...)
 
   out <- vctrs::vec_rbind(vss, bm25)
 
-  # maybe reorder cols, id first, text last
-  out <- out[reorder_names("id", names(out), last = "text")]
+  # maybe reorder cols, origin first, context and text last
+  out <- out |>
+    reorder_by_names(to_front = "origin", to_back = c("context", "text"))
 
   # pivot to wide format
   out <- tidyr::pivot_wider(

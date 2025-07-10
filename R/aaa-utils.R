@@ -146,13 +146,11 @@ partial <- function(.fn, .sig, ...) {
   as.function.default(c(.sig, body), envir = baseenv())
 }
 
-
-reorder_names <- function(..., last = NULL) {
-  x <- unique(c(...))
-  if (!is.null(last)) {
-    x <- unique(c(x, last), fromLast = TRUE)
-  }
-  x
+reorder_by_names <- function(object, to_front, to_back = NULL) {
+  nms <- names(object)
+  nms <- unique(c(to_front, nms))
+  nms <- unique(c(nms, to_back), fromLast = TRUE)
+  object[nms]
 }
 
 is_windows <- function() identical(.Platform$OS.type, "windows")
