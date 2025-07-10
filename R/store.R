@@ -323,7 +323,7 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   switch(
     store@version,
     ragnar_store_build_index_v1(store, type),
-    ragnar_store_build_index_v2(store, type),
+    ragnar_store_build_index_v2(store, type)
   )
 }
 

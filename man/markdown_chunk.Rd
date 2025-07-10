@@ -21,7 +21,7 @@ Markdown.}
 
 \item{target_size}{Integer. Target chunk size in characters. Default: 1600 (≈
 400 tokens, or 1 page of text). Actual chunk size may differ from the
-target by up to \code{2 * max_snap_dist}. When set to \code{NA} or \code{Inf} and used
+target by up to \code{2 * max_snap_dist}. When set to \code{NULL}, \code{NA} or \code{Inf} and used
 with \code{segment_by_heading_levels}, chunk size is unbounded and each chunk
 corresponds to a segment.}
 

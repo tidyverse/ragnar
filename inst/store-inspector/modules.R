@@ -95,9 +95,9 @@ storeInspectorServer <- function(id, store) {
         return(NULL)
       }
       docs <- documents()
-      docs[docs$id == selectedDocumentId(),,drop=FALSE]
+      docs[docs$id == selectedDocumentId(), , drop = FALSE]
     })
-    
+
     preview_type <- switchServer("markdown")
 
     output$preview <- shiny::renderUI({
@@ -107,7 +107,7 @@ storeInspectorServer <- function(id, store) {
 
       preview <- if (is.null(preview_type()) || preview_type() == "Preview") {
         shiny::tags$iframe(
-          class="size-full text-pretty",
+          class = "size-full text-pretty",
           srcdoc = shiny::markdown(selectedDocument()$text)
         )
       } else {
@@ -117,7 +117,7 @@ storeInspectorServer <- function(id, store) {
         )
       }
 
-      metadata <- selectedDocument() |> 
+      metadata <- selectedDocument() |>
         dplyr::select(context, dplyr::all_of(names(store@schema)))
 
       shiny::div(
@@ -127,7 +127,7 @@ storeInspectorServer <- function(id, store) {
           shiny::pre(
             class = "text-xs text-pretty",
             yaml::as.yaml(
-              as.list(metadata), 
+              as.list(metadata),
               handlers = list(
                 POSIXct = as.character,
                 Date = as.character
@@ -219,21 +219,22 @@ listDocumentsServer <- function(id, documents) {
         dplyr::mutate(.rn = dplyr::row_number()) |>
         dplyr::group_split(.rn) |>
         lapply(
-          function(d)
+          function(d) {
             documentSummaryUI(
               ns(glue::glue("document-{d$id}")),
               d,
               active = d$.rn == 1
             )
+          }
         )
 
-
-
       shiny::tagList(
-        if (attr(documents(), "no_filter") %||% FALSE) shiny::tags$div(
-          class = "text-sm text-center",
-          "No search query, showing first few documents"
-        ),
+        if (attr(documents(), "no_filter") %||% FALSE) {
+          shiny::tags$div(
+            class = "text-sm text-center",
+            "No search query, showing first few documents"
+          )
+        },
         !!!summaries
       )
     })
@@ -243,7 +244,7 @@ listDocumentsServer <- function(id, documents) {
 }
 
 
-#' @param document Is supposed to be a single row returned by ragnar_retrive_vss
+#' @param document Is supposed to be a single row returned by ragnar_retrieve_vss
 #'   or ragnar_retrieve_bm25.
 #' @noRd
 documentSummaryUI <- function(id, document, active = FALSE) {
@@ -290,21 +291,23 @@ documentSummaryUI <- function(id, document, active = FALSE) {
         glue::glue("id: #{document$id}")
       )
     ),
-    if(!is.null(document[["metric_name"]])) div(
-      class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
-      icon(
-        "gauge",
-        class = "font-light flex-none"
-      ),
+    if (!is.null(document[["metric_name"]])) {
       div(
-        class = "flex-none font-bold",
-        glue::glue("{document$metric_name}:")
-      ),
-      div(
-        class = "flex-none font-light",
-        round(document$metric_value, 3)
+        class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
+        icon(
+          "gauge",
+          class = "font-light flex-none"
+        ),
+        div(
+          class = "flex-none font-bold",
+          glue::glue("{document$metric_name}:")
+        ),
+        div(
+          class = "flex-none font-light",
+          round(document$metric_value, 3)
+        )
       )
-    ),
+    },
     div(
       class = "flex flex-rows items-center gap-1 py-1 px-2 font-mono text-gray 500",
       div(
@@ -339,7 +342,8 @@ switchInput <- function(id, switch_values) {
   container <- function(...) {
     shiny::div(
       class = "flex flex-row bg-gray-200 rounded-full p-1 gap-1 text-xs",
-      shiny::tags$script(shiny::HTML(glue::glue("(function() {{
+      shiny::tags$script(shiny::HTML(glue::glue(
+        "(function() {{
         function init() {{
           console.log('setting input value');
           Shiny.setInputValue('{ns('value')}', '{switch_values[1]}');
@@ -354,7 +358,8 @@ switchInput <- function(id, switch_values) {
         }}
 
         waitForShiny();
-      }})()"))),
+      }})()"
+      ))),
       ...
     )
   }

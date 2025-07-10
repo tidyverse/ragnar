@@ -382,7 +382,7 @@ check_uncovered_gaps <- function(chunks, md_len) {
   add(delta[chunks$end + 1]) <- -1L
   coverage <- drop_last(cumsum(delta))
   if (!isFALSE(any(coverage == 0))) {
-    print(rle(coverage))
+    # print(rle(coverage))
     stop(
       "markdown_chunk() failed to generate chunks. Please report
          this error https://github.com/tidyverse/ragnar/issues"

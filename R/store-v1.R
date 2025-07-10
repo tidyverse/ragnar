@@ -112,7 +112,7 @@ ragnar_store_create_v1 <- function(
   schema <- unserialize(metadata$schema[[1]])
   name <- metadata$name
 
-  # attach function to externalptr, so we can retreive it from just the connection.
+  # attach function to externalptr, so we can retrieve it from just the connection.
   ptr <- con@conn_ref
   attr(ptr, "embed_function") <- embed
 

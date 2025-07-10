@@ -48,7 +48,7 @@ ragnar_retrieve_vss <- function(
   if (inherits(store, "tbl_sql")) {
     warning(
       "Passing a `tbl()` to ragnar_retrieve_vss() is no longer supported ",
-      "and will be removed in a future replease. Instead, pass a `filter` expression directly."
+      "and will be removed in a future release. Instead, pass a `filter` expression directly."
     )
     tbl <- store
     return(ragnar_retrieve_vss_tbl(tbl, query, top_k, method))

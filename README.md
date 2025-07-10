@@ -75,7 +75,7 @@ Key functions:
 Note that calling the embedding function directly is typically not
 necessary. Instead, the embedding function is specified when a store is
 first created, and then automatically called when needed by
-`ragnar_retreive()` and `ragnar_store_insert()`.
+`ragnar_retrieve()` and `ragnar_store_insert()`.
 
 ### 5. Storage
 
@@ -107,7 +107,7 @@ Key functions:
 ### 7. Chat Augmentation
 
 `ragnar` can equip an `ellmer::Chat` object with a retrieve tool that
-enables an LLM to retreive content from a store on-demand.
+enables an LLM to retrieve content from a store on-demand.
 
 - `ragnar_register_tool_retrieve(chat, store)`.
 

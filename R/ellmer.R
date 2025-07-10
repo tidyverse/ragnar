@@ -55,10 +55,10 @@ ragnar_register_tool_retrieve <- function(
         chunks
       },
       glue::glue(
-        "Given a string, retrieve the most relevent excerpts from {store_description}."
+        "Given a string, retrieve the most relevant excerpts from {store_description}."
       ),
       text = ellmer::type_string(
-        "The text to find the most relevent matches for."
+        "The text to find the most relevant matches for."
       ),
       .annotations = ellmer::tool_annotations(
         title = title,
