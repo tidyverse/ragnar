@@ -97,7 +97,7 @@ ragnar_store_create_v1 <- function(
         "
       DROP TABLE IF EXISTS metadata;
       DROP TABLE IF EXISTS chunks;
-      DROP SEQUENCE IF EXISTS id_sequence;
+      DROP SEQUENCE IF EXISTS chunk_id_sequence;
       "
       )
     )
@@ -125,9 +125,9 @@ ragnar_store_create_v1 <- function(
     con,
     glue(
       "
-    CREATE SEQUENCE id_sequence START 1;
+    CREATE SEQUENCE chunk_id_sequence START 1;
     CREATE TABLE chunks (
-      id INTEGER DEFAULT nextval('id_sequence'),
+      chunk_id INTEGER DEFAULT nextval('chunk_id_sequence'),
       {columns}
     )"
     )
@@ -345,7 +345,7 @@ ragnar_store_build_index_v1 <- function(store, type = c("vss", "fts")) {
     # Expose a way to pass along args. https://duckdb.org/docs/stable/core_extensions/full_text_search
     dbExecute(
       con,
-      "PRAGMA create_fts_index('chunks', 'id', 'text', overwrite = 1);"
+      "PRAGMA create_fts_index('chunks', 'chunk_id', 'text', overwrite = 1);"
     )
   }
 

@@ -95,7 +95,7 @@ ragnar_store_create_v2 <- function(
       CREATE OR REPLACE TABLE embeddings (
         origin VARCHAR NOT NULL,
         FOREIGN KEY (origin) REFERENCES documents (origin),
-        id INTEGER DEFAULT nextval('chunk_id_seq'),
+        chunk_id INTEGER DEFAULT nextval('chunk_id_seq'),
         start INTEGER,
         "end" INTEGER,
         PRIMARY KEY (origin, start, "end"),
@@ -119,7 +119,7 @@ ragnar_store_create_v2 <- function(
     )
   )
 
-  schema <- vctrs::vec_ptype(dbGetQuery(con, "SELECT * EXCLUDE id FROM embeddings LIMIT 0;"))
+  schema <- vctrs::vec_ptype(dbGetQuery(con, "SELECT * EXCLUDE chunk_id FROM embeddings LIMIT 0;"))
 
   DuckDBRagnarStore(
     embed = embed,
@@ -237,7 +237,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         ALTER VIEW chunks RENAME TO chunks_view;
 
         CREATE TABLE chunks AS
-          SELECT id, context, text FROM chunks_view;
+          SELECT chunk_id, context, text FROM chunks_view;
         )--"
       )
       dbExecute(
@@ -245,7 +245,7 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         r"--(
         PRAGMA create_fts_index(
           'chunks',            -- input_table
-          'id',                -- input_id
+          'chunk_id',                -- input_id
           'context', 'text',  -- *input_values
           overwrite = 1
         );

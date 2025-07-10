@@ -65,7 +65,7 @@ test_that("retrieving works as expected", {
   # Can retrieve with vss
   ret <- ragnar_retrieve_vss(store, "hello")
   expect_in(
-    c("origin", "id", "start", "end", "text", "metric_value", "metric_value"),
+    c("origin", "chunk_id", "start", "end", "text", "metric_value", "metric_value"),
     names(ret)
   )
   expect_equal(nrow(ret), 3)
