@@ -319,7 +319,7 @@ ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
   tbl |>
     mutate(
       metric_value = sql(glue::glue(
-        "fts_main_chunks.match_bm25(id, {text_quoted})"
+        "fts_main_chunks.match_bm25(chunk_id, {text_quoted})"
       )),
       metric_name = "bm25"
     ) |>
@@ -396,7 +396,7 @@ ragnar_retrieve_bm25 <- function(
     mutate(
       metric_name = "bm25",
       metric_value = sql(glue(
-        "fts_main_chunks.match_bm25(id, ?, k := {k}, b := {b}, conjunctive := {conjunctive})"
+        "fts_main_chunks.match_bm25(chunk_id, ?, k := {k}, b := {b}, conjunctive := {conjunctive})"
       ))
     )
 
@@ -417,7 +417,7 @@ ragnar_retrieve_bm25 <- function(
 
 calculate_bm25 <- function(store, text) {
   text <- dbQuoteString(store@con, text)
-  glue("fts_main_chunks.match_bm25(id, {text})")
+  glue("fts_main_chunks.match_bm25(chunk_id, {text})")
 }
 
 #' Retrieve VSS and BM25
