@@ -365,9 +365,9 @@ dbDataType2 <- function(con, x) {
     if (nm == "embedding") {
       # The embedding column must be FLOAT not DOUBLE as inferred
       # by default.
-      dataTypes[nm] <- paste0("FLOAT[", ncol(x[[nm]]), "]")
+      dataTypes[[nm]] <- paste0("FLOAT[", ncol(x[[nm]]), "]")
     } else if (is.matrix(x[[nm]])) {
-      dataTypes[i] <- paste0(dataTypes[i], "[", ncol(x[[i]]), "]")
+      dataTypes[[nm]] <- paste0(dataTypes[i], "[", ncol(x[[nm]]), "]")
     }
   }
   dataTypes
