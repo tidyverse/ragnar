@@ -197,3 +197,24 @@ test_that("ragnar_store_create overwrite is correct", {
     regexp = NA
   )
 })
+
+test_that("Can insert chunks with no origin", {
+  store <- ragnar_store_create(
+    version = 2,
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+  maybe_set_threads(store)
+  expect_true(grepl("^store_[0-9]+$", store@name))
+
+  doc <- test_doc()
+  chunks <- doc |> read_as_markdown() |> markdown_chunk()
+  chunks2 <- chunks
+  chunks2@document@origin <- NA_character_
+
+  expect_no_error(ragnar_store_insert(store, chunks2))
+  expect_no_error(ragnar_store_insert(store, chunks2))
+  expect_no_error(ragnar_store_update(store, chunks2))
+
+  n_docs <- tbl(store@con, "chunks") |> distinct(doc_id) |> collect() |> nrow()
+  expect_equal(n_docs, 3)
+})
