@@ -73,21 +73,7 @@ ragnar_store_create_v2 <- function(
     )
   )
 
-  if (length(extra_cols)) {
-    schema <- extra_cols_to_schema(extra_cols)
-    extra_col_types <- DBI::dbDataType(con, schema)
-    extra_col_names <- dbQuoteIdentifier(con, names(extra_col_types))
-    extra_cols <- paste0(
-      extra_col_names,
-      " ",
-      extra_col_types,
-      ",",
-      collapse = "\n"
-    )
-  } else {
-    schema <- NULL
-    extra_cols <- ""
-  }
+  extra_cols <- process_extra_cols(con, extra_cols)
 
   embedding <- if (is.null(embed)) {
     ""
@@ -133,6 +119,8 @@ ragnar_store_create_v2 <- function(
     )
   )
 
+  schema <- vctrs::vec_ptype(dbGetQuery(con, "SELECT * EXCLUDE id FROM embeddings LIMIT 0;"))
+
   DuckDBRagnarStore(
     embed = embed,
     con = con,
@@ -143,20 +131,38 @@ ragnar_store_create_v2 <- function(
   )
 }
 
-extra_cols_to_schema <- function(extra_cols) {
-  ptype <- vctrs::vec_ptype(extra_cols)
+process_extra_cols <- function(con, extra_cols) {
+  if (length(extra_cols) == 0) {
+    return("")
+  }
+  
+  extra_cols <- vctrs::vec_ptype(extra_cols)
 
-  disallowed_cols <-
-    c("origin", "text", "start", "end", "context", "embedding")
+  disallowd_cols <- c(
+    "id",
+    "origin",
+    "text",
+    "start",
+    "end",
+    "context",
+    "embedding"
+  )
 
-  if (any(names(ptype) %in% disallowed_cols)) {
-    stop(
-      "The following column names are not allowed in `extra_cols`: ",
-      paste(disallowed_cols, collapse = ", ")
-    )
+  extra_cols <- dplyr::select(extra_cols, -dplyr::any_of(disallowd_cols))
+
+  if (ncol(extra_cols) == 0) {
+    return("")
   }
 
-  ptype
+  extra_col_types <- DBI::dbDataType(con, extra_cols)
+  extra_col_names <- dbQuoteIdentifier(con, names(extra_col_types))
+  paste0(
+    extra_col_names,
+    " ",
+    extra_col_types,
+    ",",
+    collapse = "\n"
+  )
 }
 
 #
@@ -275,15 +281,20 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   con <- store@con
 
+  join_cols <- store@schema |> 
+    select(-origin, -embedding) |> 
+    names() |> 
+    c("text")
+
   existing <- tbl(con, "chunks") |>
     filter(origin == !!chunks@document@origin) |>
-    select(start, end, context, text, !!!names(store@schema)) |>
+    select(dplyr::all_of(join_cols)) |>
     collect()
 
   new_chunks <- anti_join(
     chunks,
     existing,
-    by = join_by(start, end, context, text, !!!names(store@schema))
+    by = join_by(!!!join_cols)
   )
   if (!nrow(new_chunks)) {
     return(invisible(store))
@@ -296,7 +307,8 @@ ragnar_store_update_v2 <- function(store, chunks) {
       embedding = store@embed(stri_c(context, "\n", text)),
       text = NULL
     ) |>
-    select(any_of(dbListFields(con, "embeddings")))
+    select(any_of(dbListFields(con, "embeddings"))) |> 
+    vctrs::vec_cast(store@schema)
   local_duckdb_register(con, "documents_to_upsert", documents)
 
   dbWithTransaction2(con, {
@@ -355,9 +367,11 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
 
   embeddings <- chunks |>
     select(any_of(dbListFields(con, "embeddings"))) |>
-    mutate(origin = chunks@document@origin)
+    mutate(origin = chunks@document@origin) |> 
+    vctrs::vec_cast(store@schema)
 
   # TODO: rename embeddings -> chunks_info?
+
   dbWithTransaction2(con, {
     dbAppendTable(con, "documents", documents)
     dbAppendTable(con, "embeddings", embeddings)

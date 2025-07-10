@@ -176,7 +176,7 @@ test_that("additional columns", {
   store <- ragnar_store_create(
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
-    extra_cols = data.frame(h1 = character(0))
+    extra_cols = data.frame(h1 = character(0), int = integer(0))
   )
   maybe_set_threads(store)
 
@@ -189,25 +189,28 @@ test_that("additional columns", {
   # Can't insert if they don't match types
   chunks <- data.frame(
     text = "foo",
-    h1 = 1
+    h1 = 1L,  # h1 should be character, not integer
+    int = 1L
   )
   expect_error(ragnar_store_insert(store, chunks), regexp = "Can't convert")
 
   # We should include if there's the correct data
   chunks <- data.frame(
     text = "foo",
-    h1 = "hello"
+    h1 = "hello",
+    int = 1 # numerics should be allowed and converted to integer
   )
   ragnar_store_insert(store, chunks)
   val <- dbGetQuery(store@con, "select text, h1 from chunks")
-  expect_equal(val, chunks)
+  expect_equal(val, chunks |> select(-int))
 
   # It's fine to insert a chunk if it has an additional column. It's
   # simply ignored.
   chunks <- data.frame(
     text = "foo",
     h1 = "hello",
-    h2 = "bye"
+    h2 = "bye",
+    int = 1L
   )
   ragnar_store_insert(store, chunks)
   val <- dbGetQuery(store@con, "select text, h1 from chunks")
@@ -288,4 +291,51 @@ test_that("embed functions get the defaults stored", {
   skip_if(inherits(try(silent = TRUE, ragnar::embed_ollama("hi")), "try-error"))
   store <- ragnar_store_create(embed = function(x) ragnar::embed_ollama(x))
   expect_snapshot(store@embed)
+})
+
+test_that("store v1 accepts markdown chunks (from v2)", {
+
+  store <- ragnar_store_create(
+    version = 1,
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+
+  chunks <- test_doc() |>
+    read_as_markdown() |>
+    markdown_chunk()
+
+  # insert directly ignores al other columns
+  expect_no_error(ragnar_store_insert(store, chunks))
+  ragnar_store_build_index(store)
+  expect_equal(ragnar_retrieve(store, "r")$origin[1], chunks@document@origin)
+
+  # when the store has start, end and origin as extra cols they get included
+  store <- ragnar_store_create(
+    version = 1,
+    extra_cols = data.frame(
+      start = integer(0),
+      end = integer(0),
+      context = character(0)
+    ),
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+
+  chunks <- test_doc() |>
+    read_as_markdown() |>
+    markdown_chunk()
+
+  expect_no_error(ragnar_store_insert(store, chunks))
+  ragnar_store_build_index(store)
+  expect_equal(ragnar_retrieve(store, "r")$origin[1], chunks@document@origin)
+
+  # when the chunks data.frame already contains an origin column, it's used instead.
+  store <- ragnar_store_create(
+    version = 1,
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+
+  chunks2 <- chunks |> mutate(origin = "a")
+  expect_no_error(ragnar_store_insert(store, chunks2))
+  ragnar_store_build_index(store)
+  expect_equal(ragnar_retrieve(store, "r")$origin[1], "a")
 })
