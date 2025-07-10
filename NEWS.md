@@ -8,6 +8,9 @@
   
 * `ragnar_store_create()` now supports Date and POSIXct classes supplied `extra_cols`.
 
+* `ragnar_store_create()` now supports remote MotherDuck Databases specified with `md:<dbname>` as
+the `location` argument. (#50)
+
 * `ragnar_retrieve()` and friends gain a `filter` argument, adding support for efficiently
   filtering retrieval results.
 
