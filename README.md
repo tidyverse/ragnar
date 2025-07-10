@@ -12,10 +12,10 @@
 `ragnar` is an R package that helps implement Retrieval-Augmented
 Generation (RAG) workflows. It focuses on providing a complete solution
 with sensible defaults, while still giving the knowledgeable user
-precise control over each steps. We don’t believe that you can fully
+precise control over each step. We don’t believe that you can fully
 automate the creation of a good RAG system, so it’s important that
 `ragnar` is not a black box. `ragnar` is designed to be transparent. You
-can inspect easily outputs at intermediate steps to understand what’s
+can easily inspect outputs at intermediate steps to understand what’s
 happening.
 
 ## Installation
@@ -42,8 +42,8 @@ Key functions:
 ### 2. Text Chunking
 
 Next we divide each document into chunks. Ragnar defaults to a strategy
-that preserves some of the semantics of the document, but provide plenty
-of opportunities to tweak the approach.
+that preserves some of the semantics of the document, but provides
+plenty of opportunities to tweak the approach.
 
 Key functions:
 
@@ -97,7 +97,8 @@ bm25 text search.
 
 Key functions:
 
-- `ragnar_retrieve()`
+- `ragnar_retrieve()`: high-level function that performs both `vss` and
+  `bm25` search and de-overlaps retrieved results.
 - `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
   extension](https://duckdb.org/docs/stable/core_extensions/vss)
 - `ragnar_retrieve_bm25()`: Retrieve using
@@ -121,7 +122,6 @@ library(ragnar)
 
 base_url <- "https://r4ds.hadley.nz"
 pages <- ragnar_find_links(base_url)
-#> ⠙ Finding links: 38 | On queue: 0 | Current depth: 0 | [0s]
 
 store_location <- "r4ds.ragnar.duckdb"
 
@@ -196,14 +196,14 @@ text <- "How can I subset a dataframe with a logical vector?"
 (relevant_chunks <- ragnar_retrieve(store, text))
 ```
 
-    #> # A tibble: 5 × 6
-    #>   origin                                  id        start   end headings   text 
-    #>   <chr>                                   <list>    <int> <int> <chr>      <chr>
-    #> 1 https://r4ds.hadley.nz/functions.html   <int [1]>  2203  4021 "# 25  Fu… "```…
-    #> 2 https://r4ds.hadley.nz/logicals.html    <int [2]>  1623  4210 "# 12  Lo… "```…
-    #> 3 https://r4ds.hadley.nz/logicals.html    <int [1]> 19413 20827 "# 12  Lo… "Tha…
-    #> 4 https://r4ds.hadley.nz/regexps.html     <int [1]> 24602 26543 "# 15  Re… "```…
-    #> 5 https://r4ds.hadley.nz/webscraping.html <int [1]> 13433 15289 "# 24  We… "###…
+    #> # A tibble: 5 × 8
+    #>   origin                   id    start   end cosine_distance bm25  context text 
+    #>   <chr>                    <lis> <int> <int> <list>          <lis> <chr>   <chr>
+    #> 1 https://r4ds.hadley.nz/… <int>  2203  4021 <dbl [1]>       <dbl> "# 25 … "```…
+    #> 2 https://r4ds.hadley.nz/… <int>  1623  4210 <dbl [2]>       <dbl> "# 12 … "```…
+    #> 3 https://r4ds.hadley.nz/… <int> 19413 20827 <dbl [1]>       <dbl> "# 12 … "Tha…
+    #> 4 https://r4ds.hadley.nz/… <int> 24602 26543 <dbl [1]>       <dbl> "# 15 … "```…
+    #> 5 https://r4ds.hadley.nz/… <int> 13433 15289 <dbl [1]>       <dbl> "# 24 … "###…
 
 ``` r
 
@@ -214,7 +214,7 @@ system_prompt <- stringr::str_squish(
   r"--(
   You are an expert R programmer and mentor. You are concise.
   You always respond by first direct quoting material from book or documentation,
-  then adding your own additional context and interpertation.
+  then adding your own additional context and interpretation.
   Always include links to the source materials used.
   )--"
 )
@@ -227,53 +227,42 @@ chat <- ellmer::chat_openai(
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
-#> ◯ [tool call] rag_retrieve_from_store_001(text = "How can I subset a dataframe
-#> in R?")
-#> ● #> [{"origin":"https://r4ds.hadley.nz/arrow.html","id":15,"start":9344,"end"…
+#> ◯ [tool call] rag_retrieve_from_store_001(text = "subset a dataframe")
+#> ● #> [{"origin":"https://r4ds.hadley.nz/arrow.html","cosine_distance":"NA","bm…
 ```
 
-    #> From R for Data Science (2e):
-    #> 
-    #> > "Here are a couple of examples:
-    #> >
+    #> > "There are quite a few different ways[1](#fn1) that you can use `[` with a 
+    #> data frame, but the most important way is to select rows and columns 
+    #> independently with `df[rows, cols]`. Here `rows` and `cols` are vectors as 
+    #> described above. For example, `df[rows, ]` and `df[, cols]` select just rows or
+    #> just columns, using the empty subset to preserve the other dimension."  
+    #> >  
     #> > ```r
-    #> > df <- tibble(
-    #> >   x = 1:3,
-    #> >   y = c("a", "e", "f"),
-    #> >   z = runif(3)
-    #> > )
-    #> >
-    #> > # Select first row and second column
-    #> > df[1, 2]
-    #> >
-    #> > # Select all rows and columns x and y
-    #> > df[, c("x" , "y")]
-    #> >
-    #> > # Select rows where `x` is greater than 1 and all columns
-    #> > df[df$x > 1, ]
+    #> > df[1, 2]       # first row, second column
+    #> > df[, c("x", "y")] # all rows, columns x and y
+    #> > df[df$x > 1, ] # rows where x > 1, all columns
     #> > ```
-    #> >
-    #> > Several dplyr verbs are special cases of `[`:  
-    #> > - `filter()` is equivalent to subsetting the rows with a logical vector...  
-    #> > - `select()` is equivalent to subsetting columns by name or position."  
-    #> > ([source](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames))
+    #> >  
+    #> > "Several dplyr verbs are special cases of `[`:  
+    #> > - `filter()` is equivalent to subsetting the rows with a logical vector, 
+    #> taking care to exclude missing values."  
+    #> >  
+    #> > ```r
+    #> > df |> filter(x > 1)
+    #> > # same as
+    #> > df[!is.na(df$x) & df$x > 1, ]
+    #> > ```
     #> 
-    #> **My interpretation:**  
-    #> You can subset data frames in R using base R or the tidyverse:
+    #> — [R4DS: 27.2.2 Subsetting data 
+    #> frames](https://r4ds.hadley.nz/base-R.html#sec-subset-many)
     #> 
-    #> - **Base R:**  
-    #>   - `df[rows, columns]` where `rows` and `columns` can be numbers, names, or 
-    #> logical vectors.
-    #>   - Example: `df[1:5, c("x", "y")]` selects the first 5 rows and columns x and 
-    #> y.
-    #>   - Logical subsetting: `df[df$x > 1, ]` selects rows where x > 1.
+    #> **My summary:**  
+    #> - Use `df[rows, cols]` for base R subsetting.
+    #> - Use logical conditions for rows: `df[df$x > 1, ]`
+    #> - Use column names or indices for columns: `df[, c("x", "y")]`
+    #> - The tidyverse `filter()` and `select()` functions are more readable for 
+    #> complex tasks: `df |> filter(x > 1) |> select(x, y)`
     #> 
-    #> - **dplyr (tidyverse):**  
-    #>   - Use `filter()` for rows: `df |> filter(x > 1)`
-    #>   - Use `select()` for columns: `df |> select(x, y)`
-    #> 
-    #> See more:  
-    #> - [R4DS: Subsetting Data 
-    #> Frames](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
+    #> See also:  
     #> - [dplyr::filter()](https://dplyr.tidyverse.org/reference/filter.html)
     #> - [dplyr::select()](https://dplyr.tidyverse.org/reference/select.html)

@@ -114,7 +114,8 @@ bm25 text search.
 
 Key functions:
 
--   `ragnar_retrieve()`
+-   `ragnar_retrieve()`: high-level function that performs both `vss`
+    and `bm25` search and de-overlaps retrieved results.
 -   `ragnar_retrieve_vss()`: Retrieve using [`vss` DuckDB
     extension](https://duckdb.org/docs/stable/core_extensions/vss)
 -   `ragnar_retrieve_bm25()`: Retrieve using

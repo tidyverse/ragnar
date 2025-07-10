@@ -448,8 +448,6 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   out <- vctrs::vec_rbind(vss, bm25)
 
   # maybe reorder cols, origin first, context and text last
-  out <- out |>
-    reorder_by_names(to_front = "origin", to_back = c("context", "text"))
 
   # pivot to wide format
   out <- tidyr::pivot_wider(
@@ -457,6 +455,9 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
     names_from = "metric_name",
     values_from = "metric_value"
   )
+
+  out <- out |>
+    reorder_by_names(to_front = "origin", to_back = c("context", "text"))
 
   # TODO: come up with a nice reordering that doesn't involve too much compute.
   as_tibble(out)
@@ -594,7 +595,7 @@ chunks_deoverlap <- function(store, chunks) {
     "
   )$text
 
-  deoverlapped
+  deoverlapped |> reorder_by_names(names(chunks))
 }
 
 

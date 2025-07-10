@@ -150,6 +150,7 @@ reorder_by_names <- function(object, to_front, to_back = NULL) {
   nms <- names(object)
   nms <- unique(c(to_front, nms))
   nms <- unique(c(nms, to_back), fromLast = TRUE)
+  nms <- base::intersect(nms, names(object))
   object[nms]
 }
 
