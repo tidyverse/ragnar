@@ -179,7 +179,12 @@ as_bare_list <- function(x, ...) {
   out
 }
 
-as_bare_df <- function(x) as.data.frame(as.list(x))
+as_bare_df <- function(x) {
+  new_data_frame(
+    as_bare_list(x),
+    names = names(x)
+  )
+}
 
 `:=` <- function(name, value) {
   name <- substitute(name)
