@@ -328,8 +328,7 @@ test_that("store v1 accepts markdown chunks (from v2)", {
   ragnar_store_build_index(store)
   expect_equal(ragnar_retrieve(store, "r")$origin[1], chunks@document@origin)
 
-  # when the chunks data.frame already contains an origin column, it's used instead.]\
-  
+  # when the chunks data.frame already contains an origin column, it's used instead.
   store <- ragnar_store_create(
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
@@ -339,5 +338,4 @@ test_that("store v1 accepts markdown chunks (from v2)", {
   expect_no_error(ragnar_store_insert(store, chunks2))
   ragnar_store_build_index(store)
   expect_equal(ragnar_retrieve(store, "r")$origin[1], "a")
-
 })
