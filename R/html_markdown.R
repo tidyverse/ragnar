@@ -13,14 +13,20 @@ html_markdown <-
       trim = FALSE
     ) {
       contents <- xml_contents(node)
-      if (!text) contents <- contents[xml_name(contents) != "text"]
+      if (!text) {
+        contents <- contents[xml_name(contents) != "text"]
+      }
       md <- unlist(lapply(contents, markdown))
 
       if (!isFALSE(flatten)) {
-        if (isTRUE(flatten)) flatten <- ""
+        if (isTRUE(flatten)) {
+          flatten <- ""
+        }
         md <- md |> stri_flatten(flatten)
       }
-      if (trim) md <- stri_trim_both(md)
+      if (trim) {
+        md <- stri_trim_both(md)
+      }
       md
     }
 
@@ -207,16 +213,11 @@ html_markdown <-
         # section = ,
         # footer = markdown_contents(node, trim = TRUE),
         # head = {},
-        script = {
-        },
-        style = {
-        },
-        noscript = {
-        },
-        comment = {
-        },
-        doctype = {
-        },
+        script = {},
+        style = {},
+        noscript = {},
+        comment = {},
+        doctype = {},
         {
           # Default case - process all children
           lapply(xml_contents(node), markdown, text = text) |>
@@ -224,7 +225,9 @@ html_markdown <-
             stri_flatten()
         }
       )
-      if (trim) text <- stri_trim_both(text)
+      if (trim) {
+        text <- stri_trim_both(text)
+      }
 
       if (xml_name(node) %in% split_tags) {
         text <- stri_c(
@@ -252,7 +255,9 @@ html_markdown <-
 
       text[is_named_tag] <- x[, 3L] # remove  ____RAGNAR_TAG_NAME___<name>__ prefix
 
-      if (trim_splits) text <- stri_trim_both(text)
+      if (trim_splits) {
+        text <- stri_trim_both(text)
+      }
 
       # now attach tag names. Content in between tags has name `""`
       nms <- character(length(text))

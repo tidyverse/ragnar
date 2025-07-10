@@ -7,7 +7,9 @@
 # Not exported via NAMESPACE because the S3 class of DocumentConverterResult is not stable
 py_to_r.markitdown.DocumentConverterResult <- function(x) {
   text <- x$text_content
-  if (!is.null(x$title)) text <- stri_c("# ", x$title, "\n\n", text)
+  if (!is.null(x$title)) {
+    text <- stri_c("# ", x$title, "\n\n", text)
+  }
   text
 }
 

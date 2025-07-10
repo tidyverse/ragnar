@@ -196,5 +196,4 @@ test_that("ragnar_store_create overwrite is correct", {
     },
     regexp = NA
   )
-
 })
