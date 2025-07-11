@@ -195,6 +195,11 @@ optimizing once you have a basic app working.)</p>
 <p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> returns a
 <code>MarkdownDocument</code> object, which is a normalized string of
 markdown text with <code>@origin</code> property.</p>
+<p>If you opt to use something besides <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>
+to read in content–such as <code><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines()</a></code>,
+<code>pdftools::pdf_text()</code>, or a sophisticated OCR tool–you can
+turn a character vector into a <code><a href="../reference/MarkdownDocument.html">ragnar::MarkdownDocument</a></code>
+object with the <code><a href="../reference/MarkdownDocument.html">MarkdownDocument()</a></code> constructor.</p>
 </div>
 <div class="section level5">
 <h5 id="chunk-and-augment">Chunk and Augment<a class="anchor" aria-label="anchor" href="#chunk-and-augment"></a>
@@ -219,6 +224,10 @@ between chunks.</p>
 <p><code>markdown_chunk</code> also extracts any markdown headings in
 scope for each chunk start. These headings are added as context during
 embedding and retrieval, helping the LLM produce better answers.</p>
+<p>You can specify chunking boundaries with
+<code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code>’s <code>segment_by_heading_levels</code>
+argument, which takes a vector of integers between 1 and 6. Chunks will
+not overlap a defined segment boundary.</p>
 <p>Note that an alternative approach for augmenting chunks with context
 can be to use an LLM with instructions to “situate this excerpt from
 this document,” or, worse, “summarize this document.” This can work but
@@ -408,6 +417,11 @@ store creation pipeline until retrieval returns meaningful excerpts.</p>
 <li>Iterate on the LLM system prompt to give clearer, more precise
 instructions.</li>
 </ul>
+<p>To access the store data directly, use
+<code>tbl(store@con, "chunks")</code>. With store version 2, you can
+also access <code>tbl(store@con, "documents")</code>. You can use dbplyr
+verbs to operate on the remote tbl, and convert it to an in-memory
+tibble with <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">dplyr::collect()</a></code>.</p>
 <p>Chat interfaces and LLM marketing invite us to think of LLMs as
 general-purpose agents, able to answer anything. In practice, however,
 as of 2025, building a reliable, accurate, LLM-powered solution where
