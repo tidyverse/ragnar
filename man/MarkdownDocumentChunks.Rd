@@ -18,8 +18,8 @@ also a \code{tibble}.
 Markdown document. It is a tibble with three required columns:
 \itemize{
 \item \code{start}, \code{end} — integers. These are character positions (1-based, inclusive) in the source
-\code{MarkdownDocument}, so that \code{substr(md, start, end)} yields the chunk text.
-Ranges can overlap.
+\code{MarkdownDocument}, so that \code{substring(md, start, end)} yields the chunk
+text. Ranges can overlap.
 \item \code{context} — character.
 A general-purpose field for adding context to a chunk. This column is
 combined with \code{text} to augment chunk content when generating embeddings with
@@ -35,16 +35,21 @@ Additional columns can be included.
 The original document is available via the \verb{@document} property.
 
 For normal use, chunk a Markdown document with \code{\link[=markdown_chunk]{markdown_chunk()}}; the
-class itself is exported only so advanced users can generate or tweak chunks
-by other means.
+class constructor itself is exported only so advanced users can generate or
+tweak chunks by other means.
 }
 \examples{
-doc <- MarkdownDocument("# A\n\nB\n\n## C\n\nD")
+doc_text <- "# A\n\nB\n\n## C\n\nD"
+doc <- MarkdownDocument(doc_text, origin = "some/where")
 chunk_positions <- tibble::tibble(
-  start    = c(1L, 5L),
-  end      = c(3L, 7L),
-  context = c("A", "A\nC")
+  start = c(1L, 9L),
+  end = c(8L, 15L),
+  context = c("", "# A"),
+  text = substring(doc, start, end)
 )
 chunks <- MarkdownDocumentChunks(chunk_positions, doc)
 identical(chunks@document, doc)
+}
+\seealso{
+\code{\link[=MarkdownDocument]{MarkdownDocument()}}
 }

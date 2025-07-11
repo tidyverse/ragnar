@@ -249,7 +249,7 @@ ragnar_store_insert_v1 <- function(store, chunks) {
   }
 
   if (S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
-    chunks <- chunks |> 
+    chunks <- chunks |>
       dplyr::select(dplyr::any_of(names(store@schema)))
     if (is.null(chunks[["origin"]])) {
       chunks$origin <- chunks@document@origin
@@ -293,8 +293,8 @@ ragnar_store_insert_v1 <- function(store, chunks) {
     ))
   }
 
-  chunks <- chunks |> 
-    dplyr::select(dplyr::any_of(names(schema))) |> 
+  chunks <- chunks |>
+    dplyr::select(dplyr::any_of(names(schema))) |>
     vctrs::vec_cast(store@schema)
 
   dbAppendTable(
@@ -368,7 +368,7 @@ dbDataType2 <- function(con, x) {
       # by default.
       dataTypes[[nm]] <- paste0("FLOAT[", ncol(x[[nm]]), "]")
     } else if (is.matrix(x[[nm]])) {
-      dataTypes[[nm]] <- paste0(dataTypes[i], "[", ncol(x[[nm]]), "]")
+      dataTypes[[nm]] <- paste0(dataTypes[nm], "[", ncol(x[[nm]]), "]")
     }
   }
   dataTypes

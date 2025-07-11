@@ -10,8 +10,8 @@ markdown_chunk(
   target_overlap = 0.5,
   ...,
   max_snap_dist = target_size * (1 - target_overlap)/3,
-  context = TRUE,
   segment_by_heading_levels = integer(),
+  context = TRUE,
   text = TRUE
 )
 }
@@ -36,9 +36,6 @@ may move to reach a boundary. Defaults to one third of the stride size
 between target chunk starts. Chunks that end up on identical boundaries are
 merged.}
 
-\item{context}{Logical. Add a \code{context} column containing the Markdown
-headings in scope at each chunk start. Default: \code{TRUE}.}
-
 \item{segment_by_heading_levels}{Integer vector with possible values \code{1:6}.
 Headings at these levels are treated as segment boundaries; chunking is
 performed independently for each segment. No chunk will overlap a segment
@@ -46,6 +43,9 @@ boundary, and any future deoverlapping will not combine segments. Each
 segment will have a chunk that starts at the segment start and a chunk that
 starts at the segment end (these may be the same chunk or overlap
 substantially if the segment is short). Default: disabled.}
+
+\item{context}{Logical. Add a \code{context} column containing the Markdown
+headings in scope at each chunk start. Default: \code{TRUE}.}
 
 \item{text}{Logical. If \code{TRUE}, include a \code{text} column with the chunk
 contents. Default: \code{TRUE}.}
@@ -57,11 +57,11 @@ columns \code{start} \code{end}, and optionally \code{context} and \code{text}. 
 normalized and converted to a \code{MarkdownDocument}).
 }
 \description{
-\code{markdown_chunk()} splits a single Markdown string into fixed-length,
+\code{markdown_chunk()} splits a single Markdown string into shorter
 optionally overlapping chunks while nudging cut points to the nearest
 sensible boundary (heading, paragraph, sentence, line, word, or character).
-It returns a tibble recording the character ranges of each chunk and, if
-requested, the heading context and the text itself.
+It returns a tibble recording the character ranges, headings context, and text
+for each chunk.
 }
 \examples{
 md <- "

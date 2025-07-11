@@ -7,21 +7,19 @@
 \item{text}{[string] Markdown text.}
 
 \item{origin}{[string] Optional source path or URL. Defaults to the
-\code{"origin"} attribute of \code{text}, if present, otherwise \code{NA}.}
+\code{"origin"} attribute of \code{text}, if present, otherwise \code{NULL}.}
 }
 \value{
 An S7 object that inherits from \code{MarkdownDocument}, which is a length
-1 string of markdown text and an \verb{@origin} property.
+1 string of markdown text with an \verb{@origin} property.
 }
 \description{
-\code{MarkdownDocument} represents a complete Markdown document
-stored as a single character string.  The constructor normalises the text
-with \code{commonmark::markdown_commonmark()} so downstream code can rely on a
-consistent format.
+\code{MarkdownDocument} represents a complete Markdown document stored as a single
+character string. The constructor normalizes \code{text} by collapsing lines and
+ensuring UTF-8 encoding, so downstream code can rely on a consistent format.
 
-For day-to-day work you almost never need to call the constructor directly:
 \code{\link[=read_as_markdown]{read_as_markdown()}} is the recommended way to create a \code{MarkdownDocument}.
-The class itself is exported only so advanced users can construct one by
+The constructor itself is exported only so advanced users can construct one by
 other means when needed.
 }
 \examples{
