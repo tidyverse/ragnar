@@ -26,6 +26,13 @@ You can install ragnar from CRAN with:
 install.packages("ragnar")
 ```
 
+You can install the development version from GitHub with:
+
+``` r
+# install.packages("pak")
+pak::pak("tidyverse/ragnar")
+```
+
 ## Key Steps
 
 ### 1. Document Processing
@@ -227,50 +234,47 @@ chat <- ellmer::chat_openai(
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
-#> ◯ [tool call] rag_retrieve_from_store_001(text = "subset dataframe")
+#> ◯ [tool call] rag_retrieve_from_store_001(text = "How to subset a dataframe in
+#> R")
 #> ● #> [{"origin":"https://r4ds.hadley.nz/arrow.html","doc_id":2,"chunk_id":13,"…
 ```
 
-    #> To subset a dataframe in R, you typically use the [ and ] operator or dplyr 
-    #> functions. Here are some common ways:
+    #> You can subset a dataframe in R in several ways:
     #> 
-    #> 1. Base R subsetting with [ ]:  
-    #> - Select rows and columns by index:  
-    #>   ```r
-    #>   df[1, 2]     # First row, second column
-    #>   df[, 1:2]    # All rows, columns 1 and 2
-    #>   ```
-    #> - Select columns by name:
-    #>   ```r
-    #>   df[, c("x", "y")]
-    #>   ```
-    #> - Subset rows by condition:
-    #>   ```r
-    #>   df[df$x > 1, ]
-    #>   ```
-    #> 
-    #> Note: With data.frame, single-column selection returns a vector unless you use 
-    #> `drop = FALSE`. With tibbles, you always get a tibble 
+    #> 1. Using the [ (bracket) operator:
+    #> - Select rows and/or columns: df[rows, cols]
+    #> - Example:
+    #> ```r
+    #> df[1, 2]          # first row, second column
+    #> df[, c("x","y")]  # all rows, columns x and y
+    #> df[df$x > 1, ]    # rows where x > 1, all columns
+    #> ```
+    #> If df is a tibble, the result of df[, "x"] is always a tibble; for a 
+    #> data.frame, it returns a vector unless you use drop=FALSE: df[, "x", 
+    #> drop=FALSE] 
     #> ([source](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)).
     #> 
-    #> 2. Using dplyr (tidyverse):  
-    #> - Filter rows:
-    #>   ```r
-    #>   library(dplyr)
-    #>   df %>% filter(x > 1)
-    #>   ```
-    #> - Select columns:
-    #>   ```r
-    #>   df %>% select(x, y)
-    #>   ```
-    #>   
-    #> You can also combine `filter()` and `select()` to subset both rows and columns 
-    #> ([source](https://r4ds.hadley.nz/functions.html#common-use-cases)).
+    #> 2. With dplyr for more readable code:
+    #> - Use filter() for subsetting rows and select() for columns:
+    #> ```r
+    #> library(dplyr)
+    #> df %>% filter(x > 1)            # rows where x > 1
+    #> df %>% select(x, y)             # columns x and y
+    #> df %>% filter(x > 1) %>% select(x, y)  # both
+    #> ```
+    #> - Many dplyr verbs are wrappers for subsetting, e.g., filter(), arrange(), and 
+    #> select() ([source](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)).
     #> 
-    #> For more, see:  
-    #> - [R for Data Science, Subsetting data 
-    #> frames](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)  
-    #> - [dplyr::filter() 
-    #> documentation](https://dplyr.tidyverse.org/reference/filter.html)  
-    #> - [dplyr::select() 
-    #> documentation](https://dplyr.tidyverse.org/reference/select.html)
+    #> 3. subset() function (base R):
+    #> ```r
+    #> subset(df, x > 1, select = c(x, y))
+    #> ```
+    #> This combines row/column subsetting in one call.
+    #> 
+    #> Summary: Use df[rows, cols], dplyr's filter() and select(), or subset() for 
+    #> subsetting dataframes.
+    #> - Reference: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames
+    #> - Reference: https://dplyr.tidyverse.org/reference/filter.html
+    #> - Reference: https://rdrr.io/r/base/subset.html
+    #> 
+    #> Let me know if you want an example with your own dataset or more details!
