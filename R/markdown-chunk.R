@@ -1,25 +1,24 @@
 #' Chunk a Markdown document
 #'
-#' `markdown_chunk()` splits a single Markdown string into shorter
-#' optionally overlapping chunks while nudging cut points to the nearest
-#' sensible boundary (heading, paragraph, sentence, line, word, or character).
-#' It returns a tibble recording the character ranges, headings context, and text
-#' for each chunk.
+#' `markdown_chunk()` splits a single Markdown string into shorter optionally
+#' overlapping chunks while nudging cut points to the nearest sensible boundary
+#' (heading, paragraph, sentence, line, word, or character). It returns a tibble
+#' recording the character ranges, headings context, and text for each chunk.
 #'
 #' @param md A `MarkdownDocument`, or a length-one character vector containing
 #'   Markdown.
-#' @param target_size Integer. Target chunk size in characters. Default: 1600 (≈
-#'   400 tokens, or 1 page of text). Actual chunk size may differ from the
-#'   target by up to `2 * max_snap_dist`. When set to `NULL`, `NA` or `Inf` and used
-#'   with `segment_by_heading_levels`, chunk size is unbounded and each chunk
-#'   corresponds to a segment.
+#' @param target_size Integer. Target chunk size in characters. Default: 1600
+#'   (\eqn{\approx} 400 tokens, or 1 page of text). Actual chunk size may differ
+#'   from the target by up to `2 * max_snap_dist`. When set to `NULL`, `NA` or
+#'   `Inf` and used with `segment_by_heading_levels`, chunk size is unbounded
+#'   and each chunk corresponds to a segment.
 #' @param target_overlap Numeric in `[0, 1)`. Fraction of desired overlap
 #'   between successive chunks. Default: `0.5`. Even when `0`, some overlap can
 #'   occur because the last chunk is anchored to the document end.
 #' @param max_snap_dist Integer. Furthest distance (in characters) a cut point
-#'   may move to reach a boundary. Defaults to one third of the stride size
-#'   between target chunk starts. Chunks that end up on identical boundaries are
-#'   merged.
+#'   may move to reach a semantic boundary. Defaults to one third of the stride
+#'   size between target chunk starts. Chunks that end up on identical
+#'   boundaries are merged.
 #' @inheritParams rlang::args_dots_empty
 #' @param context Logical. Add a `context` column containing the Markdown
 #'   headings in scope at each chunk start. Default: `TRUE`.
@@ -28,17 +27,19 @@
 #'   performed independently for each segment. No chunk will overlap a segment
 #'   boundary, and any future deoverlapping will not combine segments. Each
 #'   segment will have a chunk that starts at the segment start and a chunk that
-#'   starts at the segment end (these may be the same chunk or overlap
+#'   ends at the segment end (these may be the same chunk or overlap
 #'   substantially if the segment is short). Default: disabled.
 #' @param text Logical. If `TRUE`, include a `text` column with the chunk
 #'   contents. Default: `TRUE`.
 #'
 #' @return
 #'
-#' A `MarkdownDocumentChunks` object, which is a tibble (data.frame) with with
+#' A [`MarkdownDocumentChunks`] object, which is a tibble (data.frame) with with
 #' columns `start` `end`, and optionally `context` and `text`. It also has a
 #' `@document` property, which is the input `md` document (potentially
-#' normalized and converted to a `MarkdownDocument`).
+#' normalized and converted to a [`MarkdownDocument`]).
+#'
+#' @seealso [MarkdownDocumentChunks()], [MarkdownDocument()]
 #'
 #' @export
 #' @examples

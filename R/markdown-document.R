@@ -20,7 +20,10 @@
 #'
 #' @name MarkdownDocument
 #' @examples
-#' md <- MarkdownDocument("# Title\n\nSome text.", origin = "example.md")
+#' md <- MarkdownDocument(
+#'   "# Title\n\nSome text.",
+#'   origin = "example.md"
+#' )
 #' md
 MarkdownDocument := new_class(
   parent = class_character,
