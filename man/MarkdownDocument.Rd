@@ -4,7 +4,7 @@
 \alias{MarkdownDocument}
 \title{Markdown documents}
 \arguments{
-\item{text}{[string] Character vector of Markdown text.}
+\item{text}{[string] Markdown text.}
 
 \item{origin}{[string] Optional source path or URL. Defaults to the
 \code{"origin"} attribute of \code{text}, if present, otherwise \code{NULL}.}
