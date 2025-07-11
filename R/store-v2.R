@@ -144,7 +144,8 @@ process_extra_cols <- function(con, extra_cols) {
   extra_cols <- vctrs::vec_ptype(extra_cols)
 
   disallowd_cols <- c(
-    "id",
+    "chunk_id",
+    "doc_id",
     "origin",
     "text",
     "start",
