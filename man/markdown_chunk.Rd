@@ -95,5 +95,8 @@ markdown_chunk(md, target_size = NA, segment_by_heading_levels = c(1, 2))
 markdown_chunk(md, target_size = 40, max_snap_dist = 100)
 }
 \seealso{
-\code{\link[=MarkdownDocumentChunks]{MarkdownDocumentChunks()}}, \code{\link[=MarkdownDocument]{MarkdownDocument()}}
+\code{\link[=ragnar_chunks_view]{ragnar_chunks_view()}} to interactively inspect the output of
+\code{markdown_chunk()}. See also \code{\link[=MarkdownDocumentChunks]{MarkdownDocumentChunks()}} and
+\code{\link[=MarkdownDocument]{MarkdownDocument()}}, where the input and return value of
+\code{markdown_chunk()} are described more fully.
 }

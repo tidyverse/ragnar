@@ -39,7 +39,10 @@
 #' `@document` property, which is the input `md` document (potentially
 #' normalized and converted to a [`MarkdownDocument`]).
 #'
-#' @seealso [MarkdownDocumentChunks()], [MarkdownDocument()]
+#' @seealso [ragnar_chunks_view()] to interactively inspect the output of
+#'   `markdown_chunk()`. See also [MarkdownDocumentChunks()] and
+#'   [MarkdownDocument()], where the input and return value of
+#'   `markdown_chunk()` are described more fully.
 #'
 #' @export
 #' @examples
