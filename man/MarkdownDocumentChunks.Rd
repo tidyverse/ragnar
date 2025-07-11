@@ -18,7 +18,7 @@ also a \code{tibble}.
 Markdown document. It is a tibble with three required columns:
 \itemize{
 \item \code{start}, \code{end} — integers. These are character positions (1-based, inclusive) in the source
-\code{MarkdownDocument}, so that \code{substr(md, start, end)} yields the chunk text.
+\code{MarkdownDocument}, so that \code{substring(md, start, end)} yields the chunk text.
 Ranges can overlap.
 \item \code{context} — character.
 A general-purpose field for adding context to a chunk. This column is

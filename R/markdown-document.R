@@ -71,7 +71,7 @@ local({
 #' Markdown document. It is a tibble with three required columns:
 #'
 #' * `start`, `end` — integers. These are character positions (1-based, inclusive) in the source
-#' `MarkdownDocument`, so that `substr(md, start, end)` yields the chunk text.
+#' `MarkdownDocument`, so that `substring(md, start, end)` yields the chunk text.
 #' Ranges can overlap.
 #'
 #' * `context` — character.

@@ -122,7 +122,7 @@ store <- ragnar_store_create(
 )
 doc <- MarkdownDocument(paste0(letters, collapse = ""), origin = "/some/where")
 chunks <- markdown_chunk(doc, target_size = 3, target_overlap = 2 / 3)
-chunks$context <- substr(chunks$text, 1, 1)
+chunks$context <- substring(chunks$text, 1, 1)
 chunks
 ragnar_store_insert(store, chunks)
 ragnar_store_build_index(store)

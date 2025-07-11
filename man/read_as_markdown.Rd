@@ -60,46 +60,34 @@ and \url{https://facelessuser.github.io/soupsieve/selectors/}
 md <- read_as_markdown("https://r4ds.hadley.nz/base-R.html")
 md
 
-cat(substr(md, 1, 500))
+cat_head <- \(md, n = 10) writeLines(head(strsplit(md, "\n")[[1L]], n))
+cat_head(md)
 
 ## Using selector strings
 
+# By default, this output includes the sidebar and other navigational elements
 url <- "https://duckdb.org/code_of_conduct"
-# Includes the sidebar and other navigational elements
-read_as_markdown(url) |> substr(1, 500) |> writeLines()
+read_as_markdown(url) |> cat_head(15)
 
-# Extract the main content
-read_as_markdown(url, html_extract_selectors = "#main_content_wrap")
+# To extract just the main content, use a selector
+read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
+  cat_head()
 
-# Alternative approach: exclude nodes
+# Alternative approach: zap unwanted nodes
 read_as_markdown(
   url,
   html_zap_selectors = c(
-    "header",          # node name
-    ".sidenavigation", # node class
-    ".searchoverlay",  # node class
-    "#sidebar"         # node ID
+    "header",          # name
+    ".sidenavigation", # class
+    ".searchoverlay",  # class
+    "#sidebar"         # ID
   )
-) |> substr(1, 500) |> writeLines()
+) |> cat_head()
 
 # Quarto example
-url <- "https://quarto.org/docs/computations/python.html"
-
-# Include sidebar, footer, etc.
 read_as_markdown(
-  url,
-  html_extract_selectors = NULL,
-  html_zap_selectors = NULL
-) |> substr(1, 500) |> writeLines()
-
-# Exclude content outside <main>
-read_as_markdown(url, html_extract_selectors = "main") |>
-  substr(1, 500) |> writeLines()
-
-# Exclude specific matching nodes
-read_as_markdown(
-  url,
-  html_extract_selectors = NULL,
+  "https://quarto.org/docs/computations/python.html",
+  html_extract_selectors = "main",
   html_zap_selectors = c(
     "#quarto-sidebar",
     "#quarto-margin-sidebar",
@@ -107,13 +95,13 @@ read_as_markdown(
     "footer",
     "nav"
   )
-) |> substr(1, 500) |> writeLines()
+) |> cat_head()
 
-# Convert PDF
+## Convert PDF
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
-read_as_markdown(pdf) |> substr(1, 1000) |> cat()
+read_as_markdown(pdf) |> cat_head(15)
 ## Alternative:
-# pdftools::pdf_text(pdf) |> substr(1, 2000) |> cat()
+# pdftools::pdf_text(pdf) |> cat_head()
 
 # Convert images to markdown descriptions using OpenAI
 jpg <- file.path(R.home("doc"), "html", "logo.jpg")
@@ -121,7 +109,8 @@ if (Sys.getenv("OPENAI_API_KEY") != "") {
   # if (xfun::is_macos()) system("brew install ffmpeg")
   reticulate::py_require("openai")
   llm_client <- reticulate::import("openai")$OpenAI()
-  read_as_markdown(jpg, llm_client = llm_client, llm_model = "gpt-4.1-mini")
+  read_as_markdown(jpg, llm_client = llm_client, llm_model = "gpt-4.1-mini") |>
+    writeLines()
   # # Description:
   # The image displays the logo of the R programming language. It features a
   # large, stylized capital letter "R" in blue, positioned prominently in the
