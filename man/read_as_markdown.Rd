@@ -44,7 +44,7 @@ headers, footers, etc. You can pass CSS selector strings to either extract
 nodes or exclude nodes during conversion.
 
 The easiest way to make selectors is to use SelectorGadget:
-\url{https://rvest.tidyverse.orgarticles/selectorgadget.html}
+\url{https://rvest.tidyverse.org/articles/selectorgadget.html}
 
 You can also right-click on a page and select "Inspect Element" in a browser
 to better understand an HTML page's structure.
