@@ -276,9 +276,9 @@ ragnar_store_update_v2 <- function(store, chunks) {
     S7_inherits(chunks, MarkdownDocumentChunks)
   )
 
-  # Chunks are not referring to any document, or the document doesn't have an origin.
-  if (is.null(chunks@document) || is.null(chunks@document@origin)) {
-    return(ragnar_store_insert(store, chunks))
+  # Chunks are not refering to any document, or the document doesn't have an origin.
+  if (is.null(chunks@document) || is.na(chunks@document@origin) || is.null(chunks@document@origin)) {
+    stop("Can't update chunks when the document does not specify a valid origin, use ragnar_store_insert instead.")
   }
 
   if ("text" %in% names(chunks)) {

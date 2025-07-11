@@ -213,8 +213,9 @@ test_that("Can insert chunks with no origin", {
 
   expect_no_error(ragnar_store_insert(store, chunks2))
   expect_no_error(ragnar_store_insert(store, chunks2))
-  expect_no_error(ragnar_store_update(store, chunks2))
 
   n_docs <- tbl(store@con, "chunks") |> distinct(doc_id) |> collect() |> nrow()
-  expect_equal(n_docs, 3)
+  expect_equal(n_docs, 2)
+  
+  expect_error(ragnar_store_update(store, chunks2), "Can't update")
 })
