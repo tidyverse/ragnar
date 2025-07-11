@@ -118,12 +118,15 @@ storeInspectorServer <- function(id, store) {
       }
 
       metadata <- selectedDocument() |>
-        dplyr::select(context, dplyr::all_of(names(store@schema)))
+        dplyr::select(
+          dplyr::all_of(names(store@schema)), 
+          -dplyr::any_of(c("doc_id", "chunk_id", "start", "end", "embedding"))
+        )
 
       shiny::div(
         class = "flex flex-col gap-2 size-full overflow-hidden",
         shiny::div(
-          class = "border-b pb-2 border-gray-200",
+          class = "border-b pb-2 border-gray-200 max-h-32 overflow-y-auto",
           shiny::pre(
             class = "text-xs text-pretty",
             yaml::as.yaml(
