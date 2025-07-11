@@ -1,9 +1,10 @@
 #' Markdown documents
 #'
-#' @description `MarkdownDocument` represents a complete Markdown document
-#' stored as a single character string.  The constructor normalises the text
-#' with `commonmark::markdown_commonmark()` so downstream code can rely on a
-#' consistent format.
+#' @description
+#'
+#' `MarkdownDocument` represents a complete Markdown document stored as a single
+#' character string. The constructor normalizes `text` by flattening lines and
+#' ensuring UTF-8 encoding, so downstream code can rely on a consistent format.
 #'
 #' For day-to-day work you almost never need to call the constructor directly:
 #' [`read_as_markdown()`] is the recommended way to create a `MarkdownDocument`.
@@ -12,10 +13,10 @@
 #'
 #' @param text \[string] Markdown text.
 #' @param origin \[string] Optional source path or URL. Defaults to the
-#'   `"origin"` attribute of `text`, if present, otherwise `NA`.
+#'   `"origin"` attribute of `text`, if present, otherwise `NULL`.
 #'
 #' @return An S7 object that inherits from `MarkdownDocument`, which is a length
-#'   1 string of markdown text and an `@origin` property.
+#'   1 string of markdown text with an `@origin` property.
 #' @export
 #'
 #' @name MarkdownDocument
