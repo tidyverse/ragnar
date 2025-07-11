@@ -35,10 +35,10 @@ order they appear in the markdown content.
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+This function is deprecated in favor of \code{read_as_markdown()}.
 }
 \details{
-This function is deprecated in favor of \code{read_as_markdown()}.
-
 \code{ragnar_read()} uses \href{https://github.com/microsoft/markitdown}{markitdown} to
 convert a document to markdown. If \code{frame_by_tags} or \code{split_by_tags} is
 provided, the converted markdown content is then split and converted to a
