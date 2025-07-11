@@ -3,12 +3,11 @@
 #' @description
 #'
 #' `MarkdownDocument` represents a complete Markdown document stored as a single
-#' character string. The constructor normalizes `text` by flattening lines and
+#' character string. The constructor normalizes `text` by collapsing lines and
 #' ensuring UTF-8 encoding, so downstream code can rely on a consistent format.
 #'
-#' For day-to-day work you almost never need to call the constructor directly:
 #' [`read_as_markdown()`] is the recommended way to create a `MarkdownDocument`.
-#' The class itself is exported only so advanced users can construct one by
+#' The constructor itself is exported only so advanced users can construct one by
 #' other means when needed.
 #'
 #' @param text \[string] Markdown text.
@@ -89,8 +88,8 @@ local({
 #' The original document is available via the `@document` property.
 #'
 #' For normal use, chunk a Markdown document with [`markdown_chunk()`]; the
-#' class itself is exported only so advanced users can generate or tweak chunks
-#' by other means.
+#' class constructor itself is exported only so advanced users can generate or
+#' tweak chunks by other means.
 #'
 #' @param chunks A data frame containing `start`, `end`, and `context` columns,
 #'   and optionally other columns.
@@ -99,13 +98,16 @@ local({
 #' @return An S7 object that inherits from `MarkdownDocumentChunks`, which is
 #'   also a `tibble`.
 #' @export
+#' @seealso [MarkdownDocument()]
 #' @name MarkdownDocumentChunks
 #' @examples
-#' doc <- MarkdownDocument("# A\n\nB\n\n## C\n\nD")
+#' doc_text <- "# A\n\nB\n\n## C\n\nD"
+#' doc <- MarkdownDocument(doc_text, origin = "some/where")
 #' chunk_positions <- tibble::tibble(
-#'   start    = c(1L, 5L),
-#'   end      = c(3L, 7L),
-#'   context = c("A", "A\nC")
+#'   start = c(1L, 9L),
+#'   end = c(8L, 15L),
+#'   context = c("", "# A"),
+#'   text = substring(doc, start, end)
 #' )
 #' chunks <- MarkdownDocumentChunks(chunk_positions, doc)
 #' identical(chunks@document, doc)
