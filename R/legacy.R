@@ -1,8 +1,12 @@
 #' Read a document as Markdown
 #'
+#' @description
+#'
 #' `r lifecycle::badge("deprecated")`
 #'
 #' This function is deprecated in favor of `read_as_markdown()`.
+#'
+#' @details
 #'
 #' `ragnar_read()` uses [markitdown](https://github.com/microsoft/markitdown) to
 #' convert a document to markdown. If `frame_by_tags` or `split_by_tags` is
@@ -139,6 +143,8 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
 
 #' Chunk text
 #'
+#' @description
+#'
 #' `r lifecycle::badge("deprecated")`
 #'
 #' These functions are deprecated in favor of `markdown_chunk()`, which is more
@@ -146,6 +152,8 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
 #' downstream by `ragnar_retrieve()`, and automatically builds a `context`
 #' string of in-scope markdown headings for each chunk instead of requiring
 #' manual string interpolation from extracted headings.
+#'
+#' @details
 #'
 #' Functions for chunking text into smaller pieces while preserving meaningful
 #' semantics. These functions provide flexible ways to split text based on

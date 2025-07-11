@@ -1,10 +1,10 @@
 #' Chunk a Markdown document
 #'
-#' `markdown_chunk()` splits a single Markdown string into fixed-length,
+#' `markdown_chunk()` splits a single Markdown string into shorter
 #' optionally overlapping chunks while nudging cut points to the nearest
 #' sensible boundary (heading, paragraph, sentence, line, word, or character).
-#' It returns a tibble recording the character ranges of each chunk and, if
-#' requested, the heading context and the text itself.
+#' It returns a tibble recording the character ranges, headings context, and text
+#' for each chunk.
 #'
 #' @param md A `MarkdownDocument`, or a length-one character vector containing
 #'   Markdown.
@@ -78,8 +78,8 @@ markdown_chunk <- function(
   target_overlap = .5,
   ...,
   max_snap_dist = target_size * (1 - target_overlap) / 3,
-  context = TRUE,
   segment_by_heading_levels = integer(),
+  context = TRUE,
   text = TRUE
 ) {
   # arg checks
@@ -262,7 +262,7 @@ markdown_node_positions <- function(md, type = NULL, text = FALSE) {
     df$text <- stri_sub(md, df$start, df$end)
   }
 
-  df
+  df |> arrange(start, end)
 }
 
 str_locate_boundary_starts1 <- function(string, type) {
@@ -276,7 +276,8 @@ str_locate_boundary_starts1 <- function(string, type) {
 
 
 snap_nearest <- function(x, candidates, max_dist = NULL) {
-  if ((n_candidates <- length(candidates)) == 0L) {
+  n_candidates <- length(candidates)
+  if (n_candidates == 0L) {
     return(rep(NA, length(x)))
   }
   if (n_candidates == 1L) {
@@ -286,13 +287,7 @@ snap_nearest <- function(x, candidates, max_dist = NULL) {
     }
     return(out)
   }
-  left_idx <- findInterval(
-    x,
-    candidates,
-    all.inside = TRUE
-    ## checkSorted and checkNA added in 4.5
-    # , checkSorted = FALSE, checkNA = FALSE
-  )
+  left_idx <- findInterval(x, candidates, all.inside = TRUE)
   right_idx <- left_idx + 1L
 
   left <- candidates[left_idx]

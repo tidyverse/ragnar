@@ -64,7 +64,7 @@
 #' ragnar_store_insert(store, data.frame(text = "hello"))
 #'
 #' # A store with a schema. When inserting into this store, users need to
-#' # provide a `area` column.
+#' # provide an `area` column.
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
 #'   extra_cols = data.frame(area = character()),
@@ -73,7 +73,7 @@
 #' ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
 #'
 #' # If you already have a data.frame with chunks that will be inserted into
-#' # the store, you can quickly create a suitable store with:
+#' # the store, you can quickly create a suitable store with `vec_ptype()`:
 #' chunks <- data.frame(text = letters, area = "rag")
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
@@ -84,14 +84,19 @@
 #'
 #' # version = 2 (the default) has support for deoverlapping
 #' store <- ragnar_store_create(
-#'   embed = NULL # if embed = NULL, then only bm25 search is used (not vss)
+#'   # if embed = NULL, then only bm25 search is used (not vss)
+#'   embed = NULL
 #' )
-#' doc <- MarkdownDocument(paste0(letters, collapse = ""), origin = "/some/where")
+#' doc <- MarkdownDocument(
+#'   paste0(letters, collapse = ""),
+#'   origin = "/some/where"
+#' )
 #' chunks <- markdown_chunk(doc, target_size = 3, target_overlap = 2 / 3)
-#' chunks$context <- substr(chunks$text, 1, 1)
+#' chunks$context <- substring(chunks$text, 1, 1)
 #' chunks
 #' ragnar_store_insert(store, chunks)
 #' ragnar_store_build_index(store)
+#'
 #' ragnar_retrieve(store, "abc bcd xyz", deoverlap = FALSE)
 #' ragnar_retrieve(store, "abc bcd xyz", deoverlap = TRUE)
 ragnar_store_create <- function(

@@ -14,7 +14,6 @@
 #' @export
 #'
 #' @examplesIf (file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != "")
-#'
 #' system_prompt <- stringr::str_squish("
 #'   You are an expert assistant in R programming.
 #'   When responding, you first quote relevant material from books or documentation,
@@ -22,7 +21,7 @@
 #' ")
 #' chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
 #'
-#' store <- ragnar_store_connect("r4ds.ragnar.duckdb", read_only = TRUE)
+#' store <- ragnar_store_connect("r4ds.ragnar.duckdb")
 #' ragnar_register_tool_retrieve(chat, store)
 #' chat$chat("How can I subset a dataframe?")
 ragnar_register_tool_retrieve <- function(

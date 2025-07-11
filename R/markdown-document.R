@@ -1,21 +1,21 @@
 #' Markdown documents
 #'
-#' @description `MarkdownDocument` represents a complete Markdown document
-#' stored as a single character string.  The constructor normalises the text
-#' with `commonmark::markdown_commonmark()` so downstream code can rely on a
-#' consistent format.
+#' @description
 #'
-#' For day-to-day work you almost never need to call the constructor directly:
+#' `MarkdownDocument` represents a complete Markdown document stored as a single
+#' character string. The constructor normalizes `text` by collapsing lines and
+#' ensuring UTF-8 encoding, so downstream code can rely on a consistent format.
+#'
 #' [`read_as_markdown()`] is the recommended way to create a `MarkdownDocument`.
-#' The class itself is exported only so advanced users can construct one by
+#' The constructor itself is exported only so advanced users can construct one by
 #' other means when needed.
 #'
 #' @param text \[string] Markdown text.
 #' @param origin \[string] Optional source path or URL. Defaults to the
-#'   `"origin"` attribute of `text`, if present, otherwise `NA`.
+#'   `"origin"` attribute of `text`, if present, otherwise `NULL`.
 #'
 #' @return An S7 object that inherits from `MarkdownDocument`, which is a length
-#'   1 string of markdown text and an `@origin` property.
+#'   1 string of markdown text with an `@origin` property.
 #' @export
 #'
 #' @name MarkdownDocument
@@ -36,18 +36,23 @@ MarkdownDocument := new_class(
   }
 )
 
-markdown_normalize <- function(md) {
-  md |>
+markdown_normalize <- function(md, canonical = FALSE) {
+  md <- md |>
     stri_split_lines() |>
     unlist() |>
     enc2utf8() |>
     stri_trim_right() |>
-    stri_flatten("\n") |>
-    commonmark::markdown_commonmark(
-      normalize = TRUE,
-      footnotes = TRUE,
-      extensions = TRUE
-    )
+    stri_flatten("\n")
+
+  if (canonical) {
+    md <- md |>
+      commonmark::markdown_commonmark(
+        normalize = TRUE,
+        footnotes = TRUE,
+        extensions = TRUE
+      )
+  }
+  md
 }
 
 local({
@@ -66,8 +71,8 @@ local({
 #' Markdown document. It is a tibble with three required columns:
 #'
 #' * `start`, `end` — integers. These are character positions (1-based, inclusive) in the source
-#' `MarkdownDocument`, so that `substr(md, start, end)` yields the chunk text.
-#' Ranges can overlap.
+#' `MarkdownDocument`, so that `substring(md, start, end)` yields the chunk
+#' text. Ranges can overlap.
 #'
 #' * `context` — character.
 #' A general-purpose field for adding context to a chunk. This column is
@@ -83,8 +88,8 @@ local({
 #' The original document is available via the `@document` property.
 #'
 #' For normal use, chunk a Markdown document with [`markdown_chunk()`]; the
-#' class itself is exported only so advanced users can generate or tweak chunks
-#' by other means.
+#' class constructor itself is exported only so advanced users can generate or
+#' tweak chunks by other means.
 #'
 #' @param chunks A data frame containing `start`, `end`, and `context` columns,
 #'   and optionally other columns.
@@ -93,13 +98,16 @@ local({
 #' @return An S7 object that inherits from `MarkdownDocumentChunks`, which is
 #'   also a `tibble`.
 #' @export
+#' @seealso [MarkdownDocument()]
 #' @name MarkdownDocumentChunks
 #' @examples
-#' doc <- MarkdownDocument("# A\n\nB\n\n## C\n\nD")
+#' doc_text <- "# A\n\nB\n\n## C\n\nD"
+#' doc <- MarkdownDocument(doc_text, origin = "some/where")
 #' chunk_positions <- tibble::tibble(
-#'   start    = c(1L, 5L),
-#'   end      = c(3L, 7L),
-#'   context = c("A", "A\nC")
+#'   start = c(1L, 9L),
+#'   end = c(8L, 15L),
+#'   context = c("", "# A"),
+#'   text = substring(doc, start, end)
 #' )
 #' chunks <- MarkdownDocumentChunks(chunk_positions, doc)
 #' identical(chunks@document, doc)

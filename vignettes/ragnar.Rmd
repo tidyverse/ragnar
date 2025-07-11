@@ -158,6 +158,12 @@ working.)
 `read_as_markdown()` returns a `MarkdownDocument` object, which is a
 normalized string of markdown text with `@origin` property.
 
+If you opt to use something besides `read_as_markdown()` to read in
+content--such as `readLines()`, `pdftools::pdf_text()`, or a
+sophisticated OCR tool--you can turn a character vector into a
+`ragnar::MarkdownDocument` object with the `MarkdownDocument()`
+constructor.
+
 #### Chunk and Augment
 
 Next, split the documents into smaller chunks. This is necessary because
@@ -184,6 +190,10 @@ chunks.
 `markdown_chunk` also extracts any markdown headings in scope for each
 chunk start. These headings are added as context during embedding and
 retrieval, helping the LLM produce better answers.
+
+You can specify chunking boundaries with `markdown_chunk()`'s
+`segment_by_heading_levels` argument, which takes a vector of integers
+between 1 and 6. Chunks will not overlap a defined segment boundary.
 
 Note that an alternative approach for augmenting chunks with context can
 be to use an LLM with instructions to "situate this excerpt from this
@@ -384,6 +394,11 @@ Some things you can try:
 -   Increase `top_k` to return more results.
 -   Iterate on the LLM system prompt to give clearer, more precise
     instructions.
+
+To access the store data directly, use `tbl(store@con, "chunks")`. With
+store version 2, you can also access `tbl(store@con, "documents")`. You
+can use dbplyr verbs to operate on the remote tbl, and convert it to an
+in-memory tibble with `dplyr::collect()`.
 
 Chat interfaces and LLM marketing invite us to think of LLMs as
 general-purpose agents, able to answer anything. In practice, however,

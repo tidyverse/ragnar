@@ -15,9 +15,9 @@ reference:
   - title: Document processing
     desc: Ingest documents from the web, PDFs, Word, or local Markdown.
     contents:
-      - ragnar_find_links
       - read_as_markdown
       - MarkdownDocument
+      - ragnar_find_links
 
       ## store v1
       # - ragnar_read
