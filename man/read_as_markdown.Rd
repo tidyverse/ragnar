@@ -12,11 +12,11 @@ read_as_markdown(
 )
 }
 \arguments{
-\item{path}{[string] A filepath or URL. Accepts a wide variety of file types,
-including PDF, PowerPoint, Word, Excel, images (EXIF metadata and OCR),
-audio (EXIF metadata and speech transcription), HTML, text-based formats
-(CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs, and
-EPUBs.}
+\item{path}{[string] A filepath or URL. Accepts a wide variety of file
+types, including PDF, PowerPoint, Word, Excel, images (EXIF metadata and
+OCR), audio (EXIF metadata and speech transcription), HTML, text-based
+formats (CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs,
+and EPUBs.}
 
 \item{...}{Passed on to \code{MarkItDown.convert()}.}
 
@@ -36,30 +36,33 @@ A single string of Markdown.
 \description{
 Convert files to Markdown
 }
+\details{
+\subsection{Converting HTML}{
+
+When converting HTML, you might want to omit certain elements, like sidebars,
+headers, footers, etc. You can pass CSS selector strings to either extract
+nodes or exclude nodes during conversion.
+
+The easiest way to make selectors is to use SelectorGadget:
+\url{https://rvest.tidyverse.orgarticles/selectorgadget.html}
+
+You can also right-click on a page and select "Inspect Element" in a browser
+to better understand an HTML page's structure.
+
+For comprehensive or advanced usage of CSS selectors, consult
+\url{https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property}
+and \url{https://facelessuser.github.io/soupsieve/selectors/}
+}
+}
 \examples{
 \dontshow{if (reticulate::py_module_available("markitdown")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Convert HTML
-read_as_markdown("https://r4ds.hadley.nz/base-R.html") |>
-  substr(1, 500) |>
-  cat()
+md <- read_as_markdown("https://r4ds.hadley.nz/base-R.html")
+md
 
-read_as_markdown("https://r4ds.hadley.nz/base-R.html", canonical = TRUE) |>
-  substr(1, 500) |>
-  cat()
+cat(substr(md, 1, 500))
 
-# When converting HTML, you might want to omit certain elements, like
-# sidebars, headers, footers, etc. You can pass CSS selector strings
-# to either extract nodes or exclude nodes during conversion.
-#
-# The easiest way to make selectors is to use SelectorGadget:
-# https://rvest.tidyverse.orgarticles/selectorgadget.html
-#
-# You can also right-click on a page and select "Inspect Element" in a
-# browser to better understand an HTML page's structure.
-#
-# For comprehensive or advanced usage of CSS selectors, consult:
-# https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property
-# https://facelessuser.github.io/soupsieve/selectors/
+## Using selector strings
 
 url <- "https://duckdb.org/code_of_conduct"
 # Includes the sidebar and other navigational elements
