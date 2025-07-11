@@ -96,6 +96,7 @@ ragnar_retrieve_vss <- function(
       # store@version 2
       "
       SELECT
+        doc.* EXCLUDE (text, doc_id),
         e.*,
         doc.text[ e.start: e.end ] AS text
       FROM (
@@ -107,7 +108,7 @@ ragnar_retrieve_vss <- function(
         ORDER BY metric_value
         LIMIT {top_k}
       ) AS e
-      JOIN documents doc USING (origin)
+      JOIN documents doc USING (doc_id)
       ORDER BY metric_value
       "
     ))
@@ -143,6 +144,7 @@ ragnar_retrieve_vss <- function(
     # store@version 2
     "
     SELECT
+      doc.* EXCLUDE (text, doc_id),
       e.*,
       doc.text[ e.start: e.end ] AS text
     FROM (
@@ -154,7 +156,7 @@ ragnar_retrieve_vss <- function(
       ORDER BY metric_value
       LIMIT 5000
     ) AS e
-    JOIN documents doc USING (origin)
+    JOIN documents doc USING (doc_id)
     ORDER BY metric_value
     "
   ))

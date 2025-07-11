@@ -86,11 +86,11 @@ ragnar_store_create_v2 <- function(
     glue(
       r"--(
       CREATE SEQUENCE chunk_id_seq START 1; -- need a unique id for fts
-      CREATE SEQUENCE doc_id_seq START 1; 
+      CREATE SEQUENCE doc_id_seq START 1;
 
       CREATE OR REPLACE TABLE documents (
         doc_id INTEGER PRIMARY KEY DEFAULT nextval('doc_id_seq'),
-        origin VARCHAR UNIQUE, 
+        origin VARCHAR UNIQUE,
         text VARCHAR
       );
 
@@ -122,7 +122,9 @@ ragnar_store_create_v2 <- function(
     )
   )
 
-  schema <- vctrs::vec_ptype(dbGetQuery(con, "SELECT * EXCLUDE chunk_id FROM embeddings LIMIT 0;"))
+  schema <- vctrs::vec_ptype(
+    dbGetQuery(con, "SELECT * EXCLUDE chunk_id FROM embeddings LIMIT 0;")
+  )
 
   DuckDBRagnarStore(
     embed = embed,
@@ -138,7 +140,7 @@ process_extra_cols <- function(con, extra_cols) {
   if (length(extra_cols) == 0) {
     return("")
   }
-  
+
   extra_cols <- vctrs::vec_ptype(extra_cols)
 
   disallowd_cols <- c(
@@ -274,8 +276,8 @@ ragnar_store_update_v2 <- function(store, chunks) {
     S7_inherits(chunks, MarkdownDocumentChunks)
   )
 
-  # Chunks are not refering to any document, or the document doesn't have an origin.
-  if (is.null(chunks@document) || is.na(chunks@document@origin)) {
+  # Chunks are not referring to any document, or the document doesn't have an origin.
+  if (is.null(chunks@document) || is.null(chunks@document@origin)) {
     return(ragnar_store_insert(store, chunks))
   }
 
@@ -289,9 +291,9 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   con <- store@con
 
-  join_cols <- store@schema |> 
-    select(-doc_id, -embedding) |> 
-    names() |> 
+  join_cols <- store@schema |>
+    select(-doc_id, -embedding) |>
+    names() |>
     c("text")
 
   existing <- tbl(con, "chunks") |>
@@ -310,7 +312,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
   }
 
   documents <- tibble(
-    origin = chunks@document@origin, 
+    origin = chunks@document@origin,
     text = as.character(chunks@document)
   )
 
@@ -319,11 +321,10 @@ ragnar_store_update_v2 <- function(store, chunks) {
       embedding = store@embed(stri_c(context, "\n", text)),
       text = NULL
     ) |>
-    select(any_of(dbListFields(con, "embeddings"))) |> 
+    select(any_of(dbListFields(con, "embeddings"))) |>
     vctrs::vec_cast(store@schema)
-  
-  dbWithTransaction2(con, {
 
+  dbWithTransaction2(con, {
     doc_id <- unique(existing$doc_id)
 
     if (length(doc_id)) {
@@ -333,7 +334,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
         params = list(doc_id)
       )
     }
-    
+
     if (!length(doc_id)) {
       doc_id <- DBI::dbGetQuery(con, "SELECT nextval('doc_id_seq') as x;")$x
     }
