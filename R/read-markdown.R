@@ -33,11 +33,14 @@
 #' <https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property>
 #' and <https://facelessuser.github.io/soupsieve/selectors/>
 #'
-#' @returns A single string of Markdown.
-#'
-
+#' @returns A [`MarkdownDocument`] object, which is a single string of Markdown
+#'   with an `@origin` property.
 #' @export
-#' @examplesIf reticulate::py_module_available("markitdown")
+#'
+# @examplesIf reticulate::py_module_available("markitdown")
+
+#' @examples
+#' \dontrun{
 #' # Convert HTML
 #' md <- read_as_markdown("https://r4ds.hadley.nz/base-R.html")
 #' md
@@ -110,6 +113,7 @@
 #' ) {
 #'   chat <- ellmer::chat_openai(echo = TRUE)
 #'   chat$chat("Describe this image", ellmer::content_image_file(jpg))
+#' }
 #' }
 read_as_markdown <- function(
   path,

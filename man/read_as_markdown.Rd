@@ -31,7 +31,8 @@ sidebars, headers, footers, or other unwanted elements. By default,
 navigation elements (\code{nav}) are excluded.}
 }
 \value{
-A single string of Markdown.
+A \code{\link{MarkdownDocument}} object, which is a single string of Markdown
+with an \verb{@origin} property.
 }
 \description{
 Convert files to Markdown
@@ -55,7 +56,7 @@ and \url{https://facelessuser.github.io/soupsieve/selectors/}
 }
 }
 \examples{
-\dontshow{if (reticulate::py_module_available("markitdown")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontrun{
 # Convert HTML
 md <- read_as_markdown("https://r4ds.hadley.nz/base-R.html")
 md
@@ -129,5 +130,5 @@ if (
   chat <- ellmer::chat_openai(echo = TRUE)
   chat$chat("Describe this image", ellmer::content_image_file(jpg))
 }
-\dontshow{\}) # examplesIf}
+}
 }
