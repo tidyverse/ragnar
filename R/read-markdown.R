@@ -144,7 +144,7 @@ read_as_markdown <- function(
     md <- read_as_markdown_cli(path, ...)
   }
 
-  MarkdownDocument(md, origin = origin)
+  MarkdownDocument(md, origin)
 }
 
 

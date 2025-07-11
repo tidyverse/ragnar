@@ -36,18 +36,23 @@ MarkdownDocument := new_class(
   }
 )
 
-markdown_normalize <- function(md) {
-  md |>
+markdown_normalize <- function(md, canonical = FALSE) {
+  md <- md |>
     stri_split_lines() |>
     unlist() |>
     enc2utf8() |>
     stri_trim_right() |>
-    stri_flatten("\n") |>
-    commonmark::markdown_commonmark(
-      normalize = TRUE,
-      footnotes = TRUE,
-      extensions = TRUE
-    )
+    stri_flatten("\n")
+
+  if (canonical) {
+    md <- md |>
+      commonmark::markdown_commonmark(
+        normalize = TRUE,
+        footnotes = TRUE,
+        extensions = TRUE
+      )
+  }
+  md
 }
 
 local({
