@@ -262,7 +262,7 @@ markdown_node_positions <- function(md, type = NULL, text = FALSE) {
     df$text <- stri_sub(md, df$start, df$end)
   }
 
-  df
+  df |> arrange(start, end)
 }
 
 str_locate_boundary_starts1 <- function(string, type) {
