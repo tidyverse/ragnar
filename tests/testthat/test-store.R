@@ -243,6 +243,7 @@ test_that("works with MotherDuck", {
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
     overwrite = TRUE
   )
+  maybe_set_threads(store)
 
   chunks <- data.frame(
     origin = "foo",
@@ -263,6 +264,7 @@ test_that("works with MotherDuck", {
 
   # connect to the motherduck store
   store <- ragnar_store_connect("md:ragnartest")
+  maybe_set_threads(store)
   expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
 
   val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
@@ -299,6 +301,7 @@ test_that("store v1 accepts markdown chunks (from v2)", {
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |>
     read_as_markdown() |>
@@ -319,6 +322,7 @@ test_that("store v1 accepts markdown chunks (from v2)", {
     ),
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |>
     read_as_markdown() |>
@@ -333,6 +337,7 @@ test_that("store v1 accepts markdown chunks (from v2)", {
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks2 <- chunks |> mutate(origin = "a")
   expect_no_error(ragnar_store_insert(store, chunks2))

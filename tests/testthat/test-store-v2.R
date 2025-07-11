@@ -54,6 +54,7 @@ test_that("insert chunks with pre-compuited embeddings", {
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |> read_as_markdown() |> markdown_chunk()
   embeddings <- matrix(nrow = nrow(chunks), ncol = 100, as.numeric(1:100))
@@ -81,6 +82,7 @@ test_that("update + extra cols", {
       number = numeric(0)
     )
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |> read_as_markdown() |> markdown_chunk()
   chunks <- chunks |>
@@ -120,6 +122,7 @@ test_that("works with MotherDuck", {
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
     overwrite = TRUE
   )
+  maybe_set_threads(store)
 
   expect_true(is_motherduck_con(store@con))
 
@@ -140,6 +143,7 @@ test_that("works with MotherDuck", {
 
   # connect to the motherduck store
   store <- ragnar_store_connect("md:ragnartest")
+  maybe_set_threads(store)
   expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
 
   val <- tbl(store@con, "chunks") |> collect()
@@ -165,6 +169,7 @@ test_that("ragnar_store_create overwrite is correct", {
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |>
     read_as_markdown() |>
@@ -216,6 +221,6 @@ test_that("Can insert chunks with no origin", {
 
   n_docs <- tbl(store@con, "chunks") |> distinct(doc_id) |> collect() |> nrow()
   expect_equal(n_docs, 2)
-  
+
   expect_error(ragnar_store_update(store, chunks2), "Can't update")
 })

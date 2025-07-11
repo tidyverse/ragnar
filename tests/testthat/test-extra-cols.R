@@ -9,6 +9,7 @@ test_that("extra cols works", {
       date = as.Date(character(0))
     )
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |>
     read_as_markdown() |>
