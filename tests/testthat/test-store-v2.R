@@ -209,7 +209,7 @@ test_that("Can insert chunks with no origin", {
   doc <- test_doc()
   chunks <- doc |> read_as_markdown() |> markdown_chunk()
   chunks2 <- chunks
-  chunks2@document@origin <- NA_character_
+  chunks2@document@origin <- NULL
 
   expect_no_error(ragnar_store_insert(store, chunks2))
   expect_no_error(ragnar_store_insert(store, chunks2))
