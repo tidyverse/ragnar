@@ -14,7 +14,12 @@ maybe_on_cran <- function() {
 
 maybe_set_threads <- function(store) {
   if (maybe_on_cran()) {
-    DBI::dbExecute(store@con, "SET threads TO 1;")
+    DBI::dbExecute(store@con, "
+        SET threads TO 1;
+        SET worker_threads TO 1;
+      ")
+    if (is_windows())
+      skip("limiting duckdb threads on windows doesn't work")
   }
   store
 }
