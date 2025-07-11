@@ -13,20 +13,22 @@
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_Pro-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="ragnar">
 <script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
 </head>
 <body>
-    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
+    <a href="#container" class="visually-hidden-focusable">Skip to content</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-none" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +51,7 @@
 
 
   </div>
-</nav><div class="container template-article">
+</nav><div class="container template-article" id="container">
 
 
 
@@ -59,14 +61,14 @@
       <img src="../logo.png" class="logo" alt=""><h1>ragnar</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.1.0/vignettes/ragnar.Rmd" class="external-link"><code>vignettes/ragnar.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/vignettes/ragnar.Rmd" class="external-link"><code>vignettes/ragnar.Rmd</code></a></small>
       <div class="d-none name"><code>ragnar.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://ragnar.tidyverse.org/" class="external-link">ragnar</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ragnar.tidyverse.org/">ragnar</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="getting-started-with-ragnar">Getting Started with ragnar<a class="anchor" aria-label="anchor" href="#getting-started-with-ragnar"></a>
 </h2>
@@ -154,9 +156,11 @@ a new store if you want to change it.</p>
 <span>  <span class="va">store_location</span>,</span>
 <span>  embed <span class="op">=</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="../reference/embed_ollama.html">embed_openai</a></span><span class="op">(</span><span class="va">x</span>, model <span class="op">=</span> <span class="st">"text-embedding-3-small"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>To generate embeddings, you can use <code><a href="../reference/embed_ollama.html">embed_openai()</a></code>, an
-open-source model via <code><a href="../reference/embed_ollama.html">embed_ollama()</a></code>, or your own
-function.</p>
+<p>To generate embeddings, you can use an open-source model via
+<code><a href="../reference/embed_ollama.html">embed_ollama()</a></code>, models from commercial providers via
+<code><a href="../reference/embed_ollama.html">embed_openai()</a></code>, <code><a href="../reference/embed_google_vertex.html">embed_google_vertex()</a></code>,
+<code><a href="../reference/embed_bedrock.html">embed_bedrock()</a></code>, and <code><a href="../reference/embed_databricks.html">embed_databricks()</a></code>, or
+your own function.</p>
 <div class="section level5">
 <h5 id="identify-documents-for-processing">Identify Documents for Processing<a class="anchor" aria-label="anchor" href="#identify-documents-for-processing"></a>
 </h5>
@@ -169,7 +173,8 @@ directory of documents.</p>
 <code class="sourceCode R"><span><span class="va">paths</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ragnar_find_links.html">ragnar_find_links</a></span><span class="op">(</span><span class="st">"https://quarto.org/"</span>, depth <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p>For some sites, it may be easier to clone and build the site locally,
 then reference the files from the local file system. You can also
-process the sitemap if one is available.</p>
+process a <a href="https://quarto.org/sitemap.xml" class="external-link">sitemap</a> if one is
+available.</p>
 <p>At the end of this step, you should have a character vector of file
 paths and URLs.</p>
 </div>
@@ -179,18 +184,21 @@ paths and URLs.</p>
 <p>Convert each document to markdown. Markdown is preferred because it’s
 plain text, easy to inspect, keeps token counts low, and works well for
 both humans and LLMs.</p>
-<p>For this step, ragnar provides <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> and
-<code><a href="../reference/ragnar_read.html">ragnar_read()</a></code>, which can accept a wide variety of formats
-(pdf, docx, pptx, html, zip files, epubs, etc.). In many cases it works
-well, but for specialized needs you can opt for a more custom-tailored
-approach. See the help in <code><a href="../reference/read_as_markdown.html">?read_as_markdown</a></code> for some
-guidance on alternatives if you’d like to improve on the default
-conversion. (But only begin optimizing once you have a basic app
-working.)</p>
-<p><code><a href="../reference/ragnar_read.html">ragnar_read()</a></code> does the same thing as
-<code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>, but instead of returning a string, it
-returns a dataframe that also includes <code>origin</code> and
-<code>hash</code> columns, and possibly other metadata.</p>
+<p>For this step, ragnar provides <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>, which
+can accept a wide variety of formats (pdf, docx, pptx, html, zip files,
+epubs, etc.). In many cases it works well, but for specialized needs you
+can opt for a more custom-tailored approach. See the help in
+<code><a href="../reference/read_as_markdown.html">?read_as_markdown</a></code> for some guidance on alternatives if
+you’d like to improve on the default conversion. (But only begin
+optimizing once you have a basic app working.)</p>
+<p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> returns a
+<code>MarkdownDocument</code> object, which is a normalized string of
+markdown text with <code>@origin</code> property.</p>
+<p>If you opt to use something besides <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>
+to read in content–such as <code><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines()</a></code>,
+<code>pdftools::pdf_text()</code>, or a sophisticated OCR tool–you can
+turn a character vector into a <code><a href="../reference/MarkdownDocument.html">ragnar::MarkdownDocument</a></code>
+object with the <code><a href="../reference/MarkdownDocument.html">MarkdownDocument()</a></code> constructor.</p>
 </div>
 <div class="section level5">
 <h5 id="chunk-and-augment">Chunk and Augment<a class="anchor" aria-label="anchor" href="#chunk-and-augment"></a>
@@ -207,40 +215,18 @@ in the middle of a sentence or word.</p>
 chunk’s origin–such as URL, title, headings, and subheadings–both so the
 LLM can provide links back to the source, and so the LLM and embedding
 models can better situate the chunk’s content.</p>
-<p>To help with these tasks, use <code><a href="../reference/ragnar_read.html">ragnar_read()</a></code> and
-<code><a href="../reference/ragnar_chunk.html">ragnar_chunk()</a></code>.</p>
-<p><code><a href="../reference/ragnar_read.html">ragnar_read()</a></code> can split a document using markdown
-headings, while also extracting the heading titles as columns in the
-dataframe. Use the <code>frame_by_tags</code> argument and select the
-document heading levels you want to segment by. If you’re starting from
-already converted markdown content, use <code><a href="../reference/markdown_segment.html">markdown_frame()</a></code> or
-<code><a href="../reference/markdown_segment.html">markdown_segment()</a></code> instead.</p>
-<p><code><a href="../reference/ragnar_chunk.html">ragnar_chunk()</a></code> then chunks the text further, trying to
-split at semantic boundaries (like paragraphs or sentences) with
-progressively finer granularity as needed, using the boundary types and
-chunk size you specify. The default chunk size is 1600 characters, which
-is about one page.</p>
-<p>To augment chunks, use <code>glue</code> string interpolation and
-include the metadata extracted by <code><a href="../reference/ragnar_read.html">ragnar_read()</a></code>. Since
-you’ll be doing this for every document, it’s helpful to wrap this step
-in a function.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">read_and_chunk</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">path</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">path</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="../reference/ragnar_read.html">ragnar_read</a></span><span class="op">(</span>frame_by_tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"h1"</span>, <span class="st">"h2"</span>, <span class="st">"h3"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="../reference/ragnar_chunk.html">ragnar_chunk</a></span><span class="op">(</span>boundaries <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"paragraph"</span>, <span class="st">"sentence"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>      text <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span></span>
-<span>        <span class="st">r"---(</span></span>
-<span><span class="st">        &gt; Excerpt from: {origin}</span></span>
-<span><span class="st">        &gt; {h1}</span></span>
-<span><span class="st">        &gt; {h2}</span></span>
-<span><span class="st">        &gt; {h3}</span></span>
-<span><span class="st">        {text}</span></span>
-<span><span class="st">        )---"</span></span>
-<span>      <span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<p>To help with these tasks, use <code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code>.</p>
+<p><code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code> splits the document into chunks and
+nudges each chunk’s edges to the nearest semantic break. By default, a
+chunk is about 1,600 characters–roughly one page–with a 50% overlap
+between chunks.</p>
+<p><code>markdown_chunk</code> also extracts any markdown headings in
+scope for each chunk start. These headings are added as context during
+embedding and retrieval, helping the LLM produce better answers.</p>
+<p>You can specify chunking boundaries with
+<code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code>’s <code>segment_by_heading_levels</code>
+argument, which takes a vector of integers between 1 and 6. Chunks will
+not overlap a defined segment boundary.</p>
 <p>Note that an alternative approach for augmenting chunks with context
 can be to use an LLM with instructions to “situate this excerpt from
 this document,” or, worse, “summarize this document.” This can work but
@@ -258,7 +244,7 @@ for hallucinations to enter the store.</p>
 calling <code><a href="../reference/ragnar_store_insert.html">ragnar_store_insert()</a></code>. This function will
 automatically generate embeddings using the <code>embed</code> function
 specified when the store was first created.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">
@@ -268,9 +254,11 @@ specified when the store was first created.</p>
 store. Once you’re done processing the documents, call
 <code><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index()</a></code> to finalize the store and build
 the index.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">path</span> <span class="kw">in</span> <span class="va">paths</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="fu">read_and_chunk</span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
+<span>  <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="va">path</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/read_as_markdown.html">read_as_markdown</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/markdown_chunk.html">markdown_chunk</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="../reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -307,7 +295,7 @@ rephrase unclear questions, ask follow-up questions, or search more than
 once if needed. Register <code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> as a tool with
 <code><a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a></code> using
 <code><a href="../reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve</a></span><span class="op">(</span></span>
 <span>  <span class="va">client</span>, <span class="va">store</span>, top_k <span class="op">=</span> <span class="fl">10</span>,</span>
@@ -333,7 +321,7 @@ the first search does not return relevant information, and you also want
 to ensure repeated searches do not return previously seen chunks. Here’s
 an example of how you might do this</p>
 <p>First, set up the system prompt:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">client</span> <span class="op">&lt;-</span> <span class="fu">chat_openai</span><span class="op">(</span>model <span class="op">=</span> <span class="st">"gpt-4.1"</span><span class="op">)</span></span>
 <span><span class="va">client</span><span class="op">$</span><span class="fu">set_system_prompt</span><span class="op">(</span><span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/trim.html" class="external-link">trim</a></span><span class="op">(</span></span>
 <span>  <span class="st">"</span></span>
@@ -349,30 +337,33 @@ an example of how you might do this</p>
 <span><span class="st">  "</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Next, define a custom tool:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rag_retrieve_quarto_excerpts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">local</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="va">retrieved_chunk_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">text</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Search, excluding previously seen chunks</span></span>
-<span>    <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html" class="external-link">tbl</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">.data</span><span class="op">$</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">retrieved_chunk_ids</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>      <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="../reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">text</span>, top_k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span>    <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="../reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span></span>
+<span>      <span class="va">text</span>,</span>
+<span>      top_k <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>      filter <span class="op">=</span> <span class="op">!</span><span class="va">.data</span><span class="op">$</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">retrieved_chunk_ids</span></span>
+<span>    <span class="op">)</span></span>
 <span></span>
 <span>    <span class="co"># Update seen chunks</span></span>
-<span>    <span class="va">retrieved_chunk_ids</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">retrieved_chunk_ids</span>, <span class="va">chunks</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">retrieved_chunk_ids</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">retrieved_chunk_ids</span>, <span class="va">chunks</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>    <span class="co"># Return formatted excerpts delimited with pseudo-xml tags.</span></span>
-<span>    <span class="fu">stringi</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringi/man/stri_join.html" class="external-link">stri_c</a></span><span class="op">(</span></span>
-<span>      <span class="st">"&lt;excerpt&gt;"</span>,</span>
-<span>      <span class="va">chunks</span><span class="op">$</span><span class="va">text</span>,</span>
-<span>      <span class="st">"&lt;/excerpt&gt;"</span>,</span>
-<span>      sep <span class="op">=</span> <span class="st">"\n"</span>,</span>
-<span>      collapse <span class="op">=</span> <span class="st">"\n"</span></span>
-<span>    <span class="op">)</span></span>
+<span>    <span class="co"># Return the chunks dataframe directly;</span></span>
+<span>    <span class="co"># ellmer will format this to json as a row-oriented list of objects.</span></span>
+<span>    <span class="va">chunks</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<p>This approach presents retrieved content directly in json. Presenting
+content in a defined structure helps prevent the LLM from confusing
+retrieved content with user queries, and confusing chunk metadata (like
+headings or origin) with the chunk text. The row-oriented format also
+ensures that all metadata (such as headings) stays attached to each row,
+so the context for each chunk appears next to its content.</p>
 <p>Register the custom tool:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">client</span><span class="op">$</span><span class="fu">register_tool</span><span class="op">(</span><span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/tool.html" class="external-link">tool</a></span><span class="op">(</span></span>
 <span>  <span class="va">rag_retrieve_quarto_excerpts</span>,</span>
 <span>  <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/trim.html" class="external-link">trim</a></span><span class="op">(</span></span>
@@ -380,8 +371,7 @@ an example of how you might do this</p>
 <span><span class="st">    Use this tool to retrieve the most relevant excerpts from the Quarto</span></span>
 <span><span class="st">    knowledge store for a given text input. This function:</span></span>
 <span><span class="st">    - uses both vector (semantic) similarity and BM25 text search,</span></span>
-<span><span class="st">    - never returns the same excerpt twice in the same session,</span></span>
-<span><span class="st">    - returns results as plain text wrapped in &lt;excerpt&gt; tags.</span></span>
+<span><span class="st">    - never returns the same excerpt twice in the same session</span></span>
 <span><span class="st">    "</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  text <span class="op">=</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/type_boolean.html" class="external-link">type_string</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -418,7 +408,7 @@ store creation pipeline until retrieval returns meaningful excerpts.</p>
 <ul>
 <li>Increase the chunk size.</li>
 <li>Specify coarser or custom boundaries in
-<code><a href="../reference/ragnar_chunk.html">ragnar_chunk()</a></code>.</li>
+<code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code>.</li>
 <li>Augment chunks with additional context.</li>
 <li>Try a different embedding model.</li>
 <li>Try a different LLM.</li>
@@ -426,6 +416,11 @@ store creation pipeline until retrieval returns meaningful excerpts.</p>
 <li>Iterate on the LLM system prompt to give clearer, more precise
 instructions.</li>
 </ul>
+<p>To access the store data directly, use
+<code>tbl(store@con, "chunks")</code>. With store version 2, you can
+also access <code>tbl(store@con, "documents")</code>. You can use dbplyr
+verbs to operate on the remote tbl, and convert it to an in-memory
+tibble with <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">dplyr::collect()</a></code>.</p>
 <p>Chat interfaces and LLM marketing invite us to think of LLMs as
 general-purpose agents, able to answer anything. In practice, however,
 as of 2025, building a reliable, accurate, LLM-powered solution where
@@ -487,20 +482,16 @@ package.</p>
 
 
 
-    <footer><div class="pkgdown-footer-left">
-  <p>Developed by Tomasz Kalinowski, Daniel Falbel, Posit Software, PBC.</p>
+   </div>
+  <footer><div class="container">
+  <div class="pkgdown-footer-left">
+  <p>Developed by Tomasz Kalinowski, Daniel Falbel, <a href="https://www.posit.co" class="external-link"><img src="https://www.tidyverse.org/posit-logo.svg" alt="Posit" height="16" width="62" style="margin-bottom: 3px;"></a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
   <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
-    </footer>
-</div>
-
-
-
-
-
-  </body>
+  </div></footer>
+</body>
 </html>

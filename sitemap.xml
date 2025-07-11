@@ -7,12 +7,19 @@
 <url><loc>https://ragnar.tidyverse.org/authors.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/index.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/news/index.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/MarkdownDocument.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/chunks_deoverlap.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/embed_bedrock.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/embed_databricks.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/embed_google_vertex.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/embed_ollama.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/index.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/markdown_chunk.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/markdown_segment.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar-package.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_chunk.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/ragnar_chunks_view.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_find_links.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_read.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_read_document.html</loc></url>
@@ -26,7 +33,6 @@
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_insert.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_inspect.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_update.html</loc></url>
-<url><loc>https://ragnar.tidyverse.org/reference/rangar_store_create.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/read_as_markdown.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/reexports.html</loc></url>
 </urlset>
