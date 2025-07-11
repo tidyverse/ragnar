@@ -114,7 +114,7 @@ test_that("ragnar_store_update/insert", {
   }
 
   # Expect the origin is added
-  val <- dbGetQuery(store@con, "select * exclude (chunk_id, embedding) from chunks")
+  val <- dbGetQuery(store@con, "select * exclude (chunk_id, doc_id, embedding) from chunks")
   expect_equal(nrow(val), 6)
   val <- val |> arrange(origin, start) |> as_bare_df()
   expected <- vec_rbind(

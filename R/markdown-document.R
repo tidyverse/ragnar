@@ -24,10 +24,10 @@
 #' md
 MarkdownDocument := new_class(
   parent = class_character,
-  properties = list(origin = prop_string(allow_na = TRUE)),
+  properties = list(origin = prop_string(allow_null = TRUE)),
   constructor = function(text, origin = attr(text, "origin", TRUE)) {
     text <- markdown_normalize(text)
-    new_object(text, origin = as.character(origin %||% NA_character_))
+    new_object(text, origin = origin)
   },
   validator = function(self) {
     if (!is_scalar(self)) {

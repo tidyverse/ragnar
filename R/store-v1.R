@@ -368,7 +368,7 @@ dbDataType2 <- function(con, x) {
       # by default.
       dataTypes[[nm]] <- paste0("FLOAT[", ncol(x[[nm]]), "]")
     } else if (is.matrix(x[[nm]])) {
-      dataTypes[[nm]] <- paste0(dataTypes[nm], "[", ncol(x[[nm]]), "]")
+      dataTypes[[nm]] <- paste0(dataTypes[[nm]], "[", ncol(x[[nm]]), "]")
     }
   }
   dataTypes
