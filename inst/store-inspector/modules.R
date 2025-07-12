@@ -119,7 +119,7 @@ storeInspectorServer <- function(id, store) {
 
       metadata <- selectedDocument() |>
         dplyr::select(
-          dplyr::all_of(names(store@schema)), 
+          dplyr::all_of(names(store@schema)),
           -dplyr::any_of(c("doc_id", "chunk_id", "start", "end", "embedding"))
         )
 

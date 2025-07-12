@@ -1,4 +1,5 @@
 test_that("extra cols works", {
+  skip_on_cran() # See comment in test-retrieve.R and test-read-markdown.R
   store <- ragnar_store_create(
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
@@ -79,6 +80,7 @@ test_that("extra cols works", {
 })
 
 test_that("can specify extra cols with a full df", {
+  skip_on_cran() # See comment in test-retrieve.R and test-read-markdown.R
   chunks <- test_doc() |>
     read_as_markdown() |>
     markdown_chunk()
