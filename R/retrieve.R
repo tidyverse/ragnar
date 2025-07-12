@@ -606,6 +606,8 @@ utils::globalVariables(c(
   "origin",
   "overlap_grp",
   "id",
+  "chunk_id",
+  "doc_id",
   "context",
   "metric_value",
   "array_slice",

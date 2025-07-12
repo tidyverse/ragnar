@@ -319,11 +319,11 @@ rag_retrieve_quarto_excerpts <- local({
     chunks <- ragnar::ragnar_retrieve(
       text,
       top_k = 10,
-      filter = !.data$id %in% retrieved_chunk_ids
+      filter = !.data$chunk_id %in% retrieved_chunk_ids
     )
 
     # Update seen chunks
-    retrieved_chunk_ids <<- unique(unlist(c(retrieved_chunk_ids, chunks$id)))
+    retrieved_chunk_ids <<- unique(unlist(c(retrieved_chunk_ids, chunks$chunk_id)))
 
     # Return the chunks dataframe directly;
     # ellmer will format this to json as a row-oriented list of objects.

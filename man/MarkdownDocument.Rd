@@ -23,6 +23,9 @@ The constructor itself is exported only so advanced users can construct one by
 other means when needed.
 }
 \examples{
-md <- MarkdownDocument("# Title\n\nSome text.", origin = "example.md")
+md <- MarkdownDocument(
+  "# Title\n\nSome text.",
+  origin = "example.md"
+)
 md
 }

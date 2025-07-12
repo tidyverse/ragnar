@@ -1,4 +1,11 @@
-test_that("retrieving works as expected, v1", {
+system.time(test_that("retrieving works as expected, v1", {
+  # The BUILD INDEX command for the VSS and BM25 extensions are multithreaded,
+  # and still consume more CPU time than CRAN permits, even if we 'SET THREADS TO 1'.
+  # CRAN complains:
+  # > Running R code in 'testthat.R' had CPU time 2.6 times elapsed time
+  # Unfortunately, this means we can't test properly on CRAN.
+  skip_on_cran()
+
   # Create a simple store and insert some chunks
   store <- ragnar_store_create(
     version = 1,
@@ -45,10 +52,11 @@ test_that("retrieving works as expected, v1", {
   # Can retrieve using ragnar_retrieve
   ret <- ragnar_retrieve(store, "foo")
   expect_equal(nrow(ret), 3)
-})
+}))
 
 
 test_that("retrieving works as expected", {
+  skip_on_cran() # See comment (above) in test-retrieve.R
   # Create a simple store and insert some chunks
   store <- ragnar_store_create(
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
@@ -65,7 +73,15 @@ test_that("retrieving works as expected", {
   # Can retrieve with vss
   ret <- ragnar_retrieve_vss(store, "hello")
   expect_in(
-    c("origin", "chunk_id", "start", "end", "text", "metric_value", "metric_value"),
+    c(
+      "origin",
+      "chunk_id",
+      "start",
+      "end",
+      "text",
+      "metric_value",
+      "metric_value"
+    ),
     names(ret)
   )
   expect_equal(nrow(ret), 3)

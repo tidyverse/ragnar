@@ -1,5 +1,12 @@
 test_that("ragnar_read", {
   skip_on_cran()
+  # There is no way to test any functions that call markitdown.convert() on
+  # CRAN because the python module 'markitdown' calls magika (to infer file
+  # type), which runs a small deep learning model using onnxruntime, which
+  # we have no way to reach in and limit threads on. This means we can't
+  # test 'read_as_markdown()' or 'ragnar_read()'. Otherwise CRAN complains:
+  # > Running R code in 'testthat.R' had CPU time 2.6 times elapsed time
+  # So we skip on CRAN :(
   doc <- test_doc()
 
   # Reading the document without any arguments yields a single row data frame
@@ -10,11 +17,13 @@ test_that("ragnar_read", {
 
 
 test_that("ragnar_read() empty doc", {
+  skip_on_cran() # See comment (above) in test-read-markdown.R
   jpg <- file.path(R.home("doc"), "html", "logo.jpg")
   expect_no_error(ragnar_read(jpg))
 })
 
 test_that("ragnar_read() doc in ~", {
+  skip_on_cran() # See comment (above) in test-read-markdown.R
   withr::with_tempfile("tilde_file", tmpdir = "~", fileext = ".md", {
     file.copy(
       system.file("store-inspector", "README.md", package = "ragnar"),
@@ -27,6 +36,7 @@ test_that("ragnar_read() doc in ~", {
 
 test_that("markitdown patches", {
   skip_if_offline()
+  skip_on_cran() # See comment (above) in test-read-markdown.R
   url = "https://quarto.org/docs/computations/r.html"
   htmlfile <- withr::local_tempfile(fileext = ".html")
   download.file(url, htmlfile, quiet = TRUE)

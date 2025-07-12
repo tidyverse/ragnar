@@ -332,10 +332,13 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
   )
 }
 
-
 # @export
-RagnarStore <- new_class(
-  "RagnarStore",
+#
+# The plan is to export RagnarStore when we're ready for users to subclass
+# to implement other store types/backends. Note: before doing this, we are
+# also considering transitioning to R6 for the store class object, since a
+# store is inherently stateful and S7 is better suited to stateless objects.
+RagnarStore := new_class(
   properties = list(
     embed = S7::new_union(class_function, NULL),
     schema = NULL | class_data.frame,
@@ -345,9 +348,8 @@ RagnarStore <- new_class(
   abstract = TRUE
 )
 
-DuckDBRagnarStore <- new_class(
-  "DuckDBRagnarStore",
-  RagnarStore,
+DuckDBRagnarStore := new_class(
+  parent = RagnarStore,
   properties = list(
     con = methods::getClass("DBIConnection"),
     version = class_integer,

@@ -50,7 +50,6 @@ ragnar_register_tool_retrieve <- function(
       .name = name,
       function(text) {
         chunks <- ragnar_retrieve(store, text, ...)
-        chunks[c("id", "start", "end")] <- NULL
         chunks
       },
       glue::glue(

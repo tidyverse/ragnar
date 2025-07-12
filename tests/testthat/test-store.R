@@ -114,7 +114,10 @@ test_that("ragnar_store_update/insert", {
   }
 
   # Expect the origin is added
-  val <- dbGetQuery(store@con, "select * exclude (chunk_id, doc_id, embedding) from chunks")
+  val <- dbGetQuery(
+    store@con,
+    "select * exclude (chunk_id, doc_id, embedding) from chunks"
+  )
   expect_equal(nrow(val), 6)
   val <- val |> arrange(origin, start) |> as_bare_df()
   expected <- vec_rbind(
@@ -189,7 +192,7 @@ test_that("additional columns", {
   # Can't insert if they don't match types
   chunks <- data.frame(
     text = "foo",
-    h1 = 1L,  # h1 should be character, not integer
+    h1 = 1L, # h1 should be character, not integer
     int = 1L
   )
   expect_error(ragnar_store_insert(store, chunks), regexp = "Can't convert")
@@ -218,6 +221,7 @@ test_that("additional columns", {
 })
 
 test_that("Allow a NULL embedding function", {
+  skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(embed = NULL, version = 1)
   maybe_set_threads(store)
   chunks <- data.frame(
@@ -236,6 +240,7 @@ test_that("Allow a NULL embedding function", {
 
 test_that("works with MotherDuck", {
   skip_if_cant_use_motherduck()
+  skip_on_cran() # See comment in test-retrieve.R
 
   store <- ragnar_store_create(
     version = 1,
@@ -243,6 +248,7 @@ test_that("works with MotherDuck", {
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
     overwrite = TRUE
   )
+  maybe_set_threads(store)
 
   chunks <- data.frame(
     origin = "foo",
@@ -263,6 +269,7 @@ test_that("works with MotherDuck", {
 
   # connect to the motherduck store
   store <- ragnar_store_connect("md:ragnartest")
+  maybe_set_threads(store)
   expect_error(ragnar_retrieve(store, "hello"), regexp = NA)
 
   val <- dbGetQuery(store@con, "select origin, hash, text from chunks")
@@ -294,11 +301,12 @@ test_that("embed functions get the defaults stored", {
 })
 
 test_that("store v1 accepts markdown chunks (from v2)", {
-
+  skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |>
     read_as_markdown() |>
@@ -319,6 +327,7 @@ test_that("store v1 accepts markdown chunks (from v2)", {
     ),
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks <- test_doc() |>
     read_as_markdown() |>
@@ -333,6 +342,7 @@ test_that("store v1 accepts markdown chunks (from v2)", {
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
   )
+  maybe_set_threads(store)
 
   chunks2 <- chunks |> mutate(origin = "a")
   expect_no_error(ragnar_store_insert(store, chunks2))
