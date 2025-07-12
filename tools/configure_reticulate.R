@@ -8,8 +8,9 @@ Sys.setenv("RETICULATE_PYTHON" = "managed")
 library(reticulate)
 py_require(c(
   "markitdown[all]",
-  if (identical(.Platform$OS.type, "windows"))
+  if (identical(.Platform$OS.type, "windows")) {
     py_require("onnxruntime<=1.20.1")
+  }
 ))
 try({
   print(py_config())

@@ -1,4 +1,5 @@
 test_that("ragnar_store_update/insert, v2", {
+  skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
@@ -32,7 +33,7 @@ test_that("ragnar_store_update/insert, v2", {
     nrow(chunks) * 2
   )
 
-  # same origin, differnt chunks ------
+  # same origin, different chunks ------
   chunks3 <- doc |> read_as_markdown() |> markdown_chunk(target_size = 50)
   ragnar_store_update(store, chunks)
 
@@ -50,6 +51,7 @@ test_that("ragnar_store_update/insert, v2", {
 })
 
 test_that("insert chunks with pre-compuited embeddings", {
+  skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
@@ -75,6 +77,7 @@ test_that("insert chunks with pre-compuited embeddings", {
 })
 
 test_that("update + extra cols", {
+  skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
@@ -85,18 +88,11 @@ test_that("update + extra cols", {
   maybe_set_threads(store)
 
   chunks <- test_doc() |> read_as_markdown() |> markdown_chunk()
-  chunks <- chunks |>
-    mutate(
-      number = 1.23
-    )
 
+  chunks <- chunks |> mutate(number = 1.23)
   ragnar_store_insert(store, chunks)
 
-  chunks <- chunks |>
-    mutate(
-      number = 10
-    )
-
+  chunks <- chunks |> mutate(number = 10)
   ragnar_store_update(store, chunks)
 
   # updated the number, even if it's the only thing that changed
@@ -116,6 +112,7 @@ test_that("update + extra cols", {
 
 test_that("works with MotherDuck", {
   skip_if_cant_use_motherduck()
+  skip_on_cran() # See comment in test-retrieve.R
 
   store <- ragnar_store_create(
     "md:ragnartest",
@@ -162,6 +159,7 @@ test_that("works with MotherDuck", {
 })
 
 test_that("ragnar_store_create overwrite is correct", {
+  skip_on_cran() # See comment in test-retrieve.R
   temp <- tempfile(fileext = ".duckdb")
 
   store <- ragnar_store_create(
@@ -204,6 +202,7 @@ test_that("ragnar_store_create overwrite is correct", {
 })
 
 test_that("Can insert chunks with no origin", {
+  skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(
     version = 2,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
