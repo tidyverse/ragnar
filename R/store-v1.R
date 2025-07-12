@@ -68,7 +68,9 @@ ragnar_store_create_v1 <- function(
     cols <- names(schema)
 
     if ("chunk_id" %in% cols) {
-      cli::cli_abort("{.arg schema} must not contain a column called {.arg chunk_id}")
+      cli::cli_abort(
+        "{.arg schema} must not contain a column called {.arg chunk_id}"
+      )
     }
 
     for (nm in names(default_schema)) {
