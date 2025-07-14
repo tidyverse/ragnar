@@ -9,7 +9,7 @@ template:
       <script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
 
 development:
-  mode: unreleased
+  mode: auto
 
 reference:
   - title: Document processing
