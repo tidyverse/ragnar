@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,6 +71,10 @@
 <p>You can install ragnar from CRAN with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ragnar"</span><span class="op">)</span></span></code></pre></div>
+<p>You can install the development version from GitHub with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"tidyverse/ragnar"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="key-steps">Key Steps<a class="anchor" aria-label="anchor" href="#key-steps"></a>
@@ -160,7 +164,7 @@
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <p>Here’s an example of using <code>ragnar</code> to create a knowledge store from the <em>R for Data Science (2e)</em> book:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ragnar.tidyverse.org/">ragnar</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">base_url</span> <span class="op">&lt;-</span> <span class="st">"https://r4ds.hadley.nz"</span></span>
@@ -219,7 +223,7 @@
 <span></span>
 <span><span class="fu"><a href="reference/ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></code></pre></div>
 <p>Once the store is set up, you can then retrieve the most relevant text chunks.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#' ## Retrieving Chunks</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ragnar.tidyverse.org/">ragnar</a></span><span class="op">)</span></span>
@@ -233,15 +237,14 @@
 <span><span class="co">#' Once the store is set up, retrieve the most relevant text chunks like this</span></span>
 <span></span>
 <span><span class="op">(</span><span class="va">relevant_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 8</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt;   origin                   id    start   end cosine_distance bm25  context text </span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                    &lt;lis&gt; &lt;int&gt; &lt;int&gt; &lt;list&gt;          &lt;lis&gt; &lt;chr&gt;   &lt;chr&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 1 https://r4ds.hadley.nz/… &lt;int&gt;  2203  4021 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 25 … "```…</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 2 https://r4ds.hadley.nz/… &lt;int&gt;  1623  4210 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 12 … "```…</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 3 https://r4ds.hadley.nz/… &lt;int&gt; 19413 20827 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 12 … "Tha…</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 4 https://r4ds.hadley.nz/… &lt;int&gt; 24602 26543 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 15 … "```…</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 5 https://r4ds.hadley.nz/… &lt;int&gt; 13433 15289 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 24 … "###…</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 9</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt;   origin         doc_id chunk_id start   end cosine_distance bm25  context text </span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;list&gt; &lt;list&gt;   &lt;int&gt; &lt;int&gt; &lt;list&gt;          &lt;lis&gt; &lt;chr&gt;   &lt;chr&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; 1 https://r4ds.… &lt;int&gt;  &lt;int&gt;     2192  4007 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 25 … "```…</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; 2 https://r4ds.… &lt;int&gt;  &lt;int&gt;     1622  4205 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 12 … "```…</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; 3 https://r4ds.… &lt;int&gt;  &lt;int&gt;    19379 20792 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 12 … "Tha…</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; 4 https://r4ds.… &lt;int&gt;  &lt;int&gt;    12795 15259 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 24 … "The…</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co">#'  Register ellmer tool</span></span>
@@ -264,36 +267,48 @@
 <span><span class="fu"><a href="reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve</a></span><span class="op">(</span><span class="va">chat</span>, <span class="va">store</span>, top_k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"How can I subset a dataframe?"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ◯ [tool call] rag_retrieve_from_store_001(text = "subset dataframe in R")</span></span>
-<span><span class="co">#&gt; ● #&gt; [{"origin":"https://r4ds.hadley.nz/arrow.html","cosine_distance":"NA","bm…</span></span>
-<span><span class="co">#&gt; To subset a dataframe in R, you can use either base R syntax or dplyr </span></span>
-<span><span class="co">#&gt; functions:</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; **Base R**</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; - To select rows and columns: `df[rows, cols]`</span></span>
-<span><span class="co">#&gt;     - Example: `df[1:5, c("x", "y")]` selects rows 1–5 and columns x and y.</span></span>
-<span><span class="co">#&gt; - To filter rows by condition: `df[condition, ]`</span></span>
-<span><span class="co">#&gt;     - Example: `df[df$x &gt; 1, ]` keeps rows where x &gt; 1.</span></span>
-<span><span class="co">#&gt; - To select columns only: `df[, c("x", "y")]`</span></span>
-<span><span class="co">#&gt;     - `drop = FALSE` ensures result is always a data frame, not a vector: `df[,</span></span>
-<span><span class="co">#&gt; "x", drop = FALSE]`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; **dplyr**</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; - To filter rows: `filter(df, condition)`</span></span>
-<span><span class="co">#&gt;     - Example: `filter(df, x &gt; 1)`</span></span>
-<span><span class="co">#&gt; - To select columns: `select(df, x, y)`</span></span>
-<span><span class="co">#&gt; - To chain operations: `df |&gt; filter(x &gt; 1) |&gt; select(y, z)`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; For more, see R for Data Science, Section 27.2: [Selecting multiple elements </span></span>
-<span><span class="co">#&gt; with [ ]](https://r4ds.hadley.nz/base-R.html#sec-subset-many) and [dplyr </span></span>
-<span><span class="co">#&gt; equivalents](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents).</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Summary reference:  </span></span>
-<span><span class="co">#&gt; - https://r4ds.hadley.nz/base-R.html#sec-subset-many  </span></span>
-<span><span class="co">#&gt; - https://dplyr.tidyverse.org/reference/filter.html  </span></span>
-<span><span class="co">#&gt; - https://dplyr.tidyverse.org/reference/select.html</span></span></code></pre></div>
+<span><span class="co">#&gt; ◯ [tool call] rag_retrieve_from_store_001(text = "How to subset a dataframe in</span></span>
+<span><span class="co">#&gt; R")</span></span>
+<span><span class="co">#&gt; ● #&gt; [{"origin":"https://r4ds.hadley.nz/arrow.html","doc_id":2,"chunk_id":13,"…</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co">#&gt; You can subset a dataframe in R in several ways:</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; 1. Using the [ (bracket) operator:</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; - Select rows and/or columns: df[rows, cols]</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; - Example:</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; df[1, 2]          # first row, second column</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; df[, c("x","y")]  # all rows, columns x and y</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; df[df$x &gt; 1, ]    # rows where x &gt; 1, all columns</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; If df is a tibble, the result of df[, "x"] is always a tibble; for a </span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; data.frame, it returns a vector unless you use drop=FALSE: df[, "x", </span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; drop=FALSE] </span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; ([source](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)).</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; 2. With dplyr for more readable code:</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; - Use filter() for subsetting rows and select() for columns:</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; library(dplyr)</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; df %&gt;% filter(x &gt; 1)            # rows where x &gt; 1</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co">#&gt; df %&gt;% select(x, y)             # columns x and y</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt; df %&gt;% filter(x &gt; 1) %&gt;% select(x, y)  # both</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; - Many dplyr verbs are wrappers for subsetting, e.g., filter(), arrange(), and </span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; select() ([source](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)).</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; 3. subset() function (base R):</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; subset(df, x &gt; 1, select = c(x, y))</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; This combines row/column subsetting in one call.</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt; Summary: Use df[rows, cols], dplyr's filter() and select(), or subset() for </span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt; subsetting dataframes.</span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt; - Reference: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames</span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; - Reference: https://dplyr.tidyverse.org/reference/filter.html</span></span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt; - Reference: https://rdrr.io/r/base/subset.html</span></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; Let me know if you want an example with your own dataset or more details!</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

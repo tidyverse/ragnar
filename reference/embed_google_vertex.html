@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,14 +92,17 @@ For more information about task types, see <a href="https://cloud.google.com/ver
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="fu">embed_google_vertex</span><span class="op">(</span></span></span>
 <span class="r-in"><span> <span class="st">"hello world"</span>,</span></span>
 <span class="r-in"><span> model<span class="op">=</span><span class="st">"gemini-embedding-001"</span>,</span></span>
 <span class="r-in"><span> project <span class="op">=</span> <span class="st">"&lt;your-project-id&gt;"</span>,</span></span>
 <span class="r-in"><span> location <span class="op">=</span> <span class="st">"us-central1"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in embed_google_vertex("hello world", model = "gemini-embedding-001",     project = "&lt;your-project-id&gt;", location = "us-central1"):</span> No Google credentials are available.</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Try suppling an API key or configuring Google's application default</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span>   credentials.</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
