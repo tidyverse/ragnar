@@ -1,3 +1,5 @@
+# ragnar (development version)
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
