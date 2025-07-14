@@ -95,7 +95,7 @@ storeInspectorServer <- function(id, store) {
         return(NULL)
       }
       docs <- documents()
-      docs[docs$id == selectedDocumentId(), , drop = FALSE]
+      docs[docs$chunk_id == selectedDocumentId(), , drop = FALSE]
     })
 
     preview_type <- switchServer("markdown")
@@ -118,12 +118,15 @@ storeInspectorServer <- function(id, store) {
       }
 
       metadata <- selectedDocument() |>
-        dplyr::select(context, dplyr::all_of(names(store@schema)))
+        dplyr::select(
+          dplyr::all_of(names(store@schema)),
+          -dplyr::any_of(c("doc_id", "chunk_id", "start", "end", "embedding"))
+        )
 
       shiny::div(
         class = "flex flex-col gap-2 size-full overflow-hidden",
         shiny::div(
-          class = "border-b pb-2 border-gray-200",
+          class = "border-b pb-2 border-gray-200 max-h-1/3 overflow-y-auto",
           shiny::pre(
             class = "text-xs text-pretty",
             yaml::as.yaml(
@@ -214,14 +217,14 @@ listDocumentsServer <- function(id, documents) {
         ))
       }
 
-      updateSelectedDocument(head(documents(), 1)$id)
+      updateSelectedDocument(head(documents(), 1)$chunk_id)
       summaries <- documents() |>
         dplyr::mutate(.rn = dplyr::row_number()) |>
         dplyr::group_split(.rn) |>
         lapply(
           function(d) {
             documentSummaryUI(
-              ns(glue::glue("document-{d$id}")),
+              ns(glue::glue("document-{d$chunk_id}")),
               d,
               active = d$.rn == 1
             )
@@ -267,7 +270,7 @@ documentSummaryUI <- function(id, document, active = FALSE) {
 
   shiny::div(
     id = ns("summary"),
-    "data-document-id" = document$id,
+    "data-document-id" = document$chunk_id,
     class = "document-summary flex flex-col bg-gray-100 hover:bg-gray-200 rounded-md w-full text-xs justify-evenly py-2",
     class = if (active) "border border-sky-500" else NULL, # two class fields are concatenated.
     div(
@@ -288,7 +291,7 @@ documentSummaryUI <- function(id, document, active = FALSE) {
       ),
       div(
         class = "rounded-full flex-none justify-self-end font-light",
-        glue::glue("id: #{document$id}")
+        glue::glue("id: #{document$chunk_id}")
       )
     ),
     if (!is.null(document[["metric_name"]])) {

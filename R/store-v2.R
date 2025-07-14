@@ -144,7 +144,8 @@ process_extra_cols <- function(con, extra_cols) {
   extra_cols <- vctrs::vec_ptype(extra_cols)
 
   disallowd_cols <- c(
-    "id",
+    "chunk_id",
+    "doc_id",
     "origin",
     "text",
     "start",
@@ -250,8 +251,8 @@ ragnar_store_build_index_v2 <- function(store, type = c("vss", "fts")) {
         r"--(
         PRAGMA create_fts_index(
           'chunks',            -- input_table
-          'chunk_id',                -- input_id
-          'context', 'text',  -- *input_values
+          'chunk_id',          -- input_id
+          'context', 'text',   -- *input_values
           overwrite = 1
         );
         )--"
@@ -276,9 +277,15 @@ ragnar_store_update_v2 <- function(store, chunks) {
     S7_inherits(chunks, MarkdownDocumentChunks)
   )
 
-  # Chunks are not refering to any document, or the document doesn't have an origin.
-  if (is.null(chunks@document) || is.na(chunks@document@origin) || is.null(chunks@document@origin)) {
-    stop("Can't update chunks when the document does not specify a valid origin, use ragnar_store_insert instead.")
+  # Chunks are not referring to any document, or the document doesn't have an origin.
+  if (
+    is.null(chunks@document) ||
+      is.na(chunks@document@origin) ||
+      is.null(chunks@document@origin)
+  ) {
+    stop(
+      "Can't update chunks when the document does not specify a valid origin, use `ragnar_store_insert()` instead."
+    )
   }
 
   if ("text" %in% names(chunks)) {
@@ -316,11 +323,12 @@ ragnar_store_update_v2 <- function(store, chunks) {
     text = as.character(chunks@document)
   )
 
+  if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
+    chunks$embedding <-
+      store@embed(with(chunks, stri_c(context %|% "", "\n", text)))
+  }
+
   embeddings <- chunks |>
-    mutate(
-      embedding = store@embed(stri_c(context, "\n", text)),
-      text = NULL
-    ) |>
     select(any_of(dbListFields(con, "embeddings"))) |>
     vctrs::vec_cast(store@schema)
 
@@ -382,9 +390,9 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
   } else {
     chunks$text <- stri_sub(chunks@document, chunks$start, chunks$end)
   }
-
   if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
-    chunks$embedding <- store@embed(with(chunks, stri_c(context, "\n", text)))
+    chunks$embedding <-
+      store@embed(with(chunks, stri_c(context %|% "", "\n", text)))
   }
 
   con <- store@con

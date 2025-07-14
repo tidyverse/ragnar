@@ -43,6 +43,13 @@ You can install ragnar from CRAN with:
 install.packages("ragnar")
 ```
 
+You can install the development version from GitHub with:
+
+``` r
+# install.packages("pak")
+pak::pak("tidyverse/ragnar")
+```
+
 ## Key Steps
 
 ### 1. Document Processing

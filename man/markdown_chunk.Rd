@@ -19,11 +19,11 @@ markdown_chunk(
 \item{md}{A \code{MarkdownDocument}, or a length-one character vector containing
 Markdown.}
 
-\item{target_size}{Integer. Target chunk size in characters. Default: 1600 (≈
-400 tokens, or 1 page of text). Actual chunk size may differ from the
-target by up to \code{2 * max_snap_dist}. When set to \code{NULL}, \code{NA} or \code{Inf} and used
-with \code{segment_by_heading_levels}, chunk size is unbounded and each chunk
-corresponds to a segment.}
+\item{target_size}{Integer. Target chunk size in characters. Default: 1600
+(\eqn{\approx} 400 tokens, or 1 page of text). Actual chunk size may differ
+from the target by up to \code{2 * max_snap_dist}. When set to \code{NULL}, \code{NA} or
+\code{Inf} and used with \code{segment_by_heading_levels}, chunk size is unbounded
+and each chunk corresponds to a segment.}
 
 \item{target_overlap}{Numeric in \verb{[0, 1)}. Fraction of desired overlap
 between successive chunks. Default: \code{0.5}. Even when \code{0}, some overlap can
@@ -32,16 +32,16 @@ occur because the last chunk is anchored to the document end.}
 \item{...}{These dots are for future extensions and must be empty.}
 
 \item{max_snap_dist}{Integer. Furthest distance (in characters) a cut point
-may move to reach a boundary. Defaults to one third of the stride size
-between target chunk starts. Chunks that end up on identical boundaries are
-merged.}
+may move to reach a semantic boundary. Defaults to one third of the stride
+size between target chunk starts. Chunks that end up on identical
+boundaries are merged.}
 
 \item{segment_by_heading_levels}{Integer vector with possible values \code{1:6}.
 Headings at these levels are treated as segment boundaries; chunking is
 performed independently for each segment. No chunk will overlap a segment
 boundary, and any future deoverlapping will not combine segments. Each
 segment will have a chunk that starts at the segment start and a chunk that
-starts at the segment end (these may be the same chunk or overlap
+ends at the segment end (these may be the same chunk or overlap
 substantially if the segment is short). Default: disabled.}
 
 \item{context}{Logical. Add a \code{context} column containing the Markdown
@@ -51,17 +51,16 @@ headings in scope at each chunk start. Default: \code{TRUE}.}
 contents. Default: \code{TRUE}.}
 }
 \value{
-A \code{MarkdownDocumentChunks} object, which is a tibble (data.frame) with with
+A \code{\link{MarkdownDocumentChunks}} object, which is a tibble (data.frame) with with
 columns \code{start} \code{end}, and optionally \code{context} and \code{text}. It also has a
 \verb{@document} property, which is the input \code{md} document (potentially
-normalized and converted to a \code{MarkdownDocument}).
+normalized and converted to a \code{\link{MarkdownDocument}}).
 }
 \description{
-\code{markdown_chunk()} splits a single Markdown string into shorter
-optionally overlapping chunks while nudging cut points to the nearest
-sensible boundary (heading, paragraph, sentence, line, word, or character).
-It returns a tibble recording the character ranges, headings context, and text
-for each chunk.
+\code{markdown_chunk()} splits a single Markdown string into shorter optionally
+overlapping chunks while nudging cut points to the nearest sensible boundary
+(heading, paragraph, sentence, line, word, or character). It returns a tibble
+recording the character ranges, headings context, and text for each chunk.
 }
 \examples{
 md <- "
@@ -94,4 +93,10 @@ markdown_chunk(md, target_size = 40)
 markdown_chunk(md, target_size = 40, target_overlap = 0)
 markdown_chunk(md, target_size = NA, segment_by_heading_levels = c(1, 2))
 markdown_chunk(md, target_size = 40, max_snap_dist = 100)
+}
+\seealso{
+\code{\link[=ragnar_chunks_view]{ragnar_chunks_view()}} to interactively inspect the output of
+\code{markdown_chunk()}. See also \code{\link[=MarkdownDocumentChunks]{MarkdownDocumentChunks()}} and
+\code{\link[=MarkdownDocument]{MarkdownDocument()}}, where the input and return value of
+\code{markdown_chunk()} are described more fully.
 }

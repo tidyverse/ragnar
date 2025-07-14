@@ -1,4 +1,4 @@
-# ragnar (development version)
+# ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
   Store version 2 adds support for chunk deoverlapping on retrieval and automatic chunk augmentation with headings.
@@ -6,7 +6,7 @@
   See `markdown_chunk()` and new S7 classes `MarkdownDocument` and `MarkdownDocumentChunks`.
   Backwards compatibility is maintained with version = 1. (#58, #39, #36)
   
-* `ragnar_store_create()` now supports Date and POSIXct classes supplied `extra_cols`.
+* `ragnar_store_create()` now supports Date and POSIXct classes supplied to `extra_cols`.
 
 * `ragnar_store_create()` now supports remote MotherDuck Databases specified with `md:<dbname>` as
 the `location` argument. (#50)
