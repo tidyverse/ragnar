@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.2.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -346,11 +346,11 @@ an example of how you might do this</p>
 <span>    <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="fu">ragnar</span><span class="fu">::</span><span class="fu"><a href="../reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span></span>
 <span>      <span class="va">text</span>,</span>
 <span>      top_k <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>      filter <span class="op">=</span> <span class="op">!</span><span class="va">.data</span><span class="op">$</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">retrieved_chunk_ids</span></span>
+<span>      filter <span class="op">=</span> <span class="op">!</span><span class="va">.data</span><span class="op">$</span><span class="va">chunk_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">retrieved_chunk_ids</span></span>
 <span>    <span class="op">)</span></span>
 <span></span>
 <span>    <span class="co"># Update seen chunks</span></span>
-<span>    <span class="va">retrieved_chunk_ids</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">retrieved_chunk_ids</span>, <span class="va">chunks</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">retrieved_chunk_ids</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">retrieved_chunk_ids</span>, <span class="va">chunks</span><span class="op">$</span><span class="va">chunk_id</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span>    <span class="co"># Return the chunks dataframe directly;</span></span>
 <span>    <span class="co"># ellmer will format this to json as a row-oriented list of objects.</span></span>
