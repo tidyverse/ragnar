@@ -10,7 +10,8 @@ ragnar_find_links(
   children_only = TRUE,
   progress = TRUE,
   ...,
-  url_filter = identity
+  url_filter = identity,
+  validate = FALSE
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ when \code{depth > 0}.}
 \item{url_filter}{A function that takes a character vector of URL's and may
 subset them to return a smaller list. This can be useful for filtering out
 URL's by rules different them \code{children_only} which only checks the prefix.}
+
+\item{validate}{Default is \code{FALSE}. If \code{TRUE} sends a \code{HEAD} request for each
+link and removes those that are not accessible. Requests are sent in parallel
+using \code{\link[httr2:req_perform_parallel]{httr2::req_perform_parallel()}}.}
 }
 \value{
 A character vector of links on the page.
