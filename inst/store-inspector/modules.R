@@ -115,7 +115,7 @@ storeInspectorServer <- function(id, store) {
             tryCatch(
               {
                 text <- as.character(node)
-                text <- stringr::str_replace_all(
+                text <- stringi::stri_replace_all(
                   text,
                   "(https?://[^\\s)>\"]+)",
                   "<a target='_blank' href=\"\\1\">\\1</a>"
