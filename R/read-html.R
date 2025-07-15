@@ -390,7 +390,10 @@ ragnar_find_links <- function(
   depth <- as.integer(depth)
 
   prefix <- if (isTRUE(children_only)) {
-    url_normalize_stem(xml_url2(x))
+    url <- xml_url2(x)
+    # sitemaps are special cased, so we look at the actual root url.
+    url <- gsub("sitemap\\.xml$", "", url)
+    url_normalize_stem(url)
   } else if (is.character(children_only)) {
     check_string(children_only)
     children_only
@@ -519,9 +522,16 @@ html_find_links <- function(x, absolute = TRUE) {
     x <- read_html2(x)
   }
 
-  links <- x |>
-    xml_find_all(".//a[@href]") |>
-    xml_attr("href", default = "")
+  links <- if (is_sitemap(x)) {
+    x |>
+      xml2::xml_ns_strip() |>
+      xml2::xml_find_all("//urlset/url/loc", flatten = TRUE) |>
+      xml2::xml_text()
+  } else {
+    x |>
+      xml_find_all(".//a[@href]") |>
+      xml_attr("href", default = "")
+  }
 
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
@@ -534,6 +544,13 @@ html_find_links <- function(x, absolute = TRUE) {
   }
 
   links
+}
+
+is_sitemap <- function(x) {
+  has_sitemap <- x |>
+    xml2::xml_ns_strip() |>
+    xml2::xml_find_first("//sitemapindex | //urlset")
+  length(has_sitemap) > 0
 }
 
 url_host <- function(x, baseurl = NULL) {
