@@ -351,6 +351,10 @@ ragnar_read_document <- function(
 #'   subset them to return a smaller list. This can be useful for filtering out
 #'   URL's by rules different them `children_only` which only checks the prefix.
 #'
+#' @param validate Default is `FALSE`. If `TRUE` sends a `HEAD` request for each
+#'   link and removes those that are not accessible. Requests are sent in parallel
+#'   using [httr2::req_perform_parallel()].
+#'
 #' @return A character vector of links on the page.
 #' @export
 #'
@@ -373,7 +377,8 @@ ragnar_find_links <- function(
   children_only = TRUE,
   progress = TRUE,
   ...,
-  url_filter = identity
+  url_filter = identity,
+  validate = FALSE
 ) {
   rlang::check_dots_empty()
 
@@ -476,6 +481,24 @@ ragnar_find_links <- function(
   out <- reticulate::iterate(out, \(x) get_resolved(x) %||% x)
   out <- out[nzchar(out)]
   out <- unique(sort(url_filter_fn(out)))
+
+  # Validate that we can acess all the URL's
+  if (validate) {
+    resps <- out |>
+      lapply(\(url) url |> httr2::request() |> httr2::req_method("HEAD")) |>
+      httr2::req_perform_parallel(on_error = "continue")
+
+    is_ok <- resps |>
+      map_lgl(\(x) inherits(x, "httr2_response"))
+
+    errors <- map2(out[!is_ok], resps[!is_ok], function(url, err) {
+      list(url = url, err = conditionMessage(err))
+    })
+
+    problems <- c(problems, errors)
+
+    out <- out[is_ok]
+  }
 
   if (length(problems)) {
     cli::cli_warn(
