@@ -106,9 +106,37 @@ storeInspectorServer <- function(id, store) {
       }
 
       preview <- if (is.null(preview_type()) || preview_type() == "Preview") {
+        html_preview <- shiny::markdown(selectedDocument()$text) |>
+          xml2::read_html(html_preview)
+
+        html_preview |>
+          xml2::xml_find_all(".//*[not(*)]") |>
+          lapply(function(node) {
+            tryCatch(
+              {
+                if (xml_name(node) == "a") return()
+
+                text <- as.character(node)
+                text <- stringi::stri_replace_all(
+                  text,
+                  "(https?://[^\\s)>\"]+)",
+                  "<a target='_blank' href=\"\\1\">\\1</a>"
+                )
+                xml2::xml_replace(node, xml2::read_xml(text))
+              },
+              error = function(err) {
+                warning(
+                  "Error processing node: ",
+                  conditionMessage(err),
+                  call. = FALSE
+                )
+              }
+            )
+          })
+
         shiny::tags$iframe(
           class = "size-full text-pretty",
-          srcdoc = shiny::markdown(selectedDocument()$text)
+          srcdoc = as.character(html_preview)
         )
       } else {
         shiny::tags$pre(
