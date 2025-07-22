@@ -365,13 +365,21 @@ ragnar_store_update_v2 <- function(store, chunks) {
 }
 
 
-ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
+ragnar_store_insert_v2 <- function(
+  store,
+  chunks,
+  replace_existing = FALSE,
+  call = rlang::caller_env()
+) {
   if (!S7_inherits(chunks, MarkdownDocumentChunks)) {
-    stop(glue::trim(
-      "Invalid input for store. `store@version == 2`, but input provided is store version 1.,
-       Either call `ragnar_store_create(..., version = 1)` or use `markdown_chunk()` to
-       prepare inputs."
-    ))
+    rlang::abort(
+      glue::trim(
+        "Invalid input for store. `store@version == 2`, but input provided is compatible with store version 1.,
+        Either call `ragnar_store_create(..., version = 1)` or use `markdown_chunk()` to
+        prepare inputs."
+      ),
+      call = call
+    )
   }
   stopifnot(
     store@version == 2,
@@ -415,7 +423,6 @@ ragnar_store_insert_v2 <- function(store, chunks, replace_existing = FALSE) {
     dbAppendTable(con, "documents", documents)
     dbAppendTable(con, "embeddings", embeddings)
   })
-  invisible(store)
 }
 
 
