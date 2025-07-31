@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+* `ragnar_inspector()` now renders all urls as clickable links in the chunk markdown
+   viewer, even if url is not a formal markdown link (#82).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
