@@ -90,6 +90,7 @@ chunk. The easiest way to prepare \code{chunks} for \code{version = 1} is with
 }
 }
 \examples{
+\dontshow{if (ragnar:::can_load_duckdb_extensions()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # A store with a dummy embedding
 store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
@@ -133,4 +134,5 @@ ragnar_store_build_index(store)
 
 ragnar_retrieve(store, "abc bcd xyz", deoverlap = FALSE)
 ragnar_retrieve(store, "abc bcd xyz", deoverlap = TRUE)
+\dontshow{\}) # examplesIf}
 }

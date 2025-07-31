@@ -5,6 +5,7 @@ system.time(test_that("retrieving works as expected, v1", {
   # > Running R code in 'testthat.R' had CPU time 2.6 times elapsed time
   # Unfortunately, this means we can't test properly on CRAN.
   skip_on_cran()
+  skip_if_cant_load_duckdb_extensions()
 
   # Create a simple store and insert some chunks
   store <- ragnar_store_create(
@@ -57,6 +58,7 @@ system.time(test_that("retrieving works as expected, v1", {
 
 test_that("retrieving works as expected", {
   skip_on_cran() # See comment (above) in test-retrieve.R
+  skip_if_cant_load_duckdb_extensions()
   # Create a simple store and insert some chunks
   store <- ragnar_store_create(
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))

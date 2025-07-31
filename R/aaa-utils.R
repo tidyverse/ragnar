@@ -281,3 +281,41 @@ prop_string <- function(
     )
   )
 }
+
+can_load_duckdb_extensions <- local({
+  # DuckDB extensions are shared libraries downloaded when
+  # running `INSTAll <name>`. They are pre-built by the DuckDB
+  # team https://github.com/duckdb/extension-ci-tools
+  # They are built for the major platforms using the standard
+  # compilers. 
+  # One of the CRAN test server is a Linux machine with R compiled
+  # with clang instead of GCC. Turns since the compilers have different
+  # ABIs, a crash happens when trying to execute extensions that are 
+  # pre-built on GCC.
+  # To avoid the crash on CRAN machines, we check if the extensions can
+  # be loaded in a separate process and proceed if that's possible.
+  can <- NULL
+  function() {
+    if (is.null(can)) {
+      can <<- 0 == system2(
+        rscript_exe(),
+        "-",
+        input = c(
+          "con <- DBI::dbConnect(duckdb::duckdb())",
+          "DBI::dbExecute(con, 'install fts; load fts;')"
+        ),
+        stderr = FALSE,
+        stdout = FALSE
+      )
+    }
+    can
+  }
+})
+
+rscript_exe <- function() {
+  file.path(
+    R.home("bin"),
+    if (is_windows()) "Rscript.exe" else "Rscript"
+  )
+}
+
