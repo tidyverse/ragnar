@@ -33,7 +33,15 @@ skip_on_cran <- function() {
   skip_if(maybe_on_cran(), "Maybe On CRAN")
 }
 
+skip_if_cant_load_duckdb_extensions <- function() {
+  if (!can_load_duckdb_extensions()) {
+    testthat::skip("DuckDB extensions cannot be loaded")
+  }
+  testthat::skip("a")
+}
+
 skip_if_cant_use_motherduck <- function() {
+  skip_if_cant_load_duckdb_extensions()
   if (Sys.getenv("motherduck_token") == "") {
     testthat::skip("motherduck_token not set")
   }

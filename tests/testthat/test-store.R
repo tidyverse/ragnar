@@ -222,6 +222,7 @@ test_that("additional columns", {
 
 test_that("Allow a NULL embedding function", {
   skip_on_cran() # See comment in test-retrieve.R
+  skip_if_cant_load_duckdb_extensions()
   store <- ragnar_store_create(embed = NULL, version = 1)
   maybe_set_threads(store)
   chunks <- data.frame(
@@ -302,6 +303,7 @@ test_that("embed functions get the defaults stored", {
 
 test_that("store v1 accepts markdown chunks (from v2)", {
   skip_on_cran() # See comment in test-retrieve.R
+  skip_if_cant_load_duckdb_extensions()
   store <- ragnar_store_create(
     version = 1,
     embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))

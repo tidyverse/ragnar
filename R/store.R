@@ -55,7 +55,7 @@
 #'
 #' @returns a `RagnarStore` object
 #' @export
-#' @examples
+#' @examplesIf ragnar:::can_load_duckdb_extensions()
 #' # A store with a dummy embedding
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
@@ -239,6 +239,7 @@ ragnar_store_connect <- function(
     stop("Store must be created with ragnar_store_create()")
   }
 
+  stop("a")
   dbExecute(con, "INSTALL fts; INSTALL vss;")
   dbExecute(con, "LOAD fts; LOAD vss;")
 
