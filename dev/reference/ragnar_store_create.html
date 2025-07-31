@@ -140,7 +140,7 @@ easily modify chunk text before insertion. However, dynamic rechunking
 (de-overlapping) or extracting arbitrary ranges from source documents is not
 supported, since the original full documents are no longer available. Chunks
 can be augmented by modifying the chunk text directly (e.g., with <code>glue()</code>).
-Additionally, if you intend to call <code><a href="ragnar_store_update.html">ragnar_store_update()</a></code>, it is your
+Additionally, if you intend to call <code><a href="ragnar_store_insert.html">ragnar_store_update()</a></code>, it is your
 responsibility to provide <code>rlang::hash(original_full_document)</code> with each
 chunk. The easiest way to prepare <code>chunks</code> for <code>version = 1</code> is with
 <code><a href="ragnar_read.html">ragnar_read()</a></code> and <code><a href="ragnar_chunk.html">ragnar_chunk()</a></code>.</p>
