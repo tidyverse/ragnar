@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+* `ragnar_find_links()` can now parse `sitemap.xml` files. It also gains a 
+  `validate` argument, allowing for sending a `HEAD` request to each link and 
+  filtering out broken links (#83).
+  
 * `ragnar_inspector()` now renders all urls as clickable links in the chunk markdown
    viewer, even if url is not a formal markdown link (#82).
 
