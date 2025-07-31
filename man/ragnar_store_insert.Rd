@@ -2,21 +2,38 @@
 % Please edit documentation in R/store.R
 \name{ragnar_store_insert}
 \alias{ragnar_store_insert}
-\title{Insert chunks into a \code{RagnarStore}}
+\alias{ragnar_store_update}
+\title{Inserts or updates chunks in a \code{RagnarStore}}
 \usage{
 ragnar_store_insert(store, chunks)
+
+ragnar_store_update(store, chunks)
 }
 \arguments{
 \item{store}{a \code{RagnarStore} object}
 
-\item{chunks}{a character vector or a dataframe with a \code{text} column, and
-optionally, a pre-computed \code{embedding} matrix column. If \code{embedding} is not
-present, then \code{store@embed()} is used. \code{chunks} can also be a character
-vector.}
+\item{chunks}{Content to insert or update. The precise input structure
+depends on \code{store@version}. See Details.}
 }
 \value{
 \code{store}, invisibly.
 }
 \description{
-Insert chunks into a \code{RagnarStore}
+Inserts or updates chunks in a \code{RagnarStore}
+}
+\details{
+\strong{Store Version 2}
+
+\code{chunks} must be \code{MarkdownDocumentChunks} object.
+
+\strong{Store Version 1}
+
+\code{chunks} must be a data frame containing \code{origin}, \code{hash}, and \code{text}
+columns. We first filter out chunks for which \code{origin} and \code{hash} are already
+in the store. If an \code{origin} is in the store, but with a different \code{hash}, we
+replace all of its chunks with the new chunks. Otherwise, a regular insert is
+performed.
+
+This can help avoid needing to compute embeddings for chunks that are already
+in the store.
 }

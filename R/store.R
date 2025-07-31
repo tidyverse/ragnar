@@ -261,12 +261,11 @@ ragnar_store_connect <- function(
   )
 }
 
-
 #' Inserts or updates chunks in a `RagnarStore`
 #'
-#' @inheritParams ragnar_store_insert
-#' @param chunks Content to update. The precise input structure depends on
-#'   `store@version`. See Details.
+#' @param store a `RagnarStore` object
+#' @param chunks Content to insert or update. The precise input structure
+#'   depends on `store@version`. See Details.
 #' @details
 #'
 #' **Store Version 2**
@@ -286,6 +285,17 @@ ragnar_store_connect <- function(
 #'
 #' @returns `store`, invisibly.
 #' @export
+ragnar_store_insert <- function(store, chunks) {
+  switch(
+    store@version,
+    ragnar_store_insert_v1(store, chunks),
+    ragnar_store_insert_v2(store, chunks)
+  )
+  invisible(store)
+}
+
+#' @rdname ragnar_store_insert
+#' @export
 ragnar_store_update <- function(store, chunks) {
   switch(
     store@version,
@@ -294,24 +304,6 @@ ragnar_store_update <- function(store, chunks) {
   )
   invisible(store)
 }
-
-#' Insert chunks into a `RagnarStore`
-#'
-#' @param store a `RagnarStore` object
-#' @param chunks a character vector or a dataframe with a `text` column, and
-#'   optionally, a pre-computed `embedding` matrix column. If `embedding` is not
-#'   present, then `store@embed()` is used. `chunks` can also be a character
-#'   vector.
-#' @returns `store`, invisibly.
-#' @export
-ragnar_store_insert <- function(store, chunks) {
-  switch(
-    store@version,
-    ragnar_store_insert_v1(store, chunks),
-    ragnar_store_insert_v2(store, chunks)
-  )
-}
-
 
 #' Build a Ragnar Store index
 #'

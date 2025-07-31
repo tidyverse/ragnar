@@ -304,8 +304,6 @@ ragnar_store_insert_v1 <- function(store, chunks) {
     "chunks",
     chunks
   )
-
-  invisible(store)
 }
 
 
