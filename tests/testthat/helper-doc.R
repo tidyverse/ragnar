@@ -37,7 +37,6 @@ skip_if_cant_load_duckdb_extensions <- function() {
   if (!can_load_duckdb_extensions()) {
     testthat::skip("DuckDB extensions cannot be loaded")
   }
-  testthat::skip("a")
 }
 
 skip_if_cant_use_motherduck <- function() {
