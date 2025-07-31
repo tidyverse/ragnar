@@ -3,7 +3,7 @@
 \name{ragnar_store_insert}
 \alias{ragnar_store_insert}
 \alias{ragnar_store_update}
-\title{Inserts or updates chunks into a \code{RagnarStore}}
+\title{Inserts or updates chunks in a \code{RagnarStore}}
 \usage{
 ragnar_store_insert(store, chunks)
 
@@ -19,7 +19,7 @@ depends on \code{store@version}. See Details.}
 \code{store}, invisibly.
 }
 \description{
-Inserts or updates chunks into a \code{RagnarStore}
+Inserts or updates chunks in a \code{RagnarStore}
 }
 \details{
 \strong{Store Version 2}
