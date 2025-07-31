@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+* Improvements to docs and error message in `ragnar_store_insert()` (@mattwarkentin, #88)
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
