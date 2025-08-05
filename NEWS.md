@@ -9,6 +9,10 @@
 * `ragnar_inspector()` now renders all urls as clickable links in the chunk markdown
    viewer, even if url is not a formal markdown link (#82).
 
+* Before running examples and tests we now check if ragnar can load DuckDB extensions.
+  This fixes issues in environments where DuckDB pre-built binaries for extensions are not 
+  compatible with the installed DuckDB version (#94).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
