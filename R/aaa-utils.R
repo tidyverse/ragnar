@@ -287,10 +287,10 @@ can_load_duckdb_extensions <- local({
   # running `INSTAll <name>`. They are pre-built by the DuckDB
   # team https://github.com/duckdb/extension-ci-tools
   # They are built for the major platforms using the standard
-  # compilers. 
+  # compilers.
   # One of the CRAN test server is a Linux machine with R compiled
   # with clang instead of GCC. Turns since the compilers have different
-  # ABIs, a crash happens when trying to execute extensions that are 
+  # ABIs, a crash happens when trying to execute extensions that are
   # pre-built on GCC.
   # To avoid the crash on CRAN machines, we check if the extensions can
   # be loaded in a separate process and proceed if that's possible.
@@ -302,7 +302,8 @@ can_load_duckdb_extensions <- local({
         "-",
         input = c(
           "con <- DBI::dbConnect(duckdb::duckdb())",
-          "DBI::dbExecute(con, 'install fts; load fts;')"
+          "DBI::dbExecute(con, 'INSTALL fts; LOAD fts;')",
+          "DBI::dbExecute(con, 'INSTALL vss; LOAD vss;')"
         ),
         stderr = FALSE,
         stdout = FALSE
