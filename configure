@@ -1,2 +1,2 @@
 #!/bin/sh
-"${R_HOME}/bin/Rscript" tools/configure_reticulate.R
+"${R_HOME}/bin/Rscript" tools/configure_deps.R

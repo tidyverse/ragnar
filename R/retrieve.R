@@ -484,7 +484,7 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #'   represents a chunk and always contains a `text` column.
 #'
 #' @family ragnar_retrieve
-#' @examplesIf (rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")))
+#' @examplesIf (rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")) && ragnar:::can_load_duckdb_extensions())
 #' ## Build a small store with categories
 #' store <- ragnar_store_create(
 #'   embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),

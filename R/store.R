@@ -55,7 +55,7 @@
 #'
 #' @returns a `RagnarStore` object
 #' @export
-#' @examples
+#' @examplesIf ragnar:::can_load_duckdb_extensions()
 #' # A store with a dummy embedding
 #' store <- ragnar_store_create(
 #'   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
