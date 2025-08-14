@@ -30,6 +30,7 @@ Imports:
     commonmark,
     curl,
     DBI,
+    dbplyr,
     dotty,
     dplyr,
     duckdb (>= 1.2.2),
@@ -47,18 +48,17 @@ Imports:
     withr,
     xml2
 Suggests:
-    dbplyr,
+    connectcreds,
     ellmer (>= 0.2.0),
-    lifecycle,
+    gargle,
     knitr,
+    lifecycle,
     pandoc,
     paws.common,
     rmarkdown,
     shiny,
     stringr,
-    testthat (>= 3.0.0),
-    connectcreds,
-    gargle
+    testthat (>= 3.0.0)
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
