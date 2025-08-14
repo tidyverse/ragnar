@@ -239,7 +239,6 @@ ragnar_store_connect <- function(
     stop("Store must be created with ragnar_store_create()")
   }
 
-  stop("a")
   dbExecute(con, "INSTALL fts; INSTALL vss;")
   dbExecute(con, "LOAD fts; LOAD vss;")
 
