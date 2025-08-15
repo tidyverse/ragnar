@@ -17,6 +17,10 @@
 
 * Added `embed_lm_studio` to use LMStudio as an embedding provider (#100).
 
+* We now ignore a "Couldn't find ffmpeg or avconv" when importing markitdown when
+  using `read_as_markdown()`. The warning would only be relevant for users doing
+  audio transcription (#103).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
