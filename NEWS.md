@@ -20,6 +20,10 @@
 * Fixed a bug causing `ragnar_retrieve()` to fail when documents were inserted without
   an origin (#102).
 
+* We now suppress a "Couldn't find ffmpeg or avconv" warning when importing markitdown when
+  using `read_as_markdown()`. The warning would only be relevant for users doing
+  audio transcription (#103).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.

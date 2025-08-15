@@ -1,5 +1,12 @@
 import re
-import markitdown
+import warnings
+
+with warnings.catch_warnings():
+    # Ignore: "Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work"
+    # that is raised when importing markitdown
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
+    import markitdown
+
 from markitdown.converters._markdownify import _CustomMarkdownify
 
 md = markitdown.MarkItDown()
