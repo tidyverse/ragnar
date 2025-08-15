@@ -553,13 +553,13 @@ chunks_deoverlap <- function(store, chunks) {
   }
   deoverlapped <- chunks |>
     mutate(embedding = NULL) |>
-    arrange(origin, start) |>
+    arrange(origin, doc_id, start) |>
     mutate(
-      .by = origin,
+      .by = c(origin, doc_id),
       overlap_grp = cumsum(start > lag(end, default = -1L))
     ) |>
     summarize(
-      .by = c(origin, overlap_grp),
+      .by = c(origin, doc_id, overlap_grp),
       origin = first(origin),
       start = first(start),
       end = last(end),
@@ -576,7 +576,7 @@ chunks_deoverlap <- function(store, chunks) {
     "_ragnar_tmp_rechunk",
     deoverlapped |>
       mutate(
-        origin,
+        doc_id,
         start,
         end,
         'deoverlapped_id' = row_number(),
@@ -592,7 +592,7 @@ chunks_deoverlap <- function(store, chunks) {
       doc.text[ rechunked.start: rechunked.end ] AS text
     FROM _ragnar_tmp_rechunk rechunked
     JOIN documents doc
-    USING (origin)
+    USING (doc_id)
     ORDER BY rechunked.deoverlapped_id
     "
   )$text
