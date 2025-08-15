@@ -40,7 +40,8 @@
 <li><p><code>ragnar_inspector()</code> now renders all urls as clickable links in the chunk markdown viewer, even if url is not a formal markdown link (<a href="https://github.com/tidyverse/ragnar/issues/82" class="external-link">#82</a>).</p></li>
 <li><p>Before running examples and tests we now check if ragnar can load DuckDB extensions. This fixes issues in environments where DuckDB pre-built binaries for extensions are not compatible with the installed DuckDB version (<a href="https://github.com/tidyverse/ragnar/issues/94" class="external-link">#94</a>).</p></li>
 <li><p>Added <code>embed_lm_studio</code> to use LMStudio as an embedding provider (<a href="https://github.com/tidyverse/ragnar/issues/100" class="external-link">#100</a>).</p></li>
-<li><p>We now ignore a “Couldn’t find ffmpeg or avconv” when importing markitdown when using <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>. The warning would only be relevant for users doing audio transcription (<a href="https://github.com/tidyverse/ragnar/issues/103" class="external-link">#103</a>).</p></li>
+<li><p>Fixed a bug causing <code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> to fail when documents were inserted without an origin (<a href="https://github.com/tidyverse/ragnar/issues/102" class="external-link">#102</a>).</p></li>
+<li><p>We now suppress a “Couldn’t find ffmpeg or avconv” warning when importing markitdown when using <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>. The warning would only be relevant for users doing audio transcription (<a href="https://github.com/tidyverse/ragnar/issues/103" class="external-link">#103</a>).</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="ragnar-020">ragnar 0.2.0<a class="anchor" aria-label="anchor" href="#ragnar-020"></a></h2><p class="text-muted">CRAN release: 2025-07-12</p>
