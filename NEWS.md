@@ -17,6 +17,9 @@
 
 * Added `embed_lm_studio` to use LMStudio as an embedding provider (#100).
 
+* Fixed a bug causing `ragnar_retrieve()` to fail when documents were inserted without
+  an origin (#102).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
