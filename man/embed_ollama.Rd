@@ -25,6 +25,7 @@ embed_openai(
 
 embed_lm_studio(
   x,
+  model,
   base_url = "http://localhost:1234/v1",
   api_key = "lm-studio",
   dims = NULL,
