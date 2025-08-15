@@ -174,6 +174,28 @@ embed_openai <- function(
   matrix(unlist(embeddings), nrow = length(text), byrow = TRUE)
 }
 
+#' @describeIn embed_ollama Embed Text using LMStudio. Indentical to `embed_openai()` but with suitable defaults for LMStudio.
+#' @export
+embed_lm_studio <- function(
+  x,
+  model,
+  base_url = "http://localhost:1234/v1",
+  api_key = "lm-studio",
+  dims = NULL,
+  user = get_user(),
+  batch_size = 20L
+) {
+  embed_openai(
+    x = x,
+    model = model,
+    base_url = base_url,
+    api_key = api_key,
+    dims = dims,
+    user = user,
+    batch_size = batch_size
+  )
+}
+
 
 # ---- utils ----
 

@@ -3,6 +3,7 @@
 \name{embed_ollama}
 \alias{embed_ollama}
 \alias{embed_openai}
+\alias{embed_lm_studio}
 \title{Embed Text}
 \usage{
 embed_ollama(
@@ -17,6 +18,16 @@ embed_openai(
   model = "text-embedding-3-small",
   base_url = "https://api.openai.com/v1",
   api_key = get_envvar("OPENAI_API_KEY"),
+  dims = NULL,
+  user = get_user(),
+  batch_size = 20L
+)
+
+embed_lm_studio(
+  x,
+  model,
+  base_url = "http://localhost:1234/v1",
+  api_key = "lm-studio",
   dims = NULL,
   user = get_user(),
   batch_size = 20L
@@ -57,6 +68,11 @@ A matrix of embeddings with 1 row per input string, or a dataframe with an 'embe
 \description{
 Embed Text
 }
+\section{Functions}{
+\itemize{
+\item \code{embed_lm_studio()}: Embed Text using LMStudio. Indentical to \code{embed_openai()} but with suitable defaults for LMStudio.
+
+}}
 \examples{
 text <- c("a chunk of text", "another chunk of text", "one more chunk of text")
 \dontrun{
