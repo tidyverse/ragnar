@@ -41,6 +41,18 @@
       store@embed
     Output
       function (x) 
+      {
+          ragnar::embed_bedrock(x = x, model = "amazon.titan-embed-text-v1", 
+              profile = "default")
+      }
+      <environment: base>
+
+---
+
+    Code
+      store@embed
+    Output
+      function (x) 
       ragnar::embed_ollama(x = x, model = "snowflake-arctic-embed2:568m")
       <environment: base>
 

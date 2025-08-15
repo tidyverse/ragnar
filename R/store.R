@@ -137,6 +137,7 @@ process_embed_func <- function(embed) {
   if (inherits(embed, "crate")) {
     return(embed)
   }
+  og_embed_env <- environment(embed)
   environment(embed) <- baseenv()
   embed <- rlang::zap_srcref(embed)
 
@@ -163,6 +164,13 @@ process_embed_func <- function(embed) {
           # ensure 'model' is explicit arg embedded in call
           if (!"model" %in% names(x)) {
             x["model"] <- formals(fn)["model"]
+          }
+
+          if (!is.character(x[["model"]])) {
+            tryCatch(
+              x[["model"]] <- eval(x[["model"]], og_embed_env),
+              error = function(e) NULL
+            )
           }
 
           # preserve `...` if they were present in the call (call_match() removes them)
