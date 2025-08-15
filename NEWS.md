@@ -17,7 +17,10 @@
 
 * Added `embed_lm_studio` to use LMStudio as an embedding provider (#100).
 
-* We now ignore a "Couldn't find ffmpeg or avconv" when importing markitdown when
+* Fixed a bug causing `ragnar_retrieve()` to fail when documents were inserted without
+  an origin (#102).
+
+* We now suppress a "Couldn't find ffmpeg or avconv" warning when importing markitdown when
   using `read_as_markdown()`. The warning would only be relevant for users doing
   audio transcription (#103).
 

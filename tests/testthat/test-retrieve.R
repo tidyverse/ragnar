@@ -119,3 +119,46 @@ test_that("retrieving works as expected", {
   ret <- ragnar_retrieve(store, "foo")
   expect_equal(nrow(ret), 3)
 })
+
+test_that("retrieve works when the store contians documents without origin", {
+  skip_on_cran() # See comment (above) in test-retrieve.R
+  skip_if_cant_load_duckdb_extensions()
+
+  doc <- r"(
+  ## Foo
+
+  In id aliquip labore fugiat nulla eu laboris amet id cupidatat sit excepteur officia.
+
+  ## Bar
+
+  Tempor culpa nostrud ipsum pariatur ad sint sit Lorem voluptate ullamco do amet laboris.
+  )"
+
+  # With this, chunks will not overlap.
+  chunks <- markdown_chunk(
+    doc,
+    target_size = NA,
+    segment_by_heading_levels = 2
+  )
+
+  store <- ragnar_store_create(embed = NULL)
+  ragnar_store_insert(store, chunks)
+  ragnar_store_build_index(store)
+
+  ret <- ragnar_retrieve(store, "laboris")
+  expect_equal(nrow(ret), 2)
+
+  # Also test that deoverlaps works
+  chunks <- markdown_chunk(
+    doc,
+    target_size = 100
+  )
+
+  store <- ragnar_store_create(embed = NULL)
+  ragnar_store_insert(store, chunks)
+  ragnar_store_build_index(store)
+
+  # Expect that all chunks are retrieved and since they overlap they get collapsed.
+  ret <- ragnar_retrieve(store, "laboris")
+  expect_equal(nrow(ret), 1)
+})
