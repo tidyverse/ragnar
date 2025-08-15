@@ -1,10 +1,10 @@
 #' Convert files to Markdown
 #'
 #' @param path \[string\] A filepath or URL. Accepts a wide variety of file
-#'   types, including PDF, PowerPoint, Word, Excel, images (EXIF metadata and
-#'   OCR), audio (EXIF metadata and speech transcription), HTML, text-based
-#'   formats (CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs,
-#'   and EPUBs.
+#'   types, including plain text (markdown), PDF, PowerPoint, Word, Excel,
+#'   images (EXIF metadata and OCR), audio (EXIF metadata and speech
+#'   transcription), HTML, text-based formats (CSV, JSON, XML), ZIP files
+#'   (iterates over contents), YouTube URLs, and EPUBs.
 #' @param ... Passed on to `MarkItDown.convert()`.
 #' @param html_extract_selectors Character vector of CSS selectors. If a match
 #'   for a selector is found in the document, only the matched node's contents

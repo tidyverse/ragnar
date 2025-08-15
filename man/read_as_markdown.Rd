@@ -13,10 +13,10 @@ read_as_markdown(
 }
 \arguments{
 \item{path}{[string] A filepath or URL. Accepts a wide variety of file
-types, including PDF, PowerPoint, Word, Excel, images (EXIF metadata and
-OCR), audio (EXIF metadata and speech transcription), HTML, text-based
-formats (CSV, JSON, XML), ZIP files (iterates over contents), YouTube URLs,
-and EPUBs.}
+types, including plain text (markdown), PDF, PowerPoint, Word, Excel,
+images (EXIF metadata and OCR), audio (EXIF metadata and speech
+transcription), HTML, text-based formats (CSV, JSON, XML), ZIP files
+(iterates over contents), YouTube URLs, and EPUBs.}
 
 \item{...}{Passed on to \code{MarkItDown.convert()}.}
 
