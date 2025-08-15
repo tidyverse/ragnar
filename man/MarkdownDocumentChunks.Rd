@@ -39,7 +39,7 @@ class constructor itself is exported only so advanced users can generate or
 tweak chunks by other means.
 }
 \examples{
-doc_text <- "# A\n\nB\n\n## C\n\nD"
+doc_text <- "# A\n\nB\n\n## C\n\nD" # can be readLines() output, etc.
 doc <- MarkdownDocument(doc_text, origin = "some/where")
 chunk_positions <- tibble::tibble(
   start = c(1L, 9L),
