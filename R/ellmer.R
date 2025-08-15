@@ -42,29 +42,24 @@ ragnar_register_tool_retrieve <- function(
   name <- name %||% glue::glue("rag_retrieve_from_{store@name}")
   title <- title %||% store@title
 
-  withr::local_options(lifecycle_verbosity = "quiet")
-  tool_def <- suppressWarnings(suppressMessages(
-    ## TODO: ellmer::tool() changed in dev version (slated next v0.3.0)
-    ## need to update once ellmer v0.3.0 is on CRAN
-    ellmer::tool(
-      .name = name,
-      function(text) {
-        chunks <- ragnar_retrieve(store, text, ...)
-        chunks
-      },
-      glue::glue(
-        "Given a string, retrieve the most relevant excerpts from {store_description}."
-      ),
+  tool_def <- ellmer::tool(
+    function(text) ragnar_retrieve(store, text, ...),
+    name = name,
+    description = glue::glue(
+      "Given a string, retrieve the most relevant excerpts from {store_description}."
+    ),
+    arguments = list(
       text = ellmer::type_string(
         "The text to find the most relevant matches for."
-      ),
-      .annotations = ellmer::tool_annotations(
-        title = title,
-        read_only_hint = TRUE,
-        open_world_hint = FALSE
       )
+    ),
+    annotations = ellmer::tool_annotations(
+      title = title,
+      read_only_hint = TRUE,
+      open_world_hint = FALSE
     )
-  ))
+  )
+
   chat$register_tool(tool_def)
   invisible(chat)
 }
