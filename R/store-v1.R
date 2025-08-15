@@ -277,6 +277,10 @@ ragnar_store_insert_v1 <- function(store, chunks) {
     is.character(chunks$hash)
   )
 
+  if (anyNA(chunks$text)) {
+    stop("`text` cannot contain NA values.")
+  }
+
   if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
     chunks$embedding <- store@embed(chunks$text)
     stopifnot(
