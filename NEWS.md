@@ -15,6 +15,8 @@
   This fixes issues in environments where DuckDB pre-built binaries for extensions are not
   compatible with the installed DuckDB version (#94).
 
+* Added `embed_lm_studio` to use LMStudio as an embedding provider (#100).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
