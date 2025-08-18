@@ -24,6 +24,8 @@
   using `read_as_markdown()`. The warning would only be relevant for users doing
   audio transcription (#103).
 
+* Added `embed_google_gemini` to use Google Gemini API as an embedding provider (#105).
+
 # ragnar 0.2.0
 
 * `ragnar_store_create()` gains a new argument: `version`, with default `2`.
