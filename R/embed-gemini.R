@@ -2,7 +2,7 @@
 #' @param api_key resolved using env var `GEMINI_API_KEY`
 #' @describeIn embed_google_vertex Use the Gemini API to create embeddings.
 #' @export
-#' @examplesIf Sys.get("GEMINI_API_KEY") != ""
+#' @examplesIf Sys.getenv("GEMINI_API_KEY") != ""
 #' embed_google_gemini(
 #'   "hello world",
 #'   model = model
