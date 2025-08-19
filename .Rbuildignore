@@ -8,7 +8,9 @@
 ^\.ruff_cache$
 ^\.vscode$
 ^.*ragnar\.duckdb$
+^.*ragnar\.duckdb\.wal$
 ^.*ragnar\.store$
+^.*ragnar\.store\.wal$
 ^LICENSE\.md$
 ^_pkgdown\.yml$
 ^docs$
@@ -19,3 +21,4 @@
 ^cran-comments\.md$
 \.ruff_cache
 ^CRAN-SUBMISSION$
+
