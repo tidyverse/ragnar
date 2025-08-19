@@ -268,10 +268,8 @@ method_to_info <- function(method) {
 
     stop("Unknown method")
   )
-  as.list(setNames(
-    x,
-    c("func", "direction")
-  ))
+  names(x) <- c("func", "direction")
+  as.list(x)
 }
 
 
