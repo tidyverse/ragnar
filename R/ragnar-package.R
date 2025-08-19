@@ -4,10 +4,6 @@
 
 .globals <- new.env(parent = emptyenv())
 
-
-#' @importFrom dotty .
-dotty::.
-
 ragnartools.markitdown <- NULL
 
 .onLoad <- function(libname, pkgname) {
