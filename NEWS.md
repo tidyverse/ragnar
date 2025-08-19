@@ -1,4 +1,4 @@
-# ragnar (development version)
+# ragnar 0.2.1
 
 * `ragnar_register_tool_retrieve()` now registers a tool that will not return 
   previously returned chunks, enabling the LLM to perform deeper searches of 
