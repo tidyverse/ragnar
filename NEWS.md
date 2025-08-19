@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+* `ragnar_register_tool_retrieve()` now registers a tool that will not return 
+  previously returned chunks, enabling the LLM to perform deeper searches of 
+  a ragnar store with repeated tool calls (#106).
+
 * Updates for ellmer v0.3.0 and duckdb v1.3.1 (#99)
 
 * Improved docs and error message in `ragnar_store_insert()` (@mattwarkentin, #88)
