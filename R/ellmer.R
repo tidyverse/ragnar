@@ -19,7 +19,7 @@
 #'   When responding, you first quote relevant material from books or documentation,
 #'   provide links to the sources, and then add your own context and interpretation.
 #' ")
-#' chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
+#' chat <- ellmer::chat_openai(system_prompt, model = "gpt-4.1")
 #'
 #' store <- ragnar_store_connect("r4ds.ragnar.duckdb")
 #' ragnar_register_tool_retrieve(chat, store)
@@ -42,11 +42,23 @@ ragnar_register_tool_retrieve <- function(
   name <- name %||% glue::glue("rag_retrieve_from_{store@name}")
   title <- title %||% store@title
 
+  previously_retrieved_chunk_ids <- integer()
+
   tool_def <- ellmer::tool(
-    function(text) ragnar_retrieve(store, text, ...),
+    function(text) {
+      chunks <- ragnar_retrieve(
+        store,
+        text,
+        ...,
+        filter = !.data$chunk_id %in% previously_retrieved_chunk_ids
+      )
+      previously_retrieved_chunk_ids <<-
+        unique(unlist(c(chunks$chunk_id, previously_retrieved_chunk_ids)))
+      chunks
+    },
     name = name,
     description = glue::glue(
-      "Given a string, retrieve the most relevant excerpts from {store_description}."
+      "Given a string, retrieve the most relevant excerpts from {store_description}. Previously retrieved chunks are not returned; repeated searches of the same query will return unique results."
     ),
     arguments = list(
       text = ellmer::type_string(
