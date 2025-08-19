@@ -84,7 +84,7 @@ ragnar_store_create_v1 <- function(
     }
   }
 
-  metadata <- tibble::tibble(
+  metadata <- tibble(
     embedding_size,
     embed_func = blob::blob(serialize(embed, NULL)),
     schema = blob::blob(serialize(schema, NULL)),

@@ -3,10 +3,7 @@
 #' @describeIn embed_google_vertex Use the Gemini API to create embeddings.
 #' @export
 #' @examplesIf Sys.getenv("GEMINI_API_KEY") != ""
-#' embed_google_gemini(
-#'   "hello world",
-#'   model = model
-#' )
+#' embed_google_gemini("hello world")
 embed_google_gemini <- function(
   x,
   model = "gemini-embedding-001",

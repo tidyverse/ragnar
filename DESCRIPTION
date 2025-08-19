@@ -42,7 +42,6 @@ Imports:
     rvest,
     S7,
     stringi,
-    tibble,
     tidyr,
     vctrs,
     withr,
@@ -58,6 +57,7 @@ Suggests:
     rmarkdown,
     shiny,
     stringr,
+    tibble,
     testthat (>= 3.0.0)
 VignetteBuilder:
     knitr
