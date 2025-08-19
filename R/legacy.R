@@ -104,7 +104,7 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
   hash <- rlang::hash(text)
 
   if (is.null(frame_by_tags) && is.null(split_by_tags)) {
-    out <- tibble::tibble(
+    out <- tibble(
       origin = x,
       hash = hash,
       text = text

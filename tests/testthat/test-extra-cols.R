@@ -52,7 +52,7 @@ test_that("extra cols works", {
   retrieve <- ragnar_retrieve(store, "utils", deoverlap = FALSE)
   expect_equal(
     retrieve[1, c("number", "integer", "char", "date")],
-    tibble::tibble(
+    tibble(
       number = 1.23,
       integer = 42L,
       char = "hello",
@@ -74,7 +74,7 @@ test_that("extra cols works", {
   retrieve <- ragnar_retrieve(store, "utils", deoverlap = FALSE)
   expect_equal(
     retrieve[1, c("char")],
-    tibble::tibble(
+    tibble(
       char = "hello2",
     )
   )

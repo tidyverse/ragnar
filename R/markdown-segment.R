@@ -132,7 +132,7 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
 
   elements <- doc |> xml_find_all(xpath = "//*[@data-sourcepos]")
 
-  df <- tibble::tibble(
+  df <- tibble(
     tag = elements |> xml_name(),
     source_position = elements |> xml_attr("data-sourcepos")
   )
@@ -162,7 +162,7 @@ markdown_locate_boundaries_bytes_index <- function(text, tags = NULL) {
   #   stri_numbytes() |> cumsum()
   # start <- match(start, char_byte_indexes)
   # end <- match(end, char_byte_indexes)
-  tibble::tibble(tag = df$tag, start = start, end = end)
+  tibble(tag = df$tag, start = start, end = end)
 }
 
 

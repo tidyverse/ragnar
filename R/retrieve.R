@@ -69,11 +69,11 @@ ragnar_retrieve_vss <- function(
   ## It's pretty similar to the sql I'd write by hand, and optimizes to
   ## an essentially identical physical plan.
 
-  .[method_func, order_direction] <- method_to_info(method)
+  info <- method_to_info(method)
   query_vector
   metric_value <- sql(sprintf(
     "%s(embedding, %s)",
-    method_func,
+    info$func,
     sql_float_array_value(query_vector)
   ))
   con <- store@con
@@ -235,7 +235,7 @@ sql_float_array_value <- function(...) {
 method_to_info <- function(method) {
   # see possible distances:
   # https://duckdb.org/docs/stable/sql/functions/array.html#array-native-functions
-  switch(
+  x <- switch(
     method,
 
     ## the vss extension only currently supports three array distance functions
@@ -268,6 +268,10 @@ method_to_info <- function(method) {
 
     stop("Unknown method")
   )
+  as.list(setNames(
+    x,
+    c("func", "direction")
+  ))
 }
 
 
@@ -300,7 +304,7 @@ get_store_embed <- function(x) {
 
 ragnar_retrieve_vss_tbl <- function(tbl, text, top_k, method) {
   rlang::check_installed("dbplyr")
-  .[.., order_direction] <- method_to_info(method)
+  order_direction <- method_to_info(method)$direction
   tbl |>
     mutate(
       metric_value = sql(calculate_vss(tbl, text, method)),
@@ -344,7 +348,7 @@ calculate_vss <- function(store, text, method) {
   embedded_text <- embed(text)
   embedding_size <- ncol(embedded_text)
 
-  .[method_function, ..] <- method_to_info(method)
+  method_function <- method_to_info(method)$func
   glue(
     r"---(
     {method_function}(

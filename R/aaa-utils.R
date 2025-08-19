@@ -11,7 +11,7 @@
 #'   stri_trim_right
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
-#' @importFrom tibble tibble as_tibble
+#' @importFrom dplyr tibble as_tibble
 #' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
 #'   na_if rename rename_with select slice_max slice_min starts_with collect
 #'   summarize row_number anti_join lag any_of all_of across lag
