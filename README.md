@@ -205,11 +205,11 @@ text <- "How can I subset a dataframe with a logical vector?"
 
     #> # A tibble: 4 × 9
     #>   origin         doc_id chunk_id start   end cosine_distance bm25  context text 
-    #>   <chr>          <list> <list>   <int> <int> <list>          <lis> <chr>   <chr>
-    #> 1 https://r4ds.… <int>  <int>     2192  4007 <dbl [1]>       <dbl> "# 25 … "```…
-    #> 2 https://r4ds.… <int>  <int>     1622  4205 <dbl [2]>       <dbl> "# 12 … "```…
-    #> 3 https://r4ds.… <int>  <int>    19379 20792 <dbl [1]>       <dbl> "# 12 … "Tha…
-    #> 4 https://r4ds.… <int>  <int>    12795 15259 <dbl [2]>       <dbl> "# 24 … "The…
+    #>   <chr>           <int> <list>   <int> <int> <list>          <lis> <chr>   <chr>
+    #> 1 https://r4ds.…     14 <int>     2192  4007 <dbl [1]>       <dbl> "# 25 … "```…
+    #> 2 https://r4ds.…     20 <int>     1622  4205 <dbl [2]>       <dbl> "# 12 … "```…
+    #> 3 https://r4ds.…     20 <int>    19379 20792 <dbl [1]>       <dbl> "# 12 … "Tha…
+    #> 4 https://r4ds.…     33 <int>    12795 15259 <dbl [2]>       <dbl> "# 24 … "The…
 
 ``` r
 
@@ -239,42 +239,42 @@ chat$chat("How can I subset a dataframe?")
 #> ● #> [{"origin":"https://r4ds.hadley.nz/arrow.html","doc_id":2,"chunk_id":13,"…
 ```
 
-    #> You can subset a dataframe in R in several ways:
+    #> To subset a dataframe in R, you can use several approaches, such as base R or 
+    #> dplyr. Here are some concise examples:
     #> 
-    #> 1. Using the [ (bracket) operator:
-    #> - Select rows and/or columns: df[rows, cols]
-    #> - Example:
+    #> Base R:
+    #> - Select rows and columns by indices or names: df[rows, cols]
+    #> Example:
     #> ```r
-    #> df[1, 2]          # first row, second column
-    #> df[, c("x","y")]  # all rows, columns x and y
-    #> df[df$x > 1, ]    # rows where x > 1, all columns
+    #> df[1:3, c("x", "y")]  # First 3 rows, columns x and y
     #> ```
-    #> If df is a tibble, the result of df[, "x"] is always a tibble; for a 
-    #> data.frame, it returns a vector unless you use drop=FALSE: df[, "x", 
-    #> drop=FALSE] 
-    #> ([source](https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)).
+    #> - Subset by logical condition:
+    #> ```r
+    #> df[df$x > 1, ]  # Rows where column x > 1
+    #> ```
+    #> - Select columns only: df[, c("x", "y")]
+    #> - Select rows only: df[1:5, ]
+    #> (Source: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
     #> 
-    #> 2. With dplyr for more readable code:
-    #> - Use filter() for subsetting rows and select() for columns:
+    #> dplyr package:
+    #> - Subset rows: filter(), select columns: select()
+    #> Example:
     #> ```r
     #> library(dplyr)
-    #> df %>% filter(x > 1)            # rows where x > 1
-    #> df %>% select(x, y)             # columns x and y
-    #> df %>% filter(x > 1) %>% select(x, y)  # both
+    #> df %>% filter(x > 1) %>% select(x, y)
     #> ```
-    #> - Many dplyr verbs are wrappers for subsetting, e.g., filter(), arrange(), and 
-    #> select() ([source](https://r4ds.hadley.nz/base-R.html#dplyr-equivalents)).
+    #> (Source: https://r4ds.hadley.nz/functions.html#common-use-cases)
     #> 
-    #> 3. subset() function (base R):
+    #> You can also use the base R subset() function:
     #> ```r
     #> subset(df, x > 1, select = c(x, y))
     #> ```
-    #> This combines row/column subsetting in one call.
+    #> (Source: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)
     #> 
-    #> Summary: Use df[rows, cols], dplyr's filter() and select(), or subset() for 
-    #> subsetting dataframes.
-    #> - Reference: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames
-    #> - Reference: https://dplyr.tidyverse.org/reference/filter.html
-    #> - Reference: https://rdrr.io/r/base/subset.html
+    #> References:
+    #> - https://r4ds.hadley.nz/base-R.html#subsetting-data-frames
+    #> - https://r4ds.hadley.nz/functions.html#common-use-cases
     #> 
-    #> Let me know if you want an example with your own dataset or more details!
+    #> Further reading:
+    #> - dplyr filter(): https://dplyr.tidyverse.org/reference/filter.html
+    #> - dplyr select(): https://dplyr.tidyverse.org/reference/select.html
