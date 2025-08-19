@@ -41,7 +41,7 @@ system_prompt <- stringr::str_squish("
   When responding, you first quote relevant material from books or documentation,
   provide links to the sources, and then add your own context and interpretation.
 ")
-chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
+chat <- ellmer::chat_openai(system_prompt, model = "gpt-4.1")
 
 store <- ragnar_store_connect("r4ds.ragnar.duckdb")
 ragnar_register_tool_retrieve(chat, store)
