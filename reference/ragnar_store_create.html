@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Create and connect to a vector store</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/R/store.R" class="external-link"><code>R/store.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.2.1/R/store.R" class="external-link"><code>R/store.R</code></a></small>
       <div class="d-none name"><code>ragnar_store_create.Rd</code></div>
     </div>
 
@@ -140,7 +140,7 @@ easily modify chunk text before insertion. However, dynamic rechunking
 (de-overlapping) or extracting arbitrary ranges from source documents is not
 supported, since the original full documents are no longer available. Chunks
 can be augmented by modifying the chunk text directly (e.g., with <code>glue()</code>).
-Additionally, if you intend to call <code><a href="ragnar_store_update.html">ragnar_store_update()</a></code>, it is your
+Additionally, if you intend to call <code><a href="ragnar_store_insert.html">ragnar_store_update()</a></code>, it is your
 responsibility to provide <code>rlang::hash(original_full_document)</code> with each
 chunk. The easiest way to prepare <code>chunks</code> for <code>version = 1</code> is with
 <code><a href="ragnar_read.html">ragnar_read()</a></code> and <code><a href="ragnar_chunk.html">ragnar_chunk()</a></code>.</p>
@@ -215,10 +215,10 @@ chunk. The easiest way to prepare <code>chunks</code> for <code>version = 1</cod
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> /some/where      1       24    24    26  1.22 x       xyz  </span>
 <span class="r-in"><span><span class="fu"><a href="ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">store</span>, <span class="st">"abc bcd xyz"</span>, deoverlap <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 8</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   origin      doc_id    chunk_id  start   end bm25      context text </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> /some/where <span style="color: #949494;">&lt;int [2]&gt;</span> <span style="color: #949494;">&lt;int [2]&gt;</span>     1     4 <span style="color: #949494;">&lt;dbl [2]&gt;</span> a       abcd </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> /some/where <span style="color: #949494;">&lt;int [1]&gt;</span> <span style="color: #949494;">&lt;int [1]&gt;</span>    24    26 <span style="color: #949494;">&lt;dbl [1]&gt;</span> x       xyz  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   origin      doc_id chunk_id  start   end bm25      context text </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> /some/where      1 <span style="color: #949494;">&lt;int [2]&gt;</span>     1     4 <span style="color: #949494;">&lt;dbl [2]&gt;</span> a       abcd </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> /some/where      1 <span style="color: #949494;">&lt;int [1]&gt;</span>    24    26 <span style="color: #949494;">&lt;dbl [1]&gt;</span> x       xyz  </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

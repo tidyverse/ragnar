@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Embed Text</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/R/embed.R" class="external-link"><code>R/embed.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.2.1/R/embed.R" class="external-link"><code>R/embed.R</code></a></small>
       <div class="d-none name"><code>embed_ollama.Rd</code></div>
     </div>
 
@@ -51,6 +51,16 @@
 <span>  model <span class="op">=</span> <span class="st">"text-embedding-3-small"</span>,</span>
 <span>  base_url <span class="op">=</span> <span class="st">"https://api.openai.com/v1"</span>,</span>
 <span>  api_key <span class="op">=</span> <span class="fu">get_envvar</span><span class="op">(</span><span class="st">"OPENAI_API_KEY"</span><span class="op">)</span>,</span>
+<span>  dims <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  user <span class="op">=</span> <span class="fu">get_user</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="fl">20L</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">embed_lm_studio</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">model</span>,</span>
+<span>  base_url <span class="op">=</span> <span class="st">"http://localhost:1234/v1"</span>,</span>
+<span>  api_key <span class="op">=</span> <span class="st">"lm-studio"</span>,</span>
 <span>  dims <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  user <span class="op">=</span> <span class="fu">get_user</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">20L</span></span>
@@ -104,6 +114,11 @@ data.frame, then a new <code>embedding</code> matrix "column" is added, containi
 matrix described in the previous sentence.</p>
 <p>A matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.</p>
     </div>
+    <div class="section level2">
+    <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
+
+<ul><li><p><code>embed_lm_studio()</code>: Embed Text using LMStudio. Indentical to <code>embed_openai()</code> but with suitable defaults for LMStudio.</p></li>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

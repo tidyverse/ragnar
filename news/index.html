@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,9 +29,22 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/tidyverse/ragnar/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.2.1/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.1" id="ragnar-021">ragnar 0.2.1<a class="anchor" aria-label="anchor" href="#ragnar-021"></a></h2><p class="text-muted">CRAN release: 2025-08-19</p>
+<ul><li><p><code><a href="../reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code> now registers a tool that will not return previously returned chunks, enabling the LLM to perform deeper searches of a ragnar store with repeated tool calls (<a href="https://github.com/tidyverse/ragnar/issues/106" class="external-link">#106</a>).</p></li>
+<li><p>Updates for ellmer v0.3.0 and duckdb v1.3.1 (<a href="https://github.com/tidyverse/ragnar/issues/99" class="external-link">#99</a>)</p></li>
+<li><p>Improved docs and error message in <code><a href="../reference/ragnar_store_insert.html">ragnar_store_insert()</a></code> (<a href="https://github.com/mattwarkentin" class="external-link">@mattwarkentin</a>, <a href="https://github.com/tidyverse/ragnar/issues/88" class="external-link">#88</a>)</p></li>
+<li><p><code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> can now parse <code>sitemap.xml</code> files. It also gains a <code>validate</code> argument, allowing for sending a <code>HEAD</code> request to each link and filtering out broken links (<a href="https://github.com/tidyverse/ragnar/issues/83" class="external-link">#83</a>).</p></li>
+<li><p><code>ragnar_inspector()</code> now renders all urls as clickable links in the chunk markdown viewer, even if url is not a formal markdown link (<a href="https://github.com/tidyverse/ragnar/issues/82" class="external-link">#82</a>).</p></li>
+<li><p>Before running examples and tests we now check if ragnar can load DuckDB extensions. This fixes issues in environments where DuckDB pre-built binaries for extensions are not compatible with the installed DuckDB version (<a href="https://github.com/tidyverse/ragnar/issues/94" class="external-link">#94</a>).</p></li>
+<li><p>Added <code>embed_lm_studio</code> to use LMStudio as an embedding provider (<a href="https://github.com/tidyverse/ragnar/issues/100" class="external-link">#100</a>).</p></li>
+<li><p>Fixed a bug causing <code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> to fail when documents were inserted without an origin (<a href="https://github.com/tidyverse/ragnar/issues/102" class="external-link">#102</a>).</p></li>
+<li><p>We now suppress a “Couldn’t find ffmpeg or avconv” warning when importing markitdown when using <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code>. The warning would only be relevant for users doing audio transcription (<a href="https://github.com/tidyverse/ragnar/issues/103" class="external-link">#103</a>).</p></li>
+<li><p>Added <code>embed_google_gemini</code> to use Google Gemini API as an embedding provider (<a href="https://github.com/tidyverse/ragnar/issues/105" class="external-link">#105</a>).</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="ragnar-020">ragnar 0.2.0<a class="anchor" aria-label="anchor" href="#ragnar-020"></a></h2><p class="text-muted">CRAN release: 2025-07-12</p>
 <ul><li><p><code><a href="../reference/ragnar_store_create.html">ragnar_store_create()</a></code> gains a new argument: <code>version</code>, with default <code>2</code>. Store version 2 adds support for chunk deoverlapping on retrieval and automatic chunk augmentation with headings. To support these features, the internal schema and ingestion requirements are different. See <code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code> and new S7 classes <code>MarkdownDocument</code> and <code>MarkdownDocumentChunks</code>. Backwards compatibility is maintained with version = 1. (<a href="https://github.com/tidyverse/ragnar/issues/58" class="external-link">#58</a>, <a href="https://github.com/tidyverse/ragnar/issues/39" class="external-link">#39</a>, <a href="https://github.com/tidyverse/ragnar/issues/36" class="external-link">#36</a>)</p></li>

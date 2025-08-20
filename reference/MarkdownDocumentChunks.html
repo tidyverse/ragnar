@@ -45,7 +45,7 @@ tweak chunks by other means."><meta property="og:image" content="https://ragnar.
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,7 @@ tweak chunks by other means."><meta property="og:image" content="https://ragnar.
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Markdown documents chunks</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/R/markdown-document.R" class="external-link"><code>R/markdown-document.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.2.1/R/markdown-document.R" class="external-link"><code>R/markdown-document.R</code></a></small>
       <div class="d-none name"><code>MarkdownDocumentChunks.Rd</code></div>
     </div>
 
@@ -117,7 +117,7 @@ also a <code>tibble</code>.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">doc_text</span> <span class="op">&lt;-</span> <span class="st">"# A\n\nB\n\n## C\n\nD"</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">doc_text</span> <span class="op">&lt;-</span> <span class="st">"# A\n\nB\n\n## C\n\nD"</span> <span class="co"># can be readLines() output, etc.</span></span></span>
 <span class="r-in"><span><span class="va">doc</span> <span class="op">&lt;-</span> <span class="fu"><a href="MarkdownDocument.html">MarkdownDocument</a></span><span class="op">(</span><span class="va">doc_text</span>, origin <span class="op">=</span> <span class="st">"some/where"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">chunk_positions</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">9L</span><span class="op">)</span>,</span></span>
