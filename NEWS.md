@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+* Errors messages when executing `embed_openai` are now surfaced to the user (#112).
+
 # ragnar 0.2.1
 
 * `ragnar_register_tool_retrieve()` now registers a tool that will not return 
