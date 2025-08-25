@@ -146,7 +146,14 @@ embed_openai <- function(
       req_url_path_append("/embeddings") |>
       req_auth_bearer_token(api_key) |>
       req_retry(max_tries = 2L) |>
-      req_body_json(data)
+      req_body_json(data) |>
+      req_error(body = \(resp) {
+        tryCatch({
+          resp_body_json(resp)$error$message %||% "Unknown error"
+        }, error = function(e) {
+          "Unknown error"
+        })
+      })
 
     resp <- req_perform(req)
 
