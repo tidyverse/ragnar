@@ -47,20 +47,12 @@ embed_bedrock <- function(x, model, profile, api_args = list()) {
     return(NULL) # Return early if there are no inputs
   }
 
-  req <- httr2::request(paste0(
-    "https://bedrock-runtime.",
-    credentials$region,
-    ".amazonaws.com"
-  )) |>
+  req <- httr2::request(
+    paste0("https://bedrock-runtime.", credentials$region, ".amazonaws.com")
+  ) |>
     req_user_agent(ragnar_user_agent())
 
-  req <- httr2::req_url_path_append(
-    req,
-    "model",
-    model,
-    "invoke"
-  )
-
+  req <- httr2::req_url_path_append(req, "model", model, "invoke")
   req <- httr2::req_error(req, body = function(resp) {
     body <- httr2::resp_body_json(resp)
     body$Message %||% body$message
@@ -117,7 +109,7 @@ embed_bedrock_cohere <- function(base_req, inputs, api_args, req_auth_bedrock) {
   matrix(
     unlist(out),
     nrow = length(inputs),
-    ncol = length(out[[1]]),
+    ncol = length(out[[1L]]),
     byrow = TRUE
   )
 }
@@ -133,10 +125,7 @@ embed_bedrock_titan <- function(base_req, inputs, api_args, req_auth_bedrock) {
   # }
   # only works with a single input at a time
   out <- lapply(inputs, function(input) {
-    body <- rlang::list2(
-      inputText = input,
-      !!!api_args
-    )
+    body <- rlang::list2(inputText = input, !!!api_args)
 
     resp <- base_req |>
       httr2::req_body_json(body) |>
