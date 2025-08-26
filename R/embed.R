@@ -148,11 +148,10 @@ embed_openai <- function(
       req_retry(max_tries = 2L) |>
       req_body_json(data) |>
       req_error(body = \(resp) {
-        tryCatch({
-          resp_body_json(resp)$error$message %||% "Unknown error"
-        }, error = function(e) {
-          "Unknown error"
-        })
+        tryCatch(
+          resp_body_json(resp)$error$message %||% "Unknown error",
+          error = function(e) "Unknown error"
+        )
       })
 
     resp <- req_perform(req)
