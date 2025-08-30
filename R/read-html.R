@@ -593,6 +593,9 @@ stri_subset_startswith_fixed <- function(str, pattern, ...) {
 read_html2 <- function(url, ...) {
   # For some reason curl is both erroring and warning when the URL is invalid or
   # returns 404. We don't really want the warnings, so we discard them.
+  if (!is_url(url)) {
+    return(xml2::read_html(url, ...))
+  }
   suppressWarnings({
     handle <- curl::new_handle(followlocation = TRUE)
     # We first try the original URL, if some error occurs we retry with the
@@ -614,6 +617,10 @@ read_html2 <- function(url, ...) {
   out <- xml2::read_html(conn, ...)
   attr(out, "resolved_url") <- curl::handle_data(handle)$url
   out
+}
+
+is_url <- function(path) {
+  grepl("^(http|ftp)s?://", path)
 }
 
 xml_url2 <- function(x) {
