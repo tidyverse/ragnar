@@ -349,7 +349,7 @@ ragnar_read_document <- function(
 #'
 #' @param url_filter A function that takes a character vector of URL's and may
 #'   subset them to return a smaller list. This can be useful for filtering out
-#'   URL's by rules different them `children_only` which only checks the prefix.
+#'   URL's by rules different than `children_only` which only checks the prefix.
 #'
 #' @param validate Default is `FALSE`. If `TRUE` sends a `HEAD` request for each
 #'   link and removes those that are not accessible. Requests are sent in parallel
@@ -374,7 +374,7 @@ ragnar_read_document <- function(
 ragnar_find_links <- function(
   x,
   depth = 0L,
-  children_only = TRUE,
+  children_only = FALSE,
   progress = TRUE,
   ...,
   url_filter = identity,
