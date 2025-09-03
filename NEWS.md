@@ -4,6 +4,8 @@
   The new default value `children_only=FALSE` will return all links on a page.
   See #115 for details.
 
+* The `RagnarStore` print method now shows the store location (#116)
+
 * Errors messages when executing `embed_openai` are now surfaced to the user (#112).
 
 # ragnar 0.2.1

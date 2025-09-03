@@ -260,6 +260,7 @@ ragnar_store_connect <- function(
   attr(ptr, "embed_function") <- embed
 
   DuckDBRagnarStore(
+    location = normalizePath(location, winslash = "/", mustWork = FALSE),
     embed = embed,
     schema = schema,
     con = con,
@@ -340,10 +341,11 @@ ragnar_store_build_index <- function(store, type = c("vss", "fts")) {
 # store is inherently stateful and S7 is better suited to stateless objects.
 RagnarStore := new_class(
   properties = list(
+    location = prop_string(),
     embed = S7::new_union(class_function, NULL),
     schema = NULL | class_data.frame,
-    name = class_character,
-    title = S7::new_union(NULL, class_character)
+    name = prop_string(),
+    title = prop_string(allow_null = TRUE)
   ),
   abstract = TRUE
 )
@@ -372,11 +374,13 @@ local({
     cat(glue(
       '
     <ragnar::DuckDBRagnarStore>
+     @ location: {x@location}
      @ embed   : {embed}
      @ name    : {x@name}
      @ title   : {x@title %||% "NULL"}
      @ con     : <DBI::DBIConnection>
      @ version : {x@version}
+
     '
     ))
   }

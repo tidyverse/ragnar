@@ -136,6 +136,7 @@ ragnar_store_create_v1 <- function(
   )
 
   DuckDBRagnarStore(
+    location = normalizePath(location, winslash = "/", mustWork = FALSE),
     embed = embed,
     schema = schema,
     con = con,
