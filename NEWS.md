@@ -1,11 +1,15 @@
 # ragnar (development version)
 
+* `ragnar_find_links()` now works better with HTML files on the local filesystem.
+  The new default value `children_only=FALSE` will return all links on a page.
+  See #115 for details.
+
 * Errors messages when executing `embed_openai` are now surfaced to the user (#112).
 
 # ragnar 0.2.1
 
-* `ragnar_register_tool_retrieve()` now registers a tool that will not return 
-  previously returned chunks, enabling the LLM to perform deeper searches of 
+* `ragnar_register_tool_retrieve()` now registers a tool that will not return
+  previously returned chunks, enabling the LLM to perform deeper searches of
   a ragnar store with repeated tool calls (#106).
 
 * Updates for ellmer v0.3.0 and duckdb v1.3.1 (#99)
