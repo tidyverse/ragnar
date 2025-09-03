@@ -479,7 +479,7 @@ ragnar_find_links <- function(
     cli::cli_progress_update(force = TRUE)
   }
 
-  out <- visited$union(collected)
+  out <- collected
   get_resolved <- reticulate::py_to_r(resolved$get)
   out <- reticulate::iterate(out, \(x) get_resolved(x) %||% x)
   out <- out[nzchar(out)]
