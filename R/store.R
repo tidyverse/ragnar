@@ -344,8 +344,8 @@ RagnarStore := new_class(
     location = prop_string(),
     embed = S7::new_union(class_function, NULL),
     schema = NULL | class_data.frame,
-    name = class_character,
-    title = S7::new_union(NULL, class_character)
+    name = prop_string(),
+    title = prop_string(allow_null = TRUE)
   ),
   abstract = TRUE
 )
