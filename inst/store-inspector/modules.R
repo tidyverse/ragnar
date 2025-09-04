@@ -114,7 +114,7 @@ storeInspectorServer <- function(id, store) {
           lapply(function(node) {
             tryCatch(
               {
-                if (xml_name(node) == "a") return()
+                if (xml2::xml_name(node) == "a") return()
 
                 text <- as.character(node)
                 text <- stringi::stri_replace_all(
