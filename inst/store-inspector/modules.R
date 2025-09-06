@@ -119,8 +119,8 @@ storeInspectorServer <- function(id, store) {
                 text <- as.character(node)
                 text <- stringi::stri_replace_all(
                   text,
-                  "(https?://[^\\s)>\"]+)",
-                  "<a target='_blank' href=\"\\1\">\\1</a>"
+                  regex = "(https?://[^\\s)>\"]+)",
+                  replacement = "<a target='_blank' href=\"\\1\">\\1</a>"
                 )
                 xml2::xml_replace(node, xml2::read_xml(text))
               },
