@@ -204,12 +204,42 @@ listDocumentsUI <- function(id) {
           }}
       }});
 
+      // Make the list focusable for keyboard navigation
+      $(function() {{
+        const $list = $('#{ns('list')}');
+        if ($list.length) {{ $list.attr('tabindex', 0); }}
+      }});
+
+      // Keyboard navigation: Up/Down (and Vim j/k) to change selection
+      $(document).on('keydown', '#{ns('list')}', function(e) {{
+        const $list = $(this);
+        const isDown = (e.key === 'ArrowDown' || e.key === 'j');
+        const isUp   = (e.key === 'ArrowUp'   || e.key === 'k');
+        if (!(isDown || isUp)) return;
+        e.preventDefault();
+
+        const $items = $list.find('.document-summary');
+        if ($items.length === 0) return;
+
+        let $current = $items.filter('.border.border-sky-500').first();
+        if ($current.length === 0) {{
+          $current = $items.first();
+        }}
+
+        const $target = isDown ? $current.next('.document-summary') : $current.prev('.document-summary');
+        if ($target.length) {{
+          $items.removeClass('border border-sky-500');
+          $target.addClass('border border-sky-500');
+          Shiny.setInputValue('{ns('selected_document')}', parseInt($target.attr('data-document-id')));
+        }}
+      }});
+
       // We also add a handler the server can call to update selected document
       // on its own.
       Shiny.addCustomMessageHandler('update_selected_document', function(value) {{
         Shiny.setInputValue('{ns('selected_document')}', value);
       }});
-  "
+    "
   )))
 
   shiny::tagList(
