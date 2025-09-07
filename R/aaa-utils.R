@@ -297,17 +297,18 @@ can_load_duckdb_extensions <- local({
   can <- NULL
   function() {
     if (is.null(can)) {
-      can <<- 0 == system2(
-        rscript_exe(),
-        "-",
-        input = c(
-          "con <- DBI::dbConnect(duckdb::duckdb())",
-          "DBI::dbExecute(con, 'INSTALL fts; LOAD fts;')",
-          "DBI::dbExecute(con, 'INSTALL vss; LOAD vss;')"
-        ),
-        stderr = FALSE,
-        stdout = FALSE
-      )
+      can <<- 0L ==
+        system2(
+          rscript_exe(),
+          "-",
+          input = c(
+            "con <- DBI::dbConnect(duckdb::duckdb())",
+            "DBI::dbExecute(con, 'INSTALL fts; LOAD fts;')",
+            "DBI::dbExecute(con, 'INSTALL vss; LOAD vss;')"
+          ),
+          stderr = FALSE,
+          stdout = FALSE
+        )
     }
     can
   }
@@ -319,4 +320,3 @@ rscript_exe <- function() {
     if (is_windows()) "Rscript.exe" else "Rscript"
   )
 }
-

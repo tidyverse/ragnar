@@ -18,7 +18,6 @@ try({
 })
 
 
-
 is_windows <- function() identical(.Platform$OS.type, "windows")
 rscript_exe <- function() {
   file.path(
