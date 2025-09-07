@@ -308,63 +308,63 @@ documentSummaryUI <- function(id, document, active = FALSE) {
     "data-document-id" = document$chunk_id,
     class = "document-summary flex flex-col bg-gray-100 hover:bg-gray-200 rounded-md w-full text-xs justify-evenly py-2",
     class = if (active) "border border-sky-500" else NULL, # two class fields are concatenated.
-    div(
+    shiny::div(
       class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-900 w-full",
-      icon("file", class = "flex-none"),
-      div(
+      shiny::icon("file", class = "flex-none"),
+      shiny::div(
         class = "flex-none font-semibold text-gray-700",
         "origin:"
       ),
-      div(
+      shiny::div(
         class = "flex grow font-mono overflow-hidden",
-        a(
+        shiny::a(
           class = "no-underline hover:underline decoration-sky-500 truncate",
           target = "_blank",
           href = origin_uri,
           origin
         ),
       ),
-      div(
+      shiny::div(
         class = "rounded-full flex-none justify-self-end font-light",
         glue::glue("id: #{document$chunk_id}")
       )
     ),
     if (!is.null(document[["metric_name"]])) {
-      div(
+      shiny::div(
         class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
-        icon(
+        shiny::icon(
           "gauge",
           class = "font-light flex-none"
         ),
-        div(
+        shiny::div(
           class = "flex-none font-bold",
           glue::glue("{document$metric_name}:")
         ),
-        div(
+        shiny::div(
           class = "flex-none font-light",
           round(document$metric_value, 3)
         )
       )
     },
-    div(
+    shiny::div(
       class = "flex flex-rows items-center gap-1 py-1 px-2 font-mono text-gray 500",
-      div(
+      shiny::div(
         class = "flex-none font-bol",
         "# characters:"
       ),
-      div(
+      shiny::div(
         class = "flex-none font-light",
         prettyNum(n_char, big.mark = ",")
       ),
-      div(
+      shiny::div(
         class = "font-thin",
         "|"
       ),
-      div(
+      shiny::div(
         class = "flex-none font-bol",
         "# tokens:"
       ),
-      div(
+      shiny::div(
         class = "flex-none font-light",
         glue::glue("~{prettyNum(as.integer(n_char/4), big.mark = ',')}")
       )
