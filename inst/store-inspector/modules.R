@@ -347,9 +347,9 @@ documentSummaryUI <- function(id, document, active = FALSE) {
       )
     },
     shiny::div(
-      class = "flex flex-rows items-center gap-1 py-1 px-2 font-mono text-gray 500",
+      class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
       shiny::div(
-        class = "flex-none font-bol",
+        class = "flex-none font-bold",
         "# characters:"
       ),
       shiny::div(
@@ -361,7 +361,7 @@ documentSummaryUI <- function(id, document, active = FALSE) {
         "|"
       ),
       shiny::div(
-        class = "flex-none font-bol",
+        class = "flex-none font-bold",
         "# tokens:"
       ),
       shiny::div(
