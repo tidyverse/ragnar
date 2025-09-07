@@ -120,11 +120,11 @@ storeInspectorServer <- function(id, store) {
             tryCatch(
               {
                 text <- as.character(node)
-                # make sure text that look like a link is clicable, even
-                # if it is inside a pre/code block, or otherwise is not a proper markdown links.
+                # make sure text that look like a link is clickable,
+                # but do not match tibble-truncated URLs ending with … (\u2026)
                 text <- text |>
                   stringi::stri_replace_all_regex(
-                    r"((https?://[^\s\)>"]+))",
+                    r"((https?://[^\s\)\]\\>"]++)(?<!\x{2026}))",
                     r"(<a target='_blank' href="$1">$1</a>)"
                   )
                 doc <- xml2::read_html(paste0("<div>", text, "</div>"))
