@@ -111,21 +111,28 @@ storeInspectorServer <- function(id, store) {
         html_preview <- xml2::read_html(as.character(html_preview))
 
         html_preview |>
-          xml2::xml_find_all(".//*[not(*)]") |>
+          xml2::xml_find_all(
+            ".//*[not(*) and
+                not(self::img or self::a) and
+                string-length(normalize-space(text())) > 0]"
+          ) |>
           lapply(function(node) {
             tryCatch(
               {
-                if (xml2::xml_name(node) == "a") {
-                  return()
-                }
-
                 text <- as.character(node)
+                # make sure text that look like a link is clicable, even
+                # if it is inside a pre/code block, or otherwise is not a proper markdown links.
                 text <- text |>
                   stringi::stri_replace_all_regex(
-                    "(https?://[^\\s)>\"]+)",
-                    "<a target='_blank' href=\"\\1\">\\1</a>"
+                    r"((https?://[^\s\)>"]+))",
+                    r"(<a target='_blank' href="$1">$1</a>)"
                   )
-                xml2::xml_replace(node, xml2::read_xml(text))
+                doc <- xml2::read_html(paste0("<div>", text, "</div>"))
+                new_node <- xml2::xml_find_first(doc, "//div/*[1]")
+                if (!inherits(new_node, "xml_node")) {
+                  return()
+                }
+                xml2::xml_replace(node, new_node)
               },
               error = function(err) {
                 warning(
