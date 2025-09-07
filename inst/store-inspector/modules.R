@@ -9,49 +9,72 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         type = "text/css",
         href = "app.out.css"
       ),
+      shiny::tags$script(src = "inspector.js")
     ),
     shiny::tags$body(
       class = "flex flex-col max-h-screen min-h-screen h-full bg-white",
+      # Consolidated header: title + search + search-type switch
       shiny::div(
         class = "flex-none bg-blue-500 p-2 gap-2",
         shiny::div(
-          "Ragnar Store Inspector",
-          class = "flex-none text-lg text-white"
-        ),
-      ),
-      shiny::div(
-        class = "flex flex-row flex-none bg-gray-100 p-2 justify-center text-sm gap-2 items-center",
-        shiny::div(
-          class = "flex grow max-w-96 shadow-md p-2 rounded-full bg-gray-100 items-center gap-2 focus-within:shadow-blue-500/50",
-          shiny::icon(
-            name = "magnifying-glass",
-            class = "flex flex-none text-gray-400"
+          class = "flex flex-row items-center gap-2",
+          shiny::div(
+            "Ragnar Store Inspector",
+            class = "flex-none text-lg text-white"
           ),
-          shiny::tags$input(
-            class = "flex-grow bg-transparent outline-none",
-            id = ns("query"),
-            type = "search",
-            placeholder = "Search the store ..."
-          )
-        ),
-        switchInput(ns("search_type"), search_types)
+          shiny::div(
+            class = "flex grow justify-center",
+            shiny::div(
+              class = "flex flex-row items-center gap-2 w-full max-w-2xl justify-center",
+              shiny::div(
+                class = "flex w-full max-w-2xl shadow-md p-2 rounded-full bg-gray-100 items-center gap-2 focus-within:shadow-blue-500/50",
+                shiny::icon(
+                  name = "magnifying-glass",
+                  class = "flex flex-none text-gray-400"
+                ),
+                shiny::tags$input(
+                  class = "flex-grow bg-transparent outline-none",
+                  id = ns("query"),
+                  type = "search",
+                  placeholder = "Search the store ..."
+                )
+              ),
+              switchInput(ns("search_type"), search_types)
+            )
+          ),
+          # right spacer to balance layout
+          shiny::div(class = "flex-none")
+        )
+      ),
+      # Subheader: Documents + Preview headings
+      shiny::div(
+        class = "flex flex-row flex-none p-2 border-b pb-1 border-gray-200 items-center justify-between",
+        shiny::div(shiny::uiOutput(ns("doc_header"))),
+        shiny::div(
+          class = "flex flex-row items-center gap-2",
+          shiny::h3("Document preview", class = "text-md"),
+          switchInput(ns("markdown"), c("Preview", "Raw Text"))
+        )
       ),
       shiny::div(
-        class = "flex grow p-2 gap-2 h-full overflow-hidden",
+      class = "flex grow p-2 gap-2 h-full overflow-hidden content-split",
+      style = "--left-pane-width: 38.2%;",
         listDocumentsUI(ns("document_list")),
         shiny::div(
-          class = "flex flex-col gap-2 basis-1/2 overflow-auto",
-          shiny::div(
-            class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
-            shiny::h3("Document preview", class = "text-md"),
-            switchInput(ns("markdown"), c("Preview", "Raw Text"))
-          ),
+          id = 'split-resizer',
+          class = "flex-none",
+          style = "width: 6px; cursor: col-resize; background-color: #e5e7eb; border-radius: 3px;"
+        ),
+        shiny::div(
+          id = ns("preview_panel"),
+          class = "flex flex-col gap-2 overflow-auto",
+          style = "flex-basis: 61.8%;",
           shiny::uiOutput(
             class = "h-full overflow-hidden",
             ns("preview")
           )
         )
-      )
+      ),
     )
   )
 }
@@ -179,6 +202,13 @@ storeInspectorServer <- function(id, store) {
         preview
       )
     })
+
+    # Documents header (moved to top-level subheader row)
+    output$doc_header <- shiny::renderUI({
+      n <- tryCatch(nrow(documents()), error = function(...) 0L)
+      label <- if (n == 100L) "100+" else as.character(n)
+      shiny::h3(sprintf("Documents (%s)", label), class = "text-md p-1")
+    })
   })
 }
 
@@ -245,11 +275,9 @@ listDocumentsUI <- function(id) {
   shiny::tagList(
     clickHandler,
     shiny::div(
-      class = "flex flex-col gap-2 basis-1/2 overflow-x-hidden overflow-y-auto",
-      shiny::div(
-        class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
-        shiny::uiOutput(ns("doc_header"))
-      ),
+      id = ns("document_list-panel"),
+      class = "left-pane flex flex-col gap-2 overflow-x-hidden overflow-y-auto",
+      style = "flex: 0 0 var(--left-pane-width); width: var(--left-pane-width); min-width: 200px;",
       shiny::uiOutput(ns("list"), class = "flex flex-col gap-1")
     )
   )
@@ -260,14 +288,6 @@ listDocumentsServer <- function(id, documents) {
   ns <- \(i) shiny::NS(id, i)
 
   shiny::moduleServer(id, function(input, output, session) {
-    # Header showing dynamic document count
-    output$doc_header <- shiny::renderUI({
-      n <- tryCatch(nrow(documents()), error = function(...) 0L)
-      # Default truncation is 100 for both no-query and search views
-      label <- if (n == 100L) "100+" else as.character(n)
-      shiny::h3(sprintf("Documents (%s)", label), class = "text-md p-1")
-    })
-
     updateSelectedDocument <- function(value) {
       session$sendCustomMessage("update_selected_document", value)
     }
