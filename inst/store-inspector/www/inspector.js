@@ -10,9 +10,37 @@
     var load = function(){ try { return parseInt(localStorage.getItem('ragnar_split_width_px')||'',10); } catch(e){ return NaN; } };
     var apply = function(px){ if (!isFinite(px)) return; root.style.setProperty('--left-pane-width', px + 'px'); };
     var init = load(); if (isFinite(init) && init > 200) apply(init);
+    // Set ARIA min/max/value
+    function updateAria(px){
+      try {
+        var left = root.querySelector('.left-pane');
+        var w = isFinite(px) ? px : (left ? left.getBoundingClientRect().width : NaN);
+        var rect = root.getBoundingClientRect();
+        var min = 200;
+        var max = Math.round(rect.width * 0.8);
+        res.setAttribute('aria-valuemin', String(min));
+        res.setAttribute('aria-valuemax', String(max));
+        if (isFinite(w)) res.setAttribute('aria-valuenow', String(Math.round(w)));
+      } catch(_){}
+    }
+    updateAria(init);
 
     var overlay = null;
+    function resetToGolden() {
+      var rect = root.getBoundingClientRect();
+      var target = Math.max(200, Math.round(rect.width * 0.382));
+      apply(target); updateAria(target); save(target);
+    }
+
     res.addEventListener('mousedown', function(e){
+      // Detect double-click via event.detail before creating overlay
+      if (e.detail && e.detail >= 2) {
+        resetToGolden();
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       dragging = true; startX = e.clientX; bbox = root.getBoundingClientRect();
       var left = root.querySelector('.left-pane'); startWidth = left ? left.getBoundingClientRect().width : 0;
       document.body.style.userSelect = 'none';
@@ -38,6 +66,7 @@
       if (!dragging) return;
       var dx = e.clientX - startX; var newPx = Math.max(200, Math.min(bbox.width * 0.8, startWidth + dx));
       apply(newPx);
+      updateAria(newPx);
       e.preventDefault();
     }, true);
 
@@ -48,6 +77,7 @@
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
       root.classList.remove('resizing');
+      updateAria(w);
       // Restore iframe pointer events
       root.querySelectorAll('iframe').forEach(function(ifr){
         try { ifr.style.pointerEvents = ifr.dataset.prevPe || ''; delete ifr.dataset.prevPe; } catch(_){}
@@ -57,6 +87,37 @@
         try { overlay.removeEventListener('mousemove', onMove, true); overlay.removeEventListener('mouseup', onUp, true); } catch(_){}
         try { overlay.remove(); } catch(_){}
         overlay = null;
+      }
+    }, true);
+
+    // (dblclick handled via mousedown detail check)
+
+    // Keyboard resizing for accessibility
+    res.addEventListener('keydown', function(e){
+      var left = root.querySelector('.left-pane');
+      if (!left) return;
+      var rect = root.getBoundingClientRect();
+      var current = left.getBoundingClientRect().width;
+      var min = 200, max = rect.width * 0.8;
+      var step = (e.shiftKey ? 48 : 24);
+      var handled = true;
+      if (e.key === 'ArrowLeft') {
+        current = Math.max(min, current - step);
+      } else if (e.key === 'ArrowRight') {
+        current = Math.min(max, current + step);
+      } else if (e.key === 'Home' || (e.key.toLowerCase && e.key.toLowerCase() === 'g')) {
+        // Home (Fn+Left on Mac) or 'g' to reset to golden ratio
+        current = Math.max(min, Math.round(rect.width * 0.382));
+      } else if (e.key === 'End') {
+        current = Math.min(max, Math.round(rect.width * 0.8));
+      } else {
+        handled = false;
+      }
+      if (handled) {
+        e.preventDefault();
+        apply(current);
+        updateAria(current);
+        save(Math.round(current));
       }
     }, true);
   }

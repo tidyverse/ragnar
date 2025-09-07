@@ -64,6 +64,10 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         shiny::div(
           id = 'split-resizer',
           class = "flex-none",
+          tabindex = 0,
+          role = "separator",
+          `aria-orientation` = "vertical",
+          `aria-controls` = paste(ns("document_list-panel"), ns("preview_panel")),
           style = "width: 6px; cursor: col-resize; background-color: #e5e7eb; border-radius: 3px;"
         ),
         shiny::div(
