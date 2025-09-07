@@ -150,7 +150,8 @@ storeInspectorServer <- function(id, store) {
         )
       } else {
         shiny::tags$pre(
-          class = "text-xs text-pretty",
+          class = "text-xs text-pretty whitespace-pre-wrap break-words",
+          style = "white-space: pre-wrap; overflow-wrap: anywhere;",
           selectedDocument()$text
         )
       }
