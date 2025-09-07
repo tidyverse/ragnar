@@ -34,6 +34,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
                 ),
                 shiny::tags$input(
                   class = "flex-grow bg-transparent outline-none",
+                  `data-inspector-query` = "1",
                   id = ns("query"),
                   type = "search",
                   placeholder = "Search the store ..."

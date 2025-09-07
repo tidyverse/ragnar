@@ -61,9 +61,38 @@
     }, true);
   }
 
+  // Global shortcuts: '/' to focus search, 'Esc' to clear
+  function initShortcuts() {
+    var q = document.querySelector('[data-inspector-query="1"]');
+    if (!q) return;
+    var isEditable = function(el){
+      if (!el) return false;
+      var t = el.tagName;
+      return t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable;
+    };
+    window.addEventListener('keydown', function(e){
+      if (e.defaultPrevented) return;
+      var active = document.activeElement;
+      // '/' focuses search when not typing in another field
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !isEditable(active)) {
+        e.preventDefault();
+        try { q.focus(); q.select(); } catch(_){}
+        return;
+      }
+      // Escape clears search if it has content
+      if (e.key === 'Escape') {
+        if (q.value && q.value.length) {
+          q.value = '';
+          try { q.dispatchEvent(new Event('input', { bubbles: true })); } catch(_){}
+        }
+      }
+    }, true);
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
+    document.addEventListener('DOMContentLoaded', function(){ init(); initShortcuts(); }, { once: true });
   } else {
     init();
+    initShortcuts();
   }
 })();
