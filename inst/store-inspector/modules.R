@@ -20,7 +20,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         ),
       ),
       shiny::div(
-        class = "flex flex-row flex-none bg-yellow p-2 justify-center text-sm gap-2 items-center",
+        class = "flex flex-row flex-none bg-gray-100 p-2 justify-center text-sm gap-2 items-center",
         shiny::div(
           class = "flex grow max-w-96 shadow-md p-2 rounded-full bg-gray-100 items-center gap-2 focus-within:shadow-blue-500/50",
           shiny::icon(
@@ -43,7 +43,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
           class = "flex flex-col gap-2 basis-1/2 overflow-auto",
           shiny::div(
             class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
-            shiny::h3("Document preview", class = "text-md font-mono"),
+            shiny::h3("Document preview", class = "text-md"),
             switchInput(ns("markdown"), c("Preview", "Raw Text"))
           ),
           shiny::uiOutput(
@@ -73,9 +73,9 @@ storeInspectorServer <- function(id, store) {
       tryCatch(
         {
           if (search_type() == "VSS") {
-            ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
+            ragnar::ragnar_retrieve_vss(store, query(), top_k = 100)
           } else {
-            ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
+            ragnar::ragnar_retrieve_bm25(store, query(), top_k = 100)
           }
         },
         error = function(err) {
@@ -223,7 +223,7 @@ listDocumentsUI <- function(id) {
       class = "flex flex-col gap-2 basis-1/2 overflow-x-hidden overflow-y-auto",
       shiny::div(
         class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
-        shiny::h3("Documents", class = "text-md font-mono p-1")
+        shiny::uiOutput(ns("doc_header"))
       ),
       shiny::uiOutput(ns("list"), class = "flex flex-col gap-1")
     )
@@ -235,6 +235,14 @@ listDocumentsServer <- function(id, documents) {
   ns <- \(i) shiny::NS(id, i)
 
   shiny::moduleServer(id, function(input, output, session) {
+    # Header showing dynamic document count
+    output$doc_header <- shiny::renderUI({
+      n <- tryCatch(nrow(documents()), error = function(...) 0L)
+      # Default truncation is 100 for both no-query and search views
+      label <- if (n == 100L) "100+" else as.character(n)
+      shiny::h3(sprintf("Documents (%s)", label), class = "text-md p-1")
+    })
+
     updateSelectedDocument <- function(value) {
       session$sendCustomMessage("update_selected_document", value)
     }
