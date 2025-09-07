@@ -56,6 +56,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
   )
 }
 
+
 storeInspectorServer <- function(id, store) {
   shiny::moduleServer(id, function(input, output, session) {
     query <- shiny::debounce(shiny::reactive(input$query), 1000)
@@ -134,13 +135,7 @@ storeInspectorServer <- function(id, store) {
                 }
                 xml2::xml_replace(node, new_node)
               },
-              error = function(err) {
-                warning(
-                  "Error processing node: ",
-                  conditionMessage(err),
-                  call. = FALSE
-                )
-              }
+              error = function(err) NULL
             )
           })
 
