@@ -260,7 +260,21 @@ listDocumentsServer <- function(id, documents) {
         ))
       }
 
-      updateSelectedDocument(head(documents(), 1)$chunk_id)
+      # Preserve user selection across re-renders where possible.
+      # Use module-local input id; do not re-namespace here.
+      doc_ids <- documents()$chunk_id
+      current <- input$selected_document
+      desired <- if (length(doc_ids) == 0) {
+        NULL
+      } else if (!is.null(current) && current %in% doc_ids) {
+        current
+      } else {
+        doc_ids[[1]]
+      }
+      if (!identical(current, desired)) {
+        updateSelectedDocument(desired)
+      }
+
       summaries <- documents() |>
         dplyr::mutate(.rn = dplyr::row_number()) |>
         dplyr::group_split(.rn) |>
@@ -269,7 +283,7 @@ listDocumentsServer <- function(id, documents) {
             documentSummaryUI(
               ns(glue::glue("document-{d$chunk_id}")),
               d,
-              active = d$.rn == 1
+              active = d$chunk_id == desired
             )
           }
         )
