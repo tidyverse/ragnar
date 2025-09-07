@@ -102,19 +102,22 @@ storeInspectorServer <- function(id, store) {
 
     output$preview <- shiny::renderUI({
       if (is.null(selectedDocument()$text) || nrow(selectedDocument()) == 0) {
-        return(tags$div("Select a document to preview"))
+        return(shiny::tags$div("Select a document to preview"))
       }
 
       preview <- if (is.null(preview_type()) || preview_type() == "Preview") {
-        html_preview <- shiny::markdown(selectedDocument()$text) |>
-          xml2::read_html(html_preview)
+        # Render markdown to HTML and parse for linkification
+        html_preview <- shiny::markdown(selectedDocument()$text)
+        html_preview <- xml2::read_html(as.character(html_preview))
 
         html_preview |>
           xml2::xml_find_all(".//*[not(*)]") |>
           lapply(function(node) {
             tryCatch(
               {
-                if (xml2::xml_name(node) == "a") return()
+                if (xml2::xml_name(node) == "a") {
+                  return()
+                }
 
                 text <- as.character(node)
                 text <- stringi::stri_replace_all(
@@ -145,11 +148,15 @@ storeInspectorServer <- function(id, store) {
         )
       }
 
+      # Select metadata columns robustly (schema may be NULL for v2 connections)
+      # Keep useful fields like origin/context/extra cols; drop internals/heavy fields
+      # fmt: skip
+      to_drop <- c(
+        "text", "embedding", "metric_name", "metric_value",
+        "doc_id", "chunk_id", "start", "end"
+      )
       metadata <- selectedDocument() |>
-        dplyr::select(
-          dplyr::all_of(names(store@schema)),
-          -dplyr::any_of(c("doc_id", "chunk_id", "start", "end", "embedding"))
-        )
+        dplyr::select(-dplyr::any_of(to_drop))
 
       shiny::div(
         class = "flex flex-col gap-2 size-full overflow-hidden",
