@@ -328,11 +328,15 @@ documentSummaryUI <- function(id, document, active = FALSE) {
 
   n_char <- nchar(document$text)
 
+  row_class <- "document-summary flex flex-col bg-gray-100 hover:bg-gray-200 rounded-md w-full text-xs justify-evenly py-2"
+  if (isTRUE(active)) {
+    row_class <- paste(row_class, "border border-sky-500")
+  }
+
   shiny::div(
     id = ns("summary"),
     "data-document-id" = document$chunk_id,
-    class = "document-summary flex flex-col bg-gray-100 hover:bg-gray-200 rounded-md w-full text-xs justify-evenly py-2",
-    class = if (active) "border border-sky-500" else NULL, # two class fields are concatenated.
+    class = row_class,
     shiny::div(
       class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-900 w-full",
       shiny::icon("file", class = "flex-none"),
