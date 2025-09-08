@@ -58,8 +58,8 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         )
       ),
       shiny::div(
-      class = "flex grow p-2 gap-1 h-full overflow-hidden content-split",
-      style = "--left-pane-width: 38.2%;",
+        class = "flex grow p-2 gap-1 h-full overflow-hidden content-split",
+        style = "--left-pane-width: 38.2%;",
         listDocumentsUI(ns("document_list")),
         shiny::div(
           id = 'split-resizer',
@@ -67,7 +67,10 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
           tabindex = 0,
           role = "separator",
           `aria-orientation` = "vertical",
-          `aria-controls` = paste(ns("document_list-panel"), ns("preview_panel")),
+          `aria-controls` = paste(
+            ns("document_list-panel"),
+            ns("preview_panel")
+          ),
           style = "width: 6px; cursor: col-resize; background-color: #e5e7eb; border-radius: 3px;"
         ),
         shiny::div(
@@ -474,7 +477,6 @@ switchInput <- function(id, switch_values) {
       shiny::tags$script(shiny::HTML(glue::glue(
         "(function() {{
         function init() {{
-          console.log('setting input value');
           Shiny.setInputValue('{ns('value')}', '{switch_values[1]}');
         }}
 

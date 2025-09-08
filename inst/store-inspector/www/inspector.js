@@ -6,10 +6,12 @@
     if (!res || !root) return;
 
     var dragging = false, startX = 0, startWidth = 0, bbox = null;
+    var overlay = null;
+
     var save = function(px){ try { localStorage.setItem('ragnar_split_width_px', String(px)); } catch(e){} };
     var load = function(){ try { return parseInt(localStorage.getItem('ragnar_split_width_px')||'',10); } catch(e){ return NaN; } };
     var apply = function(px){ if (!isFinite(px)) return; root.style.setProperty('--left-pane-width', px + 'px'); };
-    var init = load(); if (isFinite(init) && init > 200) apply(init);
+    var initWidth = load(); if (isFinite(initWidth) && initWidth > 200) apply(initWidth);
     // Set ARIA min/max/value
     function updateAria(px){
       try {
@@ -23,13 +25,44 @@
         if (isFinite(w)) res.setAttribute('aria-valuenow', String(Math.round(w)));
       } catch(_){}
     }
-    updateAria(init);
+    updateAria(initWidth);
 
-    var overlay = null;
     function resetToGolden() {
       var rect = root.getBoundingClientRect();
       var target = Math.max(200, Math.round(rect.width * 0.382));
       apply(target); updateAria(target); save(target);
+    }
+
+    function onMove(e){
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      var newPx = Math.max(200, Math.min(bbox.width * 0.8, startWidth + dx));
+      apply(newPx);
+      updateAria(newPx);
+      e.preventDefault();
+    }
+
+    function onUp(e){
+      if (!dragging) return;
+      dragging = false;
+      var left = root.querySelector('.left-pane');
+      var w = left ? left.getBoundingClientRect().width : NaN;
+      if (isFinite(w)) save(Math.round(w));
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      root.classList.remove('resizing');
+      updateAria(w);
+      // Restore iframe pointer events
+      root.querySelectorAll('iframe').forEach(function(ifr){
+        try { ifr.style.pointerEvents = ifr.dataset.prevPe || ''; delete ifr.dataset.prevPe; } catch(_){}
+      });
+      // Remove overlay and its listeners
+      if (overlay) {
+        try { overlay.removeEventListener('mousemove', onMove, true); } catch(_){}
+        try { overlay.removeEventListener('mouseup', onUp, true); } catch(_){}
+        try { overlay.remove(); } catch(_){}
+        overlay = null;
+      }
     }
 
     res.addEventListener('mousedown', function(e){
@@ -62,33 +95,8 @@
       e.stopPropagation();
     }, true);
 
-    window.addEventListener('mousemove', function(e){
-      if (!dragging) return;
-      var dx = e.clientX - startX; var newPx = Math.max(200, Math.min(bbox.width * 0.8, startWidth + dx));
-      apply(newPx);
-      updateAria(newPx);
-      e.preventDefault();
-    }, true);
-
-    window.addEventListener('mouseup', function(e){
-      if (!dragging) return; dragging = false;
-      var left = root.querySelector('.left-pane'); var w = left ? left.getBoundingClientRect().width : NaN;
-      if (isFinite(w)) save(Math.round(w));
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-      root.classList.remove('resizing');
-      updateAria(w);
-      // Restore iframe pointer events
-      root.querySelectorAll('iframe').forEach(function(ifr){
-        try { ifr.style.pointerEvents = ifr.dataset.prevPe || ''; delete ifr.dataset.prevPe; } catch(_){}
-      });
-      // Remove overlay and its listeners
-      if (overlay) {
-        try { overlay.removeEventListener('mousemove', onMove, true); overlay.removeEventListener('mouseup', onUp, true); } catch(_){}
-        try { overlay.remove(); } catch(_){}
-        overlay = null;
-      }
-    }, true);
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onUp, true);
 
     // (dblclick handled via mousedown detail check)
 
