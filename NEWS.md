@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+* Correct BM25 result ordering to sort by descending score (#122).
+
 * `embed_ollama()` default model is now `embeddinggemma` (#121).
 
 * `ragnar_find_links()` now works better with HTML files on the local filesystem.

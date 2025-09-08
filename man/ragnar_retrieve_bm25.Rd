@@ -31,6 +31,10 @@ the query string must be present in order for a chunk to be retrieved.}
 
 \item{filter}{Optional. A filter expression evaluated with \code{dplyr::filter()}.}
 }
+\value{
+A tibble ordered by descending BM25 \code{metric_value} (higher is more
+relevant), with a \code{metric_name} column set to "bm25".
+}
 \description{
 BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more
 information.
