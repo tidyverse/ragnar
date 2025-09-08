@@ -194,7 +194,8 @@ storeInspectorServer <- function(id, store) {
         class = "flex flex-col gap-2 size-full",
         style = "min-height: 0;",
         shiny::div(
-          class = "border-b pb-2 border-gray-200 max-h-1/3 overflow-y-auto",
+          class = "pb-2 max-h-1/3 overflow-y-auto",
+          style = "border-bottom: 2px solid #e5e7eb;",
           shiny::pre(
             class = "text-xs text-pretty",
             yaml::as.yaml(
