@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+* Fix BM25 retrieval ordering: results are now sorted by descending
+  BM25 score (higher is more relevant). Previously results were
+  sorted ascending, which surfaced less relevant matches first.
+
 * `ragnar_find_links()` now works better with HTML files on the local filesystem.
   The new default value `children_only=FALSE` will return all links on a page.
   See #115 for details.

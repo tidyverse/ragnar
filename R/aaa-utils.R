@@ -11,12 +11,10 @@
 #'   stri_trim_right
 #' @importFrom xml2 xml_add_sibling xml_find_all xml_name xml_attr xml_text
 #'   xml_url url_absolute xml_contents xml_find_first
-#' @importFrom dplyr tibble as_tibble
-#' @importFrom dplyr bind_rows coalesce distinct filter join_by left_join mutate
+#' @importFrom dplyr tibble as_tibble bind_rows coalesce distinct filter join_by left_join mutate
 #'   na_if rename rename_with select slice_max slice_min starts_with collect
-#'   summarize row_number anti_join lag any_of all_of across lag
+#'   summarize row_number anti_join lag any_of all_of across lag desc
 #' @importFrom tidyr unchop unnest
-#' @importFrom tidyr unchop
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
 #'   vec_chop vec_ptype vec_proxy vec_restore
@@ -319,4 +317,3 @@ rscript_exe <- function() {
     if (is_windows()) "Rscript.exe" else "Rscript"
   )
 }
-
