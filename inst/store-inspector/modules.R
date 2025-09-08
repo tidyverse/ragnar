@@ -58,7 +58,7 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         )
       ),
       shiny::div(
-      class = "flex grow p-2 gap-2 h-full overflow-hidden content-split",
+      class = "flex grow p-2 gap-1 h-full overflow-hidden content-split",
       style = "--left-pane-width: 38.2%;",
         listDocumentsUI(ns("document_list")),
         shiny::div(
@@ -142,7 +142,7 @@ storeInspectorServer <- function(id, store) {
         html_preview |>
           xml2::xml_find_all(
             ".//*[not(*) and
-                not(self::img or self::a) and
+                not(self::a) and
                 string-length(normalize-space(text())) > 0]"
           ) |>
           lapply(function(node) {
