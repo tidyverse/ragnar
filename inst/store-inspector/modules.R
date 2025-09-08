@@ -72,10 +72,11 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         ),
         shiny::div(
           id = ns("preview_panel"),
-          class = "flex flex-col gap-2 overflow-auto",
+          class = "flex flex-col gap-2 overflow-hidden",
           style = "flex-basis: 61.8%;",
           shiny::uiOutput(
-            class = "h-full overflow-hidden",
+            class = "flex-1",
+            style = "min-height: 0;",
             ns("preview")
           )
         )
@@ -190,7 +191,8 @@ storeInspectorServer <- function(id, store) {
         dplyr::select(-dplyr::any_of(to_drop))
 
       shiny::div(
-        class = "flex flex-col gap-2 size-full overflow-hidden",
+        class = "flex flex-col gap-2 size-full",
+        style = "min-height: 0;",
         shiny::div(
           class = "border-b pb-2 border-gray-200 max-h-1/3 overflow-y-auto",
           shiny::pre(
@@ -204,7 +206,11 @@ storeInspectorServer <- function(id, store) {
             )
           )
         ),
-        preview
+        shiny::div(
+          class = "flex-1 overflow-auto",
+          style = "min-height: 0;",
+          preview
+        )
       )
     })
 
