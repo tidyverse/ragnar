@@ -1,8 +1,8 @@
 # ragnar (development version)
 
-* Fix BM25 retrieval ordering: results are now sorted by descending
-  BM25 score (higher is more relevant). Previously results were
-  sorted ascending, which surfaced less relevant matches first.
+* Correct BM25 result ordering to sort by descending score (#122).
+
+* `embed_ollama()` default model is now `embeddinggemma` (#121).
 
 * `ragnar_find_links()` now works better with HTML files on the local filesystem.
   The new default value `children_only=FALSE` will return all links on a page.
