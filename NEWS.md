@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+* `embed_ollama()` default model is now `embeddinggemma` (#121).
+
 * `ragnar_find_links()` now works better with HTML files on the local filesystem.
   The new default value `children_only=FALSE` will return all links on a page.
   See #115 for details.
