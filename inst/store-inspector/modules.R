@@ -58,11 +58,12 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         )
       ),
       shiny::div(
+        id = ns("content_split"),
         class = "flex grow p-2 gap-1 h-full overflow-hidden content-split",
         style = "--left-pane-width: 38.2%;",
         listDocumentsUI(ns("document_list")),
         shiny::div(
-          id = 'split-resizer',
+          id = ns('split_resizer'),
           class = "flex-none",
           tabindex = 0,
           role = "separator",
