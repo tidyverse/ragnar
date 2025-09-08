@@ -2,18 +2,41 @@
 % Please edit documentation in R/store.R
 \name{ragnar_store_inspect}
 \alias{ragnar_store_inspect}
-\title{Launches the Ragnar Inspector Tool}
+\title{Launch the Ragnar Store Inspector}
 \usage{
 ragnar_store_inspect(store, ...)
 }
 \arguments{
-\item{store}{A \code{RagnarStore} object that you want to inspect with the tool.}
+\item{store}{A \code{RagnarStore} object to inspect.}
 
 \item{...}{Passed to \code{\link[shiny:runApp]{shiny::runApp()}}.}
 }
 \value{
-\code{NULL} invisibly
+\code{NULL} (invisibly).
 }
 \description{
-Launches the Ragnar Inspector Tool
+Launches a Shiny app for interactively browsing a Ragnar store, previewing
+document chunks, and testing search behavior.
 }
+\details{
+The Store Inspector is a Shiny app for exploring a \code{RagnarStore}. Use it to
+quickly see what was ingested and preview search results for different
+queries. Type a query in the search bar and choose BM25 or VSS. The list of
+documents on the left updates, and clicking a row shows its text and metadata
+on the right. You can drag the divider to resize the document list and
+preview area.
+
+The preview area shows the chunk content. You can view it as rendered
+Markdown or switch to “Raw Text” to see the stored text (long lines are
+wrapped). Metadata is shown above the text in YAML format, including any
+extra fields stored with the chunk.
+}
+\section{Keyboard Shortcuts}{
+\tabular{lll}{
+   \emph{Context} \tab \emph{Shortcut} \tab \emph{Action} \cr
+   Global \tab \code{/}, \code{Esc} \tab Focus search; clear it \cr
+   Documents list \tab \code{ArrowUp}/\code{ArrowDown}, \code{j}/\code{k} \tab Move selection \cr
+   Vertical Divider \tab \code{ArrowLeft}/\code{ArrowRight} (+\code{Shift}), \code{g}/\code{Home} \tab Resize; reset \cr
+}
+}
+

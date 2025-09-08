@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+* Store Inspector updated with keyboard shortcuts, a draggable divider,
+  improved preview linkification and metadata display,
+  visual tweaks and general bug fixes (#120).
+
 * Correct BM25 result ordering to sort by descending score (#122).
 
 * `embed_ollama()` default model is now `embeddinggemma` (#121).

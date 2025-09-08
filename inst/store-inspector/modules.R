@@ -9,52 +9,86 @@ storeInspectorUI <- function(id, search_types = c("BM25", "VSS")) {
         type = "text/css",
         href = "app.out.css"
       ),
+      shiny::tags$script(src = "inspector.js")
     ),
     shiny::tags$body(
       class = "flex flex-col max-h-screen min-h-screen h-full bg-white",
+      # Consolidated header: title + search + search-type switch
       shiny::div(
         class = "flex-none bg-blue-500 p-2 gap-2",
         shiny::div(
-          "Ragnar Store Inspector",
-          class = "flex-none text-lg text-white"
-        ),
-      ),
-      shiny::div(
-        class = "flex flex-row flex-none bg-yellow p-2 justify-center text-sm gap-2 items-center",
-        shiny::div(
-          class = "flex grow max-w-96 shadow-md p-2 rounded-full bg-gray-100 items-center gap-2 focus-within:shadow-blue-500/50",
-          shiny::icon(
-            name = "magnifying-glass",
-            class = "flex flex-none text-gray-400"
+          class = "flex flex-row items-center gap-2",
+          shiny::div(
+            "Ragnar Store Inspector",
+            class = "flex-none text-lg text-white"
           ),
-          shiny::tags$input(
-            class = "flex-grow bg-transparent outline-none",
-            id = ns("query"),
-            type = "search",
-            placeholder = "Search the store ..."
-          )
-        ),
-        switchInput(ns("search_type"), search_types)
+          shiny::div(
+            class = "flex grow justify-center",
+            shiny::div(
+              class = "flex flex-row items-center gap-2 w-full max-w-2xl justify-center",
+              shiny::div(
+                class = "flex w-full max-w-2xl shadow-md p-2 rounded-full bg-gray-100 items-center gap-2 focus-within:shadow-blue-500/50",
+                shiny::icon(
+                  name = "magnifying-glass",
+                  class = "flex flex-none text-gray-400"
+                ),
+                shiny::tags$input(
+                  class = "flex-grow bg-transparent outline-none",
+                  `data-inspector-query` = "1",
+                  id = ns("query"),
+                  type = "search",
+                  placeholder = "Search the store ..."
+                )
+              ),
+              switchInput(ns("search_type"), search_types)
+            )
+          ),
+          # right spacer to balance layout
+          shiny::div(class = "flex-none")
+        )
+      ),
+      # Subheader: Documents + Preview headings
+      shiny::div(
+        class = "flex flex-row flex-none p-2 border-b pb-1 border-gray-200 items-center justify-between",
+        shiny::div(shiny::uiOutput(ns("doc_header"))),
+        shiny::div(
+          class = "flex flex-row items-center gap-2",
+          shiny::h3("Document preview", class = "text-md"),
+          switchInput(ns("markdown"), c("Preview", "Raw Text"))
+        )
       ),
       shiny::div(
-        class = "flex grow p-2 gap-2 h-full overflow-hidden",
+        id = ns("content_split"),
+        class = "flex grow p-2 gap-1 h-full overflow-hidden content-split",
+        style = "--left-pane-width: 38.2%;",
         listDocumentsUI(ns("document_list")),
         shiny::div(
-          class = "flex flex-col gap-2 basis-1/2 overflow-auto",
-          shiny::div(
-            class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
-            shiny::h3("Document preview", class = "text-md font-mono"),
-            switchInput(ns("markdown"), c("Preview", "Raw Text"))
+          id = ns('split_resizer'),
+          class = "flex-none",
+          tabindex = 0,
+          role = "separator",
+          `aria-orientation` = "vertical",
+          `aria-controls` = paste(
+            ns("document_list-panel"),
+            ns("preview_panel")
           ),
+          style = "width: 6px; cursor: col-resize; background-color: #e5e7eb; border-radius: 3px;"
+        ),
+        shiny::div(
+          id = ns("preview_panel"),
+          class = "flex flex-col gap-2 overflow-hidden",
+          style = "flex-basis: 61.8%;",
           shiny::uiOutput(
-            class = "h-full overflow-hidden",
+            class = "flex-1",
+            style = "min-height: 0;",
             ns("preview")
           )
         )
-      )
+      ),
     )
   )
 }
+
 
 storeInspectorServer <- function(id, store) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -73,9 +107,9 @@ storeInspectorServer <- function(id, store) {
       tryCatch(
         {
           if (search_type() == "VSS") {
-            ragnar::ragnar_retrieve_vss(store, query(), top_k = 10)
+            ragnar::ragnar_retrieve_vss(store, query(), top_k = 100)
           } else {
-            ragnar::ragnar_retrieve_bm25(store, query(), top_k = 10)
+            ragnar::ragnar_retrieve_bm25(store, query(), top_k = 100)
           }
         },
         error = function(err) {
@@ -102,35 +136,39 @@ storeInspectorServer <- function(id, store) {
 
     output$preview <- shiny::renderUI({
       if (is.null(selectedDocument()$text) || nrow(selectedDocument()) == 0) {
-        return(tags$div("Select a document to preview"))
+        return(shiny::tags$div("Select a document to preview"))
       }
 
       preview <- if (is.null(preview_type()) || preview_type() == "Preview") {
-        html_preview <- shiny::markdown(selectedDocument()$text) |>
-          xml2::read_html(html_preview)
+        # Render markdown to HTML and parse for linkification
+        html_preview <- shiny::markdown(selectedDocument()$text)
+        html_preview <- xml2::read_html(as.character(html_preview))
 
         html_preview |>
-          xml2::xml_find_all(".//*[not(*)]") |>
+          xml2::xml_find_all(
+            ".//*[not(*) and
+                not(self::a) and
+                string-length(normalize-space(text())) > 0]"
+          ) |>
           lapply(function(node) {
             tryCatch(
               {
-                if (xml2::xml_name(node) == "a") return()
-
                 text <- as.character(node)
-                text <- stringi::stri_replace_all(
-                  text,
-                  regex = "(https?://[^\\s)>\"]+)",
-                  replacement = "<a target='_blank' href=\"\\1\">\\1</a>"
-                )
-                xml2::xml_replace(node, xml2::read_xml(text))
+                # make sure text that look like a link is clickable,
+                # but do not match tibble-truncated URLs ending with … (\u2026)
+                text <- text |>
+                  stringi::stri_replace_all_regex(
+                    r"((https?://[^\s\)\]\\>"]++)(?<!\x{2026}))",
+                    r"(<a target='_blank' href="$1">$1</a>)"
+                  )
+                doc <- xml2::read_html(paste0("<div>", text, "</div>"))
+                new_node <- xml2::xml_find_first(doc, "//div/*[1]")
+                if (!inherits(new_node, "xml_node")) {
+                  return()
+                }
+                xml2::xml_replace(node, new_node)
               },
-              error = function(err) {
-                warning(
-                  "Error processing node: ",
-                  conditionMessage(err),
-                  call. = FALSE
-                )
-              }
+              error = function(err) NULL
             )
           })
 
@@ -140,21 +178,28 @@ storeInspectorServer <- function(id, store) {
         )
       } else {
         shiny::tags$pre(
-          class = "text-xs text-pretty",
+          class = "text-xs text-pretty whitespace-pre-wrap break-words",
+          style = "white-space: pre-wrap; overflow-wrap: anywhere;",
           selectedDocument()$text
         )
       }
 
+      # Select metadata columns robustly (schema may be NULL for v2 connections)
+      # Keep useful fields like origin/context/extra cols; drop internals/heavy fields
+      # fmt: skip
+      to_drop <- c(
+        "text", "embedding", "metric_name", "metric_value",
+        "doc_id", "chunk_id", "start", "end"
+      )
       metadata <- selectedDocument() |>
-        dplyr::select(
-          dplyr::all_of(names(store@schema)),
-          -dplyr::any_of(c("doc_id", "chunk_id", "start", "end", "embedding"))
-        )
+        dplyr::select(-dplyr::any_of(to_drop))
 
       shiny::div(
-        class = "flex flex-col gap-2 size-full overflow-hidden",
+        class = "flex flex-col gap-2 size-full",
+        style = "min-height: 0;",
         shiny::div(
-          class = "border-b pb-2 border-gray-200 max-h-1/3 overflow-y-auto",
+          class = "pb-2 max-h-1/3 overflow-y-auto",
+          style = "border-bottom: 2px solid #e5e7eb;",
           shiny::pre(
             class = "text-xs text-pretty",
             yaml::as.yaml(
@@ -166,8 +211,19 @@ storeInspectorServer <- function(id, store) {
             )
           )
         ),
-        preview
+        shiny::div(
+          class = "flex-1 overflow-auto",
+          style = "min-height: 0;",
+          preview
+        )
       )
+    })
+
+    # Documents header (moved to top-level subheader row)
+    output$doc_header <- shiny::renderUI({
+      n <- tryCatch(nrow(documents()), error = function(...) 0L)
+      label <- if (n == 100L) "100+" else as.character(n)
+      shiny::h3(sprintf("Documents (%s)", label), class = "text-md p-1")
     })
   })
 }
@@ -194,22 +250,50 @@ listDocumentsUI <- function(id) {
           }}
       }});
 
+      // Make the list focusable for keyboard navigation
+      $(function() {{
+        const $list = $('#{ns('list')}');
+        if ($list.length) {{ $list.attr('tabindex', 0); }}
+      }});
+
+      // Keyboard navigation: Up/Down (and Vim j/k) to change selection
+      $(document).on('keydown', '#{ns('list')}', function(e) {{
+        const $list = $(this);
+        const isDown = (e.key === 'ArrowDown' || e.key === 'j');
+        const isUp   = (e.key === 'ArrowUp'   || e.key === 'k');
+        if (!(isDown || isUp)) return;
+        e.preventDefault();
+
+        const $items = $list.find('.document-summary');
+        if ($items.length === 0) return;
+
+        let $current = $items.filter('.border.border-sky-500').first();
+        if ($current.length === 0) {{
+          $current = $items.first();
+        }}
+
+        const $target = isDown ? $current.next('.document-summary') : $current.prev('.document-summary');
+        if ($target.length) {{
+          $items.removeClass('border border-sky-500');
+          $target.addClass('border border-sky-500');
+          Shiny.setInputValue('{ns('selected_document')}', parseInt($target.attr('data-document-id')));
+        }}
+      }});
+
       // We also add a handler the server can call to update selected document
       // on its own.
       Shiny.addCustomMessageHandler('update_selected_document', function(value) {{
         Shiny.setInputValue('{ns('selected_document')}', value);
       }});
-  "
+    "
   )))
 
   shiny::tagList(
     clickHandler,
     shiny::div(
-      class = "flex flex-col gap-2 basis-1/2 overflow-x-hidden overflow-y-auto",
-      shiny::div(
-        class = "flex flex-row justify-between pr-1 border-b pb-2 border-gray-200 items-center gap-1",
-        shiny::h3("Documents", class = "text-md font-mono p-1")
-      ),
+      id = ns("document_list-panel"),
+      class = "left-pane flex flex-col gap-2 overflow-x-hidden overflow-y-auto",
+      style = "flex: 0 0 var(--left-pane-width); width: var(--left-pane-width); min-width: 200px;",
       shiny::uiOutput(ns("list"), class = "flex flex-col gap-1")
     )
   )
@@ -245,7 +329,21 @@ listDocumentsServer <- function(id, documents) {
         ))
       }
 
-      updateSelectedDocument(head(documents(), 1)$chunk_id)
+      # Preserve user selection across re-renders where possible.
+      # Use module-local input id; do not re-namespace here.
+      doc_ids <- documents()$chunk_id
+      current <- input$selected_document
+      desired <- if (length(doc_ids) == 0) {
+        NULL
+      } else if (!is.null(current) && current %in% doc_ids) {
+        current
+      } else {
+        doc_ids[[1]]
+      }
+      if (!identical(current, desired)) {
+        updateSelectedDocument(desired)
+      }
+
       summaries <- documents() |>
         dplyr::mutate(.rn = dplyr::row_number()) |>
         dplyr::group_split(.rn) |>
@@ -254,7 +352,7 @@ listDocumentsServer <- function(id, documents) {
             documentSummaryUI(
               ns(glue::glue("document-{d$chunk_id}")),
               d,
-              active = d$.rn == 1
+              active = d$chunk_id == desired
             )
           }
         )
@@ -296,68 +394,72 @@ documentSummaryUI <- function(id, document, active = FALSE) {
 
   n_char <- nchar(document$text)
 
+  row_class <- "document-summary flex flex-col bg-gray-100 hover:bg-gray-200 rounded-md w-full text-xs justify-evenly py-2"
+  if (isTRUE(active)) {
+    row_class <- paste(row_class, "border border-sky-500")
+  }
+
   shiny::div(
     id = ns("summary"),
     "data-document-id" = document$chunk_id,
-    class = "document-summary flex flex-col bg-gray-100 hover:bg-gray-200 rounded-md w-full text-xs justify-evenly py-2",
-    class = if (active) "border border-sky-500" else NULL, # two class fields are concatenated.
-    div(
+    class = row_class,
+    shiny::div(
       class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-900 w-full",
-      icon("file", class = "flex-none"),
-      div(
+      shiny::icon("file", class = "flex-none"),
+      shiny::div(
         class = "flex-none font-semibold text-gray-700",
         "origin:"
       ),
-      div(
+      shiny::div(
         class = "flex grow font-mono overflow-hidden",
-        a(
+        shiny::a(
           class = "no-underline hover:underline decoration-sky-500 truncate",
           target = "_blank",
           href = origin_uri,
           origin
         ),
       ),
-      div(
+      shiny::div(
         class = "rounded-full flex-none justify-self-end font-light",
         glue::glue("id: #{document$chunk_id}")
       )
     ),
     if (!is.null(document[["metric_name"]])) {
-      div(
+      shiny::div(
         class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
-        icon(
+        shiny::icon(
           "gauge",
           class = "font-light flex-none"
         ),
-        div(
+        shiny::div(
           class = "flex-none font-bold",
           glue::glue("{document$metric_name}:")
         ),
-        div(
+        shiny::div(
           class = "flex-none font-light",
           round(document$metric_value, 3)
         )
       )
     },
-    div(
-      class = "flex flex-rows items-center gap-1 py-1 px-2 font-mono text-gray 500",
-      div(
-        class = "flex-none font-bol",
+    shiny::div(
+      class = "flex flex-row items-center gap-1 py-1 px-2 font-mono text-gray-500",
+      shiny::div(
+        class = "flex-none font-bold",
         "# characters:"
       ),
-      div(
+      shiny::div(
         class = "flex-none font-light",
         prettyNum(n_char, big.mark = ",")
       ),
-      div(
+      shiny::div(
         class = "font-thin",
         "|"
       ),
-      div(
-        class = "flex-none font-bol",
+      shiny::div(
+        class = "flex-none font-bold",
         "# tokens:"
       ),
-      div(
+      shiny::div(
         class = "flex-none font-light",
         glue::glue("~{prettyNum(as.integer(n_char/4), big.mark = ',')}")
       )
@@ -376,7 +478,6 @@ switchInput <- function(id, switch_values) {
       shiny::tags$script(shiny::HTML(glue::glue(
         "(function() {{
         function init() {{
-          console.log('setting input value');
           Shiny.setInputValue('{ns('value')}', '{switch_values[1]}');
         }}
 
