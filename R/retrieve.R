@@ -328,7 +328,7 @@ ragnar_retrieve_bm25_tbl <- function(tbl, text, top_k) {
       metric_name = "bm25"
     ) |>
     filter(sql('metric_value IS NOT NULL')) |>
-    arrange(.data$metric_value) |>
+    arrange(desc(.data$metric_value)) |>
     select(-"embedding") |>
     head(n = top_k) |>
     collect()
@@ -362,6 +362,9 @@ calculate_vss <- function(store, text, method) {
 #'
 #' BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more
 #' information.
+#'
+#' @return A tibble ordered by descending BM25 `metric_value` (higher is more
+#'   relevant), with a `metric_name` column set to "bm25".
 #'
 #' @param conjunctive	Whether to make the query conjunctive i.e., all terms in
 #'   the query string must be present in order for a chunk to be retrieved.
@@ -411,7 +414,7 @@ ragnar_retrieve_bm25 <- function(
   tbl <- dplyr::filter(tbl, !!!filters)
 
   sql_query <- tbl |>
-    arrange(metric_value) |>
+    arrange(desc(metric_value)) |>
     select(-any_of("embedding")) |>
     head(n = top_k) |>
     dbplyr::remote_query()

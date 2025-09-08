@@ -9,7 +9,7 @@
 embed_ollama(
   x,
   base_url = "http://localhost:11434",
-  model = "snowflake-arctic-embed2:568m",
+  model = "embeddinggemma",
   batch_size = 10L
 )
 
