@@ -60,7 +60,8 @@ For more information about task types, see \href{https://cloud.google.com/vertex
 \item{batch_size}{split \code{x} into batches when embedding. Integer, limit of
 strings to include in a single request.}
 
-\item{location}{Location, e.g. \code{us-east1}, \code{me-central1}, \code{africa-south1}.}
+\item{location}{Location, e.g. \code{us-east1}, \code{me-central1}, \code{africa-south1} or
+\code{global}.}
 
 \item{project_id}{Project ID.}
 }
