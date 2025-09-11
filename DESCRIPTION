@@ -29,6 +29,7 @@ Imports:
     cli,
     commonmark,
     curl,
+    jsonlite,
     DBI,
     dbplyr,
     dplyr,
