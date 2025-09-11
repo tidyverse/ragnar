@@ -48,6 +48,7 @@ reference:
       - ragnar_store_update
       - ragnar_store_build_index
       - ragnar_store_inspect
+      - ragnar_store_atlas
 
   - title: Embeddings
     desc: Embed chunks with commercial or open-source models.
