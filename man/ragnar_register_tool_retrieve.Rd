@@ -35,7 +35,7 @@ user-friendly display.}
 Register a 'retrieve' tool with ellmer
 }
 \examples{
-\dontshow{if ((file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != "")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if ((file.exists("r4ds.ragnar.duckdb") && Sys.getenv("OPENAI_API_KEY") != "")) withAutoprint(\{ # examplesIf}
 system_prompt <- stringr::str_squish("
   You are an expert assistant in R programming.
   When responding, you first quote relevant material from books or documentation,

@@ -27,7 +27,7 @@ documents.
 The results are not re-ranked after identifying the unique values.
 }
 \examples{
-\dontshow{if ((rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")) && ragnar:::can_load_duckdb_extensions())) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if ((rlang::is_installed("dbplyr") && nzchar(Sys.getenv("OPENAI_API_KEY")) && ragnar:::can_load_duckdb_extensions())) withAutoprint(\{ # examplesIf}
 ## Build a small store with categories
 store <- ragnar_store_create(
   embed = \(x) ragnar::embed_openai(x, model = "text-embedding-3-small"),

@@ -74,7 +74,7 @@ Embed using Google Vertex API platform
 
 }}
 \examples{
-\dontshow{if (Sys.getenv("GEMINI_API_KEY") != "") (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (Sys.getenv("GEMINI_API_KEY") != "") withAutoprint(\{ # examplesIf}
 embed_google_gemini("hello world")
 \dontshow{\}) # examplesIf}
 \dontrun{
