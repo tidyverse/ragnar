@@ -150,5 +150,9 @@ mcp_serve_store <- function(
   )
 
   tools <- c(list(retrieve_tool), extra_tools)
-  mcptools::mcp_server(tools = tools, FALSE)
+  if (rlang::is_installed("mcptools", version = "0.1.1.9001")) {
+    mcptools::mcp_server(tools, FALSE)
+  } else {
+    mcptools::mcp_server(tools)
+  }
 }
