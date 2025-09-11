@@ -437,3 +437,48 @@ ragnar_store_inspect <- function(store, ...) {
   })
   invisible(NULL)
 }
+
+#' Visualize a store using Embedding Atlas
+#' 
+#' @inheritParams ragnar_store_inspect
+#' @param port Port to run the Embedding Atlas server on.
+#' @param host Host to run the Embedding Atlas server on.
+#' @param launch.browser Whether to launch the browser automatically.
+#' 
+#' @note This function requires the `embedding-atlas` Python package.
+#' Make sure you have it installed in your reticulate Python environment.
+#' It also uses `arrow` to transfer data from the DuckDB store to Python.
+#' 
+#' @examples
+#' \dontrun{
+#' # Connect or create a store
+#' store <- ragnar_store_connect(':memory:')
+#' # Launch the Embedding Atlas app
+#' ragnar_store_atlas(store)
+#' }
+#' 
+#' 
+#' @export
+ragnar_store_atlas <- function(
+  store,
+  ...,
+  host = "localhost",
+  port = 3030,
+  launch.browser = interactive()
+) {
+  reticulate::py_require(c("embedding-atlas", "duckdb"))
+  atlas <- reticulate::import_from_path(
+    "_ragnartools.atlas",
+    system.file("python", package = "ragnar")
+  )
+  df <- duckdb::duckdb_fetch_arrow(DBI::dbSendQuery(
+    store@con, "SELECT * FROM chunks;",
+    arrow = TRUE
+  ))
+  join_thread <- atlas$run_embedding_atlas(df, host, as.integer(port))
+  if (launch.browser) {
+    browseURL(sprintf("http://%s:%d", host, port))
+  }
+  join_thread()
+  invisible(NULL)
+}
