@@ -59,4 +59,5 @@ reference:
     contents:
       - starts_with("ragnar_retrieve")
       - ragnar_register_tool_retrieve
+      - mcp_serve_store
       - chunks_deoverlap
