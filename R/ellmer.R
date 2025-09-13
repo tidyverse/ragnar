@@ -64,7 +64,7 @@ ragnar_tool_retrieve <- function(
   check_string(name, allow_null = TRUE)
   check_string(title, allow_null = TRUE)
 
-  name <- name %||% glue::glue("rag_retrieve_from_{store@name}")
+  name <- name %||% glue::glue("search_store_{store@name}")
   title <- title %||% store@title
 
   previously_retrieved_chunk_ids <- integer()
