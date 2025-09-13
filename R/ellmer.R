@@ -68,6 +68,7 @@ ragnar_tool_retrieve <- function(
   title <- title %||% store@title
 
   previously_retrieved_chunk_ids <- integer()
+  list(...) # force
 
   ellmer::tool(
     function(text) {
@@ -107,22 +108,44 @@ ragnar_tool_retrieve <- function(
 
 #' Serve a Ragnar store over MCP
 #'
-#' Launches an MCP server (via mcptools) that exposes a retrieval tool backed by
-#' a Ragnar store. This lets MCP-enabled clients (e.g., Claude Desktop, Claude Code)
-#' call into your store to retrieve relevant excerpts.
+#' Launches an MCP server (via [mcptools::mcp_server()]) that exposes a
+#' retrieval tool backed by a Ragnar store. This lets MCP-enabled clients (e.g.,
+#' Codex CLI, Claude Code) call into your store to retrieve relevant
+#' excerpts.
 #'
 #' @param store A `RagnarStore` object or a file path to a Ragnar DuckDB store.
-#'   If a character path is supplied, it is opened with [ragnar_store_connect()].
-#' @param store_description Optional string used in the tool description presented
-#'   to clients.
-#' @param ... Additional arguments forwarded to [ragnar_retrieve()].
-#' @param name,title Optional identifiers for the tool. By default, derives from
-#'   `store@name` and `store@title` when available.
-#' @param extra_tools Optional additional tools (list of `ellmer::tool()` objects)
-#'   to serve alongside the retrieval tool.
+#'   If a character path is supplied, it is opened with
+#'   [ragnar_store_connect()].
+#' @param store_description Optional string used in the tool description
+#'   presented to clients.
+#' @inheritParams ragnar_register_tool_retrieve
+# ' @param ... Additional arguments forwarded to [ragnar_retrieve()].
+# ' @param name,title Optional identifiers for the tool. By default, derives from
+# '   `store@name` and `store@title` when available.
+#' @param extra_tools Optional additional tools (list of `ellmer::tool()`
+#'   objects) to serve alongside the retrieval tool.
 #'
 #' @return This function blocks the current R process by running an MCP server.
 #'   It is intended for non-interactive use. Called primarily for side-effects.
+#'
+#' @details
+#'
+#' To use this function with [Codex CLI](https://developers.openai.com/codex/cli/), add something like this
+#' to `~/.codex/config.toml`
+#'
+#' ```toml
+#' [mcp_servers.quartohelp]
+#' command = "Rscript"
+#' args = [
+#'   "-e",
+#'   "ragnar::mcp_serve_store(quartohelp:::quartohelp_ragnar_store(), top_k=10)"
+#' ]
+#' ```
+#'
+#' You can confirm the agent can search the ragnar store by inspecting the
+#' output from the `/mcp` command, or by asking it "What tools do you have
+#' available?".
+#'
 #'
 #' @export
 mcp_serve_store <- function(
@@ -151,7 +174,7 @@ mcp_serve_store <- function(
 
   tools <- c(list(retrieve_tool), extra_tools)
   if (rlang::is_installed("mcptools", version = "0.1.1.9001")) {
-    mcptools::mcp_server(tools, FALSE)
+    mcptools::mcp_server(tools, include_session_tools = FALSE)
   } else {
     mcptools::mcp_server(tools)
   }
