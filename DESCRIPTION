@@ -29,13 +29,13 @@ Imports:
     cli,
     commonmark,
     curl,
-    jsonlite,
     DBI,
     dbplyr,
     dplyr,
     duckdb (>= 1.3.1),
     glue,
     httr2,
+    jsonlite,
     methods,
     reticulate (>= 1.42.0),
     rlang (>= 1.1.0),
@@ -52,13 +52,14 @@ Suggests:
     gargle,
     knitr,
     lifecycle,
+    mcptools,
     pandoc,
     paws.common,
     rmarkdown,
     shiny,
     stringr,
-    tibble,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tibble
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
