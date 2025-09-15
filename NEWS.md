@@ -8,7 +8,7 @@
 
 -   The default tool name prefix registered by
     `ragnar_register_tool_retrive()` has changed from
-    `rag_retrieve_from_` to `search_`.
+    `rag_retrieve_from_{store@name}` to `search_{store@name}`.
 
 -   Store Inspector updated with keyboard shortcuts, a draggable
     divider, improved preview linkification and metadata display, visual
