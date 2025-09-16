@@ -3,6 +3,13 @@
 -   New `ragnar_store_atlas()` application for visualizing embeddings
     (#124).
 
+-   New function `mcp_serve_store()` which supports letting a local MCP
+    client like Codex CLI or Claude Code search a `RagnarStore` (#123).
+
+-   The default tool name prefix registered by
+    `ragnar_register_tool_retrive()` has changed from
+    `rag_retrieve_from_` to `search_`.
+
 -   Store Inspector updated with keyboard shortcuts, a draggable
     divider, improved preview linkification and metadata display, visual
     tweaks and general bug fixes (#120).
