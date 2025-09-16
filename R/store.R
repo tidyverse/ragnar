@@ -466,9 +466,12 @@ ragnar_store_atlas <- function(
   port = 3030,
   launch.browser = interactive()
 ) {
+  # duckdb R version need to match the Python version at least in major.minor
+  duckdb_version <- numeric_version(utils::packageVersion("duckdb"))
+
   reticulate::py_require(c(
     "embedding-atlas",
-    "duckdb<1.4",
+    paste0("duckdb==", duckdb_version$major, ".", duckdb_version$minor),
     "numba>=0.62.0rc2",
     "llvmlite>=0.45.0rc2"
   ))
