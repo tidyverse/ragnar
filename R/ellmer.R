@@ -97,11 +97,13 @@ ragnar_tool_retrieve <- function(
       repeated searches of the same query will always return unique new results."
     ),
     arguments = list(
-      text = ellmer::type_string(
-        "Input string to match. Semantic search works best with full sentences; \\
-        keyword search works best with word lists (keywords are stemmed). \\
-        Both modes run on every query."
-      )
+      text = ellmer::type_string(glue::trim(
+        "Input string to match. Semantic search works best with complete sentences; \\
+         keyword search works best with lists of words (keywords are stemmed). \\
+         Both modes run on every query. For best results, call the tool at least \\
+         twice: once with a query designed for semantic search, and once with a query \\
+         designed for keyword search."
+      ))
     ),
     annotations = ellmer::tool_annotations(
       title = title,
@@ -135,15 +137,16 @@ ragnar_tool_retrieve <- function(
 #'
 #' @details
 #'
-#' To use this function with [Codex CLI](https://developers.openai.com/codex/cli/), add something like this
-#' to `~/.codex/config.toml`
+#' To use this function with
+#' [Codex CLI](https://developers.openai.com/codex/cli/),
+#' add something like this to `~/.codex/config.toml`
 #'
 #' ```toml
 #' [mcp_servers.quartohelp]
 #' command = "Rscript"
 #' args = [
 #'   "-e",
-#'   "ragnar::mcp_serve_store(quartohelp:::quartohelp_ragnar_store(), top_k=10)"
+#'   "ragnar::mcp_serve_store('/path/to/ragnar.store', top_k=10)"
 #' ]
 #' ```
 #'

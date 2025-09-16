@@ -43,14 +43,15 @@ Codex CLI, Claude Code) call into your store to retrieve relevant
 excerpts.
 }
 \details{
-To use this function with \href{https://developers.openai.com/codex/cli/}{Codex CLI}, add something like this
-to \verb{~/.codex/config.toml}
+To use this function with
+\href{https://developers.openai.com/codex/cli/}{Codex CLI},
+add something like this to \verb{~/.codex/config.toml}
 
 \if{html}{\out{<div class="sourceCode toml">}}\preformatted{[mcp_servers.quartohelp]
 command = "Rscript"
 args = [
   "-e",
-  "ragnar::mcp_serve_store(quartohelp:::quartohelp_ragnar_store(), top_k=10)"
+  "ragnar::mcp_serve_store('/path/to/ragnar.store', top_k=10)"
 ]
 }\if{html}{\out{</div>}}
 
