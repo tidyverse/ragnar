@@ -471,7 +471,7 @@ ragnar_store_atlas <- function(
 
   reticulate::py_require(c(
     "embedding-atlas",
-    paste0("duckdb==", duckdb_version$major, ".", duckdb_version$minor),
+    sprintf("duckdb==%s.%s.*", duckdb_version$major, duckdb_version$minor),
     "numba>=0.62.0rc2",
     "llvmlite>=0.45.0rc2"
   ))
