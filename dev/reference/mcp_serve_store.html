@@ -97,13 +97,14 @@ It is intended for non-interactive use. Called primarily for side-effects.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>To use this function with <a href="https://developers.openai.com/codex/cli/" class="external-link">Codex CLI</a>, add something like this
-to <code>~/.codex/config.toml</code></p>
+    <p>To use this function with
+<a href="https://developers.openai.com/codex/cli/" class="external-link">Codex CLI</a>,
+add something like this to <code>~/.codex/config.toml</code></p>
 <p></p><div class="sourceCode toml"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="kw">[mcp_servers.quartohelp]</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="dt">command</span> <span class="op">=</span> <span class="st">"Rscript"</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="dt">args</span> <span class="op">=</span> <span class="op">[</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="st">"-e"</span><span class="op">,</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="st">"ragnar::mcp_serve_store(quartohelp:::quartohelp_ragnar_store(), top_k=10)"</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="st">"ragnar::mcp_serve_store('/path/to/ragnar.store', top_k=10)"</span></span>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="op">]</span></span></code></pre><p></p></div>
 <p>You can confirm the agent can search the ragnar store by inspecting the
 output from the <code>/mcp</code> command, or by asking it "What tools do you have
