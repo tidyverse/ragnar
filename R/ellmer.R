@@ -63,12 +63,12 @@ ragnar_tool_retrieve <- function(
 
   check_string(name, allow_null = TRUE)
   check_string(title, allow_null = TRUE)
+  list(...) # force
 
-  name <- name %||% glue::glue("search_store_{store@name}")
+  name <- name %||% glue::glue("search_{store@name}")
   title <- title %||% store@title
 
   previously_retrieved_chunk_ids <- integer()
-  list(...) # force
 
   ellmer::tool(
     function(text) {
@@ -91,12 +91,19 @@ ragnar_tool_retrieve <- function(
     },
     name = name,
     description = glue::glue(
-      "Given a string, retrieve the most relevant excerpts from {store_description}. Previously retrieved chunks are not returned; repeated searches of the same query will return unique results."
+      "Given a string, retrieve the most relevant excerpts from {store_description}. \\
+      Both BM25 (keyword) search and embedding vector similarity (semantic) search are performed. \\
+      Previously retrieved chunks are never returned; \\
+      repeated searches of the same query will always return unique new results."
     ),
     arguments = list(
-      text = ellmer::type_string(
-        "The text to find the most relevant matches for."
-      )
+      text = ellmer::type_string(glue::trim(
+        "Input string to match. Semantic search works best with complete sentences; \\
+         keyword search works best with lists of words (keywords are stemmed). \\
+         Both modes run on every query. For best results, call the tool at least \\
+         twice: once with a query designed for semantic search, and once with a query \\
+         designed for keyword search."
+      ))
     ),
     annotations = ellmer::tool_annotations(
       title = title,
@@ -130,15 +137,16 @@ ragnar_tool_retrieve <- function(
 #'
 #' @details
 #'
-#' To use this function with [Codex CLI](https://developers.openai.com/codex/cli/), add something like this
-#' to `~/.codex/config.toml`
+#' To use this function with
+#' [Codex CLI](https://developers.openai.com/codex/cli/),
+#' add something like this to `~/.codex/config.toml`
 #'
 #' ```toml
 #' [mcp_servers.quartohelp]
 #' command = "Rscript"
 #' args = [
 #'   "-e",
-#'   "ragnar::mcp_serve_store(quartohelp:::quartohelp_ragnar_store(), top_k=10)"
+#'   "ragnar::mcp_serve_store('/path/to/ragnar.store', top_k=10)"
 #' ]
 #' ```
 #'
