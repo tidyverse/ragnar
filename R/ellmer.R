@@ -67,7 +67,14 @@ ragnar_tool_retrieve <- function(
 
   name <- name %||% glue::glue("search_{store@name}")
   title <- title %||% store@title
+  location <- store@location
 
+  omit_cols <- c(
+    "bm25",
+    "cosine_distance",
+    "euclidean_distance",
+    "negative_inner_product"
+  )
   previously_retrieved_chunk_ids <- integer()
 
   ellmer::tool(
@@ -77,9 +84,12 @@ ragnar_tool_retrieve <- function(
         text,
         ...,
         filter = !.data$chunk_id %in% previously_retrieved_chunk_ids
-      )
+      ) |>
+        select(-any_of(omit_cols))
+
       previously_retrieved_chunk_ids <<-
         unique(unlist(c(chunks$chunk_id, previously_retrieved_chunk_ids)))
+
       jsonlite::toJSON(
         chunks,
         pretty = TRUE,
