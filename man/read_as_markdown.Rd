@@ -7,6 +7,7 @@
 read_as_markdown(
   path,
   ...,
+  origin = path,
   html_extract_selectors = c("main"),
   html_zap_selectors = c("nav")
 )
@@ -19,6 +20,9 @@ transcription), HTML, text-based formats (CSV, JSON, XML), ZIP files
 (iterates over contents), YouTube URLs, and EPUBs.}
 
 \item{...}{Passed on to \code{MarkItDown.convert()}.}
+
+\item{origin}{The value to use for the \verb{@origin} property of the returned
+\code{MarkdownDocument}.}
 
 \item{html_extract_selectors}{Character vector of CSS selectors. If a match
 for a selector is found in the document, only the matched node's contents

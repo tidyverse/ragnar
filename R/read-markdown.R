@@ -6,6 +6,8 @@
 #'   transcription), HTML, text-based formats (CSV, JSON, XML), ZIP files
 #'   (iterates over contents), YouTube URLs, and EPUBs.
 #' @param ... Passed on to `MarkItDown.convert()`.
+#' @param origin The value to use for the `@origin` property of the returned
+#'   `MarkdownDocument`.
 #' @param html_extract_selectors Character vector of CSS selectors. If a match
 #'   for a selector is found in the document, only the matched node's contents
 #'   are converted. Unmatched extract selectors have no effect.
@@ -118,11 +120,12 @@
 read_as_markdown <- function(
   path,
   ...,
+  origin = path,
   html_extract_selectors = c("main"),
   html_zap_selectors = c("nav")
 ) {
   check_string(path)
-  origin <- path
+  check_string(origin, allow_na = TRUE)
   if (startsWith(path, "~")) {
     path <- path.expand(path)
   }
