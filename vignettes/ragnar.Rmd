@@ -122,7 +122,7 @@ To generate embeddings, you can use an open-source model via
 `embed_google_vertex()`, `embed_bedrock()`, and `embed_databricks()`, or
 your own function.
 
-#### Identify Documents for Processing
+### Identify Documents for Processing
 
 Gather a list of documents you want to insert in the database. For local
 files, this can be a simple `list.files()` on a directory of documents.
@@ -141,7 +141,7 @@ process a [sitemap](https://quarto.org/sitemap.xml) if one is available.
 At the end of this step, you should have a character vector of file
 paths and URLs.
 
-#### Convert Documents to Markdown
+### Convert Documents to Markdown
 
 Convert each document to markdown. Markdown is preferred because it's
 plain text, easy to inspect, keeps token counts low, and works well for
@@ -164,7 +164,7 @@ sophisticated OCR tool--you can turn a character vector into a
 `ragnar::MarkdownDocument` object with the `MarkdownDocument()`
 constructor.
 
-#### Chunk and Augment
+### Chunk and Augment
 
 Next, split the documents into smaller chunks. This is necessary because
 embedding models have context size limits, and because chunking allows
@@ -205,7 +205,7 @@ depending on your needs, but as an initial approximation, I recommend
 starting with an ingestion pipeline that does not give any opportunities
 for hallucinations to enter the store.
 
-#### Insert in the Store
+### Insert in the Store
 
 Take your augmented document chunks and insert them into the store by
 calling `ragnar_store_insert()`. This function will automatically
@@ -216,7 +216,7 @@ was first created.
 ragnar_store_insert(store, chunks)
 ```
 
-#### Tying it Together
+### Tying it Together
 
 Repeat these steps for every document you want to insert into the store.
 Once you're done processing the documents, call
