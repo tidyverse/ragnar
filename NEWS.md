@@ -22,9 +22,12 @@
     filesystem. The new default value `children_only=FALSE` will return
     all links on a page. See #115 for details.
 
+-   `read_as_markdown()` gains an `origin` argument to control the
+    `@origin` recorded on returned documents.
+
 -   The `RagnarStore` print method now shows the store location (#116)
 
--   Errors messages when executing `embed_openai` are now surfaced to
+-   Errors messages when executing `embed_openai()` are now surfaced to
     the user (#112).
 
 # ragnar 0.2.1
