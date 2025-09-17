@@ -162,9 +162,10 @@ a new store if you want to change it.</p>
 <code><a href="../reference/embed_ollama.html">embed_openai()</a></code>, <code><a href="../reference/embed_google_vertex.html">embed_google_vertex()</a></code>,
 <code><a href="../reference/embed_bedrock.html">embed_bedrock()</a></code>, and <code><a href="../reference/embed_databricks.html">embed_databricks()</a></code>, or
 your own function.</p>
-<div class="section level5">
-<h5 id="identify-documents-for-processing">Identify Documents for Processing<a class="anchor" aria-label="anchor" href="#identify-documents-for-processing"></a>
-</h5>
+</div>
+<div class="section level4">
+<h4 id="identify-documents-for-processing">Identify Documents for Processing<a class="anchor" aria-label="anchor" href="#identify-documents-for-processing"></a>
+</h4>
 <p>Gather a list of documents you want to insert in the database. For
 local files, this can be a simple <code><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files()</a></code> on a
 directory of documents.</p>
@@ -179,9 +180,9 @@ available.</p>
 <p>At the end of this step, you should have a character vector of file
 paths and URLs.</p>
 </div>
-<div class="section level5">
-<h5 id="convert-documents-to-markdown">Convert Documents to Markdown<a class="anchor" aria-label="anchor" href="#convert-documents-to-markdown"></a>
-</h5>
+<div class="section level4">
+<h4 id="convert-documents-to-markdown">Convert Documents to Markdown<a class="anchor" aria-label="anchor" href="#convert-documents-to-markdown"></a>
+</h4>
 <p>Convert each document to markdown. Markdown is preferred because it’s
 plain text, easy to inspect, keeps token counts low, and works well for
 both humans and LLMs.</p>
@@ -201,9 +202,9 @@ to read in content–such as <code><a href="https://rdrr.io/r/base/readLines.htm
 turn a character vector into a <code><a href="../reference/MarkdownDocument.html">ragnar::MarkdownDocument</a></code>
 object with the <code><a href="../reference/MarkdownDocument.html">MarkdownDocument()</a></code> constructor.</p>
 </div>
-<div class="section level5">
-<h5 id="chunk-and-augment">Chunk and Augment<a class="anchor" aria-label="anchor" href="#chunk-and-augment"></a>
-</h5>
+<div class="section level4">
+<h4 id="chunk-and-augment">Chunk and Augment<a class="anchor" aria-label="anchor" href="#chunk-and-augment"></a>
+</h4>
 <p>Next, split the documents into smaller chunks. This is necessary
 because embedding models have context size limits, and because chunking
 allows you to return just the most relevant excerpts from a long
@@ -238,9 +239,9 @@ depending on your needs, but as an initial approximation, I recommend
 starting with an ingestion pipeline that does not give any opportunities
 for hallucinations to enter the store.</p>
 </div>
-<div class="section level5">
-<h5 id="insert-in-the-store">Insert in the Store<a class="anchor" aria-label="anchor" href="#insert-in-the-store"></a>
-</h5>
+<div class="section level4">
+<h4 id="insert-in-the-store">Insert in the Store<a class="anchor" aria-label="anchor" href="#insert-in-the-store"></a>
+</h4>
 <p>Take your augmented document chunks and insert them into the store by
 calling <code><a href="../reference/ragnar_store_insert.html">ragnar_store_insert()</a></code>. This function will
 automatically generate embeddings using the <code>embed</code> function
@@ -248,9 +249,9 @@ specified when the store was first created.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level5">
-<h5 id="tying-it-together">Tying it Together<a class="anchor" aria-label="anchor" href="#tying-it-together"></a>
-</h5>
+<div class="section level4">
+<h4 id="tying-it-together">Tying it Together<a class="anchor" aria-label="anchor" href="#tying-it-together"></a>
+</h4>
 <p>Repeat these steps for every document you want to insert into the
 store. Once you’re done processing the documents, call
 <code><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index()</a></code> to finalize the store and build
@@ -266,7 +267,6 @@ the index.</p>
 <span><span class="fu"><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></code></pre></div>
 <p>Once the store index is built, the store is ready for retrieval.</p>
 <hr>
-</div>
 </div>
 </div>
 <div class="section level3">
