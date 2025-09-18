@@ -40,9 +40,10 @@ ragnar_store_create_v1 <- function(
   ))
 
   if (is.null(embed)) {
-    embedding_size <- NULL
+    embedding_size <- embed_func_blob <- NULL
   } else {
     embed <- process_embed_func(embed)
+    embed_func_blob <- blob::blob(serialize(embed, NULL))
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
 
@@ -86,7 +87,7 @@ ragnar_store_create_v1 <- function(
 
   metadata <- tibble(
     embedding_size,
-    embed_func = blob::blob(serialize(embed, NULL)),
+    embed_func = embed_func_blob,
     schema = blob::blob(serialize(schema, NULL)),
     name = name,
     title = title
