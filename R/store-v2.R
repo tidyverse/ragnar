@@ -28,11 +28,14 @@ ragnar_store_create_v2 <- function(
     )
   }
 
+  # make sure to force and process `embed()` before forcing `embedding_size`
+  embed <- process_embed_func(embed)
+  # serialize `embed()` before forcing it's first call, in case it
+  # has a self-defusing initialization hook.
+  embed_func_blob <- blob::blob(serialize(embed, NULL))
   if (is.null(embed)) {
     embedding_size <- NULL
   } else {
-    # make sure to force and process `embed()` before forcing `embedding_size`
-    embed <- process_embed_func(embed)
     check_number_whole(embedding_size, min = 0)
     embedding_size <- as.integer(embedding_size)
 
@@ -44,7 +47,7 @@ ragnar_store_create_v2 <- function(
 
   metadata <- data_frame(
     embedding_size = embedding_size,
-    embed_func = blob::blob(serialize(embed, NULL)),
+    embed_func = embed_func_blob,
     name = name,
     title = title
   )

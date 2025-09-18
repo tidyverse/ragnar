@@ -134,7 +134,7 @@ unique_store_name <- function() {
 }
 
 process_embed_func <- function(embed) {
-  if (inherits(embed, "crate")) {
+  if (is.null(embed) || inherits(embed, "crate")) {
     return(embed)
   }
   og_embed_env <- environment(embed)
