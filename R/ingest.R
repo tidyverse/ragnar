@@ -111,7 +111,7 @@ ragnar_store_ingest <- function(
       }
 
       if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
-        str(cond)
+        utils::str(result)
         stop(
           "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object.",
         )
