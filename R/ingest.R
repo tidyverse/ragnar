@@ -9,14 +9,11 @@
 #' @param store A `RagnarStore`. Currently only version 2 stores are supported.
 #' @param paths Character vector of file paths or URLs to ingest.
 #' @param prepare Function that converts a single path into a
-#'   `MarkdownDocumentChunks` object (optionally with an `embedding` column). It
-#'   must accept, at minimum, arguments `path` and `embed`. By default it calls
-#'   [read_as_markdown()], [markdown_chunk()], and, when available, the store's
-#'   embedding function.
+#'   `MarkdownDocumentChunks` object. It is called with an argument `path` and
+#'   should return the prepared chunks (with or without an `embedding` column).
 #' @param n_workers Number of worker processes to use. Defaults to the smaller of
 #'   `length(paths)` and `parallel::detectCores()` (with a minimum of 1).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
-#' @param prepare_args Named list of additional arguments forwarded to `prepare`.
 #' @returns `store`, invisibly.
 #' @export
 ragnar_store_ingest <- function(
@@ -47,7 +44,8 @@ ragnar_store_ingest <- function(
   if (is.null(n_workers)) {
     n_workers <-
       max(na.rm = TRUE, parallel::detectCores(), 4L) |>
-      min(length(paths) %/% 2L)
+      min(length(paths) %/% 2L) |>
+      max(2L)
     if (progress) cli::cli_inform("Launching {n_workers} parallel workers.")
   }
   check_number_whole(n_workers, min = 1)
@@ -78,7 +76,7 @@ ragnar_store_ingest <- function(
   pb <- NULL
 
   if (isTRUE(progress)) {
-    pb <- cli::cli_progress_bar("Ingesting", total = n_remaining)
+    cli::cli_progress_bar("Ingesting", total = n_remaining)
   }
 
   launch_one <- function() {
@@ -112,18 +110,20 @@ ragnar_store_ingest <- function(
         stop(cond)
       }
 
-      if (!S7_inherits(result, MarkdownDocumentChunks)) {
+      if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
         str(cond)
-        stop("Unexpected result from `process()` function.")
+        stop(
+          "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object.",
+        )
       }
       ragnar_store_update(store, result)
-      cli::cli_progress_update()
+      if (progress) cli::cli_progress_update()
     }
 
     active <- active[!done]
   }
 
-  if (!is.null(pb)) {
+  if (progress) {
     cli::cli_progress_done()
   }
 
@@ -134,12 +134,19 @@ ragnar_store_ingest <- function(
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
   chunks <- prepare(path)
   if (embed) {
-    chunks <- do_embed(store, chunks)
+    tryCatch(
+      chunks <- do_embed(store, chunks),
+      error = warning
+    )
   }
   chunks
 }
 
 do_embed <- function(store, chunks) {
+  if (is.null(store@embed) || "embedding" %in% names(chunks)) {
+    return(chunks)
+  }
+
   context <- chunks[["context"]] %||% rep("", nrow(chunks))
   context[is.na(context)] <- ""
 
@@ -147,10 +154,8 @@ do_embed <- function(store, chunks) {
     stri_sub(chunks@document, chunks$start, chunks$end)
 
   input <- ifelse(nzchar(context), paste0(context, "\n", text), text)
-  tryCatch(
-    chunks$embedding <- store@embed(input),
-    error = warning
-  )
+
+  chunks$embedding <- store@embed(input)
   chunks
 }
 

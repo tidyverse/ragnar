@@ -18,17 +18,13 @@ ragnar_store_ingest(
 \item{paths}{Character vector of file paths or URLs to ingest.}
 
 \item{prepare}{Function that converts a single path into a
-\code{MarkdownDocumentChunks} object (optionally with an \code{embedding} column). It
-must accept, at minimum, arguments \code{path} and \code{embed}. By default it calls
-\code{\link[=read_as_markdown]{read_as_markdown()}}, \code{\link[=markdown_chunk]{markdown_chunk()}}, and, when available, the store's
-embedding function.}
+\code{MarkdownDocumentChunks} object. It is called with an argument \code{path} and
+should return the prepared chunks (with or without an \code{embedding} column).}
 
 \item{n_workers}{Number of worker processes to use. Defaults to the smaller of
 \code{length(paths)} and \code{parallel::detectCores()} (with a minimum of 1).}
 
 \item{progress}{Logical; if \code{TRUE}, show a CLI progress bar.}
-
-\item{prepare_args}{Named list of additional arguments forwarded to \code{prepare}.}
 }
 \value{
 \code{store}, invisibly.
