@@ -66,6 +66,7 @@ embed_ollama <- function(
 
   embeddings <- map2(starts, ends, function(start, end) {
     req <- request(base_url) |>
+      httr2::req_retry() |> 
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/api/embed") |>
       req_body_json(list(model = model, input = x[start:end])) |>

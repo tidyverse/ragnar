@@ -47,6 +47,7 @@ embed_databricks <- function(
     req_url_path_append(
       glue::glue("serving-endpoints/{model}/invocations")
     ) |>
+    httr2::req_retry(max_tries = 3L) |> 
     httr2::req_headers_redacted(!!!credentials()) |>
     httr2::req_user_agent(databricks_user_agent()) |>
     httr2::req_error(body = function(resp) {
