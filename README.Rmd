@@ -104,7 +104,7 @@ first created, and then automatically called when needed by
 ### 5. Storage
 
 Processed data is stored in a format optimized for efficient searching,
-using the duckdb database system and R implementation in the duckdb package by default. The API is designed to be extensible,
+using [DuckDB](https://duckdb.org).
 allowing additional packages to implement support for different storage
 providers.
 
