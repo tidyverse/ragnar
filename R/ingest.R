@@ -58,69 +58,45 @@ ragnar_store_ingest <- function(
   mirai::daemons(n = n_workers, .compute = compute_id)
   mirai::local_daemons(compute_id)
   on.exit(mirai::daemons(0L, .compute = compute_id), add = TRUE)
+  task_queue <- mirai_queue(max_parallel = n_workers, .compute = compute_id)
 
-  mirai::everywhere(
+  task_queue$everywhere(
     {
       library(ragnar)
     },
     prepare = prepare,
     store = store,
     do_ingest_remote_work = do_ingest_remote_work,
-    .compute = compute_id
+    do_embed = do_embed
   )
 
-  paths <- rev(paths)
-  n_remaining <- length(paths)
-  active <- list()
-
-  pb <- NULL
+  for (path in paths) {
+    task_queue$push(expression(do_ingest_remote_work(path, store, prepare)), path = path)
+  }
 
   if (isTRUE(progress)) {
-    cli::cli_progress_bar("Ingesting", total = n_remaining)
+    cli::cli_progress_bar("Ingesting", total = length(paths))
   }
 
-  launch_one <- function() {
-    path <- paths[[n_remaining]]
-    n_remaining <<- n_remaining - 1L
-    active[[length(active) + 1L]] <<- mirai::mirai(
-      do_ingest_remote_work(path, store, prepare), # is_update
-      path = path,
-      .compute = compute_id
-    )
-  }
+  while(task_queue$size() > 0) {
+    result <- task_queue$pop()
 
-  repeat {
-    while (n_remaining > 0L && length(active) < (n_workers + 1L)) {
-      launch_one()
+    if (mirai::is_error_value(result)) {
+      cond <- attributes(result)
+      class(cond) <- cond$condition.class
+      stop(cond)
     }
 
-    if (!length(active)) {
-      break
+    result <- result$data
+
+    if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
+      stop(
+        "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object.",
+      )
     }
+    ragnar_store_update(store, result)
+    if (progress) cli::cli_progress_update()
 
-    mirai::race_mirai(active)
-
-    done <- !vapply(active, mirai::unresolved, TRUE)
-
-    for (task in active[done]) {
-      result <- task$data
-      if (mirai::is_error_value(result)) {
-        cond <- attributes(result)
-        class(cond) <- cond$condition.class
-        stop(cond)
-      }
-
-      if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
-        utils::str(result)
-        stop(
-          "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object.",
-        )
-      }
-      ragnar_store_update(store, result)
-      if (progress) cli::cli_progress_update()
-    }
-
-    active <- active[!done]
   }
 
   if (progress) {
@@ -129,7 +105,6 @@ ragnar_store_ingest <- function(
 
   invisible(store)
 }
-
 
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
   chunks <- prepare(path)
@@ -157,6 +132,62 @@ do_embed <- function(store, chunks) {
 
   chunks$embedding <- store@embed(input)
   chunks
+}
+
+mirai_queue <- function(max_parallel = NULL, .compute = NULL) {
+  .pending <- .active <- .finished <- list()
+  force(.compute)
+
+  everywhere <- function(...) {
+    mirai::everywhere(..., .compute = .compute)
+  }
+
+  .launch_jobs <- function() {
+    while (
+      length(.pending) &&
+        (length(.finished) + length(.active)) < max_parallel
+    ) {
+      one <- .pending[[1L]]
+      .pending <<- .pending[-1L]
+      .active[[length(.active) + 1L]] <<-
+        inject(mirai::mirai(!!!one, .compute = .compute))
+    }
+  }
+
+  pop <- function(completed = NULL) {
+
+    if (length(.finished)) {
+      out <- .finished[[1L]]
+      .finished <<- .finished[-1]
+      .launch_jobs()
+      return(out)
+    }
+
+    if (length(.active)) {
+      mirai::race_mirai(.active)
+      done <- !vapply(.active, mirai::unresolved, TRUE)
+      .finished <<- c(.finished, .active[done])
+      .active <<- .active[!done]
+      return(pop(completed = completed))
+    }
+
+    if (length(.pending)) {
+      .launch_jobs()
+      return(pop(completed = completed))
+    }
+
+    completed
+  }
+
+  push <- function(...) {
+    .pending[[length(.pending) + 1L]] <<- list(...)
+  }
+
+  size <- function() {
+    length(.pending) + length(.active) + length(.finished)
+  }
+  
+  environment()
 }
 
 
