@@ -66,6 +66,7 @@ embed_ollama <- function(
 
   embeddings <- map2(starts, ends, function(start, end) {
     req <- request(base_url) |>
+      httr2::req_retry() |> 
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/api/embed") |>
       req_body_json(list(model = model, input = x[start:end])) |>
@@ -141,11 +142,18 @@ embed_openai <- function(
     ## max input is 8191 tokens per chunk... what happens if too long?
     data$input <- as.list(text[start:end])
 
+    retries <- 1L
+    openai_after <- function(resp) {
+      time <- as.numeric(httr2::resp_header(resp, "retry-after") %||% 5)
+      retries <<- retries + 1L
+      time * retries
+    }
+
     req <- request(base_url) |>
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/embeddings") |>
       req_auth_bearer_token(api_key) |>
-      req_retry(max_tries = 2L) |>
+      req_retry(max_tries = 3L, after = openai_after) |>
       req_body_json(data) |>
       req_error(body = \(resp) {
         tryCatch(
