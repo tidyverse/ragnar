@@ -53,6 +53,6 @@
       store@embed
     Output
       function (x) 
-      ragnar::embed_ollama(x = x, model = "snowflake-arctic-embed2:568m")
+      ragnar::embed_ollama(x = x, model = "embeddinggemma:300m")
       <environment: base>
 

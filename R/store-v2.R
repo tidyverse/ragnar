@@ -121,6 +121,8 @@ ragnar_store_create_v2 <- function(
         USING
           (doc_id)
       );
+
+      SET enable_progress_bar = false;
     )--"
     )
   )
