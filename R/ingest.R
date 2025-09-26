@@ -80,6 +80,7 @@ ragnar_store_ingest <- function(
 
   while(task_queue$size() > 0) {
     result <- task_queue$pop()
+    result <- result$data
 
     if (mirai::is_error_value(result)) {
       cond <- attributes(result)
@@ -87,11 +88,9 @@ ragnar_store_ingest <- function(
       stop(cond)
     }
 
-    result <- result$data
-
     if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
       stop(
-        "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object.",
+        "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object."
       )
     }
     ragnar_store_update(store, result)
