@@ -107,7 +107,7 @@ do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
   if (embed) {
     tryCatch(
       chunks <- do_embed(store, chunks),
-      error = warning
+      error = function(e) NULL
     )
   }
   chunks
