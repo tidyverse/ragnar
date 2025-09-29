@@ -30,11 +30,6 @@ ragnar_store_ingest <- function(
   }
 
   stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
-  if (!identical(store@version, 2L)) {
-    cli::cli_abort(
-      "Only stores created with {.code version = 2} are supported."
-    )
-  }
 
   paths <- as.character(paths)
   if (!length(paths)) {
@@ -54,11 +49,14 @@ ragnar_store_ingest <- function(
 
   # set up mirai daemons on a dedicated compute profile
   compute_id <- sprintf("ragnar-ingest-%s", Sys.getpid())
-
   mirai::daemons(n = n_workers, .compute = compute_id)
-  mirai::local_daemons(compute_id)
   on.exit(mirai::daemons(0L, .compute = compute_id), add = TRUE)
-  task_queue <- mirai_queue(max_parallel = n_workers, .compute = compute_id)
+  mirai::local_daemons(compute_id)
+
+  task_queue <- mirai_queue(
+    max_uncollected = n_workers + 1L,
+    .compute = compute_id
+  )
 
   task_queue$everywhere(
     {
@@ -71,16 +69,16 @@ ragnar_store_ingest <- function(
   )
 
   for (path in paths) {
-    task_queue$push(expression(do_ingest_remote_work(path, store, prepare)), path = path)
+    work_expr <- quote(do_ingest_remote_work(path, store, prepare))
+    task_queue$push_mirai(work_expr, path = path)
   }
 
   if (isTRUE(progress)) {
     cli::cli_progress_bar("Ingesting", total = length(paths))
   }
 
-  while(task_queue$size() > 0) {
-    result <- task_queue$pop()
-    result <- result$data
+  repeat {
+    result <- task_queue$pop_result(unavailable = break)
 
     if (mirai::is_error_value(result)) {
       cond <- attributes(result)
@@ -95,7 +93,6 @@ ragnar_store_ingest <- function(
     }
     ragnar_store_update(store, result)
     if (progress) cli::cli_progress_update()
-
   }
 
   if (progress) {
@@ -133,7 +130,7 @@ do_embed <- function(store, chunks) {
   chunks
 }
 
-mirai_queue <- function(max_parallel = NULL, .compute = NULL) {
+mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
   .pending <- .active <- .finished <- list()
   force(.compute)
 
@@ -144,22 +141,21 @@ mirai_queue <- function(max_parallel = NULL, .compute = NULL) {
   .launch_jobs <- function() {
     while (
       length(.pending) &&
-        (length(.finished) + length(.active)) < max_parallel
+        (length(.finished) + length(.active)) < max_uncollected
     ) {
-      one <- .pending[[1L]]
+      mirai_args <- .pending[[1L]]
       .pending <<- .pending[-1L]
       .active[[length(.active) + 1L]] <<-
-        inject(mirai::mirai(!!!one, .compute = .compute))
+        inject(mirai::mirai(!!!mirai_args, .compute = .compute))
     }
   }
 
-  pop <- function(completed = NULL) {
-
+  pop_result <- function(unavailable = NULL) {
     if (length(.finished)) {
       out <- .finished[[1L]]
       .finished <<- .finished[-1]
       .launch_jobs()
-      return(out)
+      return(out$data)
     }
 
     if (length(.active)) {
@@ -167,42 +163,44 @@ mirai_queue <- function(max_parallel = NULL, .compute = NULL) {
       done <- !vapply(.active, mirai::unresolved, TRUE)
       .finished <<- c(.finished, .active[done])
       .active <<- .active[!done]
-      return(pop(completed = completed))
+      return(pop_result(unavailable = unavailable))
     }
 
     if (length(.pending)) {
       .launch_jobs()
-      return(pop(completed = completed))
+      return(pop_result(unavailable = unavailable))
     }
 
-    completed
+    unavailable
   }
 
-  push <- function(...) {
+  push_mirai <- function(...) {
     .pending[[length(.pending) + 1L]] <<- list(...)
+    .launch_jobs()
   }
 
   size <- function() {
     length(.pending) + length(.active) + length(.finished)
   }
-  
+
   environment()
 }
 
 
 if (FALSE) {
+  devtools::load_all()
+  PATHS <- ragnar_find_links("https://quarto.org/sitemap.xml")
+  store <- ragnar_store_create(
+    "quarto-fast.ragnar.store",
+    embed = \(x) embed_openai(x),
+    overwrite = TRUE
+  )
   system.time({
-    devtools::load_all()
-    PATHS <- ragnar_find_links("https://quarto.org/sitemap.xml")
-    store <- ragnar_store_create(
-      "quarto-fast.ragnar.store",
-      embed = \(x) embed_openai(x),
-      overwrite = TRUE
-    )
-    system.time({
-      ragnar_store_ingest(store, PATHS)
-    })
+    ragnar_store_ingest(store, PATHS, n_workers = 16)
   })
+  ## 5 workers, 50 seconds
+  ## 8 workers, 37 seconds
+  ## 16 workers, rate limitiing + too many retries error
 
   ragnar_store_ingest(store, PATHS[1:4])
 }
