@@ -31,15 +31,17 @@ ragnar_store_ingest <- function(
 
   stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
 
-  paths <- as.character(paths)
+  check_character(paths, allow_na = FALSE)
+  paths <- unique(as.character(paths))
   if (!length(paths)) {
     return(invisible(store))
   }
+  paths <- tibble(origin = paths) |> mutate_is_new_origin(store)
 
   if (is.null(n_workers)) {
     n_workers <-
       max(na.rm = TRUE, parallel::detectCores(), 4L) |>
-      min(length(paths) %/% 2L) |>
+      min(nrow(paths) %/% 2L) |>
       max(2L)
     if (progress) cli::cli_inform("Launching {n_workers} parallel workers.")
   }
@@ -68,13 +70,17 @@ ragnar_store_ingest <- function(
     do_embed = do_embed
   )
 
-  for (path in paths) {
-    work_expr <- quote(do_ingest_remote_work(path, store, prepare))
-    task_queue$push_mirai(work_expr, path = path)
+  work_expr <- quote(do_ingest_remote_work(path, store, prepare, embed))
+  for (i in seq_len(nrow(paths))) {
+    task_queue$push_mirai(
+      work_expr,
+      path = paths$origin[[i]],
+      embed = paths$is_new_origin[[i]]
+    )
   }
 
   if (isTRUE(progress)) {
-    cli::cli_progress_bar("Ingesting", total = length(paths))
+    cli::cli_progress_bar("Ingesting", total = nrow(paths))
   }
 
   repeat {
@@ -187,6 +193,22 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
 }
 
 
+mutate_is_new_origin <- function(paths_tbl, store) {
+  paths_tbl$row_id <- seq_len(nrow(paths_tbl))
+  local_duckdb_register(store@con, "paths_to_check", paths_tbl)
+
+  DBI::dbGetQuery(
+    store@con,
+    "
+    SELECT p.origin, d.origin IS NULL AS is_new_origin
+    FROM paths_to_check p
+    LEFT JOIN documents d USING(origin)
+    ORDER BY p.row_id
+    "
+  )
+}
+
+
 if (FALSE) {
   devtools::load_all()
   PATHS <- ragnar_find_links("https://quarto.org/sitemap.xml")
@@ -195,8 +217,9 @@ if (FALSE) {
     embed = \(x) embed_openai(x),
     overwrite = TRUE
   )
+  # store <- ragnar_store_connect("quarto-fast.ragnar.store")
   system.time({
-    ragnar_store_ingest(store, PATHS, n_workers = 16)
+    ragnar_store_ingest(store, PATHS, n_workers = NULL)
   })
   ## 5 workers, 50 seconds
   ## 8 workers, 37 seconds
