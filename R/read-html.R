@@ -362,8 +362,6 @@ ragnar_read_document <- function(
 #' \dontrun{
 #' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 #' ragnar_find_links("https://ellmer.tidyverse.org/")
-#' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2)
-#' ragnar_find_links("https://ellmer.tidyverse.org/", depth = 2, children_only = FALSE)
 #' ragnar_find_links(
 #'   paste0("https://github.com/Snowflake-Labs/sfquickstarts/",
 #'          "tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection"),
