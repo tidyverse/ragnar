@@ -38,7 +38,7 @@ embed_google_gemini <- function(
 
   base_req <- base_url |>
     httr2::request() |>
-    httr2::req_retry(max_tries = 3L) |> 
+    embed_req_retry() |>
     req_user_agent(ragnar_user_agent()) |>
     httr2::req_headers_redacted("x-goog-api-key" = api_key) |>
     httr2::req_url_path_append(

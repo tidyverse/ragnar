@@ -66,14 +66,13 @@ embed_ollama <- function(
 
   embeddings <- map2(starts, ends, function(start, end) {
     req <- request(base_url) |>
-      httr2::req_retry() |>
+      embed_req_retry() |>
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/api/embed") |>
       req_body_json(list(model = model, input = x[start:end])) |>
       req_error(body = \(resp) {
         resp_body_json(resp)$error
       })
-
     resp <- req_perform(req)
     resp_body_json(resp, simplifyVector = TRUE)$embeddings
   })
@@ -143,6 +142,7 @@ embed_openai <- function(
     data$input <- as.list(text[start:end])
 
     req <- request(base_url) |>
+      embed_req_retry() |>
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/embeddings") |>
       req_auth_bearer_token(api_key) |>
@@ -153,17 +153,6 @@ embed_openai <- function(
           error = function(e) "Unknown error"
         )
       })
-
-    if (isNamespaceLoaded("mirai") && mirai::on_daemon()) {} else {
-      retry_count <- 0L
-      req <- req |>
-        req_retry(max_tries = 8L, max_seconds = 90, after = function(resp) {
-          retry_count <<- retry_count + 1L
-          wait <- httr2::resp_header(resp, "Retry-After") %||% 5
-          wait <- as.numeric(wait)
-          pmax(wait * 1.1, pmin(75, (1 + wait) * retry_count))
-        })
-    }
 
     resp <- req_perform(req)
 
@@ -251,3 +240,14 @@ is_testing <- function() {
 }
 
 .package_version <- c(read.dcf('DESCRIPTION', 'Version'))
+
+
+embed_req_retry <- function(req) {
+  policy <- getOption(
+    "ragnar.embed.req_retry",
+    list(max_tries = 3L, max_seconds = 10)
+  )
+  (isFALSE(policy) || isTRUE(policy$max_tries < 1L)) && return(req)
+
+  inject(req_retry(req, !!!policy))
+}

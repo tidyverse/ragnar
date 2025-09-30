@@ -61,7 +61,7 @@ embed_google_vertex <- function(
 
   base_req <- vertex_url(location, project_id) |>
     httr2::request() |>
-    httr2::req_retry(max_tries = 3L) |> 
+    embed_req_retry() |>
     req_user_agent(ragnar_user_agent()) |>
     httr2::req_headers(!!!credentials, .redact = names(credentials)) |>
     httr2::req_url_path_append(

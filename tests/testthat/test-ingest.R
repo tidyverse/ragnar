@@ -23,7 +23,7 @@ test_that("basic ragnar ingest test", {
     embed = \(x) matrix(runif(100), nrow = 1),
     overwrite = TRUE
   )
-  
+
   expect_error(
     ragnar_store_ingest(store, PATHS, progress = FALSE),
     regexp = 'could not find function "runif"'
@@ -44,5 +44,4 @@ test_that("basic ragnar ingest test", {
   # basic test we have all paths in the store
   n_docs <- dbGetQuery(store@con, "SELECT COUNT(*) as n FROM documents")
   expect_equal(n_docs$n, length(PATHS))
-  
 })
