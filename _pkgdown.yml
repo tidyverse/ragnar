@@ -46,6 +46,7 @@ reference:
       - ragnar_store_connect
       - ragnar_store_insert
       - ragnar_store_update
+      - ragnar_store_ingest
       - ragnar_store_build_index
       - ragnar_store_inspect
       - ragnar_store_atlas

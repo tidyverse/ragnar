@@ -35,7 +35,7 @@ NULL
 embed_ollama <- function(
   x,
   base_url = "http://localhost:11434",
-  model = "embeddinggemma",
+  model = "embeddinggemma:300m",
   batch_size = 10L
 ) {
   if (missing(x) || is.null(x)) {
@@ -66,6 +66,7 @@ embed_ollama <- function(
 
   embeddings <- map2(starts, ends, function(start, end) {
     req <- request(base_url) |>
+      httr2::req_retry() |>
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/api/embed") |>
       req_body_json(list(model = model, input = x[start:end])) |>
@@ -145,7 +146,6 @@ embed_openai <- function(
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/embeddings") |>
       req_auth_bearer_token(api_key) |>
-      req_retry(max_tries = 2L) |>
       req_body_json(data) |>
       req_error(body = \(resp) {
         tryCatch(
@@ -153,6 +153,17 @@ embed_openai <- function(
           error = function(e) "Unknown error"
         )
       })
+
+    if (isNamespaceLoaded("mirai") && mirai::on_daemon()) {} else {
+      retry_count <- 0L
+      req <- req |>
+        req_retry(max_tries = 8L, max_seconds = 90, after = function(resp) {
+          retry_count <<- retry_count + 1L
+          wait <- httr2::resp_header(resp, "Retry-After") %||% 5
+          wait <- as.numeric(wait)
+          pmax(wait * 1.1, pmin(75, (1 + wait) * retry_count))
+        })
+    }
 
     resp <- req_perform(req)
 
@@ -179,6 +190,7 @@ embed_openai <- function(
 
   matrix(unlist(embeddings), nrow = length(text), byrow = TRUE)
 }
+
 
 #' @describeIn embed_ollama Embed Text using LMStudio. Indentical to `embed_openai()` but with suitable defaults for LMStudio.
 #' @export

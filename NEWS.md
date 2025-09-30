@@ -3,6 +3,9 @@
 -   New `ragnar_store_atlas()` application for visualizing embeddings
     (#124).
 
+-   New `ragnar_store_ingest()` for concurrently preparing and inserting
+    documents into a store with parallel workers via mirai (#133).
+
 -   New function `mcp_serve_store()` which supports letting a local MCP
     client like Codex CLI or Claude Code search a `RagnarStore` (#123).
 

@@ -128,6 +128,7 @@ ragnar_store_create_v1 <- function(
     con,
     glue(
       "
+    SET enable_progress_bar = false;
     CREATE SEQUENCE chunk_id_sequence START 1;
     CREATE TABLE chunks (
       chunk_id INTEGER DEFAULT nextval('chunk_id_sequence'),

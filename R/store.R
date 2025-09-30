@@ -486,7 +486,7 @@ ragnar_store_atlas <- function(
   ))
   join_thread <- atlas$run_embedding_atlas(df, host, as.integer(port))
   if (launch.browser) {
-    browseURL(sprintf("http://%s:%d", host, port))
+    utils::browseURL(sprintf("http://%s:%d", host, port))
   }
   join_thread()
   invisible(NULL)
