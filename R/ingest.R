@@ -32,11 +32,10 @@ ragnar_store_ingest <- function(
   stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
 
   check_character(paths, allow_na = FALSE)
-  paths <- unique(as.character(paths))
-  if (!length(paths)) {
-    return(invisible(store))
-  }
-  paths <- tibble(origin = paths) |> mutate_is_new_origin(store)
+  length(paths) || return(invisible(store))
+  paths <- prepare_ingest_paths(paths, store)
+
+  prepare <- rlang::as_function(prepare)
 
   if (is.null(n_workers)) {
     n_workers <-
@@ -46,8 +45,6 @@ ragnar_store_ingest <- function(
     if (progress) cli::cli_inform("Launching {n_workers} parallel workers.")
   }
   check_number_whole(n_workers, min = 1)
-
-  prepare <- rlang::as_function(prepare)
 
   # set up mirai daemons on a dedicated compute profile
   compute_id <- sprintf("ragnar-ingest-%s", Sys.getpid())
@@ -193,19 +190,29 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
 }
 
 
-mutate_is_new_origin <- function(paths_tbl, store) {
-  paths_tbl$row_id <- seq_len(nrow(paths_tbl))
-  local_duckdb_register(store@con, "paths_to_check", paths_tbl)
+prepare_ingest_paths <- function(paths, store) {
+  paths <- unique(as.character(paths))
+  paths <- tibble(origin = paths)
 
-  DBI::dbGetQuery(
+  # add 'is_new_origin' col
+  local_duckdb_register(store@con, "paths_to_ingest", paths)
+  paths <- DBI::dbGetQuery(
     store@con,
     "
     SELECT p.origin, d.origin IS NULL AS is_new_origin
-    FROM paths_to_check p
+    FROM paths_to_ingest p
     LEFT JOIN documents d USING(origin)
-    ORDER BY p.row_id
     "
   )
+
+  # uniformly distribute new and old origins
+  paths |>
+    mutate(
+      .by = is_new_origin,
+      rank = dplyr::percent_rank(row_number())
+    ) |>
+    arrange(rank, !is_new_origin) |>
+    select(-rank)
 }
 
 
