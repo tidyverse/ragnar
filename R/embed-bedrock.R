@@ -50,8 +50,8 @@ embed_bedrock <- function(x, model, profile, api_args = list()) {
   req <- httr2::request(
     paste0("https://bedrock-runtime.", credentials$region, ".amazonaws.com")
   ) |>
-    req_user_agent(ragnar_user_agent()) |> 
-    httr2::req_retry(max_tries = 3L)
+    req_user_agent(ragnar_user_agent()) |>
+    embed_req_retry()
 
   req <- httr2::req_url_path_append(req, "model", model, "invoke")
   req <- httr2::req_error(req, body = function(resp) {

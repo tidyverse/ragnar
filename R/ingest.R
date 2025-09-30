@@ -57,9 +57,17 @@ ragnar_store_ingest <- function(
     .compute = compute_id
   )
 
+  withr::local_options(list(
+    ragnar.embed.req_retry = list(
+      max_tries = 30L,
+      max_seconds = 90
+    )
+  ))
+
   task_queue$everywhere(
     {
       library(ragnar)
+      options(ragnar.embed.req_retry = FALSE)
     },
     prepare = prepare,
     store = store,
@@ -183,7 +191,7 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
   }
 
   size <- function() {
-    length(.pending) + length(.active) + length(.finished)
+    sum(length(.pending), length(.active), length(.finished))
   }
 
   environment()
@@ -213,55 +221,4 @@ prepare_ingest_paths <- function(paths, store) {
     ) |>
     arrange(rank, !is_new_origin) |>
     select(-rank)
-}
-
-
-if (FALSE) {
-  devtools::load_all()
-  PATHS <- ragnar_find_links("https://quarto.org/sitemap.xml")
-  store <- ragnar_store_create(
-    "quarto-fast.ragnar.store",
-    embed = \(x) embed_openai(x),
-    overwrite = TRUE
-  )
-  # store <- ragnar_store_connect("quarto-fast.ragnar.store")
-  system.time({
-    ragnar_store_ingest(store, PATHS, n_workers = NULL)
-  })
-  ## 5 workers, 50 seconds
-  ## 8 workers, 37 seconds
-  ## 16 workers, rate limitiing + too many retries error
-
-  ragnar_store_ingest(store, PATHS[1:4])
-}
-
-
-if (FALSE) {
-  PATHS <- c(
-    "https://quarto.org/about.html",
-    "https://quarto.org/bug-reports.html",
-    "https://quarto.org/docs/advanced/environment-vars.html",
-    "https://quarto.org/docs/advanced/html/external-sources.html",
-    "https://quarto.org/docs/advanced/index.html",
-    "https://quarto.org/docs/advanced/inspect/index.html",
-    "https://quarto.org/docs/advanced/jupyter/kernel-execution.html",
-    "https://quarto.org/docs/advanced/typst/brand-yaml.html",
-    "https://quarto.org/docs/advanced/typst/typst-css.html",
-    "https://quarto.org/docs/authoring/appendices.html"
-  )
-}
-
-
-if (FALSE) {
-  library(mirai)
-  daemons(10)
-  lapply(1:5, \(i) {
-    mirai({
-      ragnar::read_as_markdown("README.Rmd")
-    })
-  }) -> res
-
-  lapply(res, \(r) r$data)
-  task <-
-    task$data
 }
