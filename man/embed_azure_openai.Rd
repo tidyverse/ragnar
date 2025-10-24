@@ -42,6 +42,14 @@ strings to include in a single request.}
 
 \item{api_args}{A list of additional arguments to pass to the API request body.}
 }
+\value{
+If \code{x} is a character vector, then a numeric matrix is returned,
+where \code{nrow = length(x)} and \verb{ncol = <model-embedding-size>}. If \code{x} is a
+data.frame, then a new \code{embedding} matrix "column" is added, containing the
+matrix described in the previous sentence.
+
+A matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
+}
 \description{
 Uses Azure AI Foundry to create embeddings
 }

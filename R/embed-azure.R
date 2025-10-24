@@ -15,7 +15,7 @@
 #' @param api_version The API version to use. Defaults to `2023-05-15`.
 #' @param model The deployment name of the model to use for generating embeddings.
 #' @param api_args A list of additional arguments to pass to the API request body.
-#' 
+#' @inherit embed_ollama return
 #' @export
 embed_azure_openai <- function(
   x, 
