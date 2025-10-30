@@ -60,7 +60,8 @@ Suggests:
     shiny,
     stringr,
     testthat (>= 3.0.0),
-    tibble
+    tibble,
+    jose
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
