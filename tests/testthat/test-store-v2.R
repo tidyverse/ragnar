@@ -105,7 +105,7 @@ test_that("ragnar_store_update handles missing schema with extra cols, v2", {
   expect_no_error(ragnar_store_update(store, chunks))
   df <- tbl(store@con, "chunks") |> collect()
   expect_equal(unique(df$number), 1.23)
-  expect_equal(unique(num$date), today)
+  expect_equal(unique(df$date), today)
 
   tomorrow <- today + 1L
   chunks <- chunks |> mutate(number = 9.87, date = tomorrow)
