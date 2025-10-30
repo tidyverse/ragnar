@@ -13,23 +13,23 @@ development:
   mode: auto
 
 reference:
-- title: Document processing
-  desc: Ingest documents from the web, PDFs, Word, or local Markdown.
-  contents:
-  - read_as_markdown
-  - MarkdownDocument
-  - ragnar_find_links
+  - title: Document processing
+    desc: Ingest documents from the web, PDFs, Word, or local Markdown.
+    contents:
+      - read_as_markdown
+      - MarkdownDocument
+      - ragnar_find_links
 
       ## store v1
       # - ragnar_read
       # - ragnar_read_document
 
-- title: Text chunking
-  desc: Chunk and augment text context.
-  contents:
-  - markdown_chunk
-  - MarkdownDocumentChunks
-  - ragnar_chunks_view
+  - title: Text chunking
+    desc: Chunk and augment text context.
+    contents:
+      - markdown_chunk
+      - MarkdownDocumentChunks
+      - ragnar_chunks_view
 
       # store v1
       # - ragnar_chunk
@@ -40,27 +40,27 @@ reference:
       # - markdown_segment
       # - markdown_frame
 
-- title: Store
-  desc: Store embeddings in DuckDB for fast, local queries.
-  contents:
-  - ragnar_store_create
-  - ragnar_store_connect
-  - ragnar_store_insert
-  - ragnar_store_update
-  - ragnar_store_ingest
-  - ragnar_store_build_index
-  - ragnar_store_inspect
-  - ragnar_store_atlas
+  - title: Store
+    desc: Store embeddings in DuckDB for fast, local queries.
+    contents:
+      - ragnar_store_create
+      - ragnar_store_connect
+      - ragnar_store_insert
+      - ragnar_store_update
+      - ragnar_store_ingest
+      - ragnar_store_build_index
+      - ragnar_store_inspect
+      - ragnar_store_atlas
 
-- title: Embeddings
-  desc: Embed chunks with commercial or open-source models.
-  contents:
-  - starts_with("embed")
+  - title: Embeddings
+    desc: Embed chunks with commercial or open-source models.
+    contents:
+      - starts_with("embed")
 
-- title: Retrieve
-  desc: Retrieve relevant chunks using both vector and text search.
-  contents:
-  - starts_with("ragnar_retrieve")
-  - ragnar_register_tool_retrieve
-  - mcp_serve_store
-  - chunks_deoverlap
+  - title: Retrieve
+    desc: Retrieve relevant chunks using both vector and text search.
+    contents:
+      - starts_with("ragnar_retrieve")
+      - ragnar_register_tool_retrieve
+      - mcp_serve_store
+      - chunks_deoverlap
