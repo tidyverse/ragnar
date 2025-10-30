@@ -50,6 +50,40 @@ test_that("ragnar_store_update/insert, v2", {
   )
 })
 
+test_that("ragnar_store_update handles missing schema, v2", {
+  skip_on_cran() # See comment in test-retrieve.R
+
+  store <- ragnar_store_create(
+    version = 2,
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100))
+  )
+  maybe_set_threads(store)
+
+  # Simulate stores created before schema metadata existed
+  store@schema <- NULL
+
+  doc <- test_doc()
+  chunks <- doc |> read_as_markdown() |> markdown_chunk()
+
+  expect_error(ragnar_store_update(store, chunks), regexp = NA)
+  expect_equal(
+    tbl(store@con, "chunks") |> collect() |> nrow(),
+    nrow(chunks)
+  )
+
+  updated_chunks <- doc |> read_as_markdown() |> markdown_chunk(target_size = 50)
+  expect_error(ragnar_store_update(store, updated_chunks), regexp = NA)
+
+  expect_equal(
+    tbl(store@con, "chunks") |> collect() |> nrow(),
+    nrow(updated_chunks)
+  )
+  expect_equal(
+    tbl(store@con, "documents") |> collect() |> nrow(),
+    1
+  )
+})
+
 test_that("insert chunks with pre-compuited embeddings", {
   skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(
