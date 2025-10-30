@@ -71,7 +71,9 @@ test_that("ragnar_store_update handles missing schema, v2", {
     nrow(chunks)
   )
 
-  updated_chunks <- doc |> read_as_markdown() |> markdown_chunk(target_size = 50)
+  updated_chunks <- doc |>
+    read_as_markdown() |>
+    markdown_chunk(target_size = 50)
   expect_error(ragnar_store_update(store, updated_chunks), regexp = NA)
 
   expect_equal(
@@ -82,6 +84,35 @@ test_that("ragnar_store_update handles missing schema, v2", {
     tbl(store@con, "documents") |> collect() |> nrow(),
     1
   )
+})
+
+test_that("ragnar_store_update handles missing schema with extra cols, v2", {
+  skip_on_cran() # See comment in test-retrieve.R
+
+  store <- ragnar_store_create(
+    version = 2,
+    embed = \(x) matrix(nrow = length(x), ncol = 100, stats::runif(100)),
+    extra_cols = data.frame(number = numeric(), date = Sys.Date()[-1])
+  )
+  maybe_set_threads(store)
+  store@schema <- NULL
+
+  today <- Sys.Date()
+  doc <- test_doc()
+  chunks <- doc |> read_as_markdown() |> markdown_chunk()
+  chunks <- chunks |> mutate(number = 1.23, date = today)
+
+  expect_no_error(ragnar_store_update(store, chunks))
+  df <- tbl(store@con, "chunks") |> collect()
+  expect_equal(unique(df$number), 1.23)
+  expect_equal(unique(num$date), today)
+
+  tomorrow <- today + 1L
+  chunks <- chunks |> mutate(number = 9.87, date = tomorrow)
+  expect_error(ragnar_store_update(store, chunks), regexp = NA)
+  df <- tbl(store@con, "chunks") |> collect()
+  expect_equal(unique(df$number), 9.87)
+  expect_equal(unique(df$date), tomorrow)
 })
 
 test_that("insert chunks with pre-compuited embeddings", {
