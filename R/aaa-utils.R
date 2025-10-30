@@ -36,6 +36,8 @@ NULL
   function(x, y) tryCatch(x, error = function(e) y)
 )
 
+# fmt: skip
+{
 `%empty%` <- function(x, y) if (length(x)) x else y
 `add<-` <- function(x, value) x + value
 first <- function(x) x[[1L]]
@@ -43,10 +45,13 @@ last <- function(x) x[[length(x)]]
 drop_last <- function(x) x[-length(x)]
 drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
+keep <- function(.x, .f, ...)  x[vapply(X = .x, FUN = .f, FUN.VALUE = FALSE, ..., USE.NAMES = FALSE)]
+drop <- function(.x, .f, ...)  x[!vapply(X = .x, FUN = .f, FUN.VALUE = FALSE, ..., USE.NAMES = FALSE)]
 
 map_chr <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = "", ...)
 map_int <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = 0L, ...)
 map_lgl <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = TRUE, ...)
+}
 
 map2 <- function(.x, .y, .f, ...) {
   out <- .mapply(.f, list(.x, .y), list(...))

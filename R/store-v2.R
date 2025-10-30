@@ -304,10 +304,10 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   con <- store@con
 
-  join_cols <- store@schema |>
-    select(-doc_id, -embedding) |>
-    names() |>
-    c("text")
+  join_cols <- setdiff(
+    c(dbListFields(con, "embeddings"), "text"),
+    c("doc_id", "chunk_id", "embedding")
+  )
 
   existing <- tbl(con, "chunks") |>
     filter(origin == !!chunks@document@origin) |>
@@ -335,8 +335,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
   }
 
   embeddings <- chunks |>
-    select(any_of(dbListFields(con, "embeddings"))) |>
-    vctrs::vec_cast(store@schema)
+    select(any_of(dbListFields(con, "embeddings")))
 
   dbWithTransaction2(con, {
     doc_id <- unique(existing$doc_id)
@@ -416,8 +415,7 @@ ragnar_store_insert_v2 <- function(
   )
 
   embeddings <- chunks |>
-    select(any_of(dbListFields(con, "embeddings"))) |>
-    vctrs::vec_cast(store@schema)
+    select(any_of(dbListFields(con, "embeddings")))
 
   # TODO: rename embeddings -> chunks_info?
 
