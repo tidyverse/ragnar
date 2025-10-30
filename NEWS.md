@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   New `embed_azure_openai()` helper for generating embeddings from
+    Azure AI Foundry (#144).
+
 -   New `ragnar_store_atlas()` application for visualizing embeddings
     (#124).
 
