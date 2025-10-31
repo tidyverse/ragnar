@@ -27,12 +27,11 @@ embed_snowflake <- function(
   if (is.data.frame(x)) {
     x[["embedding"]] <- Recall(
       x[["text"]],
-      endpoint = endpoint,
-      api_key = api_key,
-      api_version = api_version,
+      account = account,
+      credentials = credentials,
       model = model,
-      batch_size = batch_size,
-      api_args = api_args
+      api_args = api_args,
+      batch_size = batch_size
     )
     return(x)
   }
@@ -151,7 +150,7 @@ default_snowflake_credentials <- function(account = snowflake_account()) {
   user <- Sys.getenv("SNOWFLAKE_USER")
   private_key <- Sys.getenv("SNOWFLAKE_PRIVATE_KEY")
   if (nchar(user) != 0 && nchar(private_key) != 0) {
-    check_installed("jose", "for key-pair authentication")
+    check_installed(c("jose", "openssl"), "for key-pair authentication")
     key <- openssl::read_key(private_key)
     return(function() {
       token <- snowflake_keypair_token(account, user, key)
@@ -210,7 +209,7 @@ snowflake_keypair_token <- function(
     # manually after jose's validation phase.
     claim <- jose::jwt_claim("dummy", sub, exp = as.integer(expiry))
     claim$iss <- iss
-    creds <- list(expiry = expiry, token = jwt_encode_sig(claim, key))
+    creds <- list(expiry = expiry, token = jose::jwt_encode_sig(claim, key))
     cache$set(creds)
   }
   creds$token

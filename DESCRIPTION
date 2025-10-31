@@ -61,7 +61,8 @@ Suggests:
     stringr,
     testthat (>= 3.0.0),
     tibble,
-    jose
+    jose,
+    openssl
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
