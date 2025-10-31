@@ -7,6 +7,7 @@
 #'
 #' @section Authentication:
 #'
+#' - a *Programmatic Access Token* (PAT) defined via the SNOWFLAKE_PAT environment variable.
 #' - A static OAuth token defined via the SNOWFLAKE_TOKEN environment variable.
 #' - Key-pair authentication credentials defined via the SNOWFLAKE_USER and SNOWFLAKE_PRIVATE_KEY (which can be a PEM-encoded private key or a path to one) environment variables.
 #' - Posit Workbench-managed Snowflake credentials for the corresponding account.
@@ -129,6 +130,17 @@ default_snowflake_credentials <- function(account = snowflake_account()) {
       list(
         Authorization = paste("Bearer", token),
         # See: https://docs.snowflake.com/en/developer-guide/snowflake-rest-api/authentication#using-oauth
+        `X-Snowflake-Authorization-Token-Type` = "OAUTH"
+      )
+    })
+  }
+
+  token <- Sys.getenv("SNOWFLAKE_PAT")
+  if (nchar(token) != 0) {
+    return(function() {
+      list(
+        Authorization = paste("Bearer", token),
+        # See https://docs.snowflake.com/en/user-guide/programmatic-access-tokens
         `X-Snowflake-Authorization-Token-Type` = "PROGRAMMATIC_ACCESS_TOKEN"
       )
     })
