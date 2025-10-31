@@ -86,7 +86,7 @@ embed_snowflake <- function(
     resp <- base_req |>
       httr2::req_body_json(body) |>
       httr2::req_perform() |>
-      httr2::resp_body_json(simplifyVector = TRUE)
+      httr2::resp_body_json()
 
     out[indices] <- lapply(resp$data, \(x) x$embedding)
   }
@@ -129,7 +129,7 @@ default_snowflake_credentials <- function(account = snowflake_account()) {
       list(
         Authorization = paste("Bearer", token),
         # See: https://docs.snowflake.com/en/developer-guide/snowflake-rest-api/authentication#using-oauth
-        `X-Snowflake-Authorization-Token-Type` = "OAUTH"
+        `X-Snowflake-Authorization-Token-Type` = "PROGRAMMATIC_ACCESS_TOKEN"
       )
     })
   }
