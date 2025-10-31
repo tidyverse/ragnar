@@ -51,6 +51,7 @@ See \href{https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-rest-
 \section{Authentication}{
 
 \itemize{
+\item a \emph{Programmatic Access Token} (PAT) defined via the SNOWFLAKE_PAT environment variable.
 \item A static OAuth token defined via the SNOWFLAKE_TOKEN environment variable.
 \item Key-pair authentication credentials defined via the SNOWFLAKE_USER and SNOWFLAKE_PRIVATE_KEY (which can be a PEM-encoded private key or a path to one) environment variables.
 \item Posit Workbench-managed Snowflake credentials for the corresponding account.
