@@ -72,8 +72,12 @@ embed_snowflake <- function(
     ) |>
     httr2::req_user_agent(ragnar_user_agent()) |>
     httr2::req_error(body = function(resp) {
-      json <- httr2::resp_body_json(resp, check_type = FALSE)
-      json$error$message
+      tryCatch({
+        json <- httr2::resp_body_json(resp, check_type = FALSE)
+        json$message
+      }, error = function(e) {
+        "Unknown error"
+      })
     })
 
   out <- vector("list", length(text))
