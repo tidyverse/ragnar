@@ -323,3 +323,12 @@ rscript_exe <- function() {
     if (is_windows()) "Rscript.exe" else "Rscript"
   )
 }
+
+parent.pkg <- function(env = parent.frame(2)) {
+  if (isNamespace(env <- topenv(env))) {
+    # unname
+    as.character(getNamespaceName(env))
+  } else {
+    NULL
+  } # print visible
+}
