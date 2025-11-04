@@ -44,7 +44,8 @@
 <span>  <span class="va">...</span>,</span>
 <span>  origin <span class="op">=</span> <span class="va">path</span>,</span>
 <span>  html_extract_selectors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"main"</span><span class="op">)</span>,</span>
-<span>  html_zap_selectors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nav"</span><span class="op">)</span></span>
+<span>  html_zap_selectors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nav"</span><span class="op">)</span>,</span>
+<span>  youtube_transcript_formatter <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -81,6 +82,18 @@ matching these selectors will be excluded ("zapped") from the HTML document
 before conversion to markdown. This is useful for removing navigation bars,
 sidebars, headers, footers, or other unwanted elements. By default,
 navigation elements (<code>nav</code>) are excluded.</p></dd>
+
+
+<dt id="arg-youtube-transcript-formatter">youtube_transcript_formatter<a class="anchor" aria-label="anchor" href="#arg-youtube-transcript-formatter"></a></dt>
+<dd><p>A function you can pass to customize how
+YouTube transcript data is converted to markdown. The function is called
+with a tibble/data.frame containing the columns <code>text</code> (chr), <code>start</code> (dbl,
+seconds), and <code>duration</code> (dbl, seconds). It will also have attribute
+<code>"youtube_metadata"</code>, a named list with elements <code>language</code>,
+<code>language_code</code>, <code>video_id</code>, and <code>is_generated</code>. The provided formatter
+function should return a single string. The default
+formatter is effectively <code>\(transcript) paste0(transcript$text, collapse = " ")</code>. Supply a custom function to include timestamps or links (see
+examples).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -150,7 +163,7 @@ and <a href="https://facelessuser.github.io/soupsieve/selectors/" class="externa
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> We continuously strive to make our community a better place for everyone – in the best tradition of hackers we "build, test, improve, reiterate". In this ongoing adventure, we rely on the support, courage, and creativity of all members of the DuckDB community.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#abdadecac8c0ebcfdec8c0cfc985c4d9cc). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#55242034363e153120363e31377b3a2732). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># To extract just the main content, use a selector</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">url</span>, html_extract_selectors <span class="op">=</span> <span class="st">"#main_content_wrap"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
@@ -213,21 +226,21 @@ and <a href="https://facelessuser.github.io/soupsieve/selectors/" class="externa
 <span class="r-in"><span><span class="co">## Convert PDF</span></span></span>
 <span class="r-in"><span><span class="va">pdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Rhome.html" class="external-link">R.home</a></span><span class="op">(</span><span class="st">"doc"</span><span class="op">)</span>, <span class="st">"NEWS.pdf"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">pdf</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">cat_head</span><span class="op">(</span><span class="fl">15</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS for R version 4.5.1 (2025-06-13)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NEWS for R version 4.5.2 (2025-10-31)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NEWS</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R News</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> CHANGES IN R 4.5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CHANGES IN R 4.5.2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NEW FEATURES:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> UTILITIES:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) The internal method of unzip() now follows unzip 6.00 in how it handles extracted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:136) R CMD check now handles archives with extension ‘.tar’ or ‘.tar.zstd’ (where zstd</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (cid:28)le paths which contain "../". With thanks to Ivan Krylov.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> compression is supported by the R build).</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> INSTALLATION:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> BUG FIXES:</span>
 <span class="r-in"><span><span class="co">## Alternative:</span></span></span>
 <span class="r-in"><span><span class="co"># pdftools::pdf_text(pdf) |&gt; cat_head()</span></span></span>
 <span class="r-in"><span></span></span>
@@ -257,6 +270,64 @@ and <a href="https://facelessuser.github.io/soupsieve/selectors/" class="externa
 <span class="r-in"><span>  <span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span>echo <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"Describe this image"</span>, <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/content_image_url.html" class="external-link">content_image_file</a></span><span class="op">(</span><span class="va">jpg</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># YouTube transcripts</span></span></span>
+<span class="r-in"><span><span class="co">## read_as_markdown() will fetch the transcript for youtube links</span></span></span>
+<span class="r-in"><span><span class="fu">cat_head</span><span class="op">(</span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://youtu.be/GELhdezYmP0"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> #  - YouTube</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [About](https://www.youtube.com/about/)[Press](https://www.youtube.com/about/press/)[Copyright](https://www.youtube.com/about/copyright/)[Contact us](/t/contact_us/)[Creators](https://www.youtube.com/creators/)[Advertise](https://www.youtube.com/ads/)[Developers](https://developers.google.com/youtube)[Terms](/t/terms)[Privacy](/t/privacy)[Policy &amp; Safety](https://www.youtube.com/about/policies/)[How YouTube works](https://www.youtube.com/howyoutubeworks?utm_campaign=ytgen&amp;utm_source=ythp&amp;utm_medium=LeftNav&amp;utm_content=txt&amp;u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen)[Test new features](/new)[NFL Sunday Ticket](https://tv.youtube.com/learn/nflsundayticket)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> © 2025 Google LLC</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## The default transcript does not include timestamps. To include timestamps,</span></span></span>
+<span class="r-in"><span><span class="co">## you can supply a custom `youtube_transcript_formatter` function.</span></span></span>
+<span class="r-in"><span><span class="co">## Here is an example showing how to format the transcript to include</span></span></span>
+<span class="r-in"><span><span class="co">## timestamped youtube links</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">format_youtube_timestamp</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">time</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">h</span> <span class="op">&lt;-</span> <span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%/%</a></span> <span class="fl">3600</span></span></span>
+<span class="r-in"><span>  <span class="va">time</span> <span class="op">&lt;-</span> <span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">3600</span></span></span>
+<span class="r-in"><span>  <span class="va">m</span> <span class="op">&lt;-</span> <span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%/%</a></span> <span class="fl">60</span></span></span>
+<span class="r-in"><span>  <span class="va">time</span> <span class="op">&lt;-</span> <span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">60</span></span></span>
+<span class="r-in"><span>  <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">h</span>, <span class="st">"h"</span>, <span class="va">m</span>, <span class="st">"m"</span>, <span class="va">s</span>, <span class="st">"s"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"^0h"</span>, <span class="st">""</span>, <span class="va">out</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"^0m"</span>, <span class="st">""</span>, <span class="va">out</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">out</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">format_transcript_with_timestamps</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">min_timestamp_stride_seconds</span> <span class="op">=</span> <span class="fl">30</span>, <span class="va">links</span> <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>    <span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu">format_youtube_timestamp</span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">start</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="kw">if</span> <span class="op">(</span><span class="va">links</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>      <span class="va">video_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"youtube_metadata"</span><span class="op">)</span><span class="op">$</span><span class="va">video_id</span></span></span>
+<span class="r-in"><span>      <span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\n&lt;https://youtu.be/%s?t=%s&gt;\n"</span>, <span class="va">video_id</span>, <span class="va">ts</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>      <span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\n[%s] "</span>, <span class="va">ts</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>    <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">min_timestamp_stride_seconds</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>      <span class="va">show</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">as.logical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">x</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%/%</a></span> <span class="va">min_timestamp_stride_seconds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>      <span class="va">ts</span><span class="op">[</span><span class="op">!</span><span class="va">show</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">""</span></span></span>
+<span class="r-in"><span>    <span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">ts</span>, <span class="va">data</span><span class="op">$</span><span class="va">text</span>, sep <span class="op">=</span> <span class="st">""</span>, collapse <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="st">"https://www.youtube.com/watch?v=GELhdezYmP0"</span>,</span></span>
+<span class="r-in"><span>  youtube_transcript_formatter <span class="op">=</span> \<span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>    <span class="fu">format_transcript_with_timestamps</span><span class="op">(</span><span class="va">data</span>, links <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">cat_head</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">60</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> #  - YouTube</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [About](https://www.youtube.com/about/)[Press](https://www.youtube.com/about/press/)[Copyright](https://www.youtube.com/about/copyright/)[Contact us](/t/contact_us/)[Creators](https://www.youtube.com/creators/)[Advertise](https://www.youtube.com/ads/)[Developers](https://developers.google.com/youtube)[Terms](/t/terms)[Privacy](/t/privacy)[Policy &amp; Safety](https://www.youtube.com/about/policies/)[How YouTube works](https://www.youtube.com/howyoutubeworks?utm_campaign=ytgen&amp;utm_source=ythp&amp;utm_medium=LeftNav&amp;utm_content=txt&amp;u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen)[Test new features](/new)[NFL Sunday Ticket](https://tv.youtube.com/learn/nflsundayticket)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> © 2025 Google LLC</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
