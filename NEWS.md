@@ -3,6 +3,10 @@
 -   New `embed_azure_openai()` helper for generating embeddings from
     Azure AI Foundry (#144).
 
+-   `read_as_markdown()` once again fetches YouTube video transcripts
+    and now supports a `youtube_transcript_formatter` so callers can add
+    timestamps or links to the transcript output (#149).
+
 -   New `ragnar_store_atlas()` application for visualizing embeddings
     (#124).
 
