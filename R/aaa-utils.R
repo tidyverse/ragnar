@@ -45,8 +45,8 @@ last <- function(x) x[[length(x)]]
 drop_last <- function(x) x[-length(x)]
 drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
-keep <- function(.x, .f, ...)  x[vapply(X = .x, FUN = .f, FUN.VALUE = FALSE, ..., USE.NAMES = FALSE)]
-drop <- function(.x, .f, ...)  x[!vapply(X = .x, FUN = .f, FUN.VALUE = FALSE, ..., USE.NAMES = FALSE)]
+keep <- function(.x, .f, ...)  .x[vapply(X = .x, FUN = .f, FUN.VALUE = FALSE, ..., USE.NAMES = FALSE)]
+drop <- function(.x, .f, ...)  .x[!vapply(X = .x, FUN = .f, FUN.VALUE = FALSE, ..., USE.NAMES = FALSE)]
 
 map_chr <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = "", ...)
 map_int <- function(.x, .f, ...) vapply(X = .x, FUN = .f, FUN.VALUE = 0L, ...)

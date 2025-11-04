@@ -9,6 +9,17 @@ with warnings.catch_warnings():
 
 from markitdown.converters._markdownify import _CustomMarkdownify
 
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    from youtube_transcript_api._transcripts import (
+        FetchedTranscript,
+        FetchedTranscriptSnippet,
+    )
+except Exception:
+    YouTubeTranscriptApi = None
+    FetchedTranscript = None
+    FetchedTranscriptSnippet = None
+
 md = markitdown.MarkItDown()
 
 
@@ -90,9 +101,11 @@ class patched_markitdown:
         self,
         html_extract_selectors=None,
         html_zap_selectors=None,
+        youtube_transcript_formatter=None,
     ):
         self.html_extract_selectors = html_extract_selectors or []
         self.html_zap_selectors = html_zap_selectors or []
+        self.youtube_transcript_formatter = youtube_transcript_formatter
 
     def __enter__(self):
         self.og_convert_soup = og_convert_soup = _CustomMarkdownify.convert_soup
@@ -121,9 +134,37 @@ class patched_markitdown:
 
         _CustomMarkdownify.convert_pre = convert_pre
 
+        self._original_youtube_fetch = None
+        if (
+            YouTubeTranscriptApi is not None
+            and self.youtube_transcript_formatter is not None
+        ):
+            self._original_youtube_fetch = YouTubeTranscriptApi.fetch
+
+            def fetch(*args, **kwargs):
+                transcript = self._original_youtube_fetch(*args, **kwargs)
+                formatted = self.youtube_transcript_formatter(transcript)
+                if formatted is None:
+                    return transcript
+                assert isinstance(formatted, str)
+                last_snippet = transcript[-1]
+                total_duration = last_snippet.start + last_snippet.duration
+                formatted_snippet = FetchedTranscriptSnippet(
+                    text=str(formatted), start=0.0, duration=total_duration
+                )
+                transcript.snippets = [formatted_snippet]
+                return transcript
+
+            YouTubeTranscriptApi.fetch = fetch
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         _CustomMarkdownify.convert_pre = self.og_convert_pre
         _CustomMarkdownify.convert_soup = self.og_convert_soup
+        if (
+            YouTubeTranscriptApi is not None
+            and self._original_youtube_fetch is not None
+        ):
+            YouTubeTranscriptApi.fetch = self._original_youtube_fetch
 
 
 def as_str_list(x):
@@ -139,6 +180,7 @@ def convert_to_markdown(
     *args,
     html_extract_selectors=None,
     html_zap_selectors=None,
+    youtube_transcript_formatter=None,
     **kwargs,
 ):
     html_extract_selectors = as_str_list(html_extract_selectors)
@@ -156,6 +198,7 @@ def convert_to_markdown(
     with patched_markitdown(
         html_extract_selectors=html_extract_selectors,
         html_zap_selectors=html_zap_selectors,
+        youtube_transcript_formatter=youtube_transcript_formatter,
     ):
         result = md.convert(x, *args, **kwargs)
         text = result.markdown.strip()
