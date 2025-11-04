@@ -324,11 +324,10 @@ rscript_exe <- function() {
   )
 }
 
-parent.pkg <- function(env = parent.frame(2)) {
+parent.pkg <- function(env = parent.frame(2L)) {
   if (isNamespace(env <- topenv(env))) {
-    # unname
-    as.character(getNamespaceName(env))
+    as.character(getNamespaceName(env)) # unname
   } else {
-    NULL
-  } # print visible
+    NULL # print visible
+  }
 }
