@@ -1,6 +1,7 @@
 test_that("read_as_markdown() can fetch YouTube transcript text", {
   skip_on_cran()
   skip_if_offline()
+  skip_on_ci() # youtube api + github runner == :(
 
   url <- "https://www.youtube.com/watch?v=JELG5jktC5E"
 
@@ -26,6 +27,7 @@ test_that("read_as_markdown() can fetch YouTube transcript text", {
 test_that("read_as_markdown() example formatter adds timestamped links", {
   skip_on_cran()
   skip_if_offline()
+  skip_on_ci() # youtube api + github runner == :(
 
   url <- "https://www.youtube.com/watch?v=JELG5jktC5E"
 
