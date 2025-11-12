@@ -3,6 +3,9 @@
 -   New `embed_azure_openai()` helper for generating embeddings from
     Azure AI Foundry (#144).
 
+-   New `embed_snowflake()` helper for generating embeddings with the
+    Snowflake Cortex Embedding API (#148).
+
 -   `ragnar_retrieve()` (and the corresponding ellmer retrieve tool) now
     accept a vector of queries (#150).
 
