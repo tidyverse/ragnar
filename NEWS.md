@@ -4,7 +4,7 @@
     Azure AI Foundry (#144).
 
 -   `ragnar_retrieve()` (and the corresponding ellmer retrieve tool) now
-    accept a vector of queries.
+    accept a vector of queries (#150).
 
 -   `read_as_markdown()` once again fetches YouTube video transcripts
     and now supports a `youtube_transcript_formatter` so callers can add
