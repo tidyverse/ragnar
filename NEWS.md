@@ -3,6 +3,9 @@
 -   New `embed_azure_openai()` helper for generating embeddings from
     Azure AI Foundry (#144).
 
+-   New `embed_snowflake()` helper for generating embeddings with the
+    Snowflake Cortex Embedding API (#148).
+
 -   New `ragnar_store_atlas()` application for visualizing embeddings
     (#124).
 
