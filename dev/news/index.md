@@ -1,0 +1,217 @@
+# Changelog
+
+## ragnar (development version)
+
+- New
+  [`embed_azure_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_azure_openai.md)
+  helper for generating embeddings from Azure AI Foundry
+  ([\#144](https://github.com/tidyverse/ragnar/issues/144)).
+
+- [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
+  (and the corresponding ellmer retrieve tool) now accept a vector of
+  queries ([\#150](https://github.com/tidyverse/ragnar/issues/150)).
+
+- [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  once again fetches YouTube video transcripts and now supports a
+  `youtube_transcript_formatter` so callers can add timestamps or links
+  to the transcript output
+  ([\#149](https://github.com/tidyverse/ragnar/issues/149)).
+
+- New
+  [`ragnar_store_atlas()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_atlas.md)
+  application for visualizing embeddings
+  ([\#124](https://github.com/tidyverse/ragnar/issues/124)).
+
+- New
+  [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  for concurrently preparing and inserting documents into a store with
+  parallel workers via mirai
+  ([\#133](https://github.com/tidyverse/ragnar/issues/133)).
+
+- New function
+  [`mcp_serve_store()`](https://ragnar.tidyverse.org/dev/reference/mcp_serve_store.md)
+  which supports letting a local MCP client like Codex CLI or Claude
+  Code search a `RagnarStore`
+  ([\#123](https://github.com/tidyverse/ragnar/issues/123)).
+
+- The default tool name prefix registered by
+  `ragnar_register_tool_retrive()` has changed from
+  `rag_retrieve_from_{store@name}` to `search_{store@name}`.
+
+- Store Inspector updated with keyboard shortcuts, a draggable divider,
+  improved preview linkification and metadata display, visual tweaks and
+  general bug fixes
+  ([\#120](https://github.com/tidyverse/ragnar/issues/120)).
+
+- Correct BM25 result ordering to sort by descending score
+  ([\#122](https://github.com/tidyverse/ragnar/issues/122)).
+
+- [`embed_ollama()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
+  default model is now `embeddinggemma`
+  ([\#121](https://github.com/tidyverse/ragnar/issues/121)).
+
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  now works better with HTML files on the local filesystem. The new
+  default value `children_only=FALSE` will return all links on a page.
+  See [\#115](https://github.com/tidyverse/ragnar/issues/115) for
+  details.
+
+- [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  gains an `origin` argument to control the `@origin` recorded on
+  returned documents.
+
+- The `RagnarStore` print method now shows the store location
+  ([\#116](https://github.com/tidyverse/ragnar/issues/116))
+
+- Errors messages when executing
+  [`embed_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
+  are now surfaced to the user
+  ([\#112](https://github.com/tidyverse/ragnar/issues/112)).
+
+## ragnar 0.2.1
+
+CRAN release: 2025-08-19
+
+- [`ragnar_register_tool_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_register_tool_retrieve.md)
+  now registers a tool that will not return previously returned chunks,
+  enabling the LLM to perform deeper searches of a ragnar store with
+  repeated tool calls
+  ([\#106](https://github.com/tidyverse/ragnar/issues/106)).
+
+- Updates for ellmer v0.3.0 and duckdb v1.3.1
+  ([\#99](https://github.com/tidyverse/ragnar/issues/99))
+
+- Improved docs and error message in
+  [`ragnar_store_insert()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_insert.md)
+  ([@mattwarkentin](https://github.com/mattwarkentin),
+  [\#88](https://github.com/tidyverse/ragnar/issues/88))
+
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  can now parse `sitemap.xml` files. It also gains a `validate`
+  argument, allowing for sending a `HEAD` request to each link and
+  filtering out broken links
+  ([\#83](https://github.com/tidyverse/ragnar/issues/83)).
+
+- `ragnar_inspector()` now renders all urls as clickable links in the
+  chunk markdown viewer, even if url is not a formal markdown link
+  ([\#82](https://github.com/tidyverse/ragnar/issues/82)).
+
+- Before running examples and tests we now check if ragnar can load
+  DuckDB extensions. This fixes issues in environments where DuckDB
+  pre-built binaries for extensions are not compatible with the
+  installed DuckDB version
+  ([\#94](https://github.com/tidyverse/ragnar/issues/94)).
+
+- Added `embed_lm_studio` to use LMStudio as an embedding provider
+  ([\#100](https://github.com/tidyverse/ragnar/issues/100)).
+
+- Fixed a bug causing
+  [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
+  to fail when documents were inserted without an origin
+  ([\#102](https://github.com/tidyverse/ragnar/issues/102)).
+
+- We now suppress a “Couldn’t find ffmpeg or avconv” warning when
+  importing markitdown when using
+  [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md).
+  The warning would only be relevant for users doing audio transcription
+  ([\#103](https://github.com/tidyverse/ragnar/issues/103)).
+
+- Added `embed_google_gemini` to use Google Gemini API as an embedding
+  provider ([\#105](https://github.com/tidyverse/ragnar/issues/105)).
+
+## ragnar 0.2.0
+
+CRAN release: 2025-07-12
+
+- [`ragnar_store_create()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_create.md)
+  gains a new argument: `version`, with default `2`. Store version 2
+  adds support for chunk deoverlapping on retrieval and automatic chunk
+  augmentation with headings. To support these features, the internal
+  schema and ingestion requirements are different. See
+  [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
+  and new S7 classes `MarkdownDocument` and `MarkdownDocumentChunks`.
+  Backwards compatibility is maintained with version = 1.
+  ([\#58](https://github.com/tidyverse/ragnar/issues/58),
+  [\#39](https://github.com/tidyverse/ragnar/issues/39),
+  [\#36](https://github.com/tidyverse/ragnar/issues/36))
+
+- [`ragnar_store_create()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_create.md)
+  now supports Date and POSIXct classes supplied to `extra_cols`.
+
+- [`ragnar_store_create()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_create.md)
+  now supports remote MotherDuck Databases specified with `md:<dbname>`
+  as the `location` argument.
+  ([\#50](https://github.com/tidyverse/ragnar/issues/50))
+
+- [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
+  and friends gain a `filter` argument, adding support for efficiently
+  filtering retrieval results.
+
+- [`ragnar_retrieve_bm25()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_bm25.md)
+  gains arguments `b`, `k`, and `conjunctive`
+  ([\#56](https://github.com/tidyverse/ragnar/issues/56)).
+
+- [`ragnar_retrieve_vss()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_vss.md)
+  gains argument `query_vector`, supporting workflows that preprocess
+  the query string before embedding.
+
+- [`ragnar_retrieve_vss()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_vss.md)
+  set of valid `method` choices have been updated to a narrower set to
+  ensure that an `HNSW` index scan is used.
+
+- Passing a `tbl(store)` to
+  [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
+  is deprecated.
+
+- New chunker
+  [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
+  with support for chunk heading context generation, semantic boundary
+  selection, overlapping chunks, document segmentation, and more.
+  ([\#56](https://github.com/tidyverse/ragnar/issues/56))
+
+- New function
+  [`embed_google_vertex()`](https://ragnar.tidyverse.org/dev/reference/embed_google_vertex.md)
+  ([@dfalbel](https://github.com/dfalbel),
+  [\#49](https://github.com/tidyverse/ragnar/issues/49))
+
+- New function
+  [`embed_databricks()`](https://ragnar.tidyverse.org/dev/reference/embed_databricks.md)
+  ([@atheriel](https://github.com/atheriel),
+  [\#45](https://github.com/tidyverse/ragnar/issues/45))
+
+- New function
+  [`ragnar_chunks_view()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunks_view.md)
+  for quickly previewing chunks
+  ([\#42](https://github.com/tidyverse/ragnar/issues/42))
+
+- [`ragnar_register_tool_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_register_tool_retrieve.md)
+  gains optional `name` and `title` arguments to allow for more
+  descriptive tool registration. These values can also be set in
+  [`ragnar_store_create()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_create.md)
+  ([\#43](https://github.com/tidyverse/ragnar/issues/43)).
+
+- [`ragnar_read()`](https://ragnar.tidyverse.org/dev/reference/ragnar_read.md)
+  and
+  [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  now accept paths that begin with `~`
+  ([@topepo](https://github.com/topepo),
+  [\#46](https://github.com/tidyverse/ragnar/issues/46),
+  [\#48](https://github.com/tidyverse/ragnar/issues/48)).
+
+- Changes to
+  [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  HTML conversion
+  ([\#40](https://github.com/tidyverse/ragnar/issues/40),
+  [\#51](https://github.com/tidyverse/ragnar/issues/51)):
+
+  - New arguments `html_extract_selectors` and `html_zap_selectors`
+    provide a flexible way to exclude some html page elements from being
+    included in the converted markdown.
+  - code blocks now include the language, if available.
+  - Fixed handling of nested code fences in markdown output.
+
+## ragnar 0.1.0
+
+CRAN release: 2025-05-30
+
+- Initial CRAN submission.
