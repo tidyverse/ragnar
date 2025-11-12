@@ -101,19 +101,24 @@ ragnar_tool_retrieve <- function(
     },
     name = name,
     description = glue::glue(
-      "Given a string, retrieve the most relevant excerpts from {store_description}. \\
+      "
+      Given a string, retrieve the most relevant excerpts from {store_description}. \\
       Both BM25 (keyword) search and embedding vector similarity (semantic) search are performed. \\
       Previously retrieved chunks are never returned; \\
-      repeated searches of the same query will always return unique new results."
+      repeated searches of the same query will always return unique new results.
+      "
     ),
     arguments = list(
-      text = ellmer::type_string(glue::trim(
-        "Input string to match. Semantic search works best with complete sentences; \\
-         keyword search works best with lists of words (keywords are stemmed). \\
-         Both modes run on every query. For best results, call the tool at least \\
-         twice: once with a query designed for semantic search, and once with a query \\
-         designed for keyword search."
-      ))
+      text = ellmer::type_array(ellmer::type_string(glue::trim(
+        "
+        Input string to match. \\
+        Semantic search works best with full sentences; \\
+        keyword search works best with a small set of terms (keywords are stemmed). \\
+        Both modes run on every query. \\
+        For best results, provide at least two queries: \\
+        one optimized for semantic search and one optimized for keyword search.
+        "
+      )))
     ),
     annotations = ellmer::tool_annotations(
       title = title,

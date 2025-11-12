@@ -514,7 +514,13 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #' ragnar_retrieve(store, "sweet", filter = category == "dessert")
 #' @export
 ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
-  chunks <- ragnar_retrieve_vss_and_bm25(store, text, top_k, ...)
+  chunks <- do.call(
+    vec_rbind,
+    lapply(text, function(.text) {
+      ragnar_retrieve_vss_and_bm25(store, .text, top_k, ...)
+    })
+  )
+
   if (!S7_inherits(store, RagnarStore)) {
     # back-compat with tbl() supplied for store
     return(chunks)

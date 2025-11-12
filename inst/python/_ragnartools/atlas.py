@@ -23,7 +23,7 @@ def run_embedding_atlas(df, host, port):
     compute_vector_projection(df, "embedding")
     df["_row_index"] = range(len(df))  # add a row index for neighbors
     df.drop(columns=["embedding"], inplace=True)
-    
+
     metadata = {
         "columns": {
             "id": "_row_index",
@@ -55,4 +55,3 @@ def run_embedding_atlas(df, host, port):
             thread.join()
 
     return join_app_thread
-

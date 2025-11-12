@@ -16,6 +16,14 @@
 #'   before conversion to markdown. This is useful for removing navigation bars,
 #'   sidebars, headers, footers, or other unwanted elements. By default,
 #'   navigation elements (`nav`) are excluded.
+#' @param youtube_transcript_formatter A function used to customize how YouTube
+#'   transcript data is converted to markdown. It receives a tibble/data.frame
+#'   with columns `text` (chr), `start` (dbl, seconds), and `duration` (dbl,
+#'   seconds), along with a `"youtube_metadata"` attribute, a named list
+#'   containing elements `language`, `language_code`, `video_id`, and
+#'   `is_generated`. The formatter must return a single string; by default it
+#'   behaves like `\(transcript) paste0(transcript$text, collapse = " ")`.
+#'   Provide a custom formatter to include timestamps or links (see examples).
 #'
 #' @details
 #'
@@ -116,18 +124,92 @@
 #'   chat <- ellmer::chat_openai(echo = TRUE)
 #'   chat$chat("Describe this image", ellmer::content_image_file(jpg))
 #' }
+#'
+#' # YouTube transcripts
+#' ## read_as_markdown() fetches transcripts for YouTube links
+#' cat_head(read_as_markdown("https://youtu.be/GELhdezYmP0"))
+#'
+#' ## The default transcript omits timestamps. Supply a custom
+#' ## `youtube_transcript_formatter` to control the output. This example formats
+#' ## the transcript with timestamped YouTube links.
+#'
+#' format_youtube_timestamp <- function(time) {
+#'   h <- time %/% 3600
+#'   time <- time %% 3600
+#'   m <- time %/% 60
+#'   time <- time %% 60
+#'   s <- floor(time)
+#'   out <- paste0(h, "h", m, "m", s, "s")
+#'   out <- sub("^0h", "", out)
+#'   out <- sub("^0m", "", out)
+#'   out
+#' }
+#'
+#' format_transcript_with_timestamps <-
+#'   function(data, min_timestamp_stride_seconds = 30, links = FALSE) {
+#'     ts <- format_youtube_timestamp(data$start)
+#'     if (links) {
+#'       video_id <- attr(data, "youtube_metadata")$video_id
+#'       ts <- sprintf("\n<https://youtu.be/%s?t=%s>\n", video_id, ts)
+#'     } else {
+#'       ts <- sprintf("\n[%s] ", ts)
+#'     }
+#'
+#'     if (!is.null(min_timestamp_stride_seconds)) {
+#'       show <- c(TRUE, as.logical(diff(x %/% min_timestamp_stride_seconds)))
+#'       ts[!show] <- ""
+#'     }
+#'
+#'     paste0(ts, data$text, sep = "", collapse = "\n")
+#'   }
+#'
+#'
+#' read_as_markdown(
+#'   "https://www.youtube.com/watch?v=GELhdezYmP0",
+#'   youtube_transcript_formatter = \(data) {
+#'     format_transcript_with_timestamps(data, links = TRUE)
+#'   }
+#' ) |>
+#'   cat_head(n = 60)
 #' }
 read_as_markdown <- function(
   path,
   ...,
   origin = path,
   html_extract_selectors = c("main"),
-  html_zap_selectors = c("nav")
+  html_zap_selectors = c("nav"),
+  youtube_transcript_formatter = NULL
 ) {
   check_string(path)
   check_string(origin, allow_na = TRUE)
   if (startsWith(path, "~")) {
     path <- path.expand(path)
+  }
+
+  if (!is.null(youtube_transcript_formatter)) {
+    py_to_r <- reticulate::py_to_r
+    py_get_attr <- reticulate::py_get_attr
+    user_youtube_transcript_formatter <- youtube_transcript_formatter
+    youtube_transcript_formatter <- function(transcript) {
+      data_df <- as_tibble(bind_rows(transcript$to_raw_data()))
+      names(metadata) <- metadata <- as.character(names(transcript))
+      metadata <- metadata |>
+        lapply(\(attr) py_to_r(py_get_attr(transcript, attr, TRUE))) |>
+        keep(is.atomic)
+      if (!nrow(data_df)) {
+        data_df <- tibble(
+          text = character(),
+          start = numeric(),
+          duration = numeric()
+        )
+      }
+      attr(data_df, "youtube_metadata") <- metadata
+      formatted <- user_youtube_transcript_formatter(data_df)
+      if (!(is.null(formatted) || is_string(formatted))) {
+        stop("youtube_transcript_formatter() must return NULL or a string")
+      }
+      formatted
+    }
   }
 
   if (getOption("ragnar.markitdown.use_reticulate", TRUE)) {
@@ -138,6 +220,7 @@ read_as_markdown <- function(
       path,
       html_extract_selectors = html_extract_selectors,
       html_zap_selectors = html_zap_selectors,
+      youtube_transcript_formatter = youtube_transcript_formatter,
       ...,
     )
   } else {

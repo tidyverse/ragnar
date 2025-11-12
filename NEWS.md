@@ -6,6 +6,13 @@
 -   New `embed_snowflake()` helper for generating embeddings with the
     Snowflake Cortex Embedding API (#148).
 
+-   `ragnar_retrieve()` (and the corresponding ellmer retrieve tool) now
+    accept a vector of queries (#150).
+
+-   `read_as_markdown()` once again fetches YouTube video transcripts
+    and now supports a `youtube_transcript_formatter` so callers can add
+    timestamps or links to the transcript output (#149).
+
 -   New `ragnar_store_atlas()` application for visualizing embeddings
     (#124).
 
