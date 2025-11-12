@@ -353,6 +353,8 @@ Embed chunks with commercial or open-source models.
   [`embed_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
   [`embed_lm_studio()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
   : Embed Text
+- [`embed_snowflake()`](https://ragnar.tidyverse.org/dev/reference/embed_snowflake.md)
+  : Generate embeddings using Snowflake
 
 ## Retrieve
 

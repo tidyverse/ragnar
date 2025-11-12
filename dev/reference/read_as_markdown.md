@@ -127,7 +127,7 @@ read_as_markdown(url) |> cat_head(15)
 #> 
 #> We continuously strive to make our community a better place for everyone – in the best tradition of hackers we "build, test, improve, reiterate". In this ongoing adventure, we rely on the support, courage, and creativity of all members of the DuckDB community.
 #> 
-#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#4e3f3b2f2d250e2a3b2d252a2c60213c29). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
+#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#2c5d594d4f476c48594f47484e02435e4b). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
 
 # To extract just the main content, use a selector
 read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
