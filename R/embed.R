@@ -143,6 +143,7 @@ embed_openai <- function(
 
     req <- request(base_url) |>
       embed_req_retry() |>
+      # embed_req_retry(after = openai_retry_after) |>
       req_user_agent(ragnar_user_agent()) |>
       req_url_path_append("/embeddings") |>
       req_auth_bearer_token(api_key) |>
@@ -242,12 +243,61 @@ is_testing <- function() {
 .package_version <- c(read.dcf('DESCRIPTION', 'Version'))
 
 
-embed_req_retry <- function(req) {
+embed_req_retry <- function(req, after = NULL) {
   policy <- getOption(
     "ragnar.embed.req_retry",
     list(max_tries = 3L, max_seconds = 10)
   )
-  (isFALSE(policy) || isTRUE(policy$max_tries < 1L)) && return(req)
 
+  if (isFALSE(policy) || isTRUE(policy$max_tries < 1L)) {
+    return(req)
+  }
+  if (is.null(policy$after)) {
+    policy$after <- after
+  }
   inject(req_retry(req, !!!policy))
+}
+
+
+# In practice, this turns out to lead to worse performance in
+# `ragnar_store_ingest()` when we're being throttled. So it's currently unused
+# but saved here in case we want to throttle embed_openai() more aggressively in the future.
+openai_retry_after <- function(resp) {
+  h <- httr2::resp_headers(resp)
+  remaining_tokens <- as.numeric(
+    h[["x-ratelimit-remaining-tokens"]] %||% Inf
+  )
+  remaining_requests <- as.numeric(
+    h[["x-ratelimit-remaining-requests"]] %||% Inf
+  )
+  out <- switch(
+    which.min(c(remaining_tokens, remaining_requests)),
+    {
+      # token limited
+      parse_duration(h[["x-ratelimit-reset-tokens"]] %||% "")
+    },
+    {
+      # request limited
+      parse_duration(h[["x-ratelimit-reset-requests"]] %||% "")
+    }
+  )
+  # In practice, there is no sense in waiting for the full reset timeout.
+  # We can start trying again long before that, after some fraction has reset.
+  # We're most likely to encounter this in ragnar_store_ingest() with
+  # many parallel workers, with a full timeout reset of ~60s with some straggling concurrent calls
+  # from background workers still pending. We want to have a rampup
+  # on resumption after throttling from the main thread.
+  out <- out / 4
+  system(sprintf("echo 'retrying after %ss'", out))
+  if (out == 0) NA else out
+}
+
+
+parse_duration <- function(dur) {
+  # convert a string like "1m0.612s" to number of seconds
+  x <- paste0(dur, "0h0m0s")
+  h <- as.numeric(sub(".*?([0-9.]+)h.*?$", "\\1", x, perl = TRUE))
+  m <- as.numeric(sub(".*?([0-9.]+)m.*?$", "\\1", x, perl = TRUE))
+  s <- as.numeric(sub(".*?([0-9.]+)s.*?$", "\\1", x, perl = TRUE))
+  h * 3600 + m * 60 + s
 }
