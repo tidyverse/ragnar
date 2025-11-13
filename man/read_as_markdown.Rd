@@ -35,15 +35,14 @@ before conversion to markdown. This is useful for removing navigation bars,
 sidebars, headers, footers, or other unwanted elements. By default,
 navigation elements (\code{nav}) are excluded.}
 
-\item{youtube_transcript_formatter}{A function you can pass to customize how
-YouTube transcript data is converted to markdown. The function is called
-with a tibble/data.frame containing the columns \code{text} (chr), \code{start} (dbl,
-seconds), and \code{duration} (dbl, seconds). It will also have attribute
-\code{"youtube_metadata"}, a named list with elements \code{language},
-\code{language_code}, \code{video_id}, and \code{is_generated}. The provided formatter
-function should return a single string. The default
-formatter is effectively \verb{\\(transcript) paste0(transcript$text, collapse = " ")}. Supply a custom function to include timestamps or links (see
-examples).}
+\item{youtube_transcript_formatter}{A function used to customize how YouTube
+transcript data is converted to markdown. It receives a tibble/data.frame
+with columns \code{text} (chr), \code{start} (dbl, seconds), and \code{duration} (dbl,
+seconds), along with a \code{"youtube_metadata"} attribute, a named list
+containing elements \code{language}, \code{language_code}, \code{video_id}, and
+\code{is_generated}. The formatter must return a single string; by default it
+behaves like \verb{\\(transcript) paste0(transcript$text, collapse = " ")}.
+Provide a custom formatter to include timestamps or links (see examples).}
 }
 \value{
 A \code{\link{MarkdownDocument}} object, which is a single string of Markdown
@@ -147,13 +146,12 @@ if (
 }
 
 # YouTube transcripts
-## read_as_markdown() will fetch the transcript for youtube links
+## read_as_markdown() fetches transcripts for YouTube links
 cat_head(read_as_markdown("https://youtu.be/GELhdezYmP0"))
 
-## The default transcript does not include timestamps. To include timestamps,
-## you can supply a custom `youtube_transcript_formatter` function.
-## Here is an example showing how to format the transcript to include
-## timestamped youtube links
+## The default transcript omits timestamps. Supply a custom
+## `youtube_transcript_formatter` to control the output. This example formats
+## the transcript with timestamped YouTube links.
 
 format_youtube_timestamp <- function(time) {
   h <- time \%/\% 3600

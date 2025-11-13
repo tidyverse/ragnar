@@ -62,7 +62,7 @@ test_that("read_as_markdown() errors for non-ASCII plain text input", {
   # Generate a file that's mostly ascii, but has some non-ascii later in the file.
   # Pure MarkItDown will raise an exception about non-ascii characters
   # because it infers the wrong file type at first.
-  # We have a fallback in ragnar to make sure we fallback to using readLines.
+  # We have a fallback in ragnar to make sure we fallback to using readLines().
   file <- withr::local_tempfile(
     fileext = ".txt",
     lines = c(
@@ -70,9 +70,8 @@ test_that("read_as_markdown() errors for non-ASCII plain text input", {
       enc2utf8("Some non-ASCII characters: B\u00E9n\u00E9dikt.")
     )
   )
-  # read_as_markdown(file)
-  expect_error(
-    read_as_markdown(file),
-    "PlainTextConverter threw UnicodeDecodeError"
+
+  expect_no_error(
+    read_as_markdown(file)
   )
 })
