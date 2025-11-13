@@ -22,8 +22,10 @@ resolve_project_files_to_ingest <- function(globs = NULL) {
     rg_args <- c(rg_args, as.vector(rbind("--glob", globs)))
   }
 
-  rg_args <- reticulate:::maybe_shQuote(rg_args)
-  paths <- reticulate:::system2t("rg", rg_args, stdout = TRUE, stderr = FALSE)
+  # rg_args <- reticulate:::maybe_shQuote(rg_args)
+  # paths <- reticulate:::system2t("rg", rg_args, stdout = TRUE, stderr = FALSE)
+  paths <- system2("rg", shQuote(rg_args), stdout = TRUE, stderr = FALSE)
+
   paths <- paths[file.exists(paths) & !dir.exists(paths)]
 
   magika <- reticulate::import("magika")$Magika()

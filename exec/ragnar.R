@@ -85,7 +85,7 @@ switch(
     ragnar_store_ingest(store, files, n_workers = n_workers)
   },
 
-  #| title: referesh the store contents.
+  #| title: Referesh the store contents.
   update = {
     store <- ragnar_store_connect(store, read_only = FALSE)
     docs <- DBI::dbGetQuery(store@con, "SELECT origin FROM documents")
@@ -93,22 +93,23 @@ switch(
     ragnar_store_ingest(store, docs$origin)
   },
 
+  #| title: Serve a store retrieve tool over an stdio mcp server.
   mcp_serve = {
     store <- ragnar_store_connect(store)
     mcp_serve_store(store)
   },
 
+  #| title: Build the store index.
   build_index = {
     store <- ragnar_store_connect(store, read_only = FALSE)
     ragnar::ragnar_store_build_index(store)
-  }
+  },
 
+  #| title: Print help.
   help = {
     # TODO: figure out a more elegant way to trigger emmission of default Rapp help.
     # maybe always add a 'help' command by default?
     app <- system.file("exec/ragnar.R", package = "ragnar")
     Rapp::run(app, "--help")
   }
-
-
 )
