@@ -85,15 +85,14 @@ navigation elements (<code>nav</code>) are excluded.</p></dd>
 
 
 <dt id="arg-youtube-transcript-formatter">youtube_transcript_formatter<a class="anchor" aria-label="anchor" href="#arg-youtube-transcript-formatter"></a></dt>
-<dd><p>A function you can pass to customize how
-YouTube transcript data is converted to markdown. The function is called
-with a tibble/data.frame containing the columns <code>text</code> (chr), <code>start</code> (dbl,
-seconds), and <code>duration</code> (dbl, seconds). It will also have attribute
-<code>"youtube_metadata"</code>, a named list with elements <code>language</code>,
-<code>language_code</code>, <code>video_id</code>, and <code>is_generated</code>. The provided formatter
-function should return a single string. The default
-formatter is effectively <code>\(transcript) paste0(transcript$text, collapse = " ")</code>. Supply a custom function to include timestamps or links (see
-examples).</p></dd>
+<dd><p>A function used to customize how YouTube
+transcript data is converted to markdown. It receives a tibble/data.frame
+with columns <code>text</code> (chr), <code>start</code> (dbl, seconds), and <code>duration</code> (dbl,
+seconds), along with a <code>"youtube_metadata"</code> attribute, a named list
+containing elements <code>language</code>, <code>language_code</code>, <code>video_id</code>, and
+<code>is_generated</code>. The formatter must return a single string; by default it
+behaves like <code>\(transcript) paste0(transcript$text, collapse = " ")</code>.
+Provide a custom formatter to include timestamps or links (see examples).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -163,7 +162,7 @@ and <a href="https://facelessuser.github.io/soupsieve/selectors/" class="externa
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> We continuously strive to make our community a better place for everyone – in the best tradition of hackers we "build, test, improve, reiterate". In this ongoing adventure, we rely on the support, courage, and creativity of all members of the DuckDB community.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#2c5d594d4f476c48594f47484e02435e4b). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#19686c787a72597d6c7a727d7b37766b7e). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># To extract just the main content, use a selector</span></span></span>
 <span class="r-in"><span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="va">url</span>, html_extract_selectors <span class="op">=</span> <span class="st">"#main_content_wrap"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
@@ -272,7 +271,7 @@ and <a href="https://facelessuser.github.io/soupsieve/selectors/" class="externa
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># YouTube transcripts</span></span></span>
-<span class="r-in"><span><span class="co">## read_as_markdown() will fetch the transcript for youtube links</span></span></span>
+<span class="r-in"><span><span class="co">## read_as_markdown() fetches transcripts for YouTube links</span></span></span>
 <span class="r-in"><span><span class="fu">cat_head</span><span class="op">(</span><span class="fu">read_as_markdown</span><span class="op">(</span><span class="st">"https://youtu.be/GELhdezYmP0"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> #  - YouTube</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -280,10 +279,9 @@ and <a href="https://facelessuser.github.io/soupsieve/selectors/" class="externa
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> © 2025 Google LLC</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## The default transcript does not include timestamps. To include timestamps,</span></span></span>
-<span class="r-in"><span><span class="co">## you can supply a custom `youtube_transcript_formatter` function.</span></span></span>
-<span class="r-in"><span><span class="co">## Here is an example showing how to format the transcript to include</span></span></span>
-<span class="r-in"><span><span class="co">## timestamped youtube links</span></span></span>
+<span class="r-in"><span><span class="co">## The default transcript omits timestamps. Supply a custom</span></span></span>
+<span class="r-in"><span><span class="co">## `youtube_transcript_formatter` to control the output. This example formats</span></span></span>
+<span class="r-in"><span><span class="co">## the transcript with timestamped YouTube links.</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">format_youtube_timestamp</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">time</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">h</span> <span class="op">&lt;-</span> <span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%/%</a></span> <span class="fl">3600</span></span></span>

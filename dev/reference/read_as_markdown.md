@@ -50,16 +50,14 @@ read_as_markdown(
 
 - youtube_transcript_formatter:
 
-  A function you can pass to customize how YouTube transcript data is
-  converted to markdown. The function is called with a tibble/data.frame
-  containing the columns `text` (chr), `start` (dbl, seconds), and
-  `duration` (dbl, seconds). It will also have attribute
-  `"youtube_metadata"`, a named list with elements `language`,
-  `language_code`, `video_id`, and `is_generated`. The provided
-  formatter function should return a single string. The default
-  formatter is effectively
-  `\(transcript) paste0(transcript$text, collapse = " ")`. Supply a
-  custom function to include timestamps or links (see examples).
+  A function used to customize how YouTube transcript data is converted
+  to markdown. It receives a tibble/data.frame with columns `text`
+  (chr), `start` (dbl, seconds), and `duration` (dbl, seconds), along
+  with a `"youtube_metadata"` attribute, a named list containing
+  elements `language`, `language_code`, `video_id`, and `is_generated`.
+  The formatter must return a single string; by default it behaves like
+  `\(transcript) paste0(transcript$text, collapse = " ")`. Provide a
+  custom formatter to include timestamps or links (see examples).
 
 ## Value
 
@@ -127,7 +125,7 @@ read_as_markdown(url) |> cat_head(15)
 #> 
 #> We continuously strive to make our community a better place for everyone – in the best tradition of hackers we "build, test, improve, reiterate". In this ongoing adventure, we rely on the support, courage, and creativity of all members of the DuckDB community.
 #> 
-#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#2c5d594d4f476c48594f47484e02435e4b). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
+#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#19686c787a72597d6c7a727d7b37766b7e). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
 
 # To extract just the main content, use a selector
 read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
@@ -236,7 +234,7 @@ if (
 }
 
 # YouTube transcripts
-## read_as_markdown() will fetch the transcript for youtube links
+## read_as_markdown() fetches transcripts for YouTube links
 cat_head(read_as_markdown("https://youtu.be/GELhdezYmP0"))
 #> #  - YouTube
 #> 
@@ -244,10 +242,9 @@ cat_head(read_as_markdown("https://youtu.be/GELhdezYmP0"))
 #> 
 #> © 2025 Google LLC
 
-## The default transcript does not include timestamps. To include timestamps,
-## you can supply a custom `youtube_transcript_formatter` function.
-## Here is an example showing how to format the transcript to include
-## timestamped youtube links
+## The default transcript omits timestamps. Supply a custom
+## `youtube_transcript_formatter` to control the output. This example formats
+## the transcript with timestamped YouTube links.
 
 format_youtube_timestamp <- function(time) {
   h <- time %/% 3600
