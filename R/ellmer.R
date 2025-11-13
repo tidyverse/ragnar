@@ -197,14 +197,8 @@ mcp_serve_store <- function(
     store_description = store_description,
     ...,
     name = name,
-    title = title,
-    as_json = TRUE
+    title = title
   )
-
   tools <- c(list(retrieve_tool), extra_tools)
-  if (rlang::is_installed("mcptools", version = "0.1.1.9001")) {
-    mcptools::mcp_server(tools, include_session_tools = FALSE)
-  } else {
-    mcptools::mcp_server(tools)
-  }
+  mcptools::mcp_server(tools, session_tools = FALSE)
 }
