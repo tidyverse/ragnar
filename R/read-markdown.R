@@ -216,12 +216,20 @@ read_as_markdown <- function(
     # use the Python API, faster, more powerful, the default,
     # but we leave an escape hatch just in case there are other python
     # dependencies that conflict
-    md <- ragnartools.markitdown$convert_to_markdown(
-      path,
-      html_extract_selectors = html_extract_selectors,
-      html_zap_selectors = html_zap_selectors,
-      youtube_transcript_formatter = youtube_transcript_formatter,
-      ...,
+    md <- tryCatch(
+      ragnartools.markitdown$convert_to_markdown(
+        path,
+        html_extract_selectors = html_extract_selectors,
+        html_zap_selectors = html_zap_selectors,
+        youtube_transcript_formatter = youtube_transcript_formatter,
+        ...,
+      ),
+      # class(reticulate::import("markitdown")$MarkItDownException())[1]
+      `markitdown._exceptions.MarkItDownException` = function(e) {
+        tryCatch(readLines(path, warn = FALSE), error = function(rl_e) {
+          stop(e)
+        })
+      }
     )
   } else {
     md <- read_as_markdown_cli(path, ...)
