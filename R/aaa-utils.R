@@ -331,3 +331,5 @@ parent.pkg <- function(env = parent.frame(2L)) {
     NULL # print visible
   }
 }
+
+`append<-` <- function(x, value) c(x, value)
