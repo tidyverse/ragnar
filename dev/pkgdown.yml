@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   ragnar: ragnar.html
-last_built: 2025-11-13T13:10Z
+last_built: 2025-11-14T14:46Z
 urls:
   reference: https://ragnar.tidyverse.org/reference
   article: https://ragnar.tidyverse.org/articles
