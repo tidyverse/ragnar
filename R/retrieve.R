@@ -530,11 +530,14 @@ ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
     {
       # @version == 1
       chunks[["hash"]] <- NULL
+      chunks <- distinct(chunks)
     },
     {
       # @version == 2
       if (deoverlap) {
         chunks <- chunks_deoverlap(store, chunks)
+      } else {
+        chunks <- distinct(chunks, doc_id, chunk_id, .keep_all = TRUE)
       }
     }
   )
@@ -564,6 +567,7 @@ chunks_deoverlap <- function(store, chunks) {
   }
   deoverlapped <- chunks |>
     mutate(embedding = NULL) |>
+    distinct(doc_id, chunk_id, .keep_all = TRUE) |>
     arrange(origin, doc_id, start) |>
     mutate(
       .by = c(origin, doc_id),
