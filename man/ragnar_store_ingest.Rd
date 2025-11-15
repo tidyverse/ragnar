@@ -9,7 +9,8 @@ ragnar_store_ingest(
   paths,
   prepare = function(path) markdown_chunk(read_as_markdown(path)),
   n_workers = NULL,
-  progress = TRUE
+  progress = TRUE,
+  build_index = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ should return the prepared chunks (with or without an \code{embedding} column).}
 \code{length(paths)} and \code{parallel::detectCores()} (with a minimum of 1).}
 
 \item{progress}{Logical; if \code{TRUE}, show a CLI progress bar.}
+
+\item{build_index}{Logical; whether to call \code{ragnar_store_build_index()} after ingestion.}
 }
 \value{
 \code{store}, invisibly.
