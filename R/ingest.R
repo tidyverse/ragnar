@@ -250,9 +250,9 @@ prepare_ingest_paths <- function(paths, store) {
   # uniformly distribute new and old origins
   paths |>
     mutate(
-      .by = is_new_origin,
+      .by = .data$is_new_origin,
       rank = dplyr::percent_rank(row_number())
     ) |>
-    arrange(rank, !is_new_origin) |>
+    arrange(rank, !.data$is_new_origin) |>
     select(-rank)
 }
