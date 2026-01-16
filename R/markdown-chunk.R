@@ -413,7 +413,7 @@ markdown_position_headings <- function(
 
   df |>
     mutate(
-      nearest_preceeding_heading_level = md_headings$level[
+      nearest_preceding_heading_level= md_headings$level[
         findInterval(
           position,
           md_headings$start,
