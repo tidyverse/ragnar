@@ -54,7 +54,7 @@ Suggests:
     gargle,
     knitr,
     lifecycle,
-    mcptools,
+    mcptools (>= 0.2.0),
     pandoc,
     paws.common,
     rmarkdown,
