@@ -13,7 +13,8 @@ ragnar_store_ingest(
   paths,
   prepare = function(path) markdown_chunk(read_as_markdown(path)),
   n_workers = NULL,
-  progress = TRUE
+  progress = TRUE,
+  build_index = TRUE
 )
 ```
 
@@ -43,6 +44,12 @@ ragnar_store_ingest(
 - progress:
 
   Logical; if `TRUE`, show a CLI progress bar.
+
+- build_index:
+
+  Logical; whether to call
+  [`ragnar_store_build_index()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_build_index.md)
+  after ingestion.
 
 ## Value
 

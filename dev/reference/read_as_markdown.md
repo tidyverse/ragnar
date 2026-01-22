@@ -125,7 +125,7 @@ read_as_markdown(url) |> cat_head(15)
 #> 
 #> We continuously strive to make our community a better place for everyone – in the best tradition of hackers we "build, test, improve, reiterate". In this ongoing adventure, we rely on the support, courage, and creativity of all members of the DuckDB community.
 #> 
-#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#6d1c180c0e062d09180e06090f43021f0a). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
+#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#77060216141c371302141c131559180510). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
 
 # To extract just the main content, use a selector
 read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
@@ -240,7 +240,7 @@ cat_head(read_as_markdown("https://youtu.be/GELhdezYmP0"))
 #> 
 #> [About](https://www.youtube.com/about/)[Press](https://www.youtube.com/about/press/)[Copyright](https://www.youtube.com/about/copyright/)[Contact us](/t/contact_us/)[Creators](https://www.youtube.com/creators/)[Advertise](https://www.youtube.com/ads/)[Developers](https://developers.google.com/youtube)[Terms](/t/terms)[Privacy](/t/privacy)[Policy & Safety](https://www.youtube.com/about/policies/)[How YouTube works](https://www.youtube.com/howyoutubeworks?utm_campaign=ytgen&utm_source=ythp&utm_medium=LeftNav&utm_content=txt&u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen)[Test new features](/new)[NFL Sunday Ticket](https://tv.youtube.com/learn/nflsundayticket)
 #> 
-#> © 2025 Google LLC
+#> © 2026 Google LLC
 
 ## The default transcript omits timestamps. Supply a custom
 ## `youtube_transcript_formatter` to control the output. This example formats
@@ -288,6 +288,6 @@ read_as_markdown(
 #> 
 #> [About](https://www.youtube.com/about/)[Press](https://www.youtube.com/about/press/)[Copyright](https://www.youtube.com/about/copyright/)[Contact us](/t/contact_us/)[Creators](https://www.youtube.com/creators/)[Advertise](https://www.youtube.com/ads/)[Developers](https://developers.google.com/youtube)[Terms](/t/terms)[Privacy](/t/privacy)[Policy & Safety](https://www.youtube.com/about/policies/)[How YouTube works](https://www.youtube.com/howyoutubeworks?utm_campaign=ytgen&utm_source=ythp&utm_medium=LeftNav&utm_content=txt&u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen)[Test new features](/new)[NFL Sunday Ticket](https://tv.youtube.com/learn/nflsundayticket)
 #> 
-#> © 2025 Google LLC
+#> © 2026 Google LLC
 # }
 ```
