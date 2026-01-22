@@ -413,7 +413,7 @@ markdown_position_headings <- function(
 
   df |>
     mutate(
-      nearest_preceeding_heading_level = md_headings$level[
+      nearest_preceding_heading_level = md_headings$level[
         findInterval(
           position,
           md_headings$start,
@@ -426,7 +426,7 @@ markdown_position_headings <- function(
       ],
       max_applicable_level = coalesce(
         start_of_heading_level - 1L,
-        nearest_preceeding_heading_level,
+        nearest_preceding_heading_level,
         99L
       ),
       heading = map2(heading, max_applicable_level, \(h, l) {
@@ -449,7 +449,7 @@ utils::globalVariables(c(
   "heading_start",
   "closest",
   "start_of_heading_level",
-  "nearest_preceeding_heading_level",
+  "nearest_preceding_heading_level ",
   "heading",
   "max_applicable_level"
 ))
