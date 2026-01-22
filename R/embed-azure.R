@@ -1,16 +1,14 @@
-
 # setup: https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview?pivots=programming-language-python#prerequisites
 #model_id <- "azureml://registries/azure-openai/models/text-embedding-3-large/versions/1"
 #https://ragnar.cognitiveservices.azure.com/openai/deployments/text-embedding-3-large/embeddings?api-version=2023-05-15
 
-
 #' Uses Azure AI Foundry to create embeddings
-#' 
+#'
 #' @inheritParams embed_openai
 #' @param endpoint The Azure AI Foundry endpoint URL. A URI in the form of
 #'   `https://<project>.cognitiveservices.azure.com/`. Defaults to the value
 #'   of the `AZURE_OPENAI_ENDPOINT` environment variable.
-#'   This URL is appended with `/openai/deployments/{model}/embeddings`. 
+#'   This URL is appended with `/openai/deployments/{model}/embeddings`.
 #'   Where `model` is the deployment name of the model.
 #' @param api_version The API version to use. Defaults to `2023-05-15`.
 #' @param model The deployment name of the model to use for generating embeddings.
@@ -18,10 +16,10 @@
 #' @inherit embed_ollama return
 #' @export
 embed_azure_openai <- function(
-  x, 
+  x,
   endpoint = get_envvar("AZURE_OPENAI_ENDPOINT"),
   api_key = get_envvar("AZURE_OPENAI_API_KEY"),
-  api_version = "2023-05-15", 
+  api_version = "2023-05-15",
   model,
   batch_size = 20L,
   api_args = list()

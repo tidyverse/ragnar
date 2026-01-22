@@ -69,6 +69,12 @@ ragnar_tool_retrieve <- function(
   title <- title %||% store@title
   location <- store@location
 
+  if (identical(store_description, "the knowledge store") && !is.null(title)) {
+    store_description <- title |>
+      sub("^search ", "", x = _, ignore.case = TRUE, perl = TRUE) |>
+      sub("^the ", "", x = _, ignore.case = TRUE, perl = TRUE)
+  }
+
   omit_cols <- c(
     "bm25",
     "cosine_distance",
@@ -102,7 +108,7 @@ ragnar_tool_retrieve <- function(
     name = name,
     description = glue::glue(
       "
-      Given a string, retrieve the most relevant excerpts from {store_description}. \\
+      Given a string, retrieve the most relevant excerpts from the {store_description}. \\
       Both BM25 (keyword) search and embedding vector similarity (semantic) search are performed. \\
       Previously retrieved chunks are never returned; \\
       repeated searches of the same query will always return unique new results.
@@ -191,14 +197,8 @@ mcp_serve_store <- function(
     store_description = store_description,
     ...,
     name = name,
-    title = title,
-    as_json = TRUE
+    title = title
   )
-
   tools <- c(list(retrieve_tool), extra_tools)
-  if (rlang::is_installed("mcptools", version = "0.1.1.9001")) {
-    mcptools::mcp_server(tools, include_session_tools = FALSE)
-  } else {
-    mcptools::mcp_server(tools)
-  }
+  mcptools::mcp_server(tools, session_tools = FALSE)
 }

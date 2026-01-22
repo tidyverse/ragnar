@@ -14,6 +14,7 @@
 #' @param n_workers Number of worker processes to use. Defaults to the smaller of
 #'   `length(paths)` and `parallel::detectCores()` (with a minimum of 1).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
+#' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
 #' @returns `store`, invisibly.
 #' @export
 ragnar_store_ingest <- function(
@@ -21,7 +22,8 @@ ragnar_store_ingest <- function(
   paths,
   prepare = \(path) path |> read_as_markdown() |> markdown_chunk(),
   n_workers = NULL,
-  progress = TRUE
+  progress = TRUE,
+  build_index = TRUE
 ) {
   if (!rlang::is_installed("mirai")) {
     cli::cli_abort(
@@ -40,9 +42,11 @@ ragnar_store_ingest <- function(
   if (is.null(n_workers)) {
     n_workers <-
       max(na.rm = TRUE, parallel::detectCores(), 4L) |>
-      min(nrow(paths) %/% 2L) |>
+      min(nrow(paths) %/% 4L, 8) |>
       max(2L)
-    if (progress) cli::cli_inform("Launching {n_workers} parallel workers.")
+    if (progress) {
+      cli::cli_inform("Launching {n_workers} parallel workers.")
+    }
   }
   check_number_whole(n_workers, min = 1)
 
@@ -59,8 +63,8 @@ ragnar_store_ingest <- function(
 
   withr::local_options(list(
     ragnar.embed.req_retry = list(
-      max_tries = 30L,
-      max_seconds = 90
+      max_tries = max(n_workers * 3L, 20L),
+      max_seconds = 180
     )
   ))
 
@@ -85,16 +89,23 @@ ragnar_store_ingest <- function(
   }
 
   if (isTRUE(progress)) {
-    cli::cli_progress_bar("Ingesting", total = nrow(paths))
+    cli::cli_progress_bar(
+      "Ingesting",
+      total = nrow(paths),
+      format_done = "{.alert-success Finished ingesting {nrow(paths)} files in {cli::pb_elapsed}}",
+      format_failed = "{.alert-danger {cli::pb_name} failed after {cli::pb_elapsed}}"
+    )
   }
 
   repeat {
     result <- task_queue$pop_result(unavailable = break)
 
     if (mirai::is_error_value(result)) {
+      # browser()
       cond <- attributes(result)
       class(cond) <- cond$condition.class
-      stop(cond)
+      warning(cond)
+      next
     }
 
     if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
@@ -103,18 +114,41 @@ ragnar_store_ingest <- function(
       )
     }
     ragnar_store_update(store, result)
-    if (progress) cli::cli_progress_update()
+    # tryCatch(ragnar_store_update(store, result), error = function(e) browser()) {
+
+    if (progress) {
+      cli::cli_alert_info(paste("ingested:", result@document@origin))
+      cli::cli_progress_update()
+    }
   }
 
   if (progress) {
     cli::cli_progress_done()
   }
 
+  if (build_index) {
+    ragnar_store_build_index(store)
+  }
+
   invisible(store)
 }
 
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
-  chunks <- prepare(path)
+  tryCatch(
+    chunks <- prepare(path),
+    error = function(e) {
+      fmt <- '`prepare("%s")` signaled an Error: %s'
+      e$message <- sprintf(fmt, path, conditionMessage(e))
+      stop(e)
+    }
+  )
+  if (!S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
+    msg <- glue(
+      '`prepare("{path}")` did not return a MarkdownDocumentChunks object'
+    )
+    stop(msg, call. = FALSE)
+  }
+
   if (embed) {
     tryCatch(
       chunks <- do_embed(store, chunks),
@@ -216,9 +250,9 @@ prepare_ingest_paths <- function(paths, store) {
   # uniformly distribute new and old origins
   paths |>
     mutate(
-      .by = is_new_origin,
+      .by = "is_new_origin",
       rank = dplyr::percent_rank(row_number())
     ) |>
-    arrange(rank, !is_new_origin) |>
+    arrange(rank, !.data$is_new_origin) |>
     select(-rank)
 }
