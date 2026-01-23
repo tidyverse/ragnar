@@ -204,10 +204,9 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
     }
 
     if (length(.active)) {
-      mirai::race_mirai(.active)
-      done <- !vapply(.active, mirai::unresolved, TRUE)
-      .finished <<- c(.finished, .active[done])
-      .active <<- .active[!done]
+      idx <- mirai::race_mirai(.active)
+      .finished <<- c(.finished, .active[idx])
+      .active <<- .active[-idx]
       return(pop_result(unavailable = unavailable))
     }
 
