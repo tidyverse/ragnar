@@ -1,7 +1,9 @@
 library(ragnar)
 
 base_url <- "https://r4ds.hadley.nz"
-pages <- ragnar_find_links(base_url)
+pages <- ragnar_find_links(base_url, url_filter = \(url) {
+  url[startsWith(url, "https://r4ds.hadley.nz")]
+})
 
 store_location <- "r4ds.ragnar.duckdb"
 
