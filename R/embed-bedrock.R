@@ -6,7 +6,7 @@
 #'   There are no guardarails for the kind of model that is used, but the model
 #'   must be available in the AWS region specified by the profile.
 #'   You may look for available models in the Bedrock Model Catalog
-#' @param profile AWS profile to use.
+#' @param profile AWS profile to use. It's passed to [paws.common::locate_credentials] to locate AWS credentials.
 #' @param api_args Additional arguments to pass to the Bedrock API. Depending
 #'   on the `model`, you might be able to provide different parameters. Check
 #'   the documentation for the model you are using in the
@@ -19,7 +19,7 @@
 #' If `x` is not missing, a matrix of embeddings with 1 row per input string, or a dataframe with an 'embedding' column.
 #'
 #' @export
-embed_bedrock <- function(x, model, profile, api_args = list()) {
+embed_bedrock <- function(x, model, profile = "", api_args = list()) {
   if (missing(x) || is.null(x)) {
     args <- capture_args()
     fn <- partial(quote(ragnar::embed_bedrock), alist(x = ), args)
