@@ -5,7 +5,7 @@ Embed text using a Bedrock model
 ## Usage
 
 ``` r
-embed_bedrock(x, model, profile, api_args = list())
+embed_bedrock(x, model, profile = "", api_args = list())
 ```
 
 ## Arguments
@@ -35,7 +35,9 @@ embed_bedrock(x, model, profile, api_args = list())
 
 - profile:
 
-  AWS profile to use.
+  AWS profile to use. It's passed to
+  [paws.common::locate_credentials](https://paws-r.r-universe.dev/paws.common/reference/locate_credentials.html)
+  to locate AWS credentials.
 
 - api_args:
 

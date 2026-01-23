@@ -39,7 +39,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">embed_bedrock</span><span class="op">(</span><span class="va">x</span>, <span class="va">model</span>, <span class="va">profile</span>, api_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">embed_bedrock</span><span class="op">(</span><span class="va">x</span>, <span class="va">model</span>, profile <span class="op">=</span> <span class="st">""</span>, api_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -64,7 +64,7 @@ You may look for available models in the Bedrock Model Catalog</p></dd>
 
 
 <dt id="arg-profile">profile<a class="anchor" aria-label="anchor" href="#arg-profile"></a></dt>
-<dd><p>AWS profile to use.</p></dd>
+<dd><p>AWS profile to use. It's passed to <a href="https://paws-r.r-universe.dev/paws.common/reference/locate_credentials.html" class="external-link">paws.common::locate_credentials</a> to locate AWS credentials.</p></dd>
 
 
 <dt id="arg-api-args">api_args<a class="anchor" aria-label="anchor" href="#arg-api-args"></a></dt>
