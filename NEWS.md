@@ -1,50 +1,79 @@
 # ragnar (development version)
 
--   New `embed_azure_openai()` helper for generating embeddings from
-    Azure AI Foundry (#144).
+## Breaking changes
 
--   New `embed_snowflake()` helper for generating embeddings with the
-    Snowflake Cortex Embedding API (#148).
+-   In `ragnar_find_links()`, the default `children_only = FALSE` now
+    returns all links on a page. If you relied on the previous default,
+    set `children_only = TRUE` (#115).
 
--   `ragnar_retrieve()` (and the corresponding ellmer retrieve tool) now
-    accept a vector of queries (#150).
+-   `ragnar_register_tool_retrieve()` now uses `search_{store@name}` as
+    the default tool name prefix (instead of
+    `rag_retrieve_from_{store@name}`), so you may need to update any
+    code that refers to the tool name explicitly (#123, #127).
 
--   `read_as_markdown()` once again fetches YouTube video transcripts
-    and now supports a `youtube_transcript_formatter` so callers can add
-    timestamps or links to the transcript output (#149).
+## New features
 
--   New `ragnar_store_atlas()` application for visualizing embeddings
-    (#124).
+-   New `embed_azure_openai()` supports embeddings from Azure AI Foundry
+    (#144).
 
--   New `ragnar_store_ingest()` for concurrently preparing and inserting
-    documents into a store with parallel workers via mirai (#133).
+-   New `embed_snowflake()` supports embeddings via the Snowflake Cortex
+    Embedding API (#148).
 
--   New function `mcp_serve_store()` which supports letting a local MCP
-    client like Codex CLI or Claude Code search a `RagnarStore` (#123).
+-   New `mcp_serve_store()` lets local MCP clients (e.g. Codex CLI or
+    Claude Code) search a `RagnarStore` (#123).
 
--   The default tool name prefix registered by
-    `ragnar_register_tool_retrive()` has changed from
-    `rag_retrieve_from_{store@name}` to `search_{store@name}`.
+-   `ragnar_retrieve()` (and the corresponding ellmer retrieval tool)
+    now accepts a vector of queries (#150).
 
--   Store Inspector updated with keyboard shortcuts, a draggable
-    divider, improved preview linkification and metadata display, visual
-    tweaks and general bug fixes (#120).
+-   New `ragnar_store_atlas()` visualizes store embeddings (#124).
 
--   Correct BM25 result ordering to sort by descending score (#122).
+-   New `ragnar_store_ingest()` prepares documents in parallel with
+    mirai and inserts them into a store (#133).
 
--   `embed_ollama()` default model is now `embeddinggemma` (#121).
+## Minor improvements and fixes
 
--   `ragnar_find_links()` now works better with HTML files on the local
-    filesystem. The new default value `children_only=FALSE` will return
-    all links on a page. See #115 for details.
+-   `embed_ollama()` now defaults to the `embeddinggemma` model (#121).
 
--   `read_as_markdown()` gains an `origin` argument to control the
-    `@origin` recorded on returned documents.
+-   `embed_openai()` error messages are now surfaced to the user (#112).
 
--   The `RagnarStore` print method now shows the store location (#116)
+-   Embedding helpers now share a generalized request retry policy,
+    configurable via `options(ragnar.embed.req_retry = ...)` (#138).
 
--   Errors messages when executing `embed_openai()` are now surfaced to
-    the user (#112).
+-   ragnar now requires mirai >= 2.5.1 (#139).
+
+-   `print()` on a `RagnarStore` now shows the store location (#116).
+
+-   `ragnar_retrieve_bm25()` now orders results by descending score
+    (#122).
+
+-   `ragnar_retrieve()` no longer returns duplicate rows when called
+    with multiple queries (#153).
+
+-   The ellmer retrieval tool now omits score columns from its output
+    (#130).
+
+-   `ragnar_store_inspect()` now includes keyboard shortcuts, a
+    draggable divider, improved preview linkification, better metadata
+    display, and other UI tweaks (#120, #117, #118).
+
+-   `ragnar_find_links()` works better with local HTML files (#115).
+
+-   `ragnar_store_insert()` and `ragnar_store_update()` (v2 stores) now
+    handle stores that are missing `store@schema` metadata (#146).
+
+-   `read_as_markdown()` once again fetches YouTube transcripts and now
+    supports `youtube_transcript_formatter`, so you can add timestamps
+    or links to the transcript output (#149).
+
+-   `read_as_markdown()` gains an `origin` argument to customize the
+    `@origin` recorded on returned documents (#128).
+
+-   `read_as_markdown()` now correctly reads plain-text files with
+    non-ASCII characters (#151).
+
+-   Vignette heading levels were fixed (#129).
+
+-   Added an example using `sentence-transformers` embeddings (#131).
 
 # ragnar 0.2.1
 
