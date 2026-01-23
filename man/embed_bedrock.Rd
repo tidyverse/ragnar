@@ -4,7 +4,7 @@
 \alias{embed_bedrock}
 \title{Embed text using a Bedrock model}
 \usage{
-embed_bedrock(x, model, profile, api_args = list())
+embed_bedrock(x, model, profile = "", api_args = list())
 }
 \arguments{
 \item{x}{x can be:
@@ -22,7 +22,7 @@ There are no guardarails for the kind of model that is used, but the model
 must be available in the AWS region specified by the profile.
 You may look for available models in the Bedrock Model Catalog}
 
-\item{profile}{AWS profile to use.}
+\item{profile}{AWS profile to use. It's passed to \link[paws.common:locate_credentials]{paws.common::locate_credentials} to locate AWS credentials.}
 
 \item{api_args}{Additional arguments to pass to the Bedrock API. Depending
 on the \code{model}, you might be able to provide different parameters. Check
