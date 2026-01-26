@@ -1,6 +1,6 @@
 Package: ragnar
 Title: Retrieval-Augmented Generation (RAG) Workflows
-Version: 0.3.0
+Version: 0.3.0.9000
 Authors@R: c(
     person("Tomasz", "Kalinowski", , "tomasz@posit.co", role = c("aut", "cre")),
     person("Daniel", "Falbel", , "daniel@posit.co", role = "aut"),
