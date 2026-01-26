@@ -12,6 +12,13 @@ template:
 development:
   mode: auto
 
+news:
+  releases:
+    - text: "ragnar 0.2"
+      href: https://tidyverse.org/blog/2025/08/ragnar-0-2/
+    - text: "ragnar 0.3"
+      href: https://tidyverse.org/blog/2025/08/ragnar-0-3-0/
+
 reference:
   - title: Document processing
     desc: Ingest documents from the web, PDFs, Word, or local Markdown.
