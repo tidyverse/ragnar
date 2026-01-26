@@ -18,7 +18,7 @@
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="ragnar">
-<script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/posit-dev/supported-by-posit/js/badge.min.js" data-max-height="43" data-light-bg="#666f76" data-light-fg="#f9f9f9"></script><script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
 </head>
 <body>
     <a href="#container" class="visually-hidden-focusable">Skip to content</a>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>ragnar</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.2.1/vignettes/ragnar.Rmd" class="external-link"><code>vignettes/ragnar.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.3.0/vignettes/ragnar.Rmd" class="external-link"><code>vignettes/ragnar.Rmd</code></a></small>
       <div class="d-none name"><code>ragnar.Rmd</code></div>
     </div>
 
@@ -95,7 +95,7 @@ They generate text with no awareness of whether it is true or false,
 only guided by similarity to patterns in text sequences in their
 training data.</p>
 <p>Put simply, in philosopher Harry Frankfurt’s sense of the word, the
-models generate “bullshit” <a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;a href="https://press.princeton.edu/books/hardcover/9780691122946/on-bullshit" class="external-link uri"&gt;https://press.princeton.edu/books/hardcover/9780691122946/on-bullshit&lt;/a&gt;&lt;/p&gt;'><sup>1</sup></a>:</p>
+models generate “bullshit” <a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;a href="https://press.princeton.edu/books/hardcover/9780691276786/on-bullshit" class="external-link uri"&gt;https://press.princeton.edu/books/hardcover/9780691276786/on-bullshit&lt;/a&gt;&lt;/p&gt;'><sup>1</sup></a>:</p>
 <blockquote>
 <p>It is impossible for someone to lie unless he thinks he knows the
 truth. Producing bullshit requires no such conviction. A person who lies
@@ -161,9 +161,10 @@ a new store if you want to change it.</p>
 <code><a href="../reference/embed_ollama.html">embed_openai()</a></code>, <code><a href="../reference/embed_google_vertex.html">embed_google_vertex()</a></code>,
 <code><a href="../reference/embed_bedrock.html">embed_bedrock()</a></code>, and <code><a href="../reference/embed_databricks.html">embed_databricks()</a></code>, or
 your own function.</p>
-<div class="section level5">
-<h5 id="identify-documents-for-processing">Identify Documents for Processing<a class="anchor" aria-label="anchor" href="#identify-documents-for-processing"></a>
-</h5>
+</div>
+<div class="section level4">
+<h4 id="identify-documents-for-processing">Identify Documents for Processing<a class="anchor" aria-label="anchor" href="#identify-documents-for-processing"></a>
+</h4>
 <p>Gather a list of documents you want to insert in the database. For
 local files, this can be a simple <code><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files()</a></code> on a
 directory of documents.</p>
@@ -178,9 +179,9 @@ available.</p>
 <p>At the end of this step, you should have a character vector of file
 paths and URLs.</p>
 </div>
-<div class="section level5">
-<h5 id="convert-documents-to-markdown">Convert Documents to Markdown<a class="anchor" aria-label="anchor" href="#convert-documents-to-markdown"></a>
-</h5>
+<div class="section level4">
+<h4 id="convert-documents-to-markdown">Convert Documents to Markdown<a class="anchor" aria-label="anchor" href="#convert-documents-to-markdown"></a>
+</h4>
 <p>Convert each document to markdown. Markdown is preferred because it’s
 plain text, easy to inspect, keeps token counts low, and works well for
 both humans and LLMs.</p>
@@ -200,9 +201,9 @@ to read in content–such as <code><a href="https://rdrr.io/r/base/readLines.htm
 turn a character vector into a <code><a href="../reference/MarkdownDocument.html">ragnar::MarkdownDocument</a></code>
 object with the <code><a href="../reference/MarkdownDocument.html">MarkdownDocument()</a></code> constructor.</p>
 </div>
-<div class="section level5">
-<h5 id="chunk-and-augment">Chunk and Augment<a class="anchor" aria-label="anchor" href="#chunk-and-augment"></a>
-</h5>
+<div class="section level4">
+<h4 id="chunk-and-augment">Chunk and Augment<a class="anchor" aria-label="anchor" href="#chunk-and-augment"></a>
+</h4>
 <p>Next, split the documents into smaller chunks. This is necessary
 because embedding models have context size limits, and because chunking
 allows you to return just the most relevant excerpts from a long
@@ -237,9 +238,9 @@ depending on your needs, but as an initial approximation, I recommend
 starting with an ingestion pipeline that does not give any opportunities
 for hallucinations to enter the store.</p>
 </div>
-<div class="section level5">
-<h5 id="insert-in-the-store">Insert in the Store<a class="anchor" aria-label="anchor" href="#insert-in-the-store"></a>
-</h5>
+<div class="section level4">
+<h4 id="insert-in-the-store">Insert in the Store<a class="anchor" aria-label="anchor" href="#insert-in-the-store"></a>
+</h4>
 <p>Take your augmented document chunks and insert them into the store by
 calling <code><a href="../reference/ragnar_store_insert.html">ragnar_store_insert()</a></code>. This function will
 automatically generate embeddings using the <code>embed</code> function
@@ -247,9 +248,9 @@ specified when the store was first created.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level5">
-<h5 id="tying-it-together">Tying it Together<a class="anchor" aria-label="anchor" href="#tying-it-together"></a>
-</h5>
+<div class="section level4">
+<h4 id="tying-it-together">Tying it Together<a class="anchor" aria-label="anchor" href="#tying-it-together"></a>
+</h4>
 <p>Repeat these steps for every document you want to insert into the
 store. Once you’re done processing the documents, call
 <code><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index()</a></code> to finalize the store and build
@@ -265,7 +266,6 @@ the index.</p>
 <span><span class="fu"><a href="../reference/ragnar_store_build_index.html">ragnar_store_build_index</a></span><span class="op">(</span><span class="va">store</span><span class="op">)</span></span></code></pre></div>
 <p>Once the store index is built, the store is ready for retrieval.</p>
 <hr>
-</div>
 </div>
 </div>
 <div class="section level3">
@@ -489,7 +489,7 @@ package.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
   </div></footer>

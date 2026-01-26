@@ -21,7 +21,7 @@
 <meta name="description" content='Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLM). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers (Ollama, OpenAI), with DuckDB as the default storage backend. Integrates with the ellmer package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs. For a review of retrieval-augmented generation methods, see Gao et al. (2023) "Retrieval-Augmented Generation for Large Language Models: A Survey" &lt;doi:10.48550/arXiv.2312.10997&gt;.'>
 <meta property="og:description" content='Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLM). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers (Ollama, OpenAI), with DuckDB as the default storage backend. Integrates with the ellmer package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs. For a review of retrieval-augmented generation methods, see Gao et al. (2023) "Retrieval-Augmented Generation for Large Language Models: A Survey" &lt;doi:10.48550/arXiv.2312.10997&gt;.'>
 <meta property="og:image" content="https://ragnar.tidyverse.org/logo.png">
-<script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/posit-dev/supported-by-posit/js/badge.min.js" data-max-height="43" data-light-bg="#666f76" data-light-fg="#f9f9f9"></script><script defer data-domain="ragnar.tidyverse.org,all.tidyverse.org" src="https://plausible.io/js/plausible.js"></script>
 </head>
 <body>
     <a href="#container" class="visually-hidden-focusable">Skip to content</a>
@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ragnar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,13 +58,14 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="ragnar-">ragnar <a class="anchor" aria-label="anchor" href="#ragnar-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="ragnar-">ragnar 
+<a class="anchor" aria-label="anchor" href="#ragnar-"></a>
 </h1>
 </div>
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p><code>ragnar</code> is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each step. We don’t believe that you can fully automate the creation of a good RAG system, so it’s important that <code>ragnar</code> is not a black box. <code>ragnar</code> is designed to be transparent. You can easily inspect outputs at intermediate steps to understand what’s happening.</p>
+<p>ragnar is an R package that helps implement Retrieval-Augmented Generation (RAG) workflows. It focuses on providing a complete solution with sensible defaults, while still giving the knowledgeable user precise control over each step. We don’t believe that you can fully automate the creation of a good RAG system, so it’s important that ragnar is not a black box. ragnar is designed to be transparent. You can easily inspect outputs at intermediate steps to understand what’s happening.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -82,7 +83,7 @@
 <div class="section level3">
 <h3 id="id_1-document-processing">1. Document Processing<a class="anchor" aria-label="anchor" href="#id_1-document-processing"></a>
 </h3>
-<p><code>ragnar</code> works with a wide variety of document types, using <a href="https://github.com/microsoft/markitdown" class="external-link">MarkItDown</a> to convert content to Markdown.</p>
+<p>ragnar works with a wide variety of document types, using <a href="https://github.com/microsoft/markitdown" class="external-link">MarkItDown</a> to convert content to Markdown.</p>
 <p>Key functions:</p>
 <ul>
 <li>
@@ -94,7 +95,7 @@
 <div class="section level3">
 <h3 id="id_2-text-chunking">2. Text Chunking<a class="anchor" aria-label="anchor" href="#id_2-text-chunking"></a>
 </h3>
-<p>Next we divide each document into chunks. Ragnar defaults to a strategy that preserves some of the semantics of the document, but provides plenty of opportunities to tweak the approach.</p>
+<p>Next we divide each document into chunks. ragnar defaults to a strategy that preserves some of the semantics of the document, but provides plenty of opportunities to tweak the approach.</p>
 <p>Key functions:</p>
 <ul>
 <li>
@@ -104,13 +105,13 @@
 <div class="section level3">
 <h3 id="id_3-context-augmentation-optional">3. Context Augmentation (Optional)<a class="anchor" aria-label="anchor" href="#id_3-context-augmentation-optional"></a>
 </h3>
-<p>RAG applications benefit from augmenting text chunks with additional context, such as document headings and subheadings. <code>ragnar</code> makes it easy to keep track of headings and subheadings as part of chunking.</p>
+<p>RAG applications benefit from augmenting text chunks with additional context, such as document headings and subheadings. ragnar makes it easy to keep track of headings and subheadings as part of chunking.</p>
 <p><code><a href="reference/markdown_chunk.html">markdown_chunk()</a></code> automatically associates each chunk with the headings that are in scope for that chunk.</p>
 </div>
 <div class="section level3">
 <h3 id="id_4-embedding">4. Embedding<a class="anchor" aria-label="anchor" href="#id_4-embedding"></a>
 </h3>
-<p><code>ragnar</code> can help compute embeddings for each chunk. The goal is for <code>ragnar</code> to provide access to embeddings from popular LLM providers.</p>
+<p>ragnar can help compute embeddings for each chunk. The goal is for ragnar to provide access to embeddings from popular LLM providers.</p>
 <p>Key functions:</p>
 <ul>
 <li><code><a href="reference/embed_ollama.html">embed_ollama()</a></code></li>
@@ -124,7 +125,7 @@
 <div class="section level3">
 <h3 id="id_5-storage">5. Storage<a class="anchor" aria-label="anchor" href="#id_5-storage"></a>
 </h3>
-<p>Processed data is stored in a format optimized for efficient searching, using <code>duckdb</code> by default. The API is designed to be extensible, allowing additional packages to implement support for different storage providers.</p>
+<p>Processed data is stored in a format optimized for efficient searching, using <a href="https://duckdb.org" class="external-link">DuckDB</a>. allowing additional packages to implement support for different storage providers.</p>
 <p>Key functions:</p>
 <ul>
 <li><code><a href="reference/ragnar_store_create.html">ragnar_store_create()</a></code></li>
@@ -153,7 +154,7 @@
 <div class="section level3">
 <h3 id="id_7-chat-augmentation">7. Chat Augmentation<a class="anchor" aria-label="anchor" href="#id_7-chat-augmentation"></a>
 </h3>
-<p><code>ragnar</code> can equip an <code><a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a></code> object with a retrieve tool that enables an LLM to retrieve content from a store on-demand.</p>
+<p>ragnar can equip an <code><a href="https://ellmer.tidyverse.org/reference/Chat.html" class="external-link">ellmer::Chat</a></code> object with a retrieve tool that enables an LLM to retrieve content from a store on-demand.</p>
 <ul>
 <li>
 <code>ragnar_register_tool_retrieve(chat, store)</code>.</li>
@@ -163,12 +164,14 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>Here’s an example of using <code>ragnar</code> to create a knowledge store from the <em>R for Data Science (2e)</em> book:</p>
+<p>Here’s an example of using ragnar to create a knowledge store from the <em>R for Data Science (2e)</em> book:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ragnar.tidyverse.org/">ragnar</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">base_url</span> <span class="op">&lt;-</span> <span class="st">"https://r4ds.hadley.nz"</span></span>
-<span><span class="va">pages</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_find_links.html">ragnar_find_links</a></span><span class="op">(</span><span class="va">base_url</span><span class="op">)</span></span>
+<span><span class="va">pages</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_find_links.html">ragnar_find_links</a></span><span class="op">(</span><span class="va">base_url</span>, url_filter <span class="op">=</span> \<span class="op">(</span><span class="va">url</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">url</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">startsWith</a></span><span class="op">(</span><span class="va">url</span>, <span class="st">"https://r4ds.hadley.nz"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">store_location</span> <span class="op">&lt;-</span> <span class="st">"r4ds.ragnar.duckdb"</span></span>
 <span></span>
@@ -182,7 +185,6 @@
 <span>  <span class="va">chunks</span> <span class="op">&lt;-</span> <span class="va">page</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/read_as_markdown.html">read_as_markdown</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/markdown_chunk.html">markdown_chunk</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="reference/ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/</span></span>
 <span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/arrow.html</span></span>
 <span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/base-R.html</span></span>
 <span><span class="co">#&gt; ingesting: https://r4ds.hadley.nz/communicate.html</span></span>
@@ -234,20 +236,18 @@
 <span></span>
 <span></span>
 <span><span class="co">#' # Retrieving Chunks</span></span>
-<span><span class="co">#' Once the store is set up, retrieve the most relevant text chunks like this</span></span>
-<span></span>
+<span><span class="co">#' Once the store is set up, retrieve the most relevant text chunks like this:</span></span>
 <span><span class="op">(</span><span class="va">relevant_chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ragnar_retrieve.html">ragnar_retrieve</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">text</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 9</span></span>
+<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 9</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt;   origin         doc_id chunk_id start   end cosine_distance bm25  context text </span></span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;           &lt;int&gt; &lt;list&gt;   &lt;int&gt; &lt;int&gt; &lt;list&gt;          &lt;lis&gt; &lt;chr&gt;   &lt;chr&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; 1 https://r4ds.…     14 &lt;int&gt;     2192  4007 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 25 … "```…</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; 2 https://r4ds.…     20 &lt;int&gt;     1622  4205 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 12 … "```…</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; 3 https://r4ds.…     20 &lt;int&gt;    19379 20792 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 12 … "Tha…</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; 4 https://r4ds.…     33 &lt;int&gt;    12795 15259 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 24 … "The…</span></span></code></pre></div>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; 1 https://r4ds.…      2 &lt;int&gt;     3237  4779 &lt;dbl [1]&gt;       &lt;dbl&gt; "# 27 … "```…</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; 2 https://r4ds.…     19 &lt;int&gt;     1622  4205 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 12 … "```…</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; 3 https://r4ds.…     19 &lt;int&gt;    19388 21644 &lt;dbl [2]&gt;       &lt;dbl&gt; "# 12 … "Tha…</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
-<span><span class="co">#'  Register ellmer tool</span></span>
+<span><span class="co">#' # Register ellmer tool</span></span>
 <span><span class="co">#' You can register an ellmer tool to let the LLM retrieve chunks.</span></span>
 <span><span class="va">system_prompt</span> <span class="op">&lt;-</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html" class="external-link">str_squish</a></span><span class="op">(</span></span>
 <span>  <span class="st">"</span></span>
@@ -261,54 +261,84 @@
 <span><span class="op">)</span></span>
 <span><span class="va">chat</span> <span class="op">&lt;-</span> <span class="fu">ellmer</span><span class="fu">::</span><span class="fu"><a href="https://ellmer.tidyverse.org/reference/chat_openai.html" class="external-link">chat_openai</a></span><span class="op">(</span></span>
 <span>  <span class="va">system_prompt</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"gpt-4.1"</span></span>
+<span>  model <span class="op">=</span> <span class="st">"gpt-5.2"</span>,</span>
+<span>  api_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    reasoning <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="st">"low"</span><span class="op">)</span>,</span>
+<span>    text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="st">"low"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve</a></span><span class="op">(</span><span class="va">chat</span>, <span class="va">store</span>, top_k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">chat</span><span class="op">$</span><span class="fu">chat</span><span class="op">(</span><span class="st">"How can I subset a dataframe?"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ◯ [tool call] rag_retrieve_from_store_001(text = "How to subset a dataframe in</span></span>
-<span><span class="co">#&gt; R")</span></span>
-<span><span class="co">#&gt; ● #&gt; [{"origin":"https://r4ds.hadley.nz/arrow.html","doc_id":2,"chunk_id":13,"…</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co">#&gt; To subset a dataframe in R, you can use several approaches, such as base R or </span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; dplyr. Here are some concise examples:</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; Base R:</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; - Select rows and columns by indices or names: df[rows, cols]</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; Example:</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; df[1:3, c("x", "y")]  # First 3 rows, columns x and y</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; - Subset by logical condition:</span></span>
+<span><span class="co">#&gt; ◯ [tool call] search_store_001(text = c("R subset data frame using [ ,</span></span>
+<span><span class="co">#&gt; subset(), dplyr filter select", ...)</span></span>
+<span><span class="co">#&gt; ● #&gt; [</span></span>
+<span><span class="co">#&gt;   #&gt; {</span></span>
+<span><span class="co">#&gt;   #&gt; "origin": "https://r4ds.hadley.nz/base-R.html",</span></span>
+<span><span class="co">#&gt;   #&gt; "doc_id": 2,</span></span>
+<span><span class="co">#&gt;   #&gt; "chunk_id": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],</span></span>
+<span><span class="co">#&gt;   #&gt; …</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co">#&gt; </span><span class="al">###</span><span class="co"> Base R (works for `data.frame` and tibbles)</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; **Source (quoted/paraphrased):** *R for Data Science* explains that `[` </span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; “extract[s] sub-components from vectors and data frames” and that for data </span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; frames the key form is `df[rows, cols]`, with `df[rows, ]` selecting rows and </span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; `df[, cols]` selecting columns; it also shows examples like `df[df$x &gt; 1, ]` </span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; for conditional row filtering, and notes `drop = FALSE` to keep a 1-column </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; result as a data frame.  </span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; Source: https://r4ds.hadley.nz/base-R.html</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; df[df$x &gt; 1, ]  # Rows where column x &gt; 1</span></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; - Select columns only: df[, c("x", "y")]</span></span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; - Select rows only: df[1:5, ]</span></span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; (Source: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; # rows by position</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; df[1:5, ]</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; # columns by name</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; df[, c("x", "y")]</span></span>
 <span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; dplyr package:</span></span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; - Subset rows: filter(), select columns: select()</span></span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; Example:</span></span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt; library(dplyr)</span></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; df %&gt;% filter(x &gt; 1) %&gt;% select(x, y)</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; # rows by condition (keep rows where x &gt; 1)</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; df[df$x &gt; 1, ]</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co">#&gt; # single column:</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt; df[,"x"]              # may return a vector for data.frame</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; df[,"x", drop = FALSE]# always keep as data frame</span></span>
 <span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; (Source: https://r4ds.hadley.nz/functions.html#common-use-cases)</span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; You can also use the base R subset() function:</span></span>
-<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
-<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; subset(df, x &gt; 1, select = c(x, y))</span></span>
-<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
-<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; (Source: https://r4ds.hadley.nz/base-R.html#subsetting-data-frames)</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; To pull a single column:</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; df$x        # or df[["x"]]</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; </span><span class="al">###</span><span class="co"> `subset()` (base R convenience)</span></span>
 <span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt; References:</span></span>
-<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt; - https://r4ds.hadley.nz/base-R.html#subsetting-data-frames</span></span>
-<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt; - https://r4ds.hadley.nz/functions.html#common-use-cases</span></span>
-<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt; Further reading:</span></span>
-<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt; - dplyr filter(): https://dplyr.tidyverse.org/reference/filter.html</span></span>
-<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; - dplyr select(): https://dplyr.tidyverse.org/reference/select.html</span></span></code></pre></div>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt; **Source (quoted/paraphrased):** *R for Data Science* notes base R also has </span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt; `subset()` combining row filtering + column selection, e.g. `df |&gt; subset(x &gt; </span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt; 1, c(y, z))`.  </span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; Source: https://r4ds.hadley.nz/base-R.html</span></span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; subset(df, x &gt; 1, c(y, z))</span></span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a><span class="co">#&gt; </span><span class="al">###</span><span class="co"> dplyr (tidyverse)</span></span>
+<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a><span class="co">#&gt; **Source (quoted/paraphrased):** *R for Data Science* describes `filter()` for </span></span>
+<span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a><span class="co">#&gt; keeping rows based on conditions and `select()` for choosing columns.  </span></span>
+<span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a><span class="co">#&gt; Source: https://r4ds.hadley.nz/data-transform.html</span></span>
+<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-48"><a href="#cb7-48" tabindex="-1"></a><span class="co">#&gt; ```r</span></span>
+<span id="cb7-49"><a href="#cb7-49" tabindex="-1"></a><span class="co">#&gt; library(dplyr)</span></span>
+<span id="cb7-50"><a href="#cb7-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-51"><a href="#cb7-51" tabindex="-1"></a><span class="co">#&gt; df |&gt; filter(x &gt; 1)</span></span>
+<span id="cb7-52"><a href="#cb7-52" tabindex="-1"></a><span class="co">#&gt; df |&gt; select(x, y)</span></span>
+<span id="cb7-53"><a href="#cb7-53" tabindex="-1"></a><span class="co">#&gt; df |&gt; filter(x &gt; 1) |&gt; select(y, z)</span></span>
+<span id="cb7-54"><a href="#cb7-54" tabindex="-1"></a><span class="co">#&gt; ```</span></span>
+<span id="cb7-55"><a href="#cb7-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-56"><a href="#cb7-56" tabindex="-1"></a><span class="co">#&gt; Additional links:</span></span>
+<span id="cb7-57"><a href="#cb7-57" tabindex="-1"></a><span class="co">#&gt; - Base `[` help: https://rdrr.io/r/base/Extract.html</span></span>
+<span id="cb7-58"><a href="#cb7-58" tabindex="-1"></a><span class="co">#&gt; - Base `subset()` help: https://rdrr.io/r/base/subset.html</span></span>
+<span id="cb7-59"><a href="#cb7-59" tabindex="-1"></a><span class="co">#&gt; - dplyr `filter()`: https://dplyr.tidyverse.org/reference/filter.html</span></span>
+<span id="cb7-60"><a href="#cb7-60" tabindex="-1"></a><span class="co">#&gt; - dplyr `select()`: https://dplyr.tidyverse.org/reference/select.html</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -359,7 +389,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
   </div></footer>

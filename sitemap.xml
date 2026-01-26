@@ -10,13 +10,16 @@
 <url><loc>https://ragnar.tidyverse.org/reference/MarkdownDocument.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/chunks_deoverlap.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/embed_azure_openai.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/embed_bedrock.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/embed_databricks.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/embed_google_vertex.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/embed_ollama.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/embed_snowflake.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/index.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/markdown_chunk.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/markdown_segment.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/mcp_serve_store.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar-package.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_chunk.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_chunks_view.html</loc></url>
@@ -28,8 +31,10 @@
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_retrieve_bm25.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_retrieve_vss.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_retrieve_vss_and_bm25.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_atlas.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_build_index.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_create.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_ingest.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_insert.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_inspect.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/read_as_markdown.html</loc></url>
