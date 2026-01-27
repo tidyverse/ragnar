@@ -463,4 +463,4 @@ For more details and a full example, see the
 
 ------------------------------------------------------------------------
 
-1.  <https://press.princeton.edu/books/hardcover/9780691122946/on-bullshit>
+1.  <https://press.princeton.edu/books/hardcover/9780691276786/on-bullshit>

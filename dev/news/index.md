@@ -2,76 +2,126 @@
 
 ## ragnar (development version)
 
+## ragnar 0.3.0
+
+CRAN release: 2026-01-23
+
+### Breaking changes
+
+- In
+  [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md),
+  the default `children_only = FALSE` now returns all links on a page.
+  If you relied on the previous default, set `children_only = TRUE`
+  ([\#115](https://github.com/tidyverse/ragnar/issues/115)).
+
+- [`ragnar_register_tool_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_register_tool_retrieve.md)
+  now uses `search_{store@name}` as the default tool name prefix
+  (instead of `rag_retrieve_from_{store@name}`), so you may need to
+  update any code that refers to the tool name explicitly
+  ([\#123](https://github.com/tidyverse/ragnar/issues/123),
+  [\#127](https://github.com/tidyverse/ragnar/issues/127)).
+
+### New features
+
 - New
   [`embed_azure_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_azure_openai.md)
-  helper for generating embeddings from Azure AI Foundry
+  supports embeddings from Azure AI Foundry
   ([\#144](https://github.com/tidyverse/ragnar/issues/144)).
 
 - New
   [`embed_snowflake()`](https://ragnar.tidyverse.org/dev/reference/embed_snowflake.md)
-  helper for generating embeddings with the Snowflake Cortex Embedding
-  API ([\#148](https://github.com/tidyverse/ragnar/issues/148)).
+  supports embeddings via the Snowflake Cortex Embedding API
+  ([\#148](https://github.com/tidyverse/ragnar/issues/148)).
+
+- New
+  [`mcp_serve_store()`](https://ragnar.tidyverse.org/dev/reference/mcp_serve_store.md)
+  lets local MCP clients (e.g. Codex CLI or Claude Code) search a
+  `RagnarStore`
+  ([\#123](https://github.com/tidyverse/ragnar/issues/123)).
 
 - [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
-  (and the corresponding ellmer retrieve tool) now accept a vector of
+  (and the corresponding ellmer retrieval tool) now accepts a vector of
   queries ([\#150](https://github.com/tidyverse/ragnar/issues/150)).
-
-- [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
-  once again fetches YouTube video transcripts and now supports a
-  `youtube_transcript_formatter` so callers can add timestamps or links
-  to the transcript output
-  ([\#149](https://github.com/tidyverse/ragnar/issues/149)).
 
 - New
   [`ragnar_store_atlas()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_atlas.md)
-  application for visualizing embeddings
+  visualizes store embeddings
   ([\#124](https://github.com/tidyverse/ragnar/issues/124)).
 
 - New
   [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
-  for concurrently preparing and inserting documents into a store with
-  parallel workers via mirai
-  ([\#133](https://github.com/tidyverse/ragnar/issues/133)).
+  prepares documents in parallel with mirai and inserts them into a
+  store ([\#133](https://github.com/tidyverse/ragnar/issues/133)).
 
-- New function
-  [`mcp_serve_store()`](https://ragnar.tidyverse.org/dev/reference/mcp_serve_store.md)
-  which supports letting a local MCP client like Codex CLI or Claude
-  Code search a `RagnarStore`
-  ([\#123](https://github.com/tidyverse/ragnar/issues/123)).
-
-- The default tool name prefix registered by
-  `ragnar_register_tool_retrive()` has changed from
-  `rag_retrieve_from_{store@name}` to `search_{store@name}`.
-
-- Store Inspector updated with keyboard shortcuts, a draggable divider,
-  improved preview linkification and metadata display, visual tweaks and
-  general bug fixes
-  ([\#120](https://github.com/tidyverse/ragnar/issues/120)).
-
-- Correct BM25 result ordering to sort by descending score
-  ([\#122](https://github.com/tidyverse/ragnar/issues/122)).
+### Minor improvements and fixes
 
 - [`embed_ollama()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
-  default model is now `embeddinggemma`
+  now defaults to the `embeddinggemma` model
   ([\#121](https://github.com/tidyverse/ragnar/issues/121)).
 
+- [`embed_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
+  error messages are now surfaced to the user
+  ([\#112](https://github.com/tidyverse/ragnar/issues/112)).
+
+- Embedding helpers now share a generalized request retry policy,
+  configurable via `options(ragnar.embed.req_retry = ...)`
+  ([\#138](https://github.com/tidyverse/ragnar/issues/138)).
+
+- ragnar now requires mirai \>= 2.5.1
+  ([\#139](https://github.com/tidyverse/ragnar/issues/139)).
+
+- [`print()`](https://rdrr.io/r/base/print.html) on a `RagnarStore` now
+  shows the store location
+  ([\#116](https://github.com/tidyverse/ragnar/issues/116)).
+
+- [`ragnar_retrieve_bm25()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_bm25.md)
+  now orders results by descending score
+  ([\#122](https://github.com/tidyverse/ragnar/issues/122)).
+
+- [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
+  no longer returns duplicate rows when called with multiple queries
+  ([\#153](https://github.com/tidyverse/ragnar/issues/153)).
+
+- The ellmer retrieval tool now omits score columns from its output
+  ([\#130](https://github.com/tidyverse/ragnar/issues/130)).
+
+- [`ragnar_store_inspect()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_inspect.md)
+  now includes keyboard shortcuts, a draggable divider, improved preview
+  linkification, better metadata display, and other UI tweaks
+  ([\#120](https://github.com/tidyverse/ragnar/issues/120),
+  [\#117](https://github.com/tidyverse/ragnar/issues/117),
+  [\#118](https://github.com/tidyverse/ragnar/issues/118)).
+
 - [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
-  now works better with HTML files on the local filesystem. The new
-  default value `children_only=FALSE` will return all links on a page.
-  See [\#115](https://github.com/tidyverse/ragnar/issues/115) for
-  details.
+  works better with local HTML files
+  ([\#115](https://github.com/tidyverse/ragnar/issues/115)).
+
+- [`ragnar_store_insert()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_insert.md)
+  and
+  [`ragnar_store_update()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_insert.md)
+  (v2 stores) now handle stores that are missing `store@schema` metadata
+  ([\#146](https://github.com/tidyverse/ragnar/issues/146)).
 
 - [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
-  gains an `origin` argument to control the `@origin` recorded on
-  returned documents.
+  once again fetches YouTube transcripts and now supports
+  `youtube_transcript_formatter`, so you can add timestamps or links to
+  the transcript output
+  ([\#149](https://github.com/tidyverse/ragnar/issues/149)).
 
-- The `RagnarStore` print method now shows the store location
-  ([\#116](https://github.com/tidyverse/ragnar/issues/116))
+- [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  gains an `origin` argument to customize the `@origin` recorded on
+  returned documents
+  ([\#128](https://github.com/tidyverse/ragnar/issues/128)).
 
-- Errors messages when executing
-  [`embed_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
-  are now surfaced to the user
-  ([\#112](https://github.com/tidyverse/ragnar/issues/112)).
+- [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  now correctly reads plain-text files with non-ASCII characters
+  ([\#151](https://github.com/tidyverse/ragnar/issues/151)).
+
+- Vignette heading levels were fixed
+  ([\#129](https://github.com/tidyverse/ragnar/issues/129)).
+
+- Added an example using `sentence-transformers` embeddings
+  ([\#131](https://github.com/tidyverse/ragnar/issues/131)).
 
 ## ragnar 0.2.1
 

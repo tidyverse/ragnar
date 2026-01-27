@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.2.1.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,7 +17,14 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/ragnar.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-news"><li><h6 class="dropdown-header" data-toc-skip>Releases</h6></li>
+    <li><a class="external-link dropdown-item" href="https://tidyverse.org/blog/2025/08/ragnar-0-2/">ragnar 0.2</a></li>
+    <li><a class="external-link dropdown-item" href="https://tidyverse.org/blog/2025/08/ragnar-0-3-0/">ragnar 0.3</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../news/index.html">Changelog</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/tidyverse/ragnar/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -34,22 +41,43 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="ragnar-development-version">ragnar (development version)<a class="anchor" aria-label="anchor" href="#ragnar-development-version"></a></h2>
-<ul><li><p>New <code><a href="../reference/embed_azure_openai.html">embed_azure_openai()</a></code> helper for generating embeddings from Azure AI Foundry (<a href="https://github.com/tidyverse/ragnar/issues/144" class="external-link">#144</a>).</p></li>
-<li><p>New <code><a href="../reference/embed_snowflake.html">embed_snowflake()</a></code> helper for generating embeddings with the Snowflake Cortex Embedding API (<a href="https://github.com/tidyverse/ragnar/issues/148" class="external-link">#148</a>).</p></li>
-<li><p><code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> (and the corresponding ellmer retrieve tool) now accept a vector of queries (<a href="https://github.com/tidyverse/ragnar/issues/150" class="external-link">#150</a>).</p></li>
-<li><p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> once again fetches YouTube video transcripts and now supports a <code>youtube_transcript_formatter</code> so callers can add timestamps or links to the transcript output (<a href="https://github.com/tidyverse/ragnar/issues/149" class="external-link">#149</a>).</p></li>
-<li><p>New <code><a href="../reference/ragnar_store_atlas.html">ragnar_store_atlas()</a></code> application for visualizing embeddings (<a href="https://github.com/tidyverse/ragnar/issues/124" class="external-link">#124</a>).</p></li>
-<li><p>New <code><a href="../reference/ragnar_store_ingest.html">ragnar_store_ingest()</a></code> for concurrently preparing and inserting documents into a store with parallel workers via mirai (<a href="https://github.com/tidyverse/ragnar/issues/133" class="external-link">#133</a>).</p></li>
-<li><p>New function <code><a href="../reference/mcp_serve_store.html">mcp_serve_store()</a></code> which supports letting a local MCP client like Codex CLI or Claude Code search a <code>RagnarStore</code> (<a href="https://github.com/tidyverse/ragnar/issues/123" class="external-link">#123</a>).</p></li>
-<li><p>The default tool name prefix registered by <code>ragnar_register_tool_retrive()</code> has changed from <code>rag_retrieve_from_{store@name}</code> to <code>search_{store@name}</code>.</p></li>
-<li><p>Store Inspector updated with keyboard shortcuts, a draggable divider, improved preview linkification and metadata display, visual tweaks and general bug fixes (<a href="https://github.com/tidyverse/ragnar/issues/120" class="external-link">#120</a>).</p></li>
-<li><p>Correct BM25 result ordering to sort by descending score (<a href="https://github.com/tidyverse/ragnar/issues/122" class="external-link">#122</a>).</p></li>
-<li><p><code><a href="../reference/embed_ollama.html">embed_ollama()</a></code> default model is now <code>embeddinggemma</code> (<a href="https://github.com/tidyverse/ragnar/issues/121" class="external-link">#121</a>).</p></li>
-<li><p><code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> now works better with HTML files on the local filesystem. The new default value <code>children_only=FALSE</code> will return all links on a page. See <a href="https://github.com/tidyverse/ragnar/issues/115" class="external-link">#115</a> for details.</p></li>
-<li><p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> gains an <code>origin</code> argument to control the <code>@origin</code> recorded on returned documents.</p></li>
-<li><p>The <code>RagnarStore</code> print method now shows the store location (<a href="https://github.com/tidyverse/ragnar/issues/116" class="external-link">#116</a>)</p></li>
-<li><p>Errors messages when executing <code><a href="../reference/embed_ollama.html">embed_openai()</a></code> are now surfaced to the user (<a href="https://github.com/tidyverse/ragnar/issues/112" class="external-link">#112</a>).</p></li>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="ragnar-030">ragnar 0.3.0<a class="anchor" aria-label="anchor" href="#ragnar-030"></a></h2><p class="text-muted">CRAN release: 2026-01-23</p>
+<div class="section level3">
+<h3 id="breaking-changes-0-3-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-3-0"></a></h3>
+<ul><li><p>In <code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code>, the default <code>children_only = FALSE</code> now returns all links on a page. If you relied on the previous default, set <code>children_only = TRUE</code> (<a href="https://github.com/tidyverse/ragnar/issues/115" class="external-link">#115</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code> now uses <code>search_{store@name}</code> as the default tool name prefix (instead of <code>rag_retrieve_from_{store@name}</code>), so you may need to update any code that refers to the tool name explicitly (<a href="https://github.com/tidyverse/ragnar/issues/123" class="external-link">#123</a>, <a href="https://github.com/tidyverse/ragnar/issues/127" class="external-link">#127</a>).</p></li>
 </ul></div>
+<div class="section level3">
+<h3 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h3>
+<ul><li><p>New <code><a href="../reference/embed_azure_openai.html">embed_azure_openai()</a></code> supports embeddings from Azure AI Foundry (<a href="https://github.com/tidyverse/ragnar/issues/144" class="external-link">#144</a>).</p></li>
+<li><p>New <code><a href="../reference/embed_snowflake.html">embed_snowflake()</a></code> supports embeddings via the Snowflake Cortex Embedding API (<a href="https://github.com/tidyverse/ragnar/issues/148" class="external-link">#148</a>).</p></li>
+<li><p>New <code><a href="../reference/mcp_serve_store.html">mcp_serve_store()</a></code> lets local MCP clients (e.g. Codex CLI or Claude Code) search a <code>RagnarStore</code> (<a href="https://github.com/tidyverse/ragnar/issues/123" class="external-link">#123</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> (and the corresponding ellmer retrieval tool) now accepts a vector of queries (<a href="https://github.com/tidyverse/ragnar/issues/150" class="external-link">#150</a>).</p></li>
+<li><p>New <code><a href="../reference/ragnar_store_atlas.html">ragnar_store_atlas()</a></code> visualizes store embeddings (<a href="https://github.com/tidyverse/ragnar/issues/124" class="external-link">#124</a>).</p></li>
+<li><p>New <code><a href="../reference/ragnar_store_ingest.html">ragnar_store_ingest()</a></code> prepares documents in parallel with mirai and inserts them into a store (<a href="https://github.com/tidyverse/ragnar/issues/133" class="external-link">#133</a>).</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-improvements-and-fixes-0-3-0">Minor improvements and fixes<a class="anchor" aria-label="anchor" href="#minor-improvements-and-fixes-0-3-0"></a></h3>
+<ul><li><p><code><a href="../reference/embed_ollama.html">embed_ollama()</a></code> now defaults to the <code>embeddinggemma</code> model (<a href="https://github.com/tidyverse/ragnar/issues/121" class="external-link">#121</a>).</p></li>
+<li><p><code><a href="../reference/embed_ollama.html">embed_openai()</a></code> error messages are now surfaced to the user (<a href="https://github.com/tidyverse/ragnar/issues/112" class="external-link">#112</a>).</p></li>
+<li><p>Embedding helpers now share a generalized request retry policy, configurable via <code>options(ragnar.embed.req_retry = ...)</code> (<a href="https://github.com/tidyverse/ragnar/issues/138" class="external-link">#138</a>).</p></li>
+<li><p>ragnar now requires mirai &gt;= 2.5.1 (<a href="https://github.com/tidyverse/ragnar/issues/139" class="external-link">#139</a>).</p></li>
+<li><p><code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> on a <code>RagnarStore</code> now shows the store location (<a href="https://github.com/tidyverse/ragnar/issues/116" class="external-link">#116</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_retrieve_bm25.html">ragnar_retrieve_bm25()</a></code> now orders results by descending score (<a href="https://github.com/tidyverse/ragnar/issues/122" class="external-link">#122</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> no longer returns duplicate rows when called with multiple queries (<a href="https://github.com/tidyverse/ragnar/issues/153" class="external-link">#153</a>).</p></li>
+<li><p>The ellmer retrieval tool now omits score columns from its output (<a href="https://github.com/tidyverse/ragnar/issues/130" class="external-link">#130</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_store_inspect.html">ragnar_store_inspect()</a></code> now includes keyboard shortcuts, a draggable divider, improved preview linkification, better metadata display, and other UI tweaks (<a href="https://github.com/tidyverse/ragnar/issues/120" class="external-link">#120</a>, <a href="https://github.com/tidyverse/ragnar/issues/117" class="external-link">#117</a>, <a href="https://github.com/tidyverse/ragnar/issues/118" class="external-link">#118</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> works better with local HTML files (<a href="https://github.com/tidyverse/ragnar/issues/115" class="external-link">#115</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_store_insert.html">ragnar_store_insert()</a></code> and <code><a href="../reference/ragnar_store_insert.html">ragnar_store_update()</a></code> (v2 stores) now handle stores that are missing <code>store@schema</code> metadata (<a href="https://github.com/tidyverse/ragnar/issues/146" class="external-link">#146</a>).</p></li>
+<li><p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> once again fetches YouTube transcripts and now supports <code>youtube_transcript_formatter</code>, so you can add timestamps or links to the transcript output (<a href="https://github.com/tidyverse/ragnar/issues/149" class="external-link">#149</a>).</p></li>
+<li><p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> gains an <code>origin</code> argument to customize the <code>@origin</code> recorded on returned documents (<a href="https://github.com/tidyverse/ragnar/issues/128" class="external-link">#128</a>).</p></li>
+<li><p><code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> now correctly reads plain-text files with non-ASCII characters (<a href="https://github.com/tidyverse/ragnar/issues/151" class="external-link">#151</a>).</p></li>
+<li><p>Vignette heading levels were fixed (<a href="https://github.com/tidyverse/ragnar/issues/129" class="external-link">#129</a>).</p></li>
+<li><p>Added an example using <code>sentence-transformers</code> embeddings (<a href="https://github.com/tidyverse/ragnar/issues/131" class="external-link">#131</a>).</p></li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="ragnar-021">ragnar 0.2.1<a class="anchor" aria-label="anchor" href="#ragnar-021"></a></h2><p class="text-muted">CRAN release: 2025-08-19</p>
 <ul><li><p><code><a href="../reference/ragnar_register_tool_retrieve.html">ragnar_register_tool_retrieve()</a></code> now registers a tool that will not return previously returned chunks, enabling the LLM to perform deeper searches of a ragnar store with repeated tool calls (<a href="https://github.com/tidyverse/ragnar/issues/106" class="external-link">#106</a>).</p></li>

@@ -46,7 +46,7 @@ embed_google_vertex(
 
   Character specifying the embedding model. See supported models in
   [Text embeddings
-  API](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/text-embeddings-api)
+  API](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/model-reference/text-embeddings-api)
 
 - base_url:
 
@@ -82,7 +82,7 @@ embed_google_vertex(
 
   - `"CODE_RETRIEVAL_QUERY"` For more information about task types, see
     [Choose an embeddings task
-    type](https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types).
+    type](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types).
 
 - batch_size:
 
