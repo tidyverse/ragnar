@@ -52,7 +52,7 @@ text sequences in their training data.
 Put simply, in philosopher Harry Frankfurt's sense of the word, the
 models generate "bullshit" [^1]:
 
-[^1]: <https://press.princeton.edu/books/hardcover/9780691122946/on-bullshit>
+[^1]: <https://press.princeton.edu/books/hardcover/9780691276786/on-bullshit>
 
 > It is impossible for someone to lie unless he thinks he knows the
 > truth. Producing bullshit requires no such conviction. A person who

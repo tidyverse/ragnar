@@ -35,7 +35,7 @@ and is the most convenient way to produce a function that can be passed to the \
 }}
 
 \item{model}{Character specifying the embedding model.
-See supported models in \href{https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/text-embeddings-api}{Text embeddings API}}
+See supported models in \href{https://docs.cloud.google.com/vertex-ai/generative-ai/docs/model-reference/text-embeddings-api}{Text embeddings API}}
 
 \item{base_url}{string, url where the service is available.}
 
@@ -54,7 +54,7 @@ model produce better embeddings. If left blank, the default used is \code{"RETRI
 \item \code{"QUESTION_ANSWERING"}
 \item \code{"FACT_VERIFICATION"}
 \item \code{"CODE_RETRIEVAL_QUERY"}
-For more information about task types, see \href{https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types}{Choose an embeddings task type}.
+For more information about task types, see \href{https://docs.cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types}{Choose an embeddings task type}.
 }}
 
 \item{batch_size}{split \code{x} into batches when embedding. Integer, limit of

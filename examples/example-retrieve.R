@@ -8,12 +8,11 @@ text <- "How can I subset a dataframe with a logical vector?"
 
 
 #' # Retrieving Chunks
-#' Once the store is set up, retrieve the most relevant text chunks like this
-
+#' Once the store is set up, retrieve the most relevant text chunks like this:
 (relevant_chunks <- ragnar_retrieve(store, text))
 
 
-#'  Register ellmer tool
+#' # Register ellmer tool
 #' You can register an ellmer tool to let the LLM retrieve chunks.
 system_prompt <- stringr::str_squish(
   "
@@ -27,7 +26,11 @@ system_prompt <- stringr::str_squish(
 )
 chat <- ellmer::chat_openai(
   system_prompt,
-  model = "gpt-4.1"
+  model = "gpt-5.2",
+  api_args = list(
+    reasoning = list(effort = "low"),
+    text = list(verbosity = "low")
+  )
 )
 
 ragnar_register_tool_retrieve(chat, store, top_k = 10)

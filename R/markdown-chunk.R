@@ -449,7 +449,7 @@ utils::globalVariables(c(
   "heading_start",
   "closest",
   "start_of_heading_level",
-  "nearest_preceding_heading_level ",
+  "nearest_preceding_heading_level",
   "heading",
   "max_applicable_level"
 ))
