@@ -30,7 +30,7 @@ Imports:
     commonmark,
     curl,
     DBI,
-    mirai (>= 2.5.1),
+    mirai (>= 2.6.0),
     dbplyr,
     dplyr,
     duckdb (>= 1.3.1),
