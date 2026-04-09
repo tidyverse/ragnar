@@ -111,34 +111,34 @@ cat_head(md)
 # By default, this output includes the sidebar and other navigational elements
 url <- "https://duckdb.org/code_of_conduct"
 read_as_markdown(url) |> cat_head(15)
-#> # Code of Conduct – DuckDB
+#> ---
+#> title: Code of Conduct
+#> description: Code of Conduct All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone –…
+#> image: https://duckdb.org/images/sharingduckdb.jpg
+#> ---
 #> 
-#> Search Shortcut cmd + k | ctrl + k
+#>  Search Shortcut cmd \+ k | ctrl \+ k
 #> 
-#> # Code of Conduct
+#> #  Code of Conduct
 #> 
 #> **All creatures are welcome**: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated.
 #> 
 #> **Be excellent to each other**: We do not tolerate verbal or physical harassment, violence or intimidation.
 #> 
 #> We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome.
-#> 
-#> We continuously strive to make our community a better place for everyone – in the best tradition of hackers we "build, test, improve, reiterate". In this ongoing adventure, we rely on the support, courage, and creativity of all members of the DuckDB community.
-#> 
-#> If you are made uncomfortable in your role as DuckDB community member, please let us know: You can reach us at [[email protected]](/cdn-cgi/l/email-protection#19686c787a72597d6c7a727d7b37766b7e). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
 
 # To extract just the main content, use a selector
 read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
   cat_head()
-#> # Code of Conduct – DuckDB
+#> ---
+#> title: Code of Conduct
+#> description: Code of Conduct All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone –…
+#> image: https://duckdb.org/images/sharingduckdb.jpg
+#> ---
 #> 
-#> # Code of Conduct
+#>  Search Shortcut cmd \+ k | ctrl \+ k
 #> 
-#> **All creatures are welcome**: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated.
-#> 
-#> **Be excellent to each other**: We do not tolerate verbal or physical harassment, violence or intimidation.
-#> 
-#> We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome.
+#> #  Code of Conduct
 #> 
 
 # Alternative approach: zap unwanted nodes
@@ -151,15 +151,15 @@ read_as_markdown(
     "#sidebar"         # ID
   )
 ) |> cat_head()
-#> # Code of Conduct – DuckDB
+#> ---
+#> title: Code of Conduct
+#> description: Code of Conduct All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone –…
+#> image: https://duckdb.org/images/sharingduckdb.jpg
+#> ---
 #> 
-#> # Code of Conduct
+#>  Search Shortcut cmd \+ k | ctrl \+ k
 #> 
-#> **All creatures are welcome**: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated.
-#> 
-#> **Be excellent to each other**: We do not tolerate verbal or physical harassment, violence or intimidation.
-#> 
-#> We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome.
+#> #  Code of Conduct
 #> 
 
 # Quarto example
@@ -188,21 +188,21 @@ read_as_markdown(
 ## Convert PDF
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
 read_as_markdown(pdf) |> cat_head(15)
-#> NEWS for R version 4.5.2 (2025-10-31)
-#> 
-#> NEWS
-#> 
+#> | NEWS | for | R version | 4.5.3 | (2026-03-11) |     |
+#> | ---- | --- | --------- | ----- | ------------ | --- |
 #> R News
-#> 
-#> CHANGES IN R 4.5.2
-#> 
+#> NEWS
+#> | CHANGES | IN R 4.5.3 |     |     |     |     |
+#> | ------- | ---------- | --- | --- | --- | --- |
 #> UTILITIES:
-#> 
-#> (cid:136) R CMD check now handles archives with extension ‘.tar’ or ‘.tar.zstd’ (where zstd
-#> 
-#> compression is supported by the R build).
-#> 
-#> BUG FIXES:
+#> | (cid:136) tools/fetch-recommended |     |        |              | tools/rsync-recommended |     |
+#> | --------------------------------- | --- | ------ | ------------ | ----------------------- | --- |
+#> |                                   |     | can be | used instead | of                      | to  |
+#> R
+#> fetch recommended packages into sources using curl on systems without rsync or
+#> behind (cid:28)rewalls.
+#> | PACKAGE | INSTALLATION: |     |     |     |     |
+#> | ------- | ------------- | --- | --- | --- | --- |
 ## Alternative:
 # pdftools::pdf_text(pdf) |> cat_head()
 

@@ -52,7 +52,8 @@ store <- ragnar_store_connect(':memory:')
 #> Error in ragnar_store_connect(":memory:"): Store must be created with ragnar_store_create()
 # Launch the Embedding Atlas app
 ragnar_store_atlas(store)
-#> Error in ragnar_store_atlas(store): error in evaluating the argument 'conn' in selecting a method for function 'dbSendQuery': object 'store' not found
+#> Error in py_module_import(module, convert = convert): ImportError: cannot import name 'compute_vector_projection' from 'embedding_atlas.projection' (/home/runner/.cache/R/reticulate/uv/cache/archive-v0/SjPhXc2YtS2AFR7GIK_MG/lib/python3.12/site-packages/embedding_atlas/projection.py)
+#> Run `reticulate::py_last_error()` for details.
 # }
 
 ```
