@@ -130,7 +130,7 @@ embed_openai <- function(
   data <- list(model = model, input = NULL)
   data$user <- user
   if (!is.null(dims)) {
-    check_number_whole(dims, min = 1L)
+    check_number_whole(dims, min = 1)
     data$dimensions <- as.integer(dims)
   }
 

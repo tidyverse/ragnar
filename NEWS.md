@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+-   `embed_openai()` now accepts integer `dims` values (#175).
+
 # ragnar 0.3.0
 
 ## Breaking changes
