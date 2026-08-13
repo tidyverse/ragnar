@@ -132,6 +132,14 @@ store <- ragnar_store_create(
   embed = \(x) matrix(stats::runif(10), nrow = length(x), ncol = 10),
   version = 1
 )
+#> duckdb keeps downloaded extensions and secrets in a temporary directory:
+#> ℹ /tmp/RtmpL94hbV/duckdb
+#> This is removed when the R session ends.
+#> • Extensions are re-downloaded each session.
+#> • Secrets are lost.
+#> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
+#> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
+#> ℹ See ?duckdb_storage for details and alternatives.
 ragnar_store_insert(store, data.frame(text = "hello"))
 
 # A store with a schema. When inserting into this store, users need to
@@ -141,6 +149,14 @@ store <- ragnar_store_create(
   extra_cols = data.frame(area = character()),
   version = 1
 )
+#> duckdb keeps downloaded extensions and secrets in a temporary directory:
+#> ℹ /tmp/RtmpL94hbV/duckdb
+#> This is removed when the R session ends.
+#> • Extensions are re-downloaded each session.
+#> • Secrets are lost.
+#> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
+#> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
+#> ℹ See ?duckdb_storage for details and alternatives.
 ragnar_store_insert(store, data.frame(text = "hello", area = "rag"))
 
 # If you already have a data.frame with chunks that will be inserted into
@@ -151,6 +167,14 @@ store <- ragnar_store_create(
   extra_cols = vctrs::vec_ptype(chunks),
   version = 1
 )
+#> duckdb keeps downloaded extensions and secrets in a temporary directory:
+#> ℹ /tmp/RtmpL94hbV/duckdb
+#> This is removed when the R session ends.
+#> • Extensions are re-downloaded each session.
+#> • Secrets are lost.
+#> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
+#> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
+#> ℹ See ?duckdb_storage for details and alternatives.
 ragnar_store_insert(store, chunks)
 
 # version = 2 (the default) has support for deoverlapping
@@ -158,6 +182,14 @@ store <- ragnar_store_create(
   # if embed = NULL, then only bm25 search is used (not vss)
   embed = NULL
 )
+#> duckdb keeps downloaded extensions and secrets in a temporary directory:
+#> ℹ /tmp/RtmpL94hbV/duckdb
+#> This is removed when the R session ends.
+#> • Extensions are re-downloaded each session.
+#> • Secrets are lost.
+#> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
+#> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
+#> ℹ See ?duckdb_storage for details and alternatives.
 doc <- MarkdownDocument(
   paste0(letters, collapse = ""),
   origin = "/some/where"

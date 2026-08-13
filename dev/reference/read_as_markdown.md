@@ -117,9 +117,9 @@ read_as_markdown(url) |> cat_head(15)
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
-#>  Search Shortcut cmd \+ k | ctrl \+ k
+#> Search Shortcut cmd \+ k | ctrl \+ k
 #> 
-#> #  Code of Conduct
+#> # Code of Conduct
 #> 
 #> **All creatures are welcome**: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated.
 #> 
@@ -136,9 +136,9 @@ read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
-#>  Search Shortcut cmd \+ k | ctrl \+ k
+#> Search Shortcut cmd \+ k | ctrl \+ k
 #> 
-#> #  Code of Conduct
+#> # Code of Conduct
 #> 
 
 # Alternative approach: zap unwanted nodes
@@ -157,9 +157,9 @@ read_as_markdown(
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
-#>  Search Shortcut cmd \+ k | ctrl \+ k
+#> Search Shortcut cmd \+ k | ctrl \+ k
 #> 
-#> #  Code of Conduct
+#> # Code of Conduct
 #> 
 
 # Quarto example
@@ -188,21 +188,21 @@ read_as_markdown(
 ## Convert PDF
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
 read_as_markdown(pdf) |> cat_head(15)
-#> | NEWS | for | R version | 4.5.3 | (2026-03-11) |     |
-#> | ---- | --- | --------- | ----- | ------------ | --- |
-#> R News
-#> NEWS
-#> | CHANGES | IN R 4.5.3 |     |     |     |     |
-#> | ------- | ---------- | --- | --- | --- | --- |
-#> UTILITIES:
-#> | (cid:136) tools/fetch-recommended |     |        |              | tools/rsync-recommended |     |
-#> | --------------------------------- | --- | ------ | ------------ | ----------------------- | --- |
-#> |                                   |     | can be | used instead | of                      | to  |
-#> R
-#> fetch recommended packages into sources using curl on systems without rsync or
-#> behind (cid:28)rewalls.
-#> | PACKAGE | INSTALLATION: |     |     |     |     |
-#> | ------- | ------------- | --- | --- | --- | --- |
+#> | NEWS    |     | for        | R version |     | 4.6.1 | (2026-06-24) |     |     |
+#> | ------- | --- | ---------- | --------- | --- | ----- | ------------ | --- | --- |
+#> | NEWS    |     | R          | News      |     |       |              |     |     |
+#> | Changes |     | in R 4.6.1 |           |     |       |              |     |     |
+#> New Features:
+#> (cid:136)
+#> The LATEX class ‘jss’ bundled in ‘share/texmf/tex/latex/jss.cls’ has been up-
+#> | dated | to  | work with | ‘hyperref’ | version | 7.01q | (2026/04/24). |     |     |
+#> | ----- | --- | --------- | ---------- | ------- | ----- | ------------- | --- | --- |
+#> (cid:136) Plain-text(andlegacyHTML)conversionforasimpleRd\eqn{}nowhandles\geq,
+#> | \leq, | \neq | \ne |             | \ge |     | \le         |     |     |
+#> | ----- | ---- | --- | ----------- | --- | --- | ----------- | --- | --- |
+#> |       |      | and | in addition | to  | and | (PR#19070). |     |     |
+#> Bug Fixes:
+#> (cid:136)
 ## Alternative:
 # pdftools::pdf_text(pdf) |> cat_head()
 

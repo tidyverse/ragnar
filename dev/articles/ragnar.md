@@ -1,6 +1,7 @@
 # ragnar
 
 ``` r
+
 library(ragnar)
 ```
 
@@ -32,7 +33,7 @@ of whether it is true or false, only guided by similarity to patterns in
 text sequences in their training data.
 
 Put simply, in philosopher Harry Frankfurt’s sense of the word, the
-models generate “bullshit” [¹](#fn1):
+models generate “bullshit” [^1]:
 
 > It is impossible for someone to lie unless he thinks he knows the
 > truth. Producing bullshit requires no such conviction. A person who
@@ -90,6 +91,7 @@ provider. This choice is fixed for the store, but you can always create
 a new store if you want to change it.
 
 ``` r
+
 store_location <- "quarto.ragnar.duckdb"
 store <- ragnar_store_create(
   store_location,
@@ -119,6 +121,7 @@ If you’re building a store from a website, you can use
 to collect URLs.
 
 ``` r
+
 paths <- ragnar_find_links("https://quarto.org/", depth = 3)
 ```
 
@@ -212,6 +215,7 @@ This function will automatically generate embeddings using the `embed`
 function specified when the store was first created.
 
 ``` r
+
 ragnar_store_insert(store, chunks)
 ```
 
@@ -223,6 +227,7 @@ Once you’re done processing the documents, call
 to finalize the store and build the index.
 
 ``` r
+
 for (path in paths) {
   chunks <- path |>
     read_as_markdown() |>
@@ -267,6 +272,7 @@ as a tool with
 [`ragnar_register_tool_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_register_tool_retrieve.md):
 
 ``` r
+
 client <- ellmer::chat_openai()
 ragnar_register_tool_retrieve(
   client, store, top_k = 10,
@@ -299,6 +305,7 @@ an example of how you might do this
 First, set up the system prompt:
 
 ``` r
+
 client <- chat_openai(model = "gpt-4.1")
 client$set_system_prompt(glue::trim(
   "
@@ -318,6 +325,7 @@ client$set_system_prompt(glue::trim(
 Next, define a custom tool:
 
 ``` r
+
 rag_retrieve_quarto_excerpts <- local({
   retrieved_chunk_ids <- integer()
   function(text) {
@@ -348,6 +356,7 @@ so the context for each chunk appears next to its content.
 Register the custom tool:
 
 ``` r
+
 client$register_tool(ellmer::tool(
   rag_retrieve_quarto_excerpts,
   glue::trim(
@@ -461,6 +470,4 @@ grounded answers–while also giving users a path to the original source.
 For more details and a full example, see the
 [quartohelp](https://github.com/t-kalinowski/quartohelp) package.
 
-------------------------------------------------------------------------
-
-1.  <https://press.princeton.edu/books/hardcover/9780691276786/on-bullshit>
+[^1]: <https://press.princeton.edu/books/hardcover/9780691276786/on-bullshit>

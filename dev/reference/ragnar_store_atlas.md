@@ -49,10 +49,18 @@ uses `arrow` to transfer data from the DuckDB store to Python.
 # \dontrun{
 # Connect or create a store
 store <- ragnar_store_connect(':memory:')
+#> duckdb keeps downloaded extensions and secrets in a temporary directory:
+#> ℹ /tmp/RtmpL94hbV/duckdb
+#> This is removed when the R session ends.
+#> • Extensions are re-downloaded each session.
+#> • Secrets are lost.
+#> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
+#> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
+#> ℹ See ?duckdb_storage for details and alternatives.
 #> Error in ragnar_store_connect(":memory:"): Store must be created with ragnar_store_create()
 # Launch the Embedding Atlas app
 ragnar_store_atlas(store)
-#> Error in py_module_import(module, convert = convert): ImportError: cannot import name 'compute_vector_projection' from 'embedding_atlas.projection' (/home/runner/.cache/R/reticulate/uv/cache/archive-v0/SjPhXc2YtS2AFR7GIK_MG/lib/python3.12/site-packages/embedding_atlas/projection.py)
+#> Error in py_module_import(module, convert = convert): ImportError: cannot import name 'compute_vector_projection' from 'embedding_atlas.projection' (/home/runner/.cache/R/reticulate/uv/cache/archive-v0/YI_la8BLISGFScK5/lib/python3.12/site-packages/embedding_atlas/projection.py)
 #> Run `reticulate::py_last_error()` for details.
 # }
 

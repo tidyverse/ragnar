@@ -2,6 +2,10 @@
 
 ## ragnar (development version)
 
+- [`embed_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
+  now accepts integer `dims` values
+  ([\#175](https://github.com/tidyverse/ragnar/issues/175)).
+
 ## ragnar 0.3.0
 
 CRAN release: 2026-01-23

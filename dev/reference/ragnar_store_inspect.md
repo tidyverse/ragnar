@@ -40,9 +40,9 @@ extra fields stored with the chunk.
 
 ## Keyboard Shortcuts
 
-|                  |                                                 |                        |
-|------------------|-------------------------------------------------|------------------------|
-| *Context*        | *Shortcut*                                      | *Action*               |
-| Global           | `/`, `Esc`                                      | Focus search; clear it |
-| Documents list   | `ArrowUp`/`ArrowDown`, `j`/`k`                  | Move selection         |
-| Vertical Divider | `ArrowLeft`/`ArrowRight` (+`Shift`), `g`/`Home` | Resize; reset          |
+|  |  |  |
+|----|----|----|
+| *Context* | *Shortcut* | *Action* |
+| Global | `/`, `Esc` | Focus search; clear it |
+| Documents list | `ArrowUp`/`ArrowDown`, `j`/`k` | Move selection |
+| Vertical Divider | `ArrowLeft`/`ArrowRight` (+`Shift`), `g`/`Home` | Resize; reset |
