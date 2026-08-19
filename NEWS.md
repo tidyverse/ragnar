@@ -2,6 +2,8 @@
 
 -   `embed_openai()` now accepts integer `dims` values (#175).
 
+-   ragnar now disables ONNX Runtime telemetry (#177).
+
 # ragnar 0.3.0
 
 ## Breaking changes
