@@ -6,6 +6,9 @@
   now accepts integer `dims` values
   ([\#175](https://github.com/tidyverse/ragnar/issues/175)).
 
+- ragnar now disables ONNX Runtime telemetry
+  ([\#177](https://github.com/tidyverse/ragnar/issues/177)).
+
 ## ragnar 0.3.0
 
 CRAN release: 2026-01-23
