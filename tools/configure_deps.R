@@ -3,7 +3,10 @@
 # Make reticulate setup the ephemeral venv in advance,
 # primarily so CRAN examples run quickly and don't trigger a warning
 
-Sys.setenv("RETICULATE_PYTHON" = "managed")
+Sys.setenv(
+  RETICULATE_PYTHON = "managed",
+  ORT_DISABLE_TELEMETRY = "1"
+)
 
 library(reticulate)
 py_require(c(

@@ -7,7 +7,10 @@
 ragnartools.markitdown <- NULL
 
 .onLoad <- function(libname, pkgname) {
-  Sys.setenv(RETICULATE_PYTHON = "managed")
+  Sys.setenv(
+    RETICULATE_PYTHON = "managed",
+    ORT_DISABLE_TELEMETRY = "1"
+  )
   S7::methods_register()
   reticulate::py_require(c(
     # Pin onnxruntime until this is resolved:
