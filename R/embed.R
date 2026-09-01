@@ -182,7 +182,7 @@ embed_openai <- function(
 }
 
 
-#' @describeIn embed_ollama Embed Text using LMStudio. Indentical to `embed_openai()` but with suitable defaults for LMStudio.
+#' @describeIn embed_ollama Embed Text using LMStudio. Identical to `embed_openai()` but with suitable defaults for LMStudio.
 #' @export
 embed_lm_studio <- function(
   x,
