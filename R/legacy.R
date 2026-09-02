@@ -209,7 +209,7 @@ ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
 #' - For character input with `simplify = FALSE`: A list of character vectors
 #' - For character input with `simplify = TRUE`: A character vector of chunks
 #' - For data frame input with `simplify = FALSE`: A data frame with the same number of rows as the input, where the
-#' `text` column transformed into a list of chararacter vectors.
+#' `text` column transformed into a list of character vectors.
 #' - For data frame input with `simplify = TRUE`: Same as a data frame input with `simplify=FALSE`, with the
 #'  `text` column expanded by `tidyr::unchop()`
 #'

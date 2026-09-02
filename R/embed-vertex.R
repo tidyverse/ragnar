@@ -147,7 +147,7 @@ google_credentials <- function(error_call = caller_env()) {
     cli::cli_abort(
       c(
         "No Google credentials are available.",
-        i = "Try suppling an API key or configuring Google's application default credentials."
+        i = "Try supplying an API key or configuring Google's application default credentials."
       ),
       call = error_call
     )

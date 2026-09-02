@@ -563,7 +563,7 @@ ragnar_retrieve <- function(store, text, top_k = 3L, ..., deoverlap = TRUE) {
 #' @export
 chunks_deoverlap <- function(store, chunks) {
   if (store@version < 2L) {
-    stop("chunks_deoverlap() only supported with store@verion == 2")
+    stop("chunks_deoverlap() only supported with store@version == 2")
   }
   deoverlapped <- chunks |>
     mutate(embedding = NULL) |>

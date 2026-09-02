@@ -120,7 +120,7 @@ test_that("retrieving works as expected", {
   expect_equal(nrow(ret), 3)
 })
 
-test_that("retrieve works when the store contians documents without origin", {
+test_that("retrieve works when the store contains documents without origin", {
   skip_on_cran() # See comment (above) in test-retrieve.R
   skip_if_cant_load_duckdb_extensions()
 
