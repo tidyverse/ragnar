@@ -13,6 +13,9 @@ ragnartools.markitdown <- NULL
   )
   S7::methods_register()
   reticulate::py_require(c(
+    # magika is already a dep of markitdown,
+    # but we import it directly too, so we list it here for completness.
+    "magika",
     # Pin onnxruntime until this is resolved:
     #  https://github.com/microsoft/markitdown/issues/1266
     # New VC++ version requirement begins:

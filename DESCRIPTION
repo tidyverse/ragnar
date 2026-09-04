@@ -46,7 +46,8 @@ Imports:
     tidyr,
     vctrs,
     withr,
-    xml2
+    xml2,
+    Rapp (>= 0.2.0.9000)
 Suggests:
     connectcreds,
     ellmer (>= 0.3.0),
@@ -70,3 +71,5 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Remotes:  
+    r-lib/Rapp
