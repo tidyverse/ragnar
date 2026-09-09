@@ -1,3 +1,7 @@
+#' @section Python requirements:
+#' ragnar currently requires Python < 3.14 because of compatibility issues in
+#' MarkItDown's dependencies. The managed Python environment is configured
+#' automatically.
 #' @keywords internal
 "_PACKAGE"
 
@@ -12,14 +16,17 @@ ragnartools.markitdown <- NULL
     ORT_DISABLE_TELEMETRY = "1"
   )
   S7::methods_register()
-  reticulate::py_require(c(
-    # Pin onnxruntime until this is resolved:
-    #  https://github.com/microsoft/markitdown/issues/1266
-    # New VC++ version requirement begins:
-    # https://github.com/Microsoft/onnxruntime/releases/tag/v1.21.0
-    if (is_windows()) "onnxruntime<=1.20.1",
-    "markitdown[all]"
-  ))
+  reticulate::py_require(
+    c(
+      # Pin onnxruntime until this is resolved:
+      #  https://github.com/microsoft/markitdown/issues/1266
+      # New VC++ version requirement begins:
+      # https://github.com/Microsoft/onnxruntime/releases/tag/v1.21.0
+      if (is_windows()) "onnxruntime<=1.20.1",
+      "markitdown[all]"
+    ),
+    python_version = "<3.14"
+  )
 
   uv_set_override_latest_youtube_transcript_api()
 

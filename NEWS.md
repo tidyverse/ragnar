@@ -4,6 +4,9 @@
 
 -   ragnar now disables ONNX Runtime telemetry (#177).
 
+-   ragnar now requires Python < 3.14 to avoid incompatible MarkItDown
+    dependencies.
+
 -   ragnar can now load without an import warning with development versions of S7.
 
 -   `ragnar_store_ingest()` now uses the updated `mirai::race_mirai()` API.

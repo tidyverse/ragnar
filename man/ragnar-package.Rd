@@ -10,6 +10,13 @@
 
 Provides tools for implementing Retrieval-Augmented Generation (RAG) workflows with Large Language Models (LLM). Includes functions for document processing, text chunking, embedding generation, storage management, and content retrieval. Supports various document types and embedding providers ('Ollama', 'OpenAI'), with 'DuckDB' as the default storage backend. Integrates with the 'ellmer' package to equip chat objects with retrieval capabilities. Designed to offer both sensible defaults and customization options with transparent access to intermediate outputs. For a review of retrieval-augmented generation methods, see Gao et al. (2023) "Retrieval-Augmented Generation for Large Language Models: A Survey" \doi{10.48550/arXiv.2312.10997}.
 }
+\section{Python requirements}{
+
+ragnar currently requires Python < 3.14 because of compatibility issues in
+MarkItDown's dependencies. The managed Python environment is configured
+automatically.
+}
+
 \seealso{
 Useful links:
 \itemize{
