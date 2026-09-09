@@ -3,6 +3,9 @@
 \name{MarkdownDocumentChunks}
 \alias{MarkdownDocumentChunks}
 \title{Markdown documents chunks}
+\usage{
+MarkdownDocumentChunks(chunks, document = attr(chunks, "document", TRUE))
+}
 \arguments{
 \item{chunks}{A data frame containing \code{start}, \code{end}, and \code{context} columns,
 and optionally other columns.}

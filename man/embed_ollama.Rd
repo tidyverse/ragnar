@@ -70,7 +70,7 @@ Embed Text
 }
 \section{Functions}{
 \itemize{
-\item \code{embed_lm_studio()}: Embed Text using LMStudio. Indentical to \code{embed_openai()} but with suitable defaults for LMStudio.
+\item \code{embed_lm_studio()}: Embed Text using LMStudio. Identical to \code{embed_openai()} but with suitable defaults for LMStudio.
 
 }}
 \examples{

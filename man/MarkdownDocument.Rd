@@ -3,6 +3,9 @@
 \name{MarkdownDocument}
 \alias{MarkdownDocument}
 \title{Markdown documents}
+\usage{
+MarkdownDocument(text, origin = attr(text, "origin", TRUE))
+}
 \arguments{
 \item{text}{[string] Markdown text.}
 
