@@ -17,14 +17,7 @@ ragnartools.markitdown <- NULL
   )
   S7::methods_register()
   reticulate::py_require(
-    c(
-      # Pin onnxruntime until this is resolved:
-      #  https://github.com/microsoft/markitdown/issues/1266
-      # New VC++ version requirement begins:
-      # https://github.com/Microsoft/onnxruntime/releases/tag/v1.21.0
-      if (is_windows()) "onnxruntime<=1.20.1",
-      "markitdown[all]"
-    ),
+    "markitdown[all]",
     # Magika 0.6.3 (via MarkItDown) pins onnxruntime<=1.20.1 on Windows.
     # That ONNX Runtime version has no Python 3.14 wheels.
     # https://github.com/posit-dev/raghilda/issues/93
