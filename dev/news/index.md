@@ -2,6 +2,12 @@
 
 ## ragnar (development version)
 
+- [`chunks_deoverlap()`](https://ragnar.tidyverse.org/dev/reference/chunks_deoverlap.md)
+  now accepts empty input, so
+  [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
+  no longer errors when all chunks are filtered out
+  ([\#174](https://github.com/tidyverse/ragnar/issues/174)).
+
 - [`embed_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
   now accepts integer `dims` values
   ([\#175](https://github.com/tidyverse/ragnar/issues/175)).
