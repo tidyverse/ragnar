@@ -4,7 +4,9 @@ Bug fixes and compatibility updates. See NEWS.md for details.
 
 0 errors | 0 warnings | 0 notes
 
-Checked on macOS with R 4.6.1, using both S7 0.2.2 and development S7 0.2.2.9000. Both runs passed 140 test expectations, with 6 tests skipped because credentials or external services were unavailable.
+Checked on macOS with R 4.6.1, using both S7 0.2.2 and development S7 0.2.2.9000. Both runs passed 141 test expectations, with 6 tests skipped because credentials or external services were unavailable.
+
+Document conversion was also verified with Python 3.13.15.
 
 ## Current CRAN results
 
