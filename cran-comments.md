@@ -1,15 +1,3 @@
-Bug fixes and compatibility updates. See NEWS.md for details.
+R CMD check: 0 errors, 0 warnings, 0 notes.
 
-## R CMD check results
-
-0 errors | 0 warnings | 0 notes
-
-Checked on macOS with R 4.6.1, using both S7 0.2.2 and development S7 0.2.2.9000. Both runs passed 141 test expectations, with 6 tests skipped because credentials or external services were unavailable.
-
-Document conversion was also verified with Python 3.13.15.
-
-## Current CRAN results
-
-The missing-usage notes for `MarkdownDocument` and `MarkdownDocumentChunks` are addressed by adding constructor usage documentation.
-
-The Fedora clang error is due to the unavailable `duckdb` dependency. The Fedora gcc temporary-file note was not reproduced locally.
+This release fixes the constructor-usage notes reported by CRAN. The Fedora clang error is due to the unavailable `duckdb` dependency. The Fedora gcc temporary-file note was not reproduced locally.
