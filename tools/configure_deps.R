@@ -14,6 +14,9 @@ py_require(
     "markitdown[all]",
     if (identical(.Platform$OS.type, "windows")) "onnxruntime<=1.20.1"
   ),
+  # Magika 0.6.3 (via MarkItDown) pins onnxruntime<=1.20.1 on Windows.
+  # That ONNX Runtime version has no Python 3.14 wheels.
+  # https://github.com/posit-dev/raghilda/issues/93
   python_version = "<3.14"
 )
 try({
