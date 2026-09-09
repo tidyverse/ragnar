@@ -1,7 +1,3 @@
-#' @section Python requirements:
-#' ragnar currently requires Python < 3.14 because of compatibility issues in
-#' MarkItDown's dependencies. The managed Python environment is configured
-#' automatically.
 #' @keywords internal
 "_PACKAGE"
 
