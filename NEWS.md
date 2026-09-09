@@ -1,8 +1,16 @@
-# ragnar (development version)
+# ragnar 0.3.1
 
 -   `embed_openai()` now accepts integer `dims` values (#175).
 
 -   ragnar now disables ONNX Runtime telemetry (#177).
+
+-   ragnar can now load without an import warning with development versions of S7.
+
+-   `ragnar_store_ingest()` now uses the updated `mirai::race_mirai()` API.
+    ragnar now requires mirai >= 2.6.0 (#159).
+
+-   The documentation for `MarkdownDocument()` and `MarkdownDocumentChunks()`
+    now includes constructor usage.
 
 # ragnar 0.3.0
 
