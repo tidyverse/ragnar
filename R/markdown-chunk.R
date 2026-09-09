@@ -326,7 +326,7 @@ make_segment_chunk_targets <- function(
     to = last_start,
     by = chunk_size * (1 - overlap)
   ))
-  if (last(starts) != last_start) {
+  if (last_elt(starts) != last_start) {
     # ensure right-aligned last chunk
     starts[length(starts) + 1L] <- last_start
   }

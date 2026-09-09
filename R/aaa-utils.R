@@ -40,8 +40,9 @@ NULL
 {
 `%empty%` <- function(x, y) if (length(x)) x else y
 `add<-` <- function(x, value) x + value
-first <- function(x) x[[1L]]
-last <- function(x) x[[length(x)]]
+# Empty inputs retain their type for grouped summaries.
+first_elt <- function(x) if (length(x)) x[[1L]] else x
+last_elt <- function(x) if (x_len <- length(x)) x[[x_len]] else x
 drop_last <- function(x) x[-length(x)]
 drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]
