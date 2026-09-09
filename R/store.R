@@ -445,9 +445,9 @@ ragnar_store_inspect <- function(store, ...) {
 #' @param host Host to run the Embedding Atlas server on.
 #' @param launch.browser Whether to launch the browser automatically.
 #'
-#' @note This function requires the `embedding-atlas` Python package.
-#' Make sure you have it installed in your reticulate Python environment.
-#' It also uses `arrow` to transfer data from the DuckDB store to Python.
+#' @note This function requires the `embedding-atlas` Python package (>= 0.20.0)
+#' in your reticulate Python environment, the `duckdb` R package (>= 1.4.0),
+#' and `arrow` to transfer data from the DuckDB store to Python.
 #'
 #' @examples
 #' \dontrun{
@@ -470,7 +470,7 @@ ragnar_store_atlas <- function(
   duckdb_version <- numeric_version(utils::packageVersion("duckdb"))
 
   reticulate::py_require(c(
-    "embedding-atlas",
+    "embedding-atlas>=0.20.0",
     sprintf("duckdb==%s.%s.*", duckdb_version$major, duckdb_version$minor),
     "numba>=0.62.0rc2",
     "llvmlite>=0.45.0rc2"

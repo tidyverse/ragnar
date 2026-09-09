@@ -27,9 +27,9 @@ ragnar_store_atlas(
 Visualize a store using Embedding Atlas
 }
 \note{
-This function requires the \code{embedding-atlas} Python package.
-Make sure you have it installed in your reticulate Python environment.
-It also uses \code{arrow} to transfer data from the DuckDB store to Python.
+This function requires the \code{embedding-atlas} Python package (>= 0.20.0)
+in your reticulate Python environment, the \code{duckdb} R package (>= 1.4.0),
+and \code{arrow} to transfer data from the DuckDB store to Python.
 }
 \examples{
 \dontrun{

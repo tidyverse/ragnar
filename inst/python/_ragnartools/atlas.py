@@ -1,14 +1,14 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = [
-#     "embedding-atlas",
+#     "embedding-atlas>=0.20.0",
 #     "duckdb",
 # ]
 # ///
 
 import embedding_atlas
 
-from embedding_atlas.projection import compute_vector_projection
+from embedding_atlas.projection import compute_projection
 from embedding_atlas.data_source import DataSource
 from embedding_atlas.server import make_server
 
@@ -20,7 +20,7 @@ import threading
 def run_embedding_atlas(df, host, port):
     df = df.to_pandas()
 
-    compute_vector_projection(df, "embedding")
+    df = compute_projection(df, inputs="embedding", modality="vector")
     df["_row_index"] = range(len(df))  # add a row index for neighbors
     df.drop(columns=["embedding"], inplace=True)
 
@@ -32,7 +32,7 @@ def run_embedding_atlas(df, host, port):
                 "x": "projection_x",
                 "y": "projection_y",
             },
-            "neighbors": "neightbors",
+            "neighbors": "neighbors",
         },
     }
 
