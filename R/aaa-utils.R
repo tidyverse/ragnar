@@ -13,7 +13,7 @@
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom dplyr tibble as_tibble bind_rows coalesce distinct filter join_by left_join mutate
 #'   na_if rename rename_with select slice_max slice_min starts_with collect
-#'   summarize row_number anti_join lag any_of all_of across lag desc
+#'   summarize row_number anti_join lag any_of all_of across lag desc first last
 #' @importFrom tidyr unchop unnest
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
@@ -40,8 +40,6 @@ NULL
 {
 `%empty%` <- function(x, y) if (length(x)) x else y
 `add<-` <- function(x, value) x + value
-first <- function(x) x[[1L]]
-last <- function(x) x[[length(x)]]
 drop_last <- function(x) x[-length(x)]
 drop_first <- function(x) x[-1L]
 drop_nulls <- function(x) x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)]

@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `chunks_deoverlap()` now accepts empty input, so `ragnar_retrieve()` no
+    longer errors when all chunks are filtered out (#174).
+
 -   `embed_openai()` now accepts integer `dims` values (#175).
 
 -   ragnar now disables ONNX Runtime telemetry (#177).

@@ -120,6 +120,31 @@ test_that("retrieving works as expected", {
   expect_equal(nrow(ret), 3)
 })
 
+test_that("deoverlapping empty retrieval results preserves the output schema", {
+  skip_on_cran() # See comment (above) in test-retrieve.R
+  skip_if_cant_load_duckdb_extensions()
+
+  store <- ragnar_store_create(
+    embed = \(x) matrix(1, nrow = length(x), ncol = 2)
+  )
+  chunks <- MarkdownDocument("foo bar", "someorigin") |> markdown_chunk()
+  ragnar_store_insert(store, chunks)
+  ragnar_store_build_index(store)
+
+  retrieved <- ragnar_retrieve_vss(store, "foo")
+  deoverlapped <- chunks_deoverlap(store, retrieved)
+  expect_equal(nrow(deoverlapped), 1L)
+  expect_identical(
+    chunks_deoverlap(store, retrieved[0, ]),
+    deoverlapped[0, ]
+  )
+
+  retrieved <- ragnar_retrieve(store, "foo")
+  # Empty retrieval results have no score columns after pivoting by metric name.
+  expected <- retrieved[0, setdiff(names(retrieved), c("cosine_distance", "bm25"))]
+  expect_identical(ragnar_retrieve(store, "foo", filter = FALSE), expected)
+})
+
 test_that("retrieve works when the store contains documents without origin", {
   skip_on_cran() # See comment (above) in test-retrieve.R
   skip_if_cant_load_duckdb_extensions()
