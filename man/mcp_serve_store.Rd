@@ -37,7 +37,7 @@ This function blocks the current R process by running an MCP server.
 It is intended for non-interactive use. Called primarily for side-effects.
 }
 \description{
-Launches an MCP server (via \code{\link[mcptools:server]{mcptools::mcp_server()}}) that exposes a
+Launches an MCP server (via \code{\link[mcptools:mcp_server]{mcptools::mcp_server()}}) that exposes a
 retrieval tool backed by a Ragnar store. This lets MCP-enabled clients (e.g.,
 Codex CLI, Claude Code) call into your store to retrieve relevant
 excerpts.

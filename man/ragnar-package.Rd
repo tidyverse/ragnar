@@ -24,6 +24,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Tomasz Kalinowski \email{tomasz@posit.co}
   \item Daniel Falbel \email{daniel@posit.co}
 }
 
