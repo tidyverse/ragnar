@@ -1,15 +1,18 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = [
-#     "embedding-atlas",
+#     "embedding-atlas>=0.20.0",
+#     "nanoarrow",
 #     "duckdb",
 # ]
 # ///
 
 import embedding_atlas
+import pyarrow as pa
 
-from embedding_atlas.projection import compute_vector_projection
+from embedding_atlas.projection import compute_projection
 from embedding_atlas.data_source import DataSource
+from embedding_atlas.options import make_embedding_atlas_props
 from embedding_atlas.server import make_server
 
 import uvicorn
@@ -18,22 +21,20 @@ import threading
 
 
 def run_embedding_atlas(df, host, port):
-    df = df.to_pandas()
+    df = pa.table(df).to_pandas()
 
-    compute_vector_projection(df, "embedding")
+    df = compute_projection(df, inputs="embedding", modality="vector")
     df["_row_index"] = range(len(df))  # add a row index for neighbors
     df.drop(columns=["embedding"], inplace=True)
 
     metadata = {
-        "columns": {
-            "id": "_row_index",
-            "text": "text",
-            "embedding": {
-                "x": "projection_x",
-                "y": "projection_y",
-            },
-            "neighbors": "neightbors",
-        },
+        "props": make_embedding_atlas_props(
+            row_id="_row_index",
+            text="text",
+            x="projection_x",
+            y="projection_y",
+            neighbors="neighbors",
+        ),
     }
 
     dataset = DataSource("<identifier>", df, metadata)

@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `ragnar_store_atlas()` now works with Embedding Atlas >= 0.20.0 and uses
+    `nanoarrow` instead of `arrow` for data transfer (#168).
+
 -   `chunks_deoverlap()` now accepts empty input, so `ragnar_retrieve()` no
     longer errors when all chunks are filtered out (#174).
 
