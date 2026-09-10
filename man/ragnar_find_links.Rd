@@ -16,7 +16,7 @@ ragnar_find_links(
 }
 \arguments{
 \item{x}{URL, HTML file path, or XML document. For Markdown, convert to HTML
-using \code{\link[commonmark:commonmark]{commonmark::markdown_html()}} first.}
+using \code{\link[commonmark:markdown_html]{commonmark::markdown_html()}} first.}
 
 \item{depth}{Integer specifying how many levels deep to crawl for links. When
 \code{depth > 0}, the function will follow child links (links with \code{x} as a

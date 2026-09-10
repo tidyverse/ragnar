@@ -42,7 +42,8 @@ store <- ragnar_store_create(
 )
 
 # Read and embed a chapter from R for Data Science
-chunks <- read_as_markdown("https://r4ds.hadley.nz/data-transform.html") |>
+chunks <- "https://r4ds.hadley.nz/data-transform.html" |>
+  read_as_markdown() |>
   markdown_chunk()
 ragnar_store_insert(store, chunks)
 

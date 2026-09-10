@@ -53,10 +53,10 @@ ragnar_retrieve(store, "sweet", filter = category == "dessert")
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other ragnar_retrieve: 
-\code{\link{ragnar_retrieve}()},
-\code{\link{ragnar_retrieve_bm25}()},
-\code{\link{ragnar_retrieve_vss}()}
+Other ragnar_retrieve:
+\code{\link[=ragnar_retrieve]{ragnar_retrieve()}},
+\code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}},
+\code{\link[=ragnar_retrieve_vss]{ragnar_retrieve_vss()}}
 }
 \concept{ragnar_retrieve}
 \keyword{internal}

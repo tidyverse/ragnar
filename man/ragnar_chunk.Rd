@@ -46,7 +46,7 @@ strings are \code{unlist()}ed, and dataframes are \code{tidyr::unchop()}ed.}
 \item For character input with \code{simplify = FALSE}: A list of character vectors
 \item For character input with \code{simplify = TRUE}: A character vector of chunks
 \item For data frame input with \code{simplify = FALSE}: A data frame with the same number of rows as the input, where the
-\code{text} column transformed into a list of chararacter vectors.
+\code{text} column transformed into a list of character vectors.
 \item For data frame input with \code{simplify = TRUE}: Same as a data frame input with \code{simplify=FALSE}, with the
 \code{text} column expanded by \code{tidyr::unchop()}
 }
