@@ -1,3 +1,5 @@
+# ragnar (development version)
+
 # ragnar 0.3.1
 
 -   `ragnar_store_atlas()` now works with Embedding Atlas >= 0.20.0 and uses
