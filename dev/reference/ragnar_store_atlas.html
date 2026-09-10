@@ -100,7 +100,7 @@ and <code>nanoarrow</code> (&gt;= 0.8.0) to transfer data from the DuckDB store 
 <span class="r-in"><span>  embed <span class="op">=</span> <span class="fu"><a href="embed_ollama.html">embed_ollama</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"embeddinggemma:300m-qat-q4_0"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> duckdb keeps downloaded extensions and secrets in a temporary directory:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">ℹ</span> /tmp/Rtmp9WFadm/duckdb</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">ℹ</span> /tmp/Rtmp2shZDS/duckdb</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> This is removed when the R session ends.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Extensions are re-downloaded each session.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Secrets are lost.</span>
@@ -113,7 +113,8 @@ and <code>nanoarrow</code> (&gt;= 0.8.0) to transfer data from the DuckDB store 
 <span class="r-err co"><span class="r-pr">#&gt;</span> Failed to connect to localhost port 11434 after 0 ms: Couldn't connect to server</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Read and embed a chapter from R for Data Science</span></span></span>
-<span class="r-in"><span><span class="va">chunks</span> <span class="op">&lt;-</span> <span class="fu"><a href="read_as_markdown.html">read_as_markdown</a></span><span class="op">(</span><span class="st">"https://r4ds.hadley.nz/data-transform.html"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span><span class="va">chunks</span> <span class="op">&lt;-</span> <span class="st">"https://r4ds.hadley.nz/data-transform.html"</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="read_as_markdown.html">read_as_markdown</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="markdown_chunk.html">markdown_chunk</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="ragnar_store_insert.html">ragnar_store_insert</a></span><span class="op">(</span><span class="va">store</span>, <span class="va">chunks</span><span class="op">)</span></span></span>
 <span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'store' not found</span>

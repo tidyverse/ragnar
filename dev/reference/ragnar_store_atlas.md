@@ -56,7 +56,7 @@ store <- ragnar_store_create(
   embed = embed_ollama(model = "embeddinggemma:300m-qat-q4_0")
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp9WFadm/duckdb
+#> ℹ /tmp/Rtmp2shZDS/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -69,7 +69,8 @@ store <- ragnar_store_create(
 #> Failed to connect to localhost port 11434 after 0 ms: Couldn't connect to server
 
 # Read and embed a chapter from R for Data Science
-chunks <- read_as_markdown("https://r4ds.hadley.nz/data-transform.html") |>
+chunks <- "https://r4ds.hadley.nz/data-transform.html" |>
+  read_as_markdown() |>
   markdown_chunk()
 ragnar_store_insert(store, chunks)
 #> Error: object 'store' not found
