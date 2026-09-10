@@ -39,121 +39,139 @@ export(ragnar_store_update)
 export(read_as_markdown)
 import(S7)
 import(rlang)
-importFrom(DBI,dbAppendTable)
-importFrom(DBI,dbConnect)
-importFrom(DBI,dbDisconnect)
-importFrom(DBI,dbExecute)
-importFrom(DBI,dbExistsTable)
-importFrom(DBI,dbGetQuery)
-importFrom(DBI,dbListFields)
-importFrom(DBI,dbListTables)
-importFrom(DBI,dbQuoteIdentifier)
-importFrom(DBI,dbQuoteString)
-importFrom(DBI,dbReadTable)
-importFrom(DBI,dbWithTransaction)
-importFrom(DBI,dbWriteTable)
-importFrom(dplyr,across)
-importFrom(dplyr,all_of)
-importFrom(dplyr,anti_join)
-importFrom(dplyr,any_of)
-importFrom(dplyr,arrange)
-importFrom(dplyr,as_tibble)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,coalesce)
-importFrom(dplyr,collect)
-importFrom(dplyr,desc)
-importFrom(dplyr,distinct)
-importFrom(dplyr,filter)
-importFrom(dplyr,join_by)
-importFrom(dplyr,lag)
-importFrom(dplyr,left_join)
-importFrom(dplyr,mutate)
-importFrom(dplyr,na_if)
-importFrom(dplyr,rename)
-importFrom(dplyr,rename_with)
-importFrom(dplyr,row_number)
-importFrom(dplyr,select)
-importFrom(dplyr,slice_max)
-importFrom(dplyr,slice_min)
-importFrom(dplyr,sql)
-importFrom(dplyr,starts_with)
-importFrom(dplyr,summarize)
-importFrom(dplyr,tbl)
-importFrom(dplyr,tibble)
-importFrom(glue,as_glue)
-importFrom(glue,glue)
-importFrom(glue,glue_data)
-importFrom(httr2,req_auth_bearer_token)
-importFrom(httr2,req_body_json)
-importFrom(httr2,req_error)
-importFrom(httr2,req_perform)
-importFrom(httr2,req_retry)
-importFrom(httr2,req_url_path_append)
-importFrom(httr2,req_user_agent)
-importFrom(httr2,request)
-importFrom(httr2,resp_body_json)
+importFrom(DBI,
+  dbAppendTable,
+  dbConnect,
+  dbDisconnect,
+  dbExecute,
+  dbExistsTable,
+  dbGetQuery,
+  dbListFields,
+  dbListTables,
+  dbQuoteIdentifier,
+  dbQuoteString,
+  dbReadTable,
+  dbWithTransaction,
+  dbWriteTable
+)
+importFrom(dplyr,
+  across,
+  all_of,
+  anti_join,
+  any_of,
+  arrange,
+  as_tibble,
+  bind_rows,
+  coalesce,
+  collect,
+  desc,
+  distinct,
+  filter,
+  join_by,
+  lag,
+  left_join,
+  mutate,
+  na_if,
+  rename,
+  rename_with,
+  row_number,
+  select,
+  slice_max,
+  slice_min,
+  sql,
+  starts_with,
+  summarize,
+  tbl,
+  tibble
+)
+importFrom(glue,
+  as_glue,
+  glue,
+  glue_data
+)
+importFrom(httr2,
+  req_auth_bearer_token,
+  req_body_json,
+  req_error,
+  req_perform,
+  req_retry,
+  req_url_path_append,
+  req_user_agent,
+  request,
+  resp_body_json
+)
 importFrom(methods,is)
-importFrom(rvest,html_attr)
-importFrom(rvest,html_elements)
-importFrom(rvest,html_text)
-importFrom(rvest,html_text2)
-importFrom(rvest,read_html)
-importFrom(stringi,stri_c)
-importFrom(stringi,stri_count_fixed)
-importFrom(stringi,stri_detect_fixed)
-importFrom(stringi,stri_endswith_fixed)
-importFrom(stringi,stri_extract_first_regex)
-importFrom(stringi,stri_extract_last_regex)
-importFrom(stringi,stri_flatten)
-importFrom(stringi,stri_length)
-importFrom(stringi,stri_locate_all_boundaries)
-importFrom(stringi,stri_locate_all_fixed)
-importFrom(stringi,stri_locate_first_regex)
-importFrom(stringi,stri_match_first_regex)
-importFrom(stringi,stri_numbytes)
-importFrom(stringi,stri_read_lines)
-importFrom(stringi,stri_replace_all_fixed)
-importFrom(stringi,stri_replace_all_regex)
-importFrom(stringi,stri_replace_first_fixed)
-importFrom(stringi,stri_replace_first_regex)
-importFrom(stringi,stri_replace_last_fixed)
-importFrom(stringi,stri_replace_last_regex)
-importFrom(stringi,stri_replace_na)
-importFrom(stringi,stri_split_boundaries)
-importFrom(stringi,stri_split_charclass)
-importFrom(stringi,stri_split_fixed)
-importFrom(stringi,stri_split_lines)
-importFrom(stringi,stri_split_lines1)
-importFrom(stringi,stri_startswith_charclass)
-importFrom(stringi,stri_startswith_fixed)
-importFrom(stringi,stri_sub)
-importFrom(stringi,stri_trim_both)
-importFrom(stringi,stri_trim_right)
-importFrom(tidyr,unchop)
-importFrom(tidyr,unnest)
+importFrom(rvest,
+  html_attr,
+  html_elements,
+  html_text,
+  html_text2,
+  read_html
+)
+importFrom(stringi,
+  stri_c,
+  stri_count_fixed,
+  stri_detect_fixed,
+  stri_endswith_fixed,
+  stri_extract_first_regex,
+  stri_extract_last_regex,
+  stri_flatten,
+  stri_length,
+  stri_locate_all_boundaries,
+  stri_locate_all_fixed,
+  stri_locate_first_regex,
+  stri_match_first_regex,
+  stri_numbytes,
+  stri_read_lines,
+  stri_replace_all_fixed,
+  stri_replace_all_regex,
+  stri_replace_first_fixed,
+  stri_replace_first_regex,
+  stri_replace_last_fixed,
+  stri_replace_last_regex,
+  stri_replace_na,
+  stri_split_boundaries,
+  stri_split_charclass,
+  stri_split_fixed,
+  stri_split_lines,
+  stri_split_lines1,
+  stri_startswith_charclass,
+  stri_startswith_fixed,
+  stri_sub,
+  stri_trim_both,
+  stri_trim_right
+)
+importFrom(tidyr,
+  unchop,
+  unnest
+)
 importFrom(utils,head)
-importFrom(vctrs,data_frame)
-importFrom(vctrs,list_unchop)
-importFrom(vctrs,new_data_frame)
-importFrom(vctrs,vec_c)
-importFrom(vctrs,vec_cbind)
-importFrom(vctrs,vec_chop)
-importFrom(vctrs,vec_fill_missing)
-importFrom(vctrs,vec_locate_matches)
-importFrom(vctrs,vec_proxy)
-importFrom(vctrs,vec_ptype)
-importFrom(vctrs,vec_rbind)
-importFrom(vctrs,vec_restore)
-importFrom(vctrs,vec_slice)
-importFrom(vctrs,vec_split)
-importFrom(vctrs,vec_unique)
-importFrom(xml2,url_absolute)
-importFrom(xml2,xml_add_sibling)
-importFrom(xml2,xml_attr)
-importFrom(xml2,xml_contents)
-importFrom(xml2,xml_find_all)
-importFrom(xml2,xml_find_first)
-importFrom(xml2,xml_name)
-importFrom(xml2,xml_text)
-importFrom(xml2,xml_url)
+importFrom(vctrs,
+  data_frame,
+  list_unchop,
+  new_data_frame,
+  vec_c,
+  vec_cbind,
+  vec_chop,
+  vec_fill_missing,
+  vec_locate_matches,
+  vec_proxy,
+  vec_ptype,
+  vec_rbind,
+  vec_restore,
+  vec_slice,
+  vec_split,
+  vec_unique
+)
+importFrom(xml2,
+  url_absolute,
+  xml_add_sibling,
+  xml_attr,
+  xml_contents,
+  xml_find_all,
+  xml_find_first,
+  xml_name,
+  xml_text,
+  xml_url
+)
 useDynLib(ragnar, .registration = TRUE)

@@ -40,9 +40,9 @@ BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more
 information.
 }
 \seealso{
-Other ragnar_retrieve: 
-\code{\link{ragnar_retrieve}()},
-\code{\link{ragnar_retrieve_vss}()},
-\code{\link{ragnar_retrieve_vss_and_bm25}()}
+Other ragnar_retrieve:
+\code{\link[=ragnar_retrieve]{ragnar_retrieve()}},
+\code{\link[=ragnar_retrieve_vss]{ragnar_retrieve_vss()}},
+\code{\link[=ragnar_retrieve_vss_and_bm25]{ragnar_retrieve_vss_and_bm25()}}
 }
 \concept{ragnar_retrieve}
