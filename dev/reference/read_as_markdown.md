@@ -236,11 +236,8 @@ if (
 # YouTube transcripts
 ## read_as_markdown() fetches transcripts for YouTube links
 cat_head(read_as_markdown("https://youtu.be/GELhdezYmP0"))
-#> #  - YouTube
-#> 
-#> [About](https://www.youtube.com/about/)[Press](https://www.youtube.com/about/press/)[Copyright](https://www.youtube.com/about/copyright/)[Contact us](/t/contact_us/)[Creators](https://www.youtube.com/creators/)[Advertise](https://www.youtube.com/ads/)[Developers](https://developers.google.com/youtube)[Terms](/t/terms)[Privacy](/t/privacy)[Policy & Safety](https://www.youtube.com/about/policies/)[How YouTube works](https://www.youtube.com/howyoutubeworks?utm_campaign=ytgen&utm_source=ythp&utm_medium=LeftNav&utm_content=txt&u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen)[Test new features](/new)[NFL Sunday Ticket](https://tv.youtube.com/learn/nflsundayticket)
-#> 
-#> © 2026 Google LLC
+#> Error in py_call_impl(callable, call_args$unnamed, call_args$named): requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://www.google.com/sorry/index?continue=https://www.youtube.com/watch%3Fv%3DGELhdezYmP0%26feature%3Dyoutu.be&q=EgQUMQ63GPqli9UGIjByhXW9JZNEanE8nRQeDZozklBNI59erchuZcG6sgHOLTFo3QFkrZuFoRVHLx8UPysyAnJSWgFD
+#> Run `reticulate::py_last_error()` for details.
 
 ## The default transcript omits timestamps. Supply a custom
 ## `youtube_transcript_formatter` to control the output. This example formats
@@ -284,10 +281,7 @@ read_as_markdown(
   }
 ) |>
   cat_head(n = 60)
-#> #  - YouTube
-#> 
-#> [About](https://www.youtube.com/about/)[Press](https://www.youtube.com/about/press/)[Copyright](https://www.youtube.com/about/copyright/)[Contact us](/t/contact_us/)[Creators](https://www.youtube.com/creators/)[Advertise](https://www.youtube.com/ads/)[Developers](https://developers.google.com/youtube)[Terms](/t/terms)[Privacy](/t/privacy)[Policy & Safety](https://www.youtube.com/about/policies/)[How YouTube works](https://www.youtube.com/howyoutubeworks?utm_campaign=ytgen&utm_source=ythp&utm_medium=LeftNav&utm_content=txt&u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen)[Test new features](/new)[NFL Sunday Ticket](https://tv.youtube.com/learn/nflsundayticket)
-#> 
-#> © 2026 Google LLC
+#> Error in py_call_impl(callable, call_args$unnamed, call_args$named): requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://www.google.com/sorry/index?continue=https://www.youtube.com/watch%3Fv%3DGELhdezYmP0&q=EgQUMQ63GPuli9UGIjDT-xOuhWT71n-JEo6xeg0dgmFpEWr1iqYvszw6U0UOVSoBpaTc7lgfMGBM5oqFv2EyAnJSWgFD
+#> Run `reticulate::py_last_error()` for details.
 # }
 ```

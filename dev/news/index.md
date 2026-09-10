@@ -2,6 +2,11 @@
 
 ## ragnar (development version)
 
+- [`ragnar_store_atlas()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_atlas.md)
+  now works with Embedding Atlas \>= 0.20.0 and uses `nanoarrow` instead
+  of `arrow` for data transfer
+  ([\#168](https://github.com/tidyverse/ragnar/issues/168)).
+
 - [`chunks_deoverlap()`](https://ragnar.tidyverse.org/dev/reference/chunks_deoverlap.md)
   now accepts empty input, so
   [`ragnar_retrieve()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve.md)
