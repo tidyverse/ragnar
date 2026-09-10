@@ -115,7 +115,7 @@ test_that("vec_frame_flattened_tree works 3", {
 
   frame <- vec_frame_flattened_tree(vec, c("h1", "h2", "h3"))
   expect_equal(frame, expected)
-  expect_true(is.na(last(frame$h3)))
+  expect_true(is.na(last_elt(frame$h3)))
 })
 
 

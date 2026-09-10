@@ -1,5 +1,11 @@
 # ragnar 0.3.1
 
+-   `ragnar_store_atlas()` now works with Embedding Atlas >= 0.20.0 and uses
+    `nanoarrow` instead of `arrow` for data transfer (#168).
+
+-   `chunks_deoverlap()` now accepts empty input, so `ragnar_retrieve()` no
+    longer errors when all chunks are filtered out (#174).
+
 -   `embed_openai()` now accepts integer `dims` values (#175).
 
 -   ragnar now disables ONNX Runtime telemetry (#177).

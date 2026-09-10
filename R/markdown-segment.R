@@ -101,7 +101,7 @@ markdown_segment <- function(
   } else {
     empty_bookend <- c(
       if (sizes[1L] == 0L) 1L,
-      if (last(sizes) == 0L) length(splits)
+      if (last_elt(sizes) == 0L) length(splits)
     )
     if (length(empty_bookend)) {
       splits <- splits[-empty_bookend]
