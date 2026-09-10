@@ -28,7 +28,7 @@
 #' @importFrom utils head
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
 #' @import rlang
-#' @import S7
+#' @rawNamespace import(S7, except = ":=")
 #' @useDynLib ragnar, .registration = TRUE
 NULL
 

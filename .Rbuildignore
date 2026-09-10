@@ -21,4 +21,4 @@
 ^cran-comments\.md$
 \.ruff_cache
 ^CRAN-SUBMISSION$
-
+__pycache__

@@ -19,6 +19,7 @@
 #' @export
 #'
 #' @name MarkdownDocument
+#' @usage MarkdownDocument(text, origin = attr(text, "origin", TRUE))
 #' @examples
 #' md <- MarkdownDocument(
 #'   "# Title\n\nSome text.",
@@ -103,6 +104,7 @@ local({
 #' @export
 #' @seealso [MarkdownDocument()]
 #' @name MarkdownDocumentChunks
+#' @usage MarkdownDocumentChunks(chunks, document = attr(chunks, "document", TRUE))
 #' @examples
 #' doc_text <- "# A\n\nB\n\n## C\n\nD" # can be readLines() output, etc.
 #' doc <- MarkdownDocument(doc_text, origin = "some/where")
