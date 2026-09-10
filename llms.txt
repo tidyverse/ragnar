@@ -14,12 +14,14 @@ happening.
 You can install ragnar from CRAN with:
 
 ``` r
+
 install.packages("ragnar")
 ```
 
 You can install the development version from GitHub with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("tidyverse/ragnar")
 ```
@@ -127,6 +129,7 @@ Here’s an example of using ragnar to create a knowledge store from the
 *R for Data Science (2e)* book:
 
 ``` r
+
 library(ragnar)
 
 base_url <- "https://r4ds.hadley.nz"
@@ -191,6 +194,7 @@ Once the store is set up, you can then retrieve the most relevant text
 chunks.
 
 ``` r
+
 #' ## Retrieving Chunks
 
 library(ragnar)
@@ -215,6 +219,7 @@ text <- "How can I subset a dataframe with a logical vector?"
 ```
 
 ``` r
+
 
 
 #' # Register ellmer tool
@@ -322,7 +327,7 @@ Ingest documents from the web, PDFs, Word, or local Markdown.
 
 - [`read_as_markdown()`](https://ragnar.tidyverse.org/reference/read_as_markdown.md)
   : Convert files to Markdown
-- [`MarkdownDocument`](https://ragnar.tidyverse.org/reference/MarkdownDocument.md)
+- [`MarkdownDocument()`](https://ragnar.tidyverse.org/reference/MarkdownDocument.md)
   : Markdown documents
 - [`ragnar_find_links()`](https://ragnar.tidyverse.org/reference/ragnar_find_links.md)
   : Find links on a page
@@ -333,7 +338,7 @@ Chunk and augment text context.
 
 - [`markdown_chunk()`](https://ragnar.tidyverse.org/reference/markdown_chunk.md)
   : Chunk a Markdown document
-- [`MarkdownDocumentChunks`](https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.md)
+- [`MarkdownDocumentChunks()`](https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.md)
   : Markdown documents chunks
 - [`ragnar_chunks_view()`](https://ragnar.tidyverse.org/reference/ragnar_chunks_view.md)
   : View chunks with the store inspector

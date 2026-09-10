@@ -6,7 +6,7 @@ Ingest documents from the web, PDFs, Word, or local Markdown.
 
 - [`read_as_markdown()`](https://ragnar.tidyverse.org/reference/read_as_markdown.md)
   : Convert files to Markdown
-- [`MarkdownDocument`](https://ragnar.tidyverse.org/reference/MarkdownDocument.md)
+- [`MarkdownDocument()`](https://ragnar.tidyverse.org/reference/MarkdownDocument.md)
   : Markdown documents
 - [`ragnar_find_links()`](https://ragnar.tidyverse.org/reference/ragnar_find_links.md)
   : Find links on a page
@@ -17,7 +17,7 @@ Chunk and augment text context.
 
 - [`markdown_chunk()`](https://ragnar.tidyverse.org/reference/markdown_chunk.md)
   : Chunk a Markdown document
-- [`MarkdownDocumentChunks`](https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.md)
+- [`MarkdownDocumentChunks()`](https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.md)
   : Markdown documents chunks
 - [`ragnar_chunks_view()`](https://ragnar.tidyverse.org/reference/ragnar_chunks_view.md)
   : View chunks with the store inspector

@@ -115,7 +115,7 @@ embed_google_vertex(
  location = "us-central1"
 )
 #> Error in embed_google_vertex("hello world", model = "gemini-embedding-001",     project = "<your-project-id>", location = "us-central1"): No Google credentials are available.
-#> ℹ Try suppling an API key or configuring Google's application default
+#> ℹ Try supplying an API key or configuring Google's application default
 #>   credentials.
 # }
 ```

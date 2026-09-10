@@ -1,5 +1,43 @@
 # Changelog
 
+## ragnar 0.3.1
+
+- [`ragnar_store_atlas()`](https://ragnar.tidyverse.org/reference/ragnar_store_atlas.md)
+  now works with Embedding Atlas \>= 0.20.0 and uses `nanoarrow` instead
+  of `arrow` for data transfer
+  ([\#168](https://github.com/tidyverse/ragnar/issues/168)).
+
+- [`chunks_deoverlap()`](https://ragnar.tidyverse.org/reference/chunks_deoverlap.md)
+  now accepts empty input, so
+  [`ragnar_retrieve()`](https://ragnar.tidyverse.org/reference/ragnar_retrieve.md)
+  no longer errors when all chunks are filtered out
+  ([\#174](https://github.com/tidyverse/ragnar/issues/174)).
+
+- [`embed_openai()`](https://ragnar.tidyverse.org/reference/embed_ollama.md)
+  now accepts integer `dims` values
+  ([\#175](https://github.com/tidyverse/ragnar/issues/175)).
+
+- ragnar now disables ONNX Runtime telemetry
+  ([\#177](https://github.com/tidyverse/ragnar/issues/177)).
+
+- ragnar now requires Python \< 3.14 to avoid incompatible MarkItDown
+  dependencies.
+
+- ragnar can now load without an import warning with development
+  versions of S7.
+
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/reference/ragnar_store_ingest.md)
+  now uses the updated
+  [`mirai::race_mirai()`](https://mirai.r-lib.org/reference/race_mirai.html)
+  API. ragnar now requires mirai \>= 2.6.0
+  ([\#159](https://github.com/tidyverse/ragnar/issues/159)).
+
+- The documentation for
+  [`MarkdownDocument()`](https://ragnar.tidyverse.org/reference/MarkdownDocument.md)
+  and
+  [`MarkdownDocumentChunks()`](https://ragnar.tidyverse.org/reference/MarkdownDocumentChunks.md)
+  now includes constructor usage.
+
 ## ragnar 0.3.0
 
 CRAN release: 2026-01-23

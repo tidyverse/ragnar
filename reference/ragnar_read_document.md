@@ -220,7 +220,7 @@ file |>
 #> 
 #> We’ll come back to $ shortly, but you should be able to guess what df$x does from the context: it extracts the x variable from df. We need to use it here because [ doesn’t use tidy evaluation, so you need to be explicit about the source of the x variable.
 #> 
-#> There’s an important difference between tibbles and data frames when it comes to [. In this book, we’ve mainly used tibbles, which are data frames, but they tweak some behaviors to make your life a little easier. In most places, you can use “tibble” and “data frame” interchangeably, so when we want to draw particular attention to R’s built-in data frame, we’ll write data.frame. If df is a data.frame, then df[, cols] will return a vector if col selects a single column and a data frame if it selects more than one column. If df is a tibble, then [ will always return a tibble.
+#> There’s an important difference between tibbles and data frames when it comes to [. In this book, we’ve mainly used tibbles, which are data frames, but they tweak some behaviors to make your life a little easier. In most places, you can use “tibble” and “data frame” interchangeably, so when we want to draw particular attention to R’s built-in data frame, we’ll write data.frame. If df is a data.frame, then df[, cols] will return a vector if cols selects a single column and a data frame if it selects more than one column. If df is a tibble, then [ will always return a tibble.
 #> 
 #> df1 <- data.frame(x = 1:3)
 #> df1[, "x"]

@@ -14,12 +14,14 @@ happening.
 You can install ragnar from CRAN with:
 
 ``` r
+
 install.packages("ragnar")
 ```
 
 You can install the development version from GitHub with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("tidyverse/ragnar")
 ```
@@ -127,6 +129,7 @@ Here’s an example of using ragnar to create a knowledge store from the
 *R for Data Science (2e)* book:
 
 ``` r
+
 library(ragnar)
 
 base_url <- "https://r4ds.hadley.nz"
@@ -191,6 +194,7 @@ Once the store is set up, you can then retrieve the most relevant text
 chunks.
 
 ``` r
+
 #' ## Retrieving Chunks
 
 library(ragnar)
@@ -215,6 +219,7 @@ text <- "How can I subset a dataframe with a logical vector?"
 ```
 
 ``` r
+
 
 
 #' # Register ellmer tool

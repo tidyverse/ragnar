@@ -77,7 +77,7 @@ ragnar_chunk_segments(x, max_size = 1600L, ..., simplify = TRUE, trim = TRUE)
 
 - For data frame input with `simplify = FALSE`: A data frame with the
   same number of rows as the input, where the `text` column transformed
-  into a list of chararacter vectors.
+  into a list of character vectors.
 
 - For data frame input with `simplify = TRUE`: Same as a data frame
   input with `simplify=FALSE`, with the `text` column expanded by

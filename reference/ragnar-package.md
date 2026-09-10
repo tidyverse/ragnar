@@ -30,6 +30,8 @@ Useful links:
 
 Authors:
 
+- Tomasz Kalinowski <tomasz@posit.co>
+
 - Daniel Falbel <daniel@posit.co>
 
 Other contributors:
