@@ -29,7 +29,7 @@ Visualize a store using Embedding Atlas
 \note{
 This function requires the \code{embedding-atlas} Python package (>= 0.20.0)
 in your reticulate Python environment, the \code{duckdb} R package (>= 1.4.0),
-and \code{arrow} to transfer data from the DuckDB store to Python.
+and \code{nanoarrow} (>= 0.8.0) to transfer data from the DuckDB store to Python.
 }
 \examples{
 \dontrun{

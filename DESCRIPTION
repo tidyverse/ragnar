@@ -29,7 +29,7 @@ Imports:
     cli,
     commonmark,
     curl,
-    DBI,
+    DBI (>= 1.2.0),
     mirai (>= 2.6.0),
     dbplyr,
     dplyr,
@@ -48,13 +48,13 @@ Imports:
     withr,
     xml2
 Suggests:
-    arrow,
     connectcreds,
     ellmer (>= 0.3.0),
     gargle,
     knitr,
     lifecycle,
     mcptools (>= 0.2.0),
+    nanoarrow (>= 0.8.0),
     pandoc,
     paws.common,
     rmarkdown,

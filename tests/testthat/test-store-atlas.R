@@ -1,9 +1,9 @@
 test_that("ragnar_store_atlas() serves projected store embeddings", {
   skip_on_cran()
   skip_if_offline()
-  skip_if_not_installed("arrow")
+  skip_if_not_installed("nanoarrow", minimum_version = "0.8.0")
 
-  reticulate::py_require("embedding-atlas>=0.20.0")
+  reticulate::py_require(c("embedding-atlas>=0.20.0", "nanoarrow"))
   mock <- reticulate::import("unittest.mock")
   # Exercise the real projection and HTTP app without starting a blocking server.
   server_run_patch <- mock$patch("uvicorn.Server.run", autospec = TRUE)

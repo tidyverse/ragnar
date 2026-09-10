@@ -2,11 +2,13 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "embedding-atlas>=0.20.0",
+#     "nanoarrow",
 #     "duckdb",
 # ]
 # ///
 
 import embedding_atlas
+import pyarrow as pa
 
 from embedding_atlas.projection import compute_projection
 from embedding_atlas.data_source import DataSource
@@ -18,7 +20,7 @@ import threading
 
 
 def run_embedding_atlas(df, host, port):
-    df = df.to_pandas()
+    df = pa.table(df).to_pandas()
 
     df = compute_projection(df, inputs="embedding", modality="vector")
     df["_row_index"] = range(len(df))  # add a row index for neighbors
