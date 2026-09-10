@@ -12,6 +12,7 @@ import pyarrow as pa
 
 from embedding_atlas.projection import compute_projection
 from embedding_atlas.data_source import DataSource
+from embedding_atlas.options import make_embedding_atlas_props
 from embedding_atlas.server import make_server
 
 import uvicorn
@@ -27,15 +28,13 @@ def run_embedding_atlas(df, host, port):
     df.drop(columns=["embedding"], inplace=True)
 
     metadata = {
-        "columns": {
-            "id": "_row_index",
-            "text": "text",
-            "embedding": {
-                "x": "projection_x",
-                "y": "projection_y",
-            },
-            "neighbors": "neighbors",
-        },
+        "props": make_embedding_atlas_props(
+            row_id="_row_index",
+            text="text",
+            x="projection_x",
+            y="projection_y",
+            neighbors="neighbors",
+        ),
     }
 
     dataset = DataSource("<identifier>", df, metadata)

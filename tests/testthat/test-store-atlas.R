@@ -26,7 +26,8 @@ test_that("ragnar_store_atlas() serves projected store embeddings", {
     withr::defer(client$close())
 
     metadata <- client$get("/data/metadata.json")$json()
-    columns <- metadata$columns
+    columns <- metadata$props$data
+    expect_type(columns, "list")
     response <- client$post("/data/query", json = reticulate::dict(
       type = "json",
       sql = "SELECT * FROM dataset ORDER BY _row_index"
@@ -37,8 +38,8 @@ test_that("ragnar_store_atlas() serves projected store embeddings", {
     expect_length(data, n)
     expect_identical(vapply(data, `[[`, "", columns$text), text)
     expect_identical(vapply(data, `[[`, 0L, columns$id), seq_len(n) - 1L)
-    expect_true(all(is.finite(vapply(data, `[[`, 0, columns$embedding$x))))
-    expect_true(all(is.finite(vapply(data, `[[`, 0, columns$embedding$y))))
+    expect_true(all(is.finite(vapply(data, `[[`, 0, columns$projection$x))))
+    expect_true(all(is.finite(vapply(data, `[[`, 0, columns$projection$y))))
     expect_true(all(vapply(data, \(row) columns$neighbors %in% names(row), NA)))
   })
 })
