@@ -1,13 +1,24 @@
 test_that("basic ragnar ingest test", {
+  skip_if_offline()
   skip_on_cran()
 
-  # Use local documents so ingestion does not depend on remote servers.
-  PATHS <- file.path(withr::local_tempdir(), paste0(seq_len(10), ".md"))
-  for (i in seq_along(PATHS)) {
-    writeLines(
-      c(paste("# Document", i), "", paste("Contents of document", i)),
-      PATHS[[i]]
-    )
+  PATHS <- c(
+    "https://quarto.org/about.html",
+    "https://quarto.org/bug-reports.html",
+    "https://quarto.org/docs/advanced/environment-vars.html",
+    "https://quarto.org/docs/advanced/html/external-sources.html",
+    "https://quarto.org/docs/advanced/index.html",
+    "https://quarto.org/docs/advanced/inspect/index.html",
+    "https://quarto.org/docs/advanced/jupyter/kernel-execution.html",
+    "https://quarto.org/docs/advanced/typst/brand-yaml.html",
+    "https://quarto.org/docs/advanced/typst/typst-css.html",
+    "https://quarto.org/docs/authoring/appendices.html"
+  )
+
+  # Retry failed reads while keeping the live network test.
+  prepare <- \(path) {
+    testthat::try_again(2, ragnar::read_as_markdown(path)) |>
+      ragnar::markdown_chunk()
   }
 
   temp_store <- tempfile(fileext = ".store")
@@ -20,7 +31,7 @@ test_that("basic ragnar ingest test", {
   )
 
   expect_error(
-    ragnar_store_ingest(store, PATHS, progress = FALSE),
+    ragnar_store_ingest(store, PATHS, prepare = prepare, progress = FALSE),
     regexp = 'could not find function "runif"'
   )
 
@@ -32,7 +43,7 @@ test_that("basic ragnar ingest test", {
   )
 
   expect_error(
-    ragnar_store_ingest(store, PATHS, progress = FALSE),
+    ragnar_store_ingest(store, PATHS, prepare = prepare, progress = FALSE),
     regexp = NA
   )
 
