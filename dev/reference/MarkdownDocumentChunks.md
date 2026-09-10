@@ -31,6 +31,12 @@ For normal use, chunk a Markdown document with
 the class constructor itself is exported only so advanced users can
 generate or tweak chunks by other means.
 
+## Usage
+
+``` r
+MarkdownDocumentChunks(chunks, document = attr(chunks, "document", TRUE))
+```
+
 ## Arguments
 
 - chunks:

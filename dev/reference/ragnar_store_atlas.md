@@ -56,7 +56,7 @@ store <- ragnar_store_create(
   embed = embed_ollama(model = "embeddinggemma:300m-qat-q4_0")
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp2shZDS/duckdb
+#> ℹ /tmp/RtmptIYqiH/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.

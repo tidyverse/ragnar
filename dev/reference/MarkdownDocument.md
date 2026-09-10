@@ -10,6 +10,12 @@ is the recommended way to create a `MarkdownDocument`. The constructor
 itself is exported only so advanced users can construct one by other
 means when needed.
 
+## Usage
+
+``` r
+MarkdownDocument(text, origin = attr(text, "origin", TRUE))
+```
+
 ## Arguments
 
 - text:
