@@ -33,9 +33,21 @@ and \code{nanoarrow} (>= 0.8.0) to transfer data from the DuckDB store to Python
 }
 \examples{
 \dontrun{
-# Connect or create a store
-store <- ragnar_store_connect(':memory:')
+# Start Ollama, then run this in a terminal:
+# ollama pull embeddinggemma:300m
+
+# Create an in-memory store using local embeddings
+store <- ragnar_store_create(
+  embed = embed_ollama(model = "embeddinggemma:300m")
+)
+
+# Read and embed a chapter from R for Data Science
+chunks <- read_as_markdown("https://r4ds.hadley.nz/data-transform.html") |>
+  markdown_chunk()
+ragnar_store_insert(store, chunks)
+
 # Launch the Embedding Atlas app
+# Interrupt R (Esc or Ctrl+C) to stop the server
 ragnar_store_atlas(store)
 }
 
