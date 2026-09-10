@@ -1,19 +1,14 @@
 test_that("basic ragnar ingest test", {
-  skip_if_offline()
   skip_on_cran()
 
-  PATHS <- c(
-    "https://quarto.org/about.html",
-    "https://quarto.org/bug-reports.html",
-    "https://quarto.org/docs/advanced/environment-vars.html",
-    "https://quarto.org/docs/advanced/html/external-sources.html",
-    "https://quarto.org/docs/advanced/index.html",
-    "https://quarto.org/docs/advanced/inspect/index.html",
-    "https://quarto.org/docs/advanced/jupyter/kernel-execution.html",
-    "https://quarto.org/docs/advanced/typst/brand-yaml.html",
-    "https://quarto.org/docs/advanced/typst/typst-css.html",
-    "https://quarto.org/docs/authoring/appendices.html"
-  )
+  # Use local documents so ingestion does not depend on remote servers.
+  PATHS <- file.path(withr::local_tempdir(), paste0(seq_len(10), ".md"))
+  for (i in seq_along(PATHS)) {
+    writeLines(
+      c(paste("# Document", i), "", paste("Contents of document", i)),
+      PATHS[[i]]
+    )
+  }
 
   temp_store <- tempfile(fileext = ".store")
 
