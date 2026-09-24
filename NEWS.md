@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `markdown_chunk()` no longer misplaces heading boundaries when the input
+    contains combining characters (NFD-normalized text) (@taekop, #158).
+
 # ragnar 0.3.1
 
 -   `ragnar_store_atlas()` now works with Embedding Atlas >= 0.20.0 and uses

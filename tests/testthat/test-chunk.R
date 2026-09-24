@@ -27,3 +27,40 @@ test_that("pick_cut_positions_ works", {
   # Consecutive positions
   expect_equal(pick_cut_positions(1:5, 2L), c(1L, 3L, 5L))
 })
+
+test_that("markdown_chunk() handles NFD combining characters correctly", {
+  # base string uses precomposed characters (NFC); nfd_text is the same
+  # string decomposed into base char + combining mark (NFD). Both must
+  # produce identical chunk boundaries and text.
+  base_text <- "Long [aā], [ã], [eē], [ẽ] are frequent."
+  nfd_text <- stringi::stri_trans_nfd(base_text)
+
+  md <- paste(
+    "## TEST 1",
+    "Some unrelated introductory paragraph.",
+    "## Look at me",
+    nfd_text,
+    "## TEST 2",
+    "Another unrelated trailing paragraph.",
+    sep = "\n\n"
+  )
+
+  chunks <- markdown_chunk(
+    md,
+    target_size = NA,
+    segment_by_heading_levels = 1:6
+  )
+
+  # The chunk under "## Look at me" should contain the full combining-character
+  # text, not be truncated/misaligned partway through it.
+  look_at_me_chunk <- chunks$text[grepl("Look at me", chunks$text)]
+  expect_length(look_at_me_chunk, 1)
+  expect_true(grepl(nfd_text, look_at_me_chunk, fixed = TRUE))
+
+  # There should still be exactly 3 segments/chunks, matching the 3 headings.
+  expect_equal(nrow(chunks), 3)
+
+  # The final chunk (## TEST 2) should not have been swallowed by the
+  # preceding one, which would indicate the end offset ran past the segment.
+  expect_true(any(grepl("TEST 2", chunks$text, fixed = TRUE)))
+})
