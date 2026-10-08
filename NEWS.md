@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   Embedding factories now handle required arguments and `x = NULL`,
+    including `embed_bedrock()`.
+
 -   `ragnar_find_links()` now returns an empty character vector instead of
     erroring when no links are found or all links are filtered out.
 
