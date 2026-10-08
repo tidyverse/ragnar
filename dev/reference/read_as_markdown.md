@@ -113,11 +113,11 @@ url <- "https://duckdb.org/code_of_conduct"
 read_as_markdown(url) |> cat_head(15)
 #> ---
 #> title: Code of Conduct
-#> description: Code of Conduct All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone –…
+#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
-#> Search Shortcut cmd \+ k | ctrl \+ k
+#> Search Shortcut cmd + k | ctrl + k
 #> 
 #> # Code of Conduct
 #> 
@@ -132,11 +132,11 @@ read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
   cat_head()
 #> ---
 #> title: Code of Conduct
-#> description: Code of Conduct All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone –…
+#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
-#> Search Shortcut cmd \+ k | ctrl \+ k
+#> Search Shortcut cmd + k | ctrl + k
 #> 
 #> # Code of Conduct
 #> 
@@ -153,11 +153,11 @@ read_as_markdown(
 ) |> cat_head()
 #> ---
 #> title: Code of Conduct
-#> description: Code of Conduct All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone –…
+#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
-#> Search Shortcut cmd \+ k | ctrl \+ k
+#> Search Shortcut cmd + k | ctrl + k
 #> 
 #> # Code of Conduct
 #> 

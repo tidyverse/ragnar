@@ -2,7 +2,13 @@
 
 ## ragnar (development version)
 
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  now returns an empty character vector instead of erroring when no
+  links are found or all links are filtered out.
+
 ## ragnar 0.3.1
+
+CRAN release: 2026-09-10
 
 - [`ragnar_store_atlas()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_atlas.md)
   now works with Embedding Atlas \>= 0.20.0 and uses `nanoarrow` instead

@@ -44,9 +44,11 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="ragnar-development-version">ragnar (development version)<a class="anchor" aria-label="anchor" href="#ragnar-development-version"></a></h2>
-</div>
+<ul><li>
+<code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> now returns an empty character vector instead of erroring when no links are found or all links are filtered out.</li>
+</ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.3.1" id="ragnar-031">ragnar 0.3.1<a class="anchor" aria-label="anchor" href="#ragnar-031"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.3.1" id="ragnar-031">ragnar 0.3.1<a class="anchor" aria-label="anchor" href="#ragnar-031"></a></h2><p class="text-muted">CRAN release: 2026-09-10</p>
 <ul><li><p><code><a href="../reference/ragnar_store_atlas.html">ragnar_store_atlas()</a></code> now works with Embedding Atlas &gt;= 0.20.0 and uses <code>nanoarrow</code> instead of <code>arrow</code> for data transfer (<a href="https://github.com/tidyverse/ragnar/issues/168" class="external-link">#168</a>).</p></li>
 <li><p><code><a href="../reference/chunks_deoverlap.html">chunks_deoverlap()</a></code> now accepts empty input, so <code><a href="../reference/ragnar_retrieve.html">ragnar_retrieve()</a></code> no longer errors when all chunks are filtered out (<a href="https://github.com/tidyverse/ragnar/issues/174" class="external-link">#174</a>).</p></li>
 <li><p><code><a href="../reference/embed_ollama.html">embed_openai()</a></code> now accepts integer <code>dims</code> values (<a href="https://github.com/tidyverse/ragnar/issues/175" class="external-link">#175</a>).</p></li>
