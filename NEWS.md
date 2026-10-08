@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `ragnar_find_links()` now returns an empty character vector instead of
+    erroring when no links are found or all links are filtered out.
+
 # ragnar 0.3.1
 
 -   `ragnar_store_atlas()` now works with Embedding Atlas >= 0.20.0 and uses

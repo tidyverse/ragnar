@@ -480,6 +480,7 @@ ragnar_find_links <- function(
   out <- collected
   get_resolved <- reticulate::py_to_r(resolved$get)
   out <- reticulate::iterate(out, \(x) get_resolved(x) %||% x)
+  out <- as.character(out)
   out <- out[nzchar(out)]
   out <- unique(sort(url_filter_fn(out)))
 
