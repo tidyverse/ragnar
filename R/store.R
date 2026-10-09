@@ -465,7 +465,7 @@ ragnar_store_inspect <- function(store, ...) {
 #' @param launch.browser Whether to launch the browser automatically.
 #'
 #' @note This function requires the `embedding-atlas` Python package (>= 0.20.0)
-#' in your reticulate Python environment, the `duckdb` R package (>= 1.4.0),
+#' in your reticulate Python environment, the `duckdb` R package (>= 1.5.0),
 #' and `nanoarrow` (>= 0.8.0) to transfer data from the DuckDB store to Python.
 #'
 #' @examples

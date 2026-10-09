@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   ragnar now requires DuckDB >= 1.5.0, whose row-ID fetching keeps indexed
+    VSS retrieval bounded to the selected matches.
+
 -   `ragnar_retrieve_vss()` now fetches embeddings and document text after
     selecting the final matches, reducing intermediate memory use. Store
     connections disable insertion-order preservation, and the store
