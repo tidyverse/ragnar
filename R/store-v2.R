@@ -27,6 +27,7 @@ ragnar_store_create_v2 <- function(
       overwrite = overwrite
     )
   }
+  dbExecute(con, "SET preserve_insertion_order = false")
 
   # make sure to force and process `embed()` before forcing `embedding_size`
   embed <- process_embed_func(embed)

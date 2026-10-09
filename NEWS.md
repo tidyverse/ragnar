@@ -1,5 +1,18 @@
 # ragnar (development version)
 
+-   ragnar now requires DuckDB >= 1.5.0, whose row-ID fetching keeps indexed
+    VSS retrieval bounded to the selected matches.
+
+-   `ragnar_retrieve_vss()` now fetches embeddings and document text after
+    selecting the final matches, reducing intermediate memory use. Store
+    connections disable insertion-order preservation, and the store
+    documentation explains how to set a deployment-specific DuckDB memory
+    limit (#188).
+
+-   VSS filters can now reference `metric_value`, `metric_name`, and, for
+    version 2 stores, `origin` and `text`. Filtered searches spanning the
+    initial 5,000 candidates now respect `top_k`.
+
 -   Store creation and connection now reject custom column names `rowid`,
     `metric_name`, `metric_value`, and names beginning with `_ragnar_`,
     ignoring case. Rename these columns in existing stores before connecting.

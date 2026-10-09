@@ -92,6 +92,24 @@ responsibility to provide \code{rlang::hash(original_full_document)} with each
 chunk. The easiest way to prepare \code{chunks} for \code{version = 1} is with
 \code{ragnar_read()} and \code{ragnar_chunk()}.
 }
+
+\subsection{Memory use}{
+
+Store connections disable DuckDB's insertion-order preservation to reduce
+memory use. Use an explicit \verb{ORDER BY} when querying the connection directly
+if row order matters.
+
+DuckDB sets a default \code{memory_limit} based on available system memory. For
+deployments with a smaller process memory budget, lower this limit after
+creating or connecting to a store, for example:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{DBI::dbExecute(store@con, "SET memory_limit = '4GB'")
+}\if{html}{\out{</div>}}
+
+Choose a limit that leaves room for R and other allocations. This setting
+limits DuckDB's buffer manager, not total process memory; HNSW indexes and
+some other allocations are outside this limit.
+}
 }
 \examples{
 \dontshow{if (ragnar:::can_load_duckdb_extensions()) withAutoprint(\{ # examplesIf}
