@@ -13,6 +13,13 @@
     version 2 stores, `origin` and `text`. Filtered searches spanning the
     initial 5,000 candidates now respect `top_k`.
 
+-   Store creation and connection now reject custom column names `rowid`,
+    `metric_name`, `metric_value`, and names beginning with `_ragnar_`,
+    ignoring case. Rename these columns in existing stores before connecting.
+    Temporary de-overlap columns now use the `_ragnar_` prefix, preserving
+    metadata named `overlap_grp` or `deoverlapped_id`. Public retrieval metric
+    names are unchanged.
+
 -   Fixed an error when creating an embedding function by omitting `x` or
     passing `x = NULL`. Helpers such as `embed_bedrock()`,
     `embed_azure_openai()`, and `embed_google_vertex()` now correctly return

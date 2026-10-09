@@ -43,7 +43,11 @@ example, if only using FTS algorithms such as \code{\link[=ragnar_retrieve_bm25]
 that should be added to the store. Such columns can be used for adding
 additional context when retrieving. See the examples for more information.
 \code{\link[vctrs:vec_cast]{vctrs::vec_cast()}} is used to consistently perform type checks and casts
-when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.}
+when inserting with \code{\link[=ragnar_store_insert]{ragnar_store_insert()}}.
+Column names \code{rowid}, \code{metric_name}, \code{metric_value}, and names beginning
+with \verb{_ragnar_} are reserved, ignoring case. Existing stores with these
+columns must have them renamed before connecting. The public retrieval
+columns remain \code{metric_name} and \code{metric_value}.}
 
 \item{name}{A unique name for the store. Must match the \verb{^[a-zA-Z0-9_-]+$}
 regex. Used by \code{\link[=ragnar_register_tool_retrieve]{ragnar_register_tool_retrieve()}} for registering tools.}
