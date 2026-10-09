@@ -94,6 +94,13 @@ test_that("VSS ranking preserves fields, methods, and filters", {
           filter = dbplyr::sql("embedding[1] > 4")
         )
         expect_equal(filtered, head(all[all$embedding[, 1] > 4, ], 2))
+
+        threshold <- all$metric_value[3L]
+        filtered <- ragnar_retrieve_vss(
+          store, "query", top_k = 2, method = method, query_vector = c(1, 0),
+          filter = metric_value >= !!threshold & metric_name == !!method
+        )
+        expect_equal(filtered, head(all[all$metric_value >= threshold, ], 2))
       }
     }
   })
@@ -141,17 +148,15 @@ test_that("indexed VSS fetches embeddings only for bounded matches", {
   skip_on_cran()
   skip_if_cant_load_duckdb_extensions()
 
-  for (version in 1:2) for (shadow_rowid in c(FALSE, TRUE)) local({
+  for (version in 1:2) local({
     withr::local_seed(42)
     store <- ragnar_store_create(
       version = version,
-      embed = \(x) matrix(stats::runif(length(x) * 8L), ncol = 8L),
-      extra_cols = if (shadow_rowid) data.frame(rowid = integer())
+      embed = \(x) matrix(stats::runif(length(x) * 8L), ncol = 8L)
     )
     withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
     chunks <- MarkdownDocument(paste(rep("x", 20000), collapse = "\n"), "origin") |>
       markdown_chunk(target_size = 2, target_overlap = 0)
-    if (shadow_rowid) chunks$rowid <- rep(1L, nrow(chunks))
     if (version == 1L) chunks <- as.data.frame(chunks)
     ragnar_store_insert(store, chunks)
     ragnar_store_build_index(store, type = "vss")

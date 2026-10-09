@@ -28,12 +28,8 @@
 #' index when possible and falls back to a sequential scan for large result
 #' sets or filtered queries.
 #'
-#' If store metadata uses `metric_name` or `metric_value`, the computed metric
-#' columns receive unique suffixes, such as `metric_value_1`. Use these names
-#' to reference the computed metrics in `filter`.
-#'
 #' @return A `tibble` with the top_k retrieved chunks,
-#'   ordered by the computed metric value.
+#'   ordered by `metric_value`.
 #'
 #' @family ragnar_retrieve
 #' @export
@@ -82,40 +78,15 @@ ragnar_retrieve_vss <- function(
   ))
   con <- store@con
   chunk_table <- switch(store@version, "chunks", "embeddings")
-  chunk_fields <- dbListFields(con, chunk_table)
-  metric_columns <- utils::tail(make.unique(
-    c(tolower(chunk_fields), "metric_name", "metric_value"), sep = "_"
-  ), 2L)
-  metric_value_col <- metric_columns[2L]
-  metric_name_sql <- dbQuoteIdentifier(con, metric_columns[1L])
-  metric_value_sql <- dbQuoteIdentifier(con, metric_value_col)
-  row_id <- utils::tail(make.unique(c(tolower(chunk_fields), "_ragnar_rowid")), 1L)
-  row_id_sql <- dbQuoteIdentifier(con, row_id)
-
-  # A custom rowid column shadows DuckDB's physical row ID, even with different
-  # casing. Rename it in the table binding, then restore its name in results.
-  shadow_rowid <- which(tolower(chunk_fields) == "rowid")
-  table_columns <- ""
-  if (length(shadow_rowid)) {
-    columns <- dbQuoteIdentifier(con, chunk_fields)
-    column_aliases <- columns
-    column_aliases[shadow_rowid] <- row_id_sql
-    table_columns <- glue(" ({paste(column_aliases, collapse = ', ')})")
-  }
-  from_chunks <- function(alias) glue("{chunk_table} {alias}{table_columns}")
-  select_chunks <- function(alias) {
-    if (!length(shadow_rowid)) return(glue("{alias}.*"))
-    paste(glue("{alias}.{column_aliases} AS {columns}"), collapse = ", ")
-  }
 
   # Keep physical row IDs through ranking. A row-ID semi-join lets DuckDB fetch
   # only selected rows; joining logical chunk IDs can scan unrelated embeddings.
   rank_chunks <- function(limit_clause, full_rows = FALSE) {
     columns <- if (full_rows) {
-      glue("{select_chunks('c')},
-            c.rowid AS {row_id_sql},
-            '{method}' AS {metric_name_sql},
-            {metric_value} AS {metric_value_sql}")
+      glue("c.*,
+            c.rowid AS _ragnar_rowid,
+            '{method}' AS metric_name,
+            {metric_value} AS metric_value")
     } else {
       "c.rowid"
     }
@@ -123,7 +94,7 @@ ragnar_retrieve_vss <- function(
       "
       SELECT
         {columns}
-      FROM {from_chunks('c')}
+      FROM {chunk_table} c
       ORDER BY {metric_value}
       {limit_clause}
       "
@@ -135,27 +106,27 @@ ragnar_retrieve_vss <- function(
       store@version,
       "
       SELECT
-        {select_chunks('c')},
-        '{method}' AS {metric_name_sql},
-        {metric_value} AS {metric_value_sql}
-      FROM {from_chunks('c')}
+        c.*,
+        '{method}' AS metric_name,
+        {metric_value} AS metric_value
+      FROM {chunk_table} c
       WHERE c.rowid IN ({query})
       ",
       "
       SELECT
         doc.* EXCLUDE (text, doc_id),
-        {select_chunks('e')},
-        '{method}' AS {metric_name_sql},
-        {metric_value} AS {metric_value_sql},
+        e.*,
+        '{method}' AS metric_name,
+        {metric_value} AS metric_value,
         doc.text[ e.start: e.end ] AS text
-      FROM {from_chunks('e')}
+      FROM {chunk_table} e
       JOIN documents doc USING (doc_id)
       WHERE e.rowid IN ({query})
       "
     ))
   }
   retrieve <- function(query) {
-    dbGetQuery(con, glue("{join_chunks(query)}\nORDER BY {metric_value_sql}"))
+    dbGetQuery(con, glue("{join_chunks(query)}\nORDER BY metric_value"))
   }
 
   if (missing(filter)) {
@@ -197,12 +168,12 @@ ragnar_retrieve_vss <- function(
     tbl <- tbl(
       src = con,
       from = sql(query),
-      vars = c(fields, row_id, metric_columns)
+      vars = c(fields, "_ragnar_rowid", "metric_name", "metric_value")
     )
     tbl |>
       dplyr::filter(!!filter_expr) |>
-      arrange(.data[[metric_value_col]]) |>
-      select(all_of(row_id)) |>
+      arrange(metric_value) |>
+      select("_ragnar_rowid") |>
       head(top_k) |>
       dbplyr::remote_query()
   }
@@ -211,7 +182,7 @@ ragnar_retrieve_vss <- function(
     res <- retrieve(filtered_query("LIMIT 5000"))
     if (nrow(res) == top_k) {
       # if we have enough rows, return it
-      res <- res |> as_tibble() |> arrange(.data[[metric_value_col]])
+      res <- res |> as_tibble() |> arrange(metric_value)
       return(res)
     }
     ## earlier we set LIMIT 5000 on the inner query because anything higher than
@@ -233,7 +204,7 @@ ragnar_retrieve_vss <- function(
   res2 <- retrieve(sql_query)
   out <- vec_rbind(res, res2) |>
     as_tibble() |>
-    arrange(.data[[metric_value_col]]) |>
+    arrange(metric_value) |>
     head(top_k)
   out
 }
