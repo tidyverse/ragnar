@@ -46,6 +46,10 @@
 #'   additional context when retrieving. See the examples for more information.
 #'   [vctrs::vec_cast()] is used to consistently perform type checks and casts
 #'   when inserting with [ragnar_store_insert()].
+#'   Column names `rowid`, `metric_name`, `metric_value`, and names beginning
+#'   with `_ragnar_` are reserved, ignoring case. Existing stores with these
+#'   columns must have them renamed before connecting. The public retrieval
+#'   columns remain `metric_name` and `metric_value`.
 #' @param name A unique name for the store. Must match the `^[a-zA-Z0-9_-]+$`
 #'   regex. Used by [ragnar_register_tool_retrieve()] for registering tools.
 #' @param title A title for the store, used by [ragnar_register_tool_retrieve()]
@@ -111,6 +115,7 @@ ragnar_store_create <- function(
   version = 2
 ) {
   check_number_whole(version)
+  check_reserved_column_names(names(extra_cols))
   create <- switch(
     as.integer(version),
     ragnar_store_create_v1,
@@ -126,6 +131,18 @@ ragnar_store_create <- function(
     name = name,
     title = title
   )
+}
+
+check_reserved_column_names <- function(fields) {
+  lower <- tolower(fields)
+  reserved <- lower %in% c("rowid", "metric_name", "metric_value") |
+    startsWith(lower, "_ragnar_")
+  if (any(reserved)) {
+    cli::cli_abort(c(
+      "Column names are reserved for retrieval: {.val {fields[reserved]}}.",
+      i = "Rename these columns before creating or connecting to a store."
+    ))
+  }
 }
 
 unique_store_name <- function() {
@@ -238,6 +255,7 @@ ragnar_store_connect <- function(
     )
   }
 
+  on.exit(dbDisconnect(con, shutdown = TRUE))
   tables <- dbListTables(con)
   if (all(c("documents", "embeddings", "metadata") %in% tables)) {
     version <- 2L
@@ -246,6 +264,9 @@ ragnar_store_connect <- function(
   } else {
     stop("Store must be created with ragnar_store_create()")
   }
+  check_reserved_column_names(dbListFields(
+    con, switch(version, "chunks", "embeddings")
+  ))
 
   dbExecute(con, "INSTALL fts; INSTALL vss;")
   dbExecute(con, "LOAD fts; LOAD vss;")
@@ -259,7 +280,7 @@ ragnar_store_connect <- function(
   ptr <- con@conn_ref
   attr(ptr, "embed_function") <- embed
 
-  DuckDBRagnarStore(
+  store <- DuckDBRagnarStore(
     location = normalizePath(location, winslash = "/", mustWork = FALSE),
     embed = embed,
     schema = schema,
@@ -268,6 +289,8 @@ ragnar_store_connect <- function(
     title = metadata$title,
     version = version
   )
+  on.exit(NULL)
+  store
 }
 
 #' Inserts or updates chunks in a `RagnarStore`

@@ -571,10 +571,10 @@ chunks_deoverlap <- function(store, chunks) {
     arrange(origin, doc_id, start) |>
     mutate(
       .by = c(origin, doc_id),
-      overlap_grp = cumsum(start > lag(end, default = -1L))
+      `_ragnar_overlap_grp` = cumsum(start > lag(end, default = -1L))
     ) |>
     summarize(
-      .by = c(origin, doc_id, overlap_grp),
+      .by = c(origin, doc_id, `_ragnar_overlap_grp`),
       origin = first_elt(origin),
       start = first_elt(start),
       end = last_elt(end),
@@ -584,7 +584,7 @@ chunks_deoverlap <- function(store, chunks) {
         \(x) list(unlist(x))
       )
     ) |>
-    select(-overlap_grp)
+    select(-`_ragnar_overlap_grp`)
 
   local_duckdb_register(
     store@con,
@@ -594,7 +594,7 @@ chunks_deoverlap <- function(store, chunks) {
         doc_id,
         start,
         end,
-        'deoverlapped_id' = row_number(),
+        `_ragnar_deoverlapped_id` = row_number(),
         .keep = "none"
       )
   )
@@ -603,12 +603,12 @@ chunks_deoverlap <- function(store, chunks) {
     store@con,
     "
     SELECT
-    rechunked.deoverlapped_id,
+    rechunked._ragnar_deoverlapped_id,
       doc.text[ rechunked.start: rechunked.end ] AS text
     FROM _ragnar_tmp_rechunk rechunked
     JOIN documents doc
     USING (doc_id)
-    ORDER BY rechunked.deoverlapped_id
+    ORDER BY rechunked._ragnar_deoverlapped_id
     "
   )$text
 
@@ -619,7 +619,7 @@ chunks_deoverlap <- function(store, chunks) {
 utils::globalVariables(c(
   # retrieve and helpers
   "origin",
-  "overlap_grp",
+  "_ragnar_overlap_grp",
   "id",
   "chunk_id",
   "doc_id",
