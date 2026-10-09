@@ -44,8 +44,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="ragnar-development-version">ragnar (development version)<a class="anchor" aria-label="anchor" href="#ragnar-development-version"></a></h2>
-<ul><li>
-<code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> now returns an empty character vector instead of erroring when no links are found or all links are filtered out.</li>
+<ul><li><p>Fixed an error when creating an embedding function by omitting <code>x</code> or passing <code>x = NULL</code>. Helpers such as <code><a href="../reference/embed_bedrock.html">embed_bedrock()</a></code>, <code><a href="../reference/embed_azure_openai.html">embed_azure_openai()</a></code>, and <code><a href="../reference/embed_google_vertex.html">embed_google_vertex()</a></code> now correctly return a function that preserves the supplied configuration arguments (<a href="https://github.com/tidyverse/ragnar/issues/187" class="external-link">#187</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> now returns an empty character vector instead of erroring when no links are found or all links are filtered out.</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.1" id="ragnar-031">ragnar 0.3.1<a class="anchor" aria-label="anchor" href="#ragnar-031"></a></h2><p class="text-muted">CRAN release: 2026-09-10</p>

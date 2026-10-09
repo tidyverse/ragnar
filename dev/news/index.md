@@ -2,6 +2,16 @@
 
 ## ragnar (development version)
 
+- Fixed an error when creating an embedding function by omitting `x` or
+  passing `x = NULL`. Helpers such as
+  [`embed_bedrock()`](https://ragnar.tidyverse.org/dev/reference/embed_bedrock.md),
+  [`embed_azure_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_azure_openai.md),
+  and
+  [`embed_google_vertex()`](https://ragnar.tidyverse.org/dev/reference/embed_google_vertex.md)
+  now correctly return a function that preserves the supplied
+  configuration arguments
+  ([\#187](https://github.com/tidyverse/ragnar/issues/187)).
+
 - [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
   now returns an empty character vector instead of erroring when no
   links are found or all links are filtered out.
