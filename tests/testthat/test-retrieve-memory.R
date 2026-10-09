@@ -141,15 +141,17 @@ test_that("indexed VSS fetches embeddings only for bounded matches", {
   skip_on_cran()
   skip_if_cant_load_duckdb_extensions()
 
-  for (version in 1:2) local({
+  for (version in 1:2) for (shadow_rowid in c(FALSE, TRUE)) local({
     withr::local_seed(42)
     store <- ragnar_store_create(
       version = version,
-      embed = \(x) matrix(stats::runif(length(x) * 8L), ncol = 8L)
+      embed = \(x) matrix(stats::runif(length(x) * 8L), ncol = 8L),
+      extra_cols = if (shadow_rowid) data.frame(rowid = integer())
     )
     withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
     chunks <- MarkdownDocument(paste(rep("x", 20000), collapse = "\n"), "origin") |>
       markdown_chunk(target_size = 2, target_overlap = 0)
+    if (shadow_rowid) chunks$rowid <- rep(1L, nrow(chunks))
     if (version == 1L) chunks <- as.data.frame(chunks)
     ragnar_store_insert(store, chunks)
     ragnar_store_build_index(store, type = "vss")

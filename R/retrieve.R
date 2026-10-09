@@ -77,20 +77,40 @@ ragnar_retrieve_vss <- function(
     sql_float_array_value(query_vector)
   ))
   con <- store@con
+  chunk_table <- switch(store@version, "chunks", "embeddings")
+  chunk_fields <- dbListFields(con, chunk_table)
+  row_id <- utils::tail(make.unique(c(tolower(chunk_fields), "_ragnar_rowid")), 1L)
+  row_id_sql <- dbQuoteIdentifier(con, row_id)
+
+  # A custom rowid column shadows DuckDB's physical row ID, even with different
+  # casing. Rename it in the table binding, then restore its name in results.
+  shadow_rowid <- which(tolower(chunk_fields) == "rowid")
+  table_columns <- ""
+  if (length(shadow_rowid)) {
+    columns <- dbQuoteIdentifier(con, chunk_fields)
+    column_aliases <- columns
+    column_aliases[shadow_rowid] <- row_id_sql
+    table_columns <- glue(" ({paste(column_aliases, collapse = ', ')})")
+  }
+  from_chunks <- function(alias) glue("{chunk_table} {alias}{table_columns}")
+  select_chunks <- function(alias) {
+    if (!length(shadow_rowid)) return(glue("{alias}.*"))
+    paste(glue("{alias}.{column_aliases} AS {columns}"), collapse = ", ")
+  }
 
   # Keep physical row IDs through ranking. A row-ID semi-join lets DuckDB fetch
   # only selected rows; joining logical chunk IDs can scan unrelated embeddings.
   rank_chunks <- function(limit_clause, full_rows = FALSE) {
     columns <- if (full_rows) {
-      glue("*, rowid AS {row_id_sql}, '{method}' AS metric_name, {metric_value} AS metric_value")
+      glue("{select_chunks('c')}, c.rowid AS {row_id_sql}, '{method}' AS metric_name, {metric_value} AS metric_value")
     } else {
-      "rowid"
+      "c.rowid"
     }
     glue(
       "
       SELECT
         {columns}
-      FROM {switch(store@version, 'chunks', 'embeddings')}
+      FROM {from_chunks('c')}
       ORDER BY {metric_value}
       {limit_clause}
       "
@@ -102,20 +122,20 @@ ragnar_retrieve_vss <- function(
       store@version,
       "
       SELECT
-        c.*,
+        {select_chunks('c')},
         '{method}' AS metric_name,
         {metric_value} AS metric_value
-      FROM chunks c
+      FROM {from_chunks('c')}
       WHERE c.rowid IN ({query})
       ",
       "
       SELECT
         doc.* EXCLUDE (text, doc_id),
-        e.*,
+        {select_chunks('e')},
         '{method}' AS metric_name,
         {metric_value} AS metric_value,
         doc.text[ e.start: e.end ] AS text
-      FROM embeddings e
+      FROM {from_chunks('e')}
       JOIN documents doc USING (doc_id)
       WHERE e.rowid IN ({query})
       "
@@ -144,8 +164,6 @@ ragnar_retrieve_vss <- function(
   # Use dbplyr to interpret the filter, then retain only physical row IDs
   # until the final matches have been selected.
   fields <- dbListFields(con, "chunks")
-  row_id <- utils::tail(make.unique(c(fields, "_ragnar_rowid")), 1L)
-  row_id_sql <- dbQuoteIdentifier(con, row_id)
   filter_expr <- enquo(filter)
   filtered_query <- function(limit_clause) {
     # Fetch indexed candidates directly so HNSW also bounds filter-column reads.
