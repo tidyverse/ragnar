@@ -1,7 +1,9 @@
 # ragnar (development version)
 
--   Embedding factories now handle required arguments and `x = NULL`,
-    including `embed_bedrock()`.
+-   Fixed an error when creating an embedding function by omitting `x` or
+    passing `x = NULL`. Helpers such as `embed_bedrock()`,
+    `embed_azure_openai()`, and `embed_google_vertex()` now correctly return
+    a function that preserves the supplied configuration arguments (#187).
 
 -   `ragnar_find_links()` now returns an empty character vector instead of
     erroring when no links are found or all links are filtered out.
