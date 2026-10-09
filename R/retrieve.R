@@ -78,19 +78,20 @@ ragnar_retrieve_vss <- function(
   ))
   con <- store@con
 
-  keys <- switch(store@version, "chunk_id", c("doc_id", "chunk_id"))
-
-  # Keep only identifiers and scores through ranking. Fetch the full rows after
-  # the final limit, so embeddings and document text do not fill sort buffers.
-  rank_chunks <- function(limit_clause) {
+  # Keep physical row IDs through ranking. A row-ID semi-join lets DuckDB fetch
+  # only selected rows; joining logical chunk IDs can scan unrelated embeddings.
+  rank_chunks <- function(limit_clause, full_rows = FALSE) {
+    columns <- if (full_rows) {
+      glue("*, rowid AS {row_id_sql}, '{method}' AS metric_name, {metric_value} AS metric_value")
+    } else {
+      "rowid"
+    }
     glue(
       "
       SELECT
-        {paste(keys, collapse = ', ')},
-        '{method}' AS metric_name,
-        {metric_value} AS metric_value
+        {columns}
       FROM {switch(store@version, 'chunks', 'embeddings')}
-      ORDER BY metric_value
+      ORDER BY {metric_value}
       {limit_clause}
       "
     )
@@ -102,21 +103,21 @@ ragnar_retrieve_vss <- function(
       "
       SELECT
         c.*,
-        ranked.metric_name,
-        ranked.metric_value
-      FROM ({query}) AS ranked
-      JOIN chunks c USING (chunk_id)
+        '{method}' AS metric_name,
+        {metric_value} AS metric_value
+      FROM chunks c
+      WHERE c.rowid IN ({query})
       ",
       "
       SELECT
         doc.* EXCLUDE (text, doc_id),
         e.*,
-        ranked.metric_name,
-        ranked.metric_value,
+        '{method}' AS metric_name,
+        {metric_value} AS metric_value,
         doc.text[ e.start: e.end ] AS text
-      FROM ({query}) AS ranked
-      JOIN embeddings e USING (doc_id, chunk_id)
+      FROM embeddings e
       JOIN documents doc USING (doc_id)
+      WHERE e.rowid IN ({query})
       "
     ))
   }
@@ -140,19 +141,37 @@ ragnar_retrieve_vss <- function(
   ## This is an ugly but practical workarounds to make sure we use the hnsw index,
   ## don't segfault, and work well (fast) in the common case, and correctly in the uncommon case.
 
-  # Use dbplyr to interpret the filter, then retain only identifiers and scores
+  # Use dbplyr to interpret the filter, then retain only physical row IDs
   # until the final matches have been selected.
+  fields <- dbListFields(con, "chunks")
+  row_id <- utils::tail(make.unique(c(fields, "_ragnar_rowid")), 1L)
+  row_id_sql <- dbQuoteIdentifier(con, row_id)
   filter_expr <- enquo(filter)
   filtered_query <- function(limit_clause) {
+    # Fetch indexed candidates directly so HNSW also bounds filter-column reads.
+    # Projection pruning removes fields unused by the filter and final ranking.
+    query <- rank_chunks(limit_clause, full_rows = TRUE)
+    if (store@version == 2L) {
+      query <- glue(
+        "
+        SELECT
+          doc.* EXCLUDE (text, doc_id),
+          e.*,
+          doc.text[ e.start: e.end ] AS text
+        FROM ({query}) AS e
+        JOIN documents doc USING (doc_id)
+        "
+      )
+    }
     tbl <- tbl(
       src = con,
-      from = sql(join_chunks(rank_chunks(limit_clause))),
-      vars = c(dbListFields(con, "chunks"), "metric_name", "metric_value")
+      from = sql(query),
+      vars = c(fields, row_id, "metric_name", "metric_value")
     )
     tbl |>
       dplyr::filter(!!filter_expr) |>
-      select(all_of(c(keys, "metric_name", "metric_value"))) |>
       arrange(metric_value) |>
+      select(all_of(row_id)) |>
       head(top_k) |>
       dbplyr::remote_query()
   }

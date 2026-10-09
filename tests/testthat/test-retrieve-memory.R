@@ -136,3 +136,58 @@ test_that("VSS filters search beyond the indexed candidate limit", {
     expect_equal(retrieved$metric_value, -6000:-1000)
   })
 })
+
+test_that("indexed VSS fetches embeddings only for bounded matches", {
+  skip_on_cran()
+  skip_if_cant_load_duckdb_extensions()
+
+  for (version in 1:2) local({
+    withr::local_seed(42)
+    store <- ragnar_store_create(
+      version = version,
+      embed = \(x) matrix(stats::runif(length(x) * 8L), ncol = 8L)
+    )
+    withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+    chunks <- MarkdownDocument(paste(rep("x", 20000), collapse = "\n"), "origin") |>
+      markdown_chunk(target_size = 2, target_overlap = 0)
+    if (version == 1L) chunks <- as.data.frame(chunks)
+    ragnar_store_insert(store, chunks)
+    ragnar_store_build_index(store, type = "vss")
+    expected_names <- c(DBI::dbListFields(store@con, "chunks"), "metric_name", "metric_value")
+
+    profile_path <- withr::local_tempfile(fileext = ".json")
+    DBI::dbExecute(store@con, "SET threads = 1; SET memory_limit = '32MB'")
+    DBI::dbExecute(store@con, "SET enable_profiling = 'json'")
+    DBI::dbExecute(store@con, paste0(
+      "SET profiling_output = ", DBI::dbQuoteString(store@con, profile_path)
+    ))
+
+    embedding_scan_rows <- function(node) {
+      c(
+        if ("embedding" %in% unlist(node$extra_info$Projections)) {
+          node$operator_cardinality
+        },
+        unlist(lapply(node$children, embedding_scan_rows))
+      )
+    }
+    for (filtered in c(FALSE, TRUE)) {
+      args <- list(
+        store = store, query = "query", query_vector = rep(0.5, 8L),
+        method = "euclidean_distance"
+      )
+      if (filtered) args$filter <- TRUE
+      retrieved <- do.call(ragnar_retrieve_vss, args)
+      profile <- jsonlite::read_json(profile_path)
+      rows <- embedding_scan_rows(profile)
+      expect_equal(nrow(retrieved), 3L)
+      expect_setequal(names(retrieved), expected_names)
+      expect_gt(length(rows), 0L)
+      # Filtered searches may fetch 5,000 candidates before the final limit.
+      expect_true(
+        all(rows <= if (filtered) 5000L else 3L),
+        info = paste(rows, collapse = ", ")
+      )
+    }
+    DBI::dbExecute(store@con, "PRAGMA disable_profiling")
+  })
+})
