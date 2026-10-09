@@ -32,6 +32,7 @@ ragnar_store_create_v1 <- function(
 
     con <- dbConnect(duckdb::duckdb(), dbdir = location, array = "matrix")
   }
+  dbExecute(con, "SET preserve_insertion_order = false")
 
   default_schema <- vctrs::vec_ptype(data_frame(
     origin = character(0),

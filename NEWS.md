@@ -1,5 +1,15 @@
 # ragnar (development version)
 
+-   `ragnar_retrieve_vss()` now fetches embeddings and document text after
+    selecting the final matches, reducing intermediate memory use. Store
+    connections disable insertion-order preservation, and the store
+    documentation explains how to set a deployment-specific DuckDB memory
+    limit (#188).
+
+-   VSS filters can now reference `metric_value`, `metric_name`, and, for
+    version 2 stores, `origin` and `text`. Filtered searches spanning the
+    initial 5,000 candidates now respect `top_k`.
+
 -   Fixed an error when creating an embedding function by omitting `x` or
     passing `x = NULL`. Helpers such as `embed_bedrock()`,
     `embed_azure_openai()`, and `embed_google_vertex()` now correctly return

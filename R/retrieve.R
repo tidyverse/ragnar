@@ -78,42 +78,54 @@ ragnar_retrieve_vss <- function(
   ))
   con <- store@con
 
-  # TODO: if "text" %in% all.names(filter_expr), use v1 query w/ warning.
-  if (missing(filter)) {
-    ## simplest case
-    sql_query <- glue(switch(
-      store@version,
-      # store@version 1
+  keys <- switch(store@version, "chunk_id", c("doc_id", "chunk_id"))
+
+  # Keep only identifiers and scores through ranking. Fetch the full rows after
+  # the final limit, so embeddings and document text do not fill sort buffers.
+  rank_chunks <- function(limit_clause) {
+    glue(
       "
       SELECT
-        *,
+        {paste(keys, collapse = ', ')},
         '{method}' AS metric_name,
         {metric_value} AS metric_value
-      FROM chunks
+      FROM {switch(store@version, 'chunks', 'embeddings')}
       ORDER BY metric_value
-      LIMIT {top_k}
+      {limit_clause}
+      "
+    )
+  }
+
+  join_chunks <- function(query) {
+    glue(switch(
+      store@version,
+      "
+      SELECT
+        c.*,
+        ranked.metric_name,
+        ranked.metric_value
+      FROM ({query}) AS ranked
+      JOIN chunks c USING (chunk_id)
       ",
-      # store@version 2
       "
       SELECT
         doc.* EXCLUDE (text, doc_id),
         e.*,
+        ranked.metric_name,
+        ranked.metric_value,
         doc.text[ e.start: e.end ] AS text
-      FROM (
-        SELECT
-          *,
-          '{method}' AS metric_name,
-          {metric_value} AS metric_value
-        FROM embeddings
-        ORDER BY metric_value
-        LIMIT {top_k}
-      ) AS e
+      FROM ({query}) AS ranked
+      JOIN embeddings e USING (doc_id, chunk_id)
       JOIN documents doc USING (doc_id)
-      ORDER BY metric_value
       "
     ))
-    # check_hnsw_index_scan_used(con, sql_query)
-    res <- dbGetQuery(con, sql_query)
+  }
+  retrieve <- function(query) {
+    dbGetQuery(con, glue("{join_chunks(query)}\nORDER BY metric_value"))
+  }
+
+  if (missing(filter)) {
+    res <- retrieve(rank_chunks(glue("LIMIT {top_k}")))
     return(as_tibble(res))
   }
 
@@ -128,53 +140,25 @@ ragnar_retrieve_vss <- function(
   ## This is an ugly but practical workarounds to make sure we use the hnsw index,
   ## don't segfault, and work well (fast) in the common case, and correctly in the uncommon case.
 
-  # inner query
-  sql_query <- glue(switch(
-    store@version,
-    # store@version 1
-    "
-    SELECT
-      *,
-      '{method}' AS metric_name,
-      {metric_value} AS metric_value
-    FROM chunks
-    ORDER BY metric_value
-    LIMIT 5000
-    ",
-    # store@version 2
-    "
-    SELECT
-      doc.* EXCLUDE (text, doc_id),
-      e.*,
-      doc.text[ e.start: e.end ] AS text
-    FROM (
-      SELECT
-        *,
-        '{method}' AS metric_name,
-        {metric_value} AS metric_value
-      FROM embeddings
-      ORDER BY metric_value
-      LIMIT 5000
-    ) AS e
-    JOIN documents doc USING (doc_id)
-    ORDER BY metric_value
-    "
-  ))
-
-  # use dbplyr to interpret the supplied filter R expression
-  # and build the outer sql query around the inner query
-  tbl <- tbl(
-    src = con,
-    from = sql(sql_query),
-    vars = dbListFields(con, switch(store@version, "chunks", "embeddings"))
-  )
-  tbl <- dplyr::filter(tbl, {{ filter }})
-  tbl <- tbl |> head(top_k)
-  sql_query <- dbplyr::remote_query(tbl)
+  # Use dbplyr to interpret the filter, then retain only identifiers and scores
+  # until the final matches have been selected.
+  filter_expr <- enquo(filter)
+  filtered_query <- function(limit_clause) {
+    tbl <- tbl(
+      src = con,
+      from = sql(join_chunks(rank_chunks(limit_clause))),
+      vars = c(dbListFields(con, "chunks"), "metric_name", "metric_value")
+    )
+    tbl |>
+      dplyr::filter(!!filter_expr) |>
+      select(all_of(c(keys, "metric_name", "metric_value"))) |>
+      arrange(metric_value) |>
+      head(top_k) |>
+      dbplyr::remote_query()
+  }
 
   if (top_k <= 5000L) {
-    # check_hnsw_index_scan_used(con, sql_query)
-    res <- dbGetQuery(con, sql_query)
+    res <- retrieve(filtered_query("LIMIT 5000"))
     if (nrow(res) == top_k) {
       # if we have enough rows, return it
       res <- res |> as_tibble() |> arrange(metric_value)
@@ -183,14 +167,12 @@ ragnar_retrieve_vss <- function(
     ## earlier we set LIMIT 5000 on the inner query because anything higher than
     ## that forces a sequential scan. This is a slow fall back - it will force a
     ## sequential scan (not use the hnsw index) but will return the correct result.
-    sql_query <- sql_query |>
-      stri_replace_last_fixed("LIMIT 5000\n", "OFFSET 5000\n")
+    sql_query <- filtered_query("OFFSET 5000")
   } else {
     # hnsw index cannot be used with top_k > 5000,
     # remove the inner query limit, this will cause the inner
     # query to use a sequential scan.
-    sql_query <- sql_query |>
-      stri_replace_last_fixed("LIMIT 5000\n", "")
+    sql_query <- filtered_query("")
     res <- NULL
   }
 
@@ -198,8 +180,11 @@ ragnar_retrieve_vss <- function(
   # of the inner query with LIMIT 5000 and streaming filter on the outer query
   # did not produce enough (top_k) rows, so we have to do a sequential scan of the
   # entire db.
-  res2 <- dbGetQuery(con, sql_query)
-  out <- vec_rbind(res, res2) |> as_tibble() |> arrange(metric_value)
+  res2 <- retrieve(sql_query)
+  out <- vec_rbind(res, res2) |>
+    as_tibble() |>
+    arrange(metric_value) |>
+    head(top_k)
   out
 }
 

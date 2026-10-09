@@ -27,6 +27,24 @@
 #' chunk. The easiest way to prepare `chunks` for `version = 1` is with
 #' `ragnar_read()` and `ragnar_chunk()`.
 #'
+#' ## Memory use
+#'
+#' Store connections disable DuckDB's insertion-order preservation to reduce
+#' memory use. Use an explicit `ORDER BY` when querying the connection directly
+#' if row order matters.
+#'
+#' DuckDB sets a default `memory_limit` based on available system memory. For
+#' deployments with a smaller process memory budget, lower this limit after
+#' creating or connecting to a store, for example:
+#'
+#' ```r
+#' DBI::dbExecute(store@con, "SET memory_limit = '4GB'")
+#' ```
+#'
+#' Choose a limit that leaves room for R and other allocations. This setting
+#' limits DuckDB's buffer manager, not total process memory; HNSW indexes and
+#' some other allocations are outside this limit.
+#'
 #' @param location filepath, or `:memory:`. Location can also be a database name
 #'   specified with `md:dbname`, in this case the database will be created in
 #'   MotherDuck after a connection is established.
@@ -237,6 +255,7 @@ ragnar_store_connect <- function(
       array = "matrix"
     )
   }
+  dbExecute(con, "SET preserve_insertion_order = false")
 
   tables <- dbListTables(con)
   if (all(c("documents", "embeddings", "metadata") %in% tables)) {
