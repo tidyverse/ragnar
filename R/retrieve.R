@@ -83,9 +83,7 @@ ragnar_retrieve_vss <- function(
   con <- store@con
   chunk_table <- switch(store@version, "chunks", "embeddings")
   chunk_fields <- dbListFields(con, chunk_table)
-  metric_columns <- utils::tail(make.unique(
-    c(tolower(chunk_fields), "metric_name", "metric_value"), sep = "_"
-  ), 2L)
+  metric_columns <- retrieval_metric_columns(chunk_fields)
   metric_value_col <- metric_columns[2L]
   metric_name_sql <- dbQuoteIdentifier(con, metric_columns[1L])
   metric_value_sql <- dbQuoteIdentifier(con, metric_value_col)
@@ -236,6 +234,12 @@ ragnar_retrieve_vss <- function(
     arrange(.data[[metric_value_col]]) |>
     head(top_k)
   out
+}
+
+retrieval_metric_columns <- function(fields) {
+  utils::tail(make.unique(
+    c(tolower(fields), "metric_name", "metric_value"), sep = "_"
+  ), 2L)
 }
 
 
@@ -400,6 +404,8 @@ calculate_vss <- function(store, text, method) {
 #'
 #' @return A tibble ordered by descending BM25 `metric_value` (higher is more
 #'   relevant), with a `metric_name` column set to "bm25".
+#'   Computed metric columns receive unique suffixes when these names overlap
+#'   store metadata, as in [ragnar_retrieve_vss()].
 #'
 #' @param conjunctive	Whether to make the query conjunctive i.e., all terms in
 #'   the query string must be present in order for a chunk to be retrieved.
@@ -434,22 +440,25 @@ ragnar_retrieve_bm25 <- function(
     return(ragnar_retrieve_bm25_tbl(store, text, top_k))
   }
 
-  tbl <- tbl(store@con, "chunks") |>
+  con <- store@con
+  metric_columns <- retrieval_metric_columns(dbListFields(con, "chunks"))
+  metric_value_col <- metric_columns[2L]
+  tbl <- tbl(con, "chunks") |>
     mutate(
-      metric_name = "bm25",
-      metric_value = sql(glue(
+      !!metric_columns[1L] := "bm25",
+      !!metric_value_col := sql(glue(
         "fts_main_chunks.match_bm25(chunk_id, ?, k := {k}, b := {b}, conjunctive := {conjunctive})"
       ))
     )
 
   filters <- c(
     if (!missing(filter)) list(enquo(filter)),
-    list(sql('metric_value IS NOT NULL'))
+    list(sql(glue("{dbQuoteIdentifier(con, metric_value_col)} IS NOT NULL")))
   )
   tbl <- dplyr::filter(tbl, !!!filters)
 
   sql_query <- tbl |>
-    arrange(desc(metric_value)) |>
+    arrange(desc(.data[[metric_value_col]])) |>
     select(-any_of("embedding")) |>
     head(n = top_k) |>
     dbplyr::remote_query()
@@ -488,14 +497,19 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   bm25 <- ragnar_retrieve_bm25(store, text, top_k, ...)
 
   out <- vctrs::vec_rbind(vss, bm25)
+  metric_columns <- if (S7_inherits(store, RagnarStore)) {
+    retrieval_metric_columns(dbListFields(store@con, "chunks"))
+  } else {
+    c("metric_name", "metric_value")
+  }
 
   # maybe reorder cols, origin first, context and text last
 
   # pivot to wide format
   out <- tidyr::pivot_wider(
     out,
-    names_from = "metric_name",
-    values_from = "metric_value"
+    names_from = all_of(metric_columns[1L]),
+    values_from = all_of(metric_columns[2L])
   )
 
   out <- out |>

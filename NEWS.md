@@ -13,6 +13,9 @@
     version 2 stores, `origin` and `text`. Filtered searches spanning the
     initial 5,000 candidates now respect `top_k`.
 
+-   VSS, BM25, and combined retrieval preserve metadata named `metric_name`
+    or `metric_value`, keeping it separate from computed scores.
+
 -   Fixed an error when creating an embedding function by omitting `x` or
     passing `x = NULL`. Helpers such as `embed_bedrock()`,
     `embed_azure_openai()`, and `embed_google_vertex()` now correctly return
