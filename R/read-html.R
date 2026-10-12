@@ -407,11 +407,14 @@ ragnar_find_links <- function(
 
   deque <- reticulate::import("collections")$deque()
   visited <- reticulate::import_builtins()$set()
+  queued <- reticulate::import_builtins()$set()
   resolved <- reticulate::dict()
   collected <- reticulate::import_builtins()$set()
   problems <- list()
 
-  deque$append(list(url = xml_url2(x), depth = 0))
+  start_url <- xml_url2(x)
+  deque$append(list(url = start_url, depth = 0))
+  queued$add(start_url)
   if (!depth) {
     progress <- FALSE
   }
@@ -457,11 +460,12 @@ ragnar_find_links <- function(
         links <- url_filter_fn(links)
 
         # If depth still supports, we add items to the deque if they are not yet
-        # visited.
+        # visited or already queued.
         if (item$depth + 1 <= depth) {
           for (link in links) {
-            if (!visited$`__contains__`(link)) {
+            if (!visited$`__contains__`(link) && !queued$`__contains__`(link)) {
               deque$append(list(url = link, depth = item$depth + 1))
+              queued$add(link)
             }
           }
         }
