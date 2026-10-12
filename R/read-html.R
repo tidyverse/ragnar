@@ -376,7 +376,8 @@ ragnar_find_links <- function(
   progress = TRUE,
   ...,
   url_filter = identity,
-  validate = FALSE
+  validate = FALSE,
+  get_timestamps = FALSE
 ) {
   rlang::check_dots_empty()
 
@@ -411,6 +412,7 @@ ragnar_find_links <- function(
   resolved <- reticulate::dict()
   collected <- reticulate::import_builtins()$set()
   problems <- list()
+  last_modified <- list()
 
   start_url <- xml_url2(x)
   deque$append(list(url = start_url, depth = 0))
@@ -437,12 +439,16 @@ ragnar_find_links <- function(
         }
 
         visited$add(item$url)
-        links <- tryCatch(
+        page_result <- tryCatch(
           {
             page <- read_html2(item$url)
             resolved_url <- xml_url2(page) # maybe redirected
             resolved[item$url] <- resolved_url
-            html_find_links(page)
+            list(
+              links = html_find_links(page),
+              resolved_url = resolved_url,
+              last_modified = attr(page, "last_modified", exact = TRUE) %||% .POSIXct(NA_real_)
+            )
           },
 
           error = function(e) {
@@ -453,9 +459,13 @@ ragnar_find_links <- function(
               problem = conditionMessage(e)
             )
             resolved[item$url] <- ""
-            character(0)
+            list(links = character(0), resolved_url = NULL, last_modified = NULL)
           }
         )
+        if (!is.null(page_result$resolved_url)) {
+          last_modified[[page_result$resolved_url]] <- page_result$last_modified
+        }
+        links <- page_result$links
 
         links <- url_filter_fn(links)
 
@@ -513,7 +523,90 @@ ragnar_find_links <- function(
     attr(out, "problems") <- dplyr::bind_rows(problems)
   }
 
+  if (get_timestamps) {
+    unvisited <- setdiff(out, names(last_modified))
+    if (length(unvisited)) {
+      resps <- unvisited |>
+        lapply(\(url) {
+          httr2::request(url) |>
+            httr2::req_method("HEAD") |>
+            httr2::req_timeout(10) |>
+            httr2::req_error(is_error = \(resp) FALSE)
+        }) |>
+        httr2::req_perform_parallel(on_error = "continue")
+      for (i in seq_along(unvisited)) {
+        resp <- resps[[i]]
+        ts <- if (inherits(resp, "httr2_response")) {
+          raw <- httr2::resp_header(resp, "Last-Modified", default = NA)
+          if (!is.na(raw)) {
+            tryCatch(
+              as.POSIXct(raw, format = "%a, %d %b %Y %H:%M:%S", tz = "GMT"),
+              error = \(e) .POSIXct(NA_real_)
+            )
+          } else {
+            .POSIXct(NA_real_)
+          }
+        } else {
+          .POSIXct(NA_real_)
+        }
+        last_modified[[unvisited[[i]]]] <- ts
+      }
+    }
+  }
+
+  if (length(last_modified)) {
+    lm_vec <- do.call(c, last_modified)
+    attr(out, "last_modified") <- lm_vec[order(names(lm_vec))]
+  } else {
+    attr(out, "last_modified") <- structure(
+      numeric(0), class = c("POSIXct", "POSIXt"), names = character(0)
+    )
+  }
+
+  class(out) <- "ragnar_links"
   out
+}
+
+
+#' @export
+print.ragnar_links <- function(x, n = 10L, ...) {
+  n_total <- length(x)
+  cat(sprintf("# A ragnar_links vector: %d URL%s\n", n_total, if (n_total == 1L) "" else "s"))
+
+  if (n_total > 0L) {
+    lm <- attr(x, "last_modified", exact = TRUE)
+    shown <- min(n, n_total)
+    idx <- seq_len(shown)
+
+    shown_urls <- unclass(x)[idx]
+    if (!is.null(lm)) {
+      df <- data.frame(
+        url = shown_urls,
+        last_modified = format(lm[shown_urls]),
+        stringsAsFactors = FALSE,
+        row.names = idx
+      )
+    } else {
+      df <- data.frame(
+        url = shown_urls,
+        stringsAsFactors = FALSE,
+        row.names = idx
+      )
+    }
+    print(df, right = FALSE)
+
+    if (n_total > shown) {
+      cat(sprintf("# ... with %d more row%s\n", n_total - shown, if (n_total - shown == 1L) "" else "s"))
+    }
+  }
+
+  problems <- attr(x, "problems", exact = TRUE)
+  if (!is.null(problems) && nrow(problems) > 0L) {
+    cat("#\n# Problems:\n")
+    print(problems, right = FALSE)
+  }
+
+  invisible(x)
 }
 
 
@@ -618,7 +711,9 @@ read_html2 <- function(url, ...) {
   })
   on.exit(tryCatch(close(conn), error = function(e) NULL))
   out <- xml2::read_html(conn, ...)
-  attr(out, "resolved_url") <- curl::handle_data(handle)$url
+  hdata <- curl::handle_data(handle)
+  attr(out, "resolved_url") <- hdata$url
+  attr(out, "last_modified") <- hdata$modified %||% .POSIXct(NA_real_)
   out
 }
 
