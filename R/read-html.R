@@ -720,7 +720,12 @@ read_html2 <- function(url, ...) {
   # For some reason curl is both erroring and warning when the URL is invalid or
   # returns 404. We don't really want the warnings, so we discard them.
   if (!is_url(url)) {
-    return(xml2::read_html(url, ...))
+    out <- xml2::read_html(url, ...)
+    # Ensure resolved_url is the original path, not a file:// URI
+    # (xml2::xml_url() returns file:// URIs on macOS/Windows, which don't
+    # compare equal to plain paths used as start_url)
+    attr(out, "resolved_url") <- url
+    return(out)
   }
   suppressWarnings({
     handle <- curl::new_handle(followlocation = TRUE)
