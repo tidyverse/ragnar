@@ -28,12 +28,12 @@
 #' index when possible and falls back to a sequential scan for large result
 #' sets or filtered queries.
 #'
-#' If store metadata uses `metric_name` or `metric_value`, the computed metric
-#' columns receive unique suffixes, such as `metric_value_1`. Use these names
-#' to reference the computed metrics in `filter`.
+#' Store metadata must not use `metric_name` or `metric_value`, ignoring case.
+#' Retrieval fails with an error if these names conflict. Create a store with
+#' different names for those metadata columns.
 #'
 #' @return A `tibble` with the top_k retrieved chunks,
-#'   ordered by the computed metric value.
+#'   ordered by `metric_value`.
 #'
 #' @family ragnar_retrieve
 #' @export
@@ -73,6 +73,11 @@ ragnar_retrieve_vss <- function(
   ## It's pretty similar to the sql I'd write by hand, and optimizes to
   ## an essentially identical physical plan.
 
+  con <- store@con
+  chunk_table <- switch(store@version, "chunks", "embeddings")
+  chunk_fields <- dbListFields(con, chunk_table)
+  check_retrieval_metric_names(chunk_fields)
+
   info <- method_to_info(method)
   query_vector
   metric_value <- sql(sprintf(
@@ -80,13 +85,6 @@ ragnar_retrieve_vss <- function(
     info$func,
     sql_float_array_value(query_vector)
   ))
-  con <- store@con
-  chunk_table <- switch(store@version, "chunks", "embeddings")
-  chunk_fields <- dbListFields(con, chunk_table)
-  metric_columns <- retrieval_metric_columns(chunk_fields)
-  metric_value_col <- metric_columns[2L]
-  metric_name_sql <- dbQuoteIdentifier(con, metric_columns[1L])
-  metric_value_sql <- dbQuoteIdentifier(con, metric_value_col)
   row_id <- utils::tail(make.unique(c(tolower(chunk_fields), "_ragnar_rowid")), 1L)
   row_id_sql <- dbQuoteIdentifier(con, row_id)
 
@@ -112,8 +110,8 @@ ragnar_retrieve_vss <- function(
     columns <- if (full_rows) {
       glue("{select_chunks('c')},
             c.rowid AS {row_id_sql},
-            '{method}' AS {metric_name_sql},
-            {metric_value} AS {metric_value_sql}")
+            '{method}' AS metric_name,
+            {metric_value} AS metric_value")
     } else {
       "c.rowid"
     }
@@ -134,8 +132,8 @@ ragnar_retrieve_vss <- function(
       "
       SELECT
         {select_chunks('c')},
-        '{method}' AS {metric_name_sql},
-        {metric_value} AS {metric_value_sql}
+        '{method}' AS metric_name,
+        {metric_value} AS metric_value
       FROM {from_chunks('c')}
       WHERE c.rowid IN ({query})
       ",
@@ -143,8 +141,8 @@ ragnar_retrieve_vss <- function(
       SELECT
         doc.* EXCLUDE (text, doc_id),
         {select_chunks('e')},
-        '{method}' AS {metric_name_sql},
-        {metric_value} AS {metric_value_sql},
+        '{method}' AS metric_name,
+        {metric_value} AS metric_value,
         doc.text[ e.start: e.end ] AS text
       FROM {from_chunks('e')}
       JOIN documents doc USING (doc_id)
@@ -153,7 +151,7 @@ ragnar_retrieve_vss <- function(
     ))
   }
   retrieve <- function(query) {
-    dbGetQuery(con, glue("{join_chunks(query)}\nORDER BY {metric_value_sql}"))
+    dbGetQuery(con, glue("{join_chunks(query)}\nORDER BY metric_value"))
   }
 
   if (missing(filter)) {
@@ -195,11 +193,11 @@ ragnar_retrieve_vss <- function(
     tbl <- tbl(
       src = con,
       from = sql(query),
-      vars = c(fields, row_id, metric_columns)
+      vars = c(fields, row_id, "metric_name", "metric_value")
     )
     tbl |>
       dplyr::filter(!!filter_expr) |>
-      arrange(.data[[metric_value_col]]) |>
+      arrange(metric_value) |>
       select(all_of(row_id)) |>
       head(top_k) |>
       dbplyr::remote_query()
@@ -209,7 +207,7 @@ ragnar_retrieve_vss <- function(
     res <- retrieve(filtered_query("LIMIT 5000"))
     if (nrow(res) == top_k) {
       # if we have enough rows, return it
-      res <- res |> as_tibble() |> arrange(.data[[metric_value_col]])
+      res <- res |> as_tibble() |> arrange(metric_value)
       return(res)
     }
     ## earlier we set LIMIT 5000 on the inner query because anything higher than
@@ -231,15 +229,19 @@ ragnar_retrieve_vss <- function(
   res2 <- retrieve(sql_query)
   out <- vec_rbind(res, res2) |>
     as_tibble() |>
-    arrange(.data[[metric_value_col]]) |>
+    arrange(metric_value) |>
     head(top_k)
   out
 }
 
-retrieval_metric_columns <- function(fields) {
-  utils::tail(make.unique(
-    c(tolower(fields), "metric_name", "metric_value"), sep = "_"
-  ), 2L)
+check_retrieval_metric_names <- function(fields) {
+  conflicts <- fields[tolower(fields) %in% c("metric_name", "metric_value")]
+  if (length(conflicts)) {
+    cli::cli_abort(c(
+      "Store columns conflict with retrieval metrics: {.val {conflicts}}.",
+      i = "Create a store with different names for these metadata columns."
+    ))
+  }
 }
 
 
@@ -404,8 +406,8 @@ calculate_vss <- function(store, text, method) {
 #'
 #' @return A tibble ordered by descending BM25 `metric_value` (higher is more
 #'   relevant), with a `metric_name` column set to "bm25".
-#'   Computed metric columns receive unique suffixes when these names overlap
-#'   store metadata, as in [ragnar_retrieve_vss()].
+#'   Store metadata must not use these names, ignoring case; retrieval fails
+#'   with an error if they conflict.
 #'
 #' @param conjunctive	Whether to make the query conjunctive i.e., all terms in
 #'   the query string must be present in order for a chunk to be retrieved.
@@ -441,24 +443,23 @@ ragnar_retrieve_bm25 <- function(
   }
 
   con <- store@con
-  metric_columns <- retrieval_metric_columns(dbListFields(con, "chunks"))
-  metric_value_col <- metric_columns[2L]
+  check_retrieval_metric_names(dbListFields(con, "chunks"))
   tbl <- tbl(con, "chunks") |>
     mutate(
-      !!metric_columns[1L] := "bm25",
-      !!metric_value_col := sql(glue(
+      metric_name = "bm25",
+      metric_value = sql(glue(
         "fts_main_chunks.match_bm25(chunk_id, ?, k := {k}, b := {b}, conjunctive := {conjunctive})"
       ))
     )
 
   filters <- c(
     if (!missing(filter)) list(enquo(filter)),
-    list(sql(glue("{dbQuoteIdentifier(con, metric_value_col)} IS NOT NULL")))
+    list(sql("metric_value IS NOT NULL"))
   )
   tbl <- dplyr::filter(tbl, !!!filters)
 
   sql_query <- tbl |>
-    arrange(desc(.data[[metric_value_col]])) |>
+    arrange(desc(metric_value)) |>
     select(-any_of("embedding")) |>
     head(n = top_k) |>
     dbplyr::remote_query()
@@ -497,19 +498,14 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
   bm25 <- ragnar_retrieve_bm25(store, text, top_k, ...)
 
   out <- vctrs::vec_rbind(vss, bm25)
-  metric_columns <- if (S7_inherits(store, RagnarStore)) {
-    retrieval_metric_columns(dbListFields(store@con, "chunks"))
-  } else {
-    c("metric_name", "metric_value")
-  }
 
   # maybe reorder cols, origin first, context and text last
 
   # pivot to wide format
   out <- tidyr::pivot_wider(
     out,
-    names_from = all_of(metric_columns[1L]),
-    values_from = all_of(metric_columns[2L])
+    names_from = "metric_name",
+    values_from = "metric_value"
   )
 
   out <- out |>
@@ -524,6 +520,10 @@ ragnar_retrieve_vss_and_bm25 <- function(store, text, top_k = 3, ...) {
 #'
 #' Combines both `vss` and `bm25` search and returns the
 #' union of chunks retrieved by both methods.
+#'
+#' @details Store metadata must not use `metric_name` or `metric_value`, ignoring
+#' case. Retrieval fails with an error if these names conflict. Create a store
+#' with different names for those metadata columns.
 #'
 #' @note The results are not re-ranked after identifying the unique values.
 #'

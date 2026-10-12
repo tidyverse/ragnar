@@ -13,8 +13,8 @@
     version 2 stores, `origin` and `text`. Filtered searches spanning the
     initial 5,000 candidates now respect `top_k`.
 
--   VSS, BM25, and combined retrieval preserve metadata named `metric_name`
-    or `metric_value`, keeping it separate from computed scores.
+-   Retrieval now rejects metadata named `metric_name` or `metric_value`,
+    ignoring case, with an error asking for different metadata column names.
 
 -   Fixed an error when creating an embedding function by omitting `x` or
     passing `x = NULL`. Helpers such as `embed_bedrock()`,

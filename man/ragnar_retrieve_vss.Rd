@@ -37,7 +37,7 @@ Defaults to \code{store@embed(query)}.}
 }
 \value{
 A \code{tibble} with the top_k retrieved chunks,
-ordered by the computed metric value.
+ordered by \code{metric_value}.
 }
 \description{
 Computes a similarity measure between the query and the document embeddings
@@ -56,9 +56,9 @@ search, then applies the filter in an outer SQL query. It uses the HNSW
 index when possible and falls back to a sequential scan for large result
 sets or filtered queries.
 
-If store metadata uses \code{metric_name} or \code{metric_value}, the computed metric
-columns receive unique suffixes, such as \code{metric_value_1}. Use these names
-to reference the computed metrics in \code{filter}.
+Store metadata must not use \code{metric_name} or \code{metric_value}, ignoring case.
+Retrieval fails with an error if these names conflict. Create a store with
+different names for those metadata columns.
 }
 \note{
 The results are not re-ranked after identifying the unique values.

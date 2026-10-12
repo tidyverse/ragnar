@@ -34,8 +34,8 @@ the query string must be present in order for a chunk to be retrieved.}
 \value{
 A tibble ordered by descending BM25 \code{metric_value} (higher is more
 relevant), with a \code{metric_name} column set to "bm25".
-Computed metric columns receive unique suffixes when these names overlap
-store metadata, as in \code{\link[=ragnar_retrieve_vss]{ragnar_retrieve_vss()}}.
+Store metadata must not use these names, ignoring case; retrieval fails
+with an error if they conflict.
 }
 \description{
 BM25 refers to Okapi Best Matching 25. See \doi{10.1561/1500000019} for more
