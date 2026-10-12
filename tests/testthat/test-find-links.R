@@ -176,3 +176,66 @@ test_that("ragnar_find_links() returns sorted, unique links", {
     ignore_attr = TRUE
   )
 })
+
+test_that("ragnar_find_links() children_only=TRUE scopes to start URL stem, not site root", {
+  # When the start URL is a top-level .html file (e.g. reference-architectures.html),
+  # dirname() would collapse to the site root and return all pages on the site.
+  # The prefix should be derived by stripping .html, not by taking dirname().
+  html <- withr::local_tempfile(
+    fileext = ".html",
+    lines = c(
+      '<html><body>',
+      '<a href="https://example.com/reference-architectures/page.html">Child</a>',
+      '<a href="https://example.com/other-section/page.html">Sibling</a>',
+      '</body></html>'
+    )
+  )
+  # Simulate the start URL being a top-level page
+  # children_only = TRUE should match only .../reference-architectures/...
+  # We can't fully test this without controlling xml_url2(), but we can
+  # test url_normalize_stem directly:
+  expect_equal(
+    ragnar:::url_normalize_stem("https://example.com/reference-architectures.html"),
+    "https://example.com/reference-architectures"
+  )
+  expect_equal(
+    ragnar:::url_normalize_stem("https://example.com/"),
+    "https://example.com/"
+  )
+  expect_equal(
+    ragnar:::url_normalize_stem("https://example.com/connect/admin/page.html"),
+    "https://example.com/connect/admin/page"
+  )
+})
+
+test_that("ragnar_find_links() excludes .md source file links", {
+  html <- withr::local_tempfile(
+    fileext = ".html",
+    lines = c(
+      '<html><body>',
+      '<a href="https://example.com/page.html">Page</a>',
+      '<a href="appendix/configuration/index.md">Source</a>',
+      '</body></html>'
+    )
+  )
+
+  result <- ragnar_find_links(html)
+  expect_false(any(grepl("\\.md$", result)))
+  expect_true(any(grepl("page\\.html$", result)))
+})
+
+test_that("ragnar_find_links() excludes links with doubled path segments", {
+  html <- withr::local_tempfile(
+    fileext = ".html",
+    lines = c(
+      '<html><body>',
+      '<a href="https://example.com/appendix/library/appendix/library/page.html">Doubled</a>',
+      '<a href="https://example.com/appendix/library/page.html">Good</a>',
+      '</body></html>'
+    )
+  )
+
+  result <- ragnar_find_links(html)
+  expect_false(any(grepl("appendix/library/appendix/library", result)))
+  expect_true(any(grepl("appendix/library/page\\.html$", result)))
+})

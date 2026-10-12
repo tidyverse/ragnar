@@ -1,5 +1,5 @@
 #' @importFrom rvest html_text html_text2 html_elements read_html html_attr
-#' @importFrom stringi stri_c stri_count_fixed stri_detect_fixed
+#' @importFrom stringi stri_c stri_count_fixed stri_detect_fixed stri_detect_regex
 #'   stri_endswith_fixed stri_extract_first_regex stri_extract_last_regex
 #'   stri_flatten stri_length stri_locate_all_boundaries stri_locate_all_fixed
 #'   stri_locate_first_regex stri_match_first_regex stri_numbytes
