@@ -11,7 +11,8 @@ ragnar_find_links(
   progress = TRUE,
   ...,
   url_filter = identity,
-  validate = FALSE
+  validate = FALSE,
+  get_timestamps = FALSE
 )
 }
 \arguments{
@@ -38,9 +39,28 @@ URL's by rules different than \code{children_only} which only checks the prefix.
 \item{validate}{Default is \code{FALSE}. If \code{TRUE} sends a \code{HEAD} request for each
 link and removes those that are not accessible. Requests are sent in parallel
 using \code{\link[httr2:req_perform_parallel]{httr2::req_perform_parallel()}}.}
+
+\item{get_timestamps}{Default is \code{FALSE}. If \code{TRUE}, sends parallel \code{HEAD}
+requests for any discovered URLs that were not visited during crawling, and
+records their \code{Last-Modified} response header. Pages fetched during crawling
+already have their timestamp from the \code{GET} response at no extra cost.
+Useful for incremental ingest: callers can skip re-fetching pages whose
+timestamp has not changed since the last run. Note that not all hosting
+platforms set \code{Last-Modified}; S3-backed sites (including many
+\code{docs.posit.co} pages) and GitHub Pages do, while Netlify-hosted sites
+(e.g. \code{quarto.org}) do not. Missing headers are recorded as \code{NA}.}
 }
 \value{
-A character vector of links on the page.
+A \code{ragnar_links} object: a character vector of URLs, sorted
+alphabetically and deduplicated, with the following attributes:
+\describe{
+\item{\code{last_modified}}{A named \code{POSIXct} vector mapping each crawled URL
+to its \code{Last-Modified} timestamp. Always present. URLs for which the
+server did not return a timestamp (either because the header was absent
+or \code{get_timestamps = FALSE} and the page was not visited) are \code{NA}.}
+\item{\code{problems}}{A data frame with columns \code{link} and \code{problem},
+present only when one or more URLs could not be fetched during crawling.}
+}
 }
 \description{
 Find links on a page
@@ -55,5 +75,14 @@ ragnar_find_links(
   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
   depth = 1
 )
+
+# Retrieve Last-Modified timestamps for all discovered URLs
+links <- ragnar_find_links(
+  "https://docs.posit.co/",
+  children_only = TRUE,
+  depth = 1,
+  get_timestamps = TRUE
+)
+attr(links, "last_modified")
 }
 }

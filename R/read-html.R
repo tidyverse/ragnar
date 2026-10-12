@@ -1,4 +1,4 @@
-#' Read text from an html doc
+# ' Read text from an html doc
 #'
 #' This builds upon `rvest::html_text2()` by adding support for splitting the returned
 #' vector at the locations of requested nodes.
@@ -355,7 +355,26 @@ ragnar_read_document <- function(
 #'   link and removes those that are not accessible. Requests are sent in parallel
 #'   using [httr2::req_perform_parallel()].
 #'
-#' @return A character vector of links on the page.
+#' @param get_timestamps Default is `FALSE`. If `TRUE`, sends parallel `HEAD`
+#'   requests for any discovered URLs that were not visited during crawling, and
+#'   records their `Last-Modified` response header. Pages fetched during crawling
+#'   already have their timestamp from the `GET` response at no extra cost.
+#'   Useful for incremental ingest: callers can skip re-fetching pages whose
+#'   timestamp has not changed since the last run. Note that not all hosting
+#'   platforms set `Last-Modified`; S3-backed sites (including many
+#'   `docs.posit.co` pages) and GitHub Pages do, while Netlify-hosted sites
+#'   (e.g. `quarto.org`) do not. Missing headers are recorded as `NA`.
+#'
+#' @return A `ragnar_links` object: a character vector of URLs, sorted
+#'   alphabetically and deduplicated, with the following attributes:
+#'   \describe{
+#'     \item{`last_modified`}{A named `POSIXct` vector mapping each crawled URL
+#'       to its `Last-Modified` timestamp. Always present. URLs for which the
+#'       server did not return a timestamp (either because the header was absent
+#'       or `get_timestamps = FALSE` and the page was not visited) are `NA`.}
+#'     \item{`problems`}{A data frame with columns `link` and `problem`,
+#'       present only when one or more URLs could not be fetched during crawling.}
+#'   }
 #' @export
 #'
 #' @examples
@@ -368,6 +387,15 @@ ragnar_read_document <- function(
 #'   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
 #'   depth = 1
 #' )
+#'
+#' # Retrieve Last-Modified timestamps for all discovered URLs
+#' links <- ragnar_find_links(
+#'   "https://docs.posit.co/",
+#'   children_only = TRUE,
+#'   depth = 1,
+#'   get_timestamps = TRUE
+#' )
+#' attr(links, "last_modified")
 #' }
 ragnar_find_links <- function(
   x,
