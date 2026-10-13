@@ -1,10 +1,14 @@
-test_that("ragnar_find_links() returns a character vector when there are no links", {
+test_that("ragnar_find_links() returns only the root URL when there are no links", {
   html <- withr::local_tempfile(
     fileext = ".html",
     lines = "<html><body><p>No links.</p></body></html>"
   )
 
-  expect_equal(ragnar_find_links(html), character(), ignore_attr = TRUE)
+  expect_equal(
+    ragnar_find_links(html),
+    normalizePath(html, winslash = "/"),
+    ignore_attr = TRUE
+  )
 })
 
 test_that("ragnar_find_links() returns no links when no children match", {
@@ -87,7 +91,9 @@ test_that("a single discovered link can be read and stored", {
     "/" = '<a href="/topic.html">Topic</a>',
     "/topic.html" = "<h1>Topic</h1><p>A document to ingest.</p>"
   ))
-  links <- ragnar_find_links(site$url())
+  links <- ragnar_find_links(site$url(), url_filter = \(urls) {
+    setdiff(urls, site$url())
+  })
   expect_length(links, 1L)
 
   chunks <- links |> read_as_markdown() |> markdown_chunk()
@@ -113,15 +119,19 @@ test_that("discovered links can be joined with cached character URLs", {
   urls <- as.character(links)
   modified <- .POSIXct(as.numeric(attr(links, "last_modified")[urls]), tz = "UTC")
   discovered <- tibble(url = links, last_modified = modified)
-  cached <- tibble(url = rev(urls), content = c("B", "A"))
+  cached <- tibble(url = rev(urls), content = c("B", "A", "Root"))
 
   expect_equal(
     left_join(discovered, cached, by = "url"),
-    tibble(url = urls, last_modified = modified, content = c("A", "B"))
+    tibble(url = urls, last_modified = modified, content = c("Root", "A", "B"))
   )
   expect_equal(
     left_join(cached, discovered, by = "url"),
-    tibble(url = rev(urls), content = c("B", "A"), last_modified = rev(modified))
+    tibble(
+      url = rev(urls),
+      content = c("B", "A", "Root"),
+      last_modified = rev(modified)
+    )
   )
 })
 
@@ -134,8 +144,12 @@ test_that("discovered links can be row-bound across separate crawls", {
     fileext = ".html",
     lines = '<a href="https://example.com/b">B</a>'
   )
-  first <- tibble(url = ragnar_find_links(html_a))
-  second <- tibble(url = ragnar_find_links(html_b))
+  first <- tibble(
+    url = ragnar_find_links(html_a, children_only = "https://example.com/")
+  )
+  second <- tibble(
+    url = ragnar_find_links(html_b, children_only = "https://example.com/")
+  )
 
   expect_equal(
     bind_rows(first, second),
@@ -162,7 +176,9 @@ test_that("discovered links can be row-bound across separate crawls", {
 
 test_that("empty crawls can be joined and row-bound with character URLs", {
   html <- withr::local_tempfile(fileext = ".html", lines = "<p>No links.</p>")
-  empty <- tibble(url = ragnar_find_links(html))
+  empty <- tibble(
+    url = ragnar_find_links(html, children_only = "https://example.com/")
+  )
   cached <- tibble(url = "https://example.com/cached")
 
   expect_equal(left_join(empty, cached, by = "url"), tibble(url = character()))
@@ -256,7 +272,11 @@ test_that("ragnar_find_links() returns sorted, unique links", {
 
   expect_equal(
     ragnar_find_links(html),
-    c("https://example.com/a", "https://example.com/b"),
+    sort(c(
+      normalizePath(html, winslash = "/"),
+      "https://example.com/a",
+      "https://example.com/b"
+    )),
     ignore_attr = TRUE
   )
 })
@@ -277,7 +297,10 @@ test_that("ragnar_find_links() children_only=TRUE scopes to the start URL stem",
       depth = 1,
       progress = FALSE
     ),
-    site$url("/reference-architectures/page.html"),
+    sort(site$url(c(
+      "/reference-architectures.html",
+      "/reference-architectures/page.html"
+    ))),
     ignore_attr = TRUE
   )
 })
@@ -309,7 +332,11 @@ test_that("ragnar_find_links() preserves valid repeated path segments", {
     lines = paste0('<a href="', urls, '">Link</a>')
   )
 
-  expect_equal(ragnar_find_links(html), sort(urls), ignore_attr = TRUE)
+  expect_equal(
+    ragnar_find_links(html),
+    sort(c(normalizePath(html, winslash = "/"), urls)),
+    ignore_attr = TRUE
+  )
 })
 
 test_that("ragnar_find_links() preserves and crawls distinct path segments", {
@@ -329,6 +356,7 @@ test_that("ragnar_find_links() preserves and crawls distinct path segments", {
     sort(paste0(
       site$url(),
       c(
+        "",
         "guide/guides.html",
         "guide/details.html",
         "en/enterprise.html",
@@ -351,7 +379,11 @@ test_that("ragnar_find_links() preserves links with repetitions in hosts and que
     lines = paste0('<a href="', urls, '">Topic</a>')
   )
 
-  expect_equal(ragnar_find_links(html), urls, ignore_attr = TRUE)
+  expect_equal(
+    ragnar_find_links(html),
+    sort(c(normalizePath(html, winslash = "/"), urls)),
+    ignore_attr = TRUE
+  )
 })
 
 test_that("ragnar_find_links() scopes index.html pages to their directory", {
@@ -370,7 +402,10 @@ test_that("ragnar_find_links() scopes index.html pages to their directory", {
       depth = 1,
       progress = FALSE
     ),
-    paste0(site$url(), c("manual/details.html", "manual/topic.html")),
+    paste0(
+      site$url(),
+      c("manual/details.html", "manual/index.html", "manual/topic.html")
+    ),
     ignore_attr = TRUE
   )
 })
@@ -403,7 +438,7 @@ test_that("ragnar_find_links() normalizes local paths before child filtering", {
         path, children_only = TRUE, depth = depth, progress = FALSE
       )
       children <- if (depth == 0) "topic.html" else c("details.html", "topic.html")
-      expected <- paste0(site_path, "/", children)
+      expected <- paste0(site_path, "/", sort(c("index.html", children)))
       expect_equal(result, expected, ignore_attr = TRUE)
       visited <- if (depth == 0) "index.html" else c("index.html", "topic.html")
       expect_named(attr(result, "last_modified"), paste0(site_path, "/", visited))
@@ -426,7 +461,11 @@ test_that("ragnar_find_links() follows the default entry across JS redirects", {
   ))
 
   result <- ragnar_find_links(site$url("/redirect.html"))
-  expect_equal(result, site$url("/right-child.html"), ignore_attr = TRUE)
+  expect_equal(
+    result,
+    site$url(c("/right-child.html", "/right.html")),
+    ignore_attr = TRUE
+  )
   expect_named(attr(result, "last_modified"), site$url("/right.html"))
 })
 
@@ -471,10 +510,10 @@ test_that("ragnar_find_links() ignores timestamps from failed HEAD responses", {
   )
 
   result <- ragnar_find_links(site$url(), get_timestamps = TRUE, validate = FALSE)
-  urls <- paste0(site$url(), c("missing", "ok", "unavailable"))
+  urls <- paste0(site$url(), c("", "missing", "ok", "unavailable"))
   expect_equal(result, urls, ignore_attr = TRUE)
   timestamps <- attr(result, "last_modified")
-  expect_named(timestamps, sort(c(site$url(), urls)))
+  expect_named(timestamps, urls)
   expect_true(all(is.na(timestamps[site$url(c("/missing", "/unavailable"))])))
   expect_equal(
     as.numeric(timestamps[site$url("/ok")]),
@@ -515,14 +554,27 @@ test_that("ragnar_find_links() reuses validation HEAD responses for timestamps",
   ))
 
   result <- ragnar_find_links(site$url(), validate = TRUE, get_timestamps = TRUE)
-  urls <- paste0(site$url(), c("a", "b"))
+  urls <- paste0(site$url(), c("", "a", "b"))
   expect_equal(result, urls, ignore_attr = TRUE)
   timestamps <- attr(result, "last_modified")
   expected <- as.POSIXct("2015-10-21 07:28:00", tz = "UTC")
-  expect_equal(as.numeric(timestamps[urls]), rep(as.numeric(expected), 2))
+  expect_equal(as.numeric(timestamps[urls]), rep(as.numeric(expected), 3))
 
   requests <- httr2::request(site$url("/requests")) |>
     httr2::req_perform() |>
     httr2::resp_body_json(simplifyVector = TRUE)
-  expect_equal(sort(requests$path[requests$method == "head"]), c("/a", "/b"))
+  expect_equal(
+    sort(requests$path[requests$method == "head"]),
+    c("/", "/a", "/b")
+  )
+})
+
+test_that("ragnar_find_links() includes the root URL in its results", {
+  html <- withr::local_tempfile(
+    fileext = ".html",
+    lines = '<html><body><a href="https://example.com/page">Page</a></body></html>'
+  )
+
+  result <- ragnar_find_links(html)
+  expect_true(normalizePath(html, winslash = "/") %in% result)
 })

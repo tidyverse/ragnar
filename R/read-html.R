@@ -447,6 +447,7 @@ ragnar_find_links <- function(
   start_url <- xml_url2(x)
   deque$append(list(url = start_url, depth = 0))
   queued$add(start_url)
+  collected$add(start_url)
   if (!depth) {
     progress <- FALSE
   }
