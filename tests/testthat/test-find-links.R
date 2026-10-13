@@ -59,19 +59,15 @@ test_that("ragnar_find_links() last_modified is NA for local files", {
 })
 
 test_that("ragnar_find_links() last_modified names match resolved URLs", {
-  html_a <- withr::local_tempfile(
+  html <- withr::local_tempfile(
     fileext = ".html",
     lines = '<html><body><a href="https://example.com/b">B</a></body></html>'
   )
-  html_b <- withr::local_tempfile(
-    fileext = ".html",
-    lines = "<html><body><p>Page B</p></body></html>"
-  )
 
-  result <- ragnar_find_links(html_a)
+  result <- ragnar_find_links(html)
   lm <- attr(result, "last_modified")
-  # Names must be a subset of or equal to the returned URLs (resolved)
-  expect_true(all(names(lm) %in% c(result, html_a)))
+  # Only the start page was visited; its timestamp uses the resolved path.
+  expect_named(lm, normalizePath(html, winslash = "/"))
 })
 
 test_that("ragnar_find_links() returns a ragnar_links object", {
@@ -82,6 +78,29 @@ test_that("ragnar_find_links() returns a ragnar_links object", {
 
   result <- ragnar_find_links(html)
   expect_s3_class(result, "ragnar_links")
+  expect_s3_class(result, "character")
+})
+
+test_that("a single discovered link can be read and stored", {
+  skip_on_cran() # See comment in test-read-markdown.R
+  site <- local_link_site(c(
+    "/" = '<a href="/topic.html">Topic</a>',
+    "/topic.html" = "<h1>Topic</h1><p>A document to ingest.</p>"
+  ))
+  links <- ragnar_find_links(site$url())
+  expect_length(links, 1L)
+
+  chunks <- links |> read_as_markdown() |> markdown_chunk()
+  store <- ragnar_store_create(
+    embed = \(x) matrix(1, nrow = length(x), ncol = 3)
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+
+  expect_no_error(ragnar_store_update(store, chunks))
+  expect_no_error(ragnar_store_update(store, chunks))
+  documents <- tbl(store@con, "documents") |> collect()
+  expect_equal(documents$origin, site$url("/topic.html"))
+  expect_equal(tbl(store@con, "chunks") |> collect() |> nrow(), nrow(chunks))
 })
 
 test_that("print.ragnar_links() snapshot with last_modified", {
@@ -285,6 +304,42 @@ test_that("ragnar_find_links() scopes index.html pages to their directory", {
     paste0(site$url(), c("manual/details.html", "manual/topic.html")),
     ignore_attr = TRUE
   )
+})
+
+test_that("ragnar_find_links() normalizes local paths before child filtering", {
+  fixture <- withr::local_tempdir()
+  dir.create(file.path(fixture, "site"))
+  writeLines(
+    '<a href="topic.html">Topic</a><a href="../other.html">Other</a>',
+    file.path(fixture, "site", "index.html")
+  )
+  writeLines(
+    '<a href="details.html">Details</a>',
+    file.path(fixture, "site", "topic.html")
+  )
+  writeLines("<p>Details</p>", file.path(fixture, "site", "details.html"))
+  writeLines("<p>Other</p>", file.path(fixture, "other.html"))
+  withr::local_dir(fixture)
+
+  site_path <- normalizePath("site", winslash = "/")
+  paths <- c(
+    "site/index.html",
+    "./site/index.html",
+    "./site/../site/index.html",
+    paste0(site_path, "/index.html")
+  )
+  for (path in paths) {
+    for (depth in 0:1) {
+      result <- ragnar_find_links(
+        path, children_only = TRUE, depth = depth, progress = FALSE
+      )
+      children <- if (depth == 0) "topic.html" else c("details.html", "topic.html")
+      expected <- paste0(site_path, "/", children)
+      expect_equal(result, expected, ignore_attr = TRUE)
+      visited <- if (depth == 0) "index.html" else c("index.html", "topic.html")
+      expect_named(attr(result, "last_modified"), paste0(site_path, "/", visited))
+    }
+  }
 })
 
 test_that("ragnar_find_links() follows the default entry across JS redirects", {

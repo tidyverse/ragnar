@@ -600,7 +600,7 @@ ragnar_find_links <- function(
     )
   }
 
-  class(out) <- "ragnar_links"
+  class(out) <- c("ragnar_links", "character")
   out
 }
 
@@ -730,10 +730,10 @@ read_html2 <- function(url, ..., redirect_chain = character()) {
   # returns 404. We don't really want the warnings, so we discard them.
   if (!is_url(url)) {
     out <- xml2::read_html(url, ...)
-    # Ensure resolved_url is the original path, not a file:// URI
+    # Ensure resolved_url is an absolute path, not a file:// URI
     # (xml2::xml_url() returns file:// URIs on macOS/Windows, which don't
     # compare equal to plain paths used as start_url)
-    attr(out, "resolved_url") <- url
+    attr(out, "resolved_url") <- normalizePath(url, winslash = "/", mustWork = TRUE)
     return(out)
   }
   suppressWarnings({
