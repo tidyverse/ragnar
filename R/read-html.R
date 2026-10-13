@@ -572,7 +572,7 @@ ragnar_find_links <- function(
       }
       for (url in unvisited) {
         resp <- head_resps[[url]]
-        ts <- if (inherits(resp, "httr2_response")) {
+        ts <- if (inherits(resp, "httr2_response") && !httr2::resp_is_error(resp)) {
           raw <- httr2::resp_header(resp, "Last-Modified", default = NA)
           if (!is.na(raw)) {
             tryCatch(

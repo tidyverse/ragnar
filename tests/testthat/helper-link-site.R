@@ -1,10 +1,12 @@
 local_link_site <- function(
   pages,
   max_requests = Inf,
+  status_codes = integer(),
   .local_envir = parent.frame()
 ) {
   app <- webfakes::new_app()
   app$locals$pages <- pages
+  app$locals$status_codes <- status_codes
   app$locals$requests <- data.frame(method = character(), path = character())
   app$locals$max_requests <- max_requests
   app$use(function(req, res, locals) {
@@ -20,6 +22,9 @@ local_link_site <- function(
       return(res$send_status(508))
     }
     res$set_header("Last-Modified", "Wed, 21 Oct 2015 07:28:00 GMT")
+    if (req$path %in% names(locals$status_codes)) {
+      return(res$send_status(locals$status_codes[[req$path]]))
+    }
     res$send(locals$pages[[req$path]])
   })
   server <- webfakes::new_app_process(app)

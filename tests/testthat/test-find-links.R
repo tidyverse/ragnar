@@ -457,6 +457,31 @@ test_that("ragnar_find_links() parses HEAD timestamps in a non-English locale", 
   expect_identical(Sys.getlocale("LC_TIME"), locale)
 })
 
+test_that("ragnar_find_links() ignores timestamps from failed HEAD responses", {
+  site <- local_link_site(
+    c(
+      "/" = paste0(
+        '<a href="/ok">OK</a>',
+        '<a href="/missing">Missing</a>',
+        '<a href="/unavailable">Unavailable</a>'
+      ),
+      "/ok" = "<p>OK</p>"
+    ),
+    status_codes = c("/missing" = 404L, "/unavailable" = 503L)
+  )
+
+  result <- ragnar_find_links(site$url(), get_timestamps = TRUE, validate = FALSE)
+  urls <- paste0(site$url(), c("missing", "ok", "unavailable"))
+  expect_equal(result, urls, ignore_attr = TRUE)
+  timestamps <- attr(result, "last_modified")
+  expect_named(timestamps, sort(c(site$url(), urls)))
+  expect_true(all(is.na(timestamps[site$url(c("/missing", "/unavailable"))])))
+  expect_equal(
+    as.numeric(timestamps[site$url("/ok")]),
+    as.numeric(as.POSIXct("2015-10-21 07:28:00", tz = "UTC"))
+  )
+})
+
 test_that("ragnar_find_links() detects JavaScript redirect cycles promptly", {
   site <- local_link_site(
     c(
