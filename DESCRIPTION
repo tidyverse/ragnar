@@ -63,7 +63,8 @@ Suggests:
     testthat (>= 3.0.0),
     tibble,
     jose,
-    openssl
+    openssl,
+    webfakes
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown
