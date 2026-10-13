@@ -144,17 +144,13 @@ test_that("ragnar_find_links() get_timestamps=FALSE only has timestamps for visi
 })
 
 test_that("ragnar_find_links() get_timestamps=TRUE covers all discovered URLs", {
-  html <- withr::local_tempfile(
-    fileext = ".html",
-    lines = c(
-      '<html><body>',
-      '<a href="https://example.com/a">A</a>',
-      '<a href="https://example.com/b">B</a>',
-      '</body></html>'
-    )
-  )
+  site <- local_link_site(c(
+    "/" = '<a href="/a">A</a><a href="/b">B</a>',
+    "/a" = "<p>A</p>",
+    "/b" = "<p>B</p>"
+  ))
 
-  result <- ragnar_find_links(html, get_timestamps = TRUE)
+  result <- ragnar_find_links(site$url(), get_timestamps = TRUE)
   lm <- attr(result, "last_modified")
   # every discovered URL should have an entry (NA is fine, but must be present)
   expect_true(all(result %in% names(lm)))
@@ -177,34 +173,24 @@ test_that("ragnar_find_links() returns sorted, unique links", {
   )
 })
 
-test_that("ragnar_find_links() children_only=TRUE scopes to start URL stem, not site root", {
-  # When the start URL is a top-level .html file (e.g. reference-architectures.html),
-  # dirname() would collapse to the site root and return all pages on the site.
-  # The prefix should be derived by stripping .html, not by taking dirname().
-  html <- withr::local_tempfile(
-    fileext = ".html",
-    lines = c(
-      '<html><body>',
-      '<a href="https://example.com/reference-architectures/page.html">Child</a>',
-      '<a href="https://example.com/other-section/page.html">Sibling</a>',
-      '</body></html>'
-    )
-  )
-  # Simulate the start URL being a top-level page
-  # children_only = TRUE should match only .../reference-architectures/...
-  # We can't fully test this without controlling xml_url2(), but we can
-  # test url_normalize_stem directly:
+test_that("ragnar_find_links() children_only=TRUE scopes to the start URL stem", {
+  site <- local_link_site(c(
+    "/reference-architectures.html" = paste0(
+      '<a href="/reference-architectures/page.html">Child</a>',
+      '<a href="/other-section/page.html">Sibling</a>'
+    ),
+    "/reference-architectures/page.html" = "<p>Child</p>"
+  ))
+
   expect_equal(
-    ragnar:::url_normalize_stem("https://example.com/reference-architectures.html"),
-    "https://example.com/reference-architectures"
-  )
-  expect_equal(
-    ragnar:::url_normalize_stem("https://example.com/"),
-    "https://example.com/"
-  )
-  expect_equal(
-    ragnar:::url_normalize_stem("https://example.com/connect/admin/page.html"),
-    "https://example.com/connect/admin/page"
+    ragnar_find_links(
+      site$url("/reference-architectures.html"),
+      children_only = TRUE,
+      depth = 1,
+      progress = FALSE
+    ),
+    site$url("/reference-architectures/page.html"),
+    ignore_attr = TRUE
   )
 })
 
@@ -238,4 +224,135 @@ test_that("ragnar_find_links() excludes links with doubled path segments", {
   result <- ragnar_find_links(html)
   expect_false(any(grepl("appendix/library/appendix/library", result)))
   expect_true(any(grepl("appendix/library/page\\.html$", result)))
+})
+
+test_that("ragnar_find_links() preserves and crawls distinct path segments", {
+  site <- local_link_site(c(
+    "/" = paste0(
+      '<a href="/guide/guides.html">Guides</a>',
+      '<a href="/en/enterprise.html">Enterprise</a>',
+      '<a href="/guide/guide/page.html">Doubled</a>'
+    ),
+    "/guide/guides.html" = '<a href="details.html">Details</a>',
+    "/en/enterprise.html" = '<a href="details.html">Details</a>'
+  ))
+
+  expect_equal(
+    ragnar_find_links(site$url(), depth = 1, progress = FALSE),
+    sort(paste0(
+      site$url(),
+      c(
+        "guide/guides.html",
+        "guide/details.html",
+        "en/enterprise.html",
+        "en/details.html"
+      )
+    )),
+    ignore_attr = TRUE
+  )
+})
+
+test_that("ragnar_find_links() checks only URL paths for doubled segments", {
+  urls <- c(
+    "https://example.com/example.com/topic.html",
+    "https://example.com/topic.html?next=/guide/guide"
+  )
+  html <- withr::local_tempfile(
+    fileext = ".html",
+    lines = paste0('<a href="', urls, '">Topic</a>')
+  )
+
+  expect_equal(ragnar_find_links(html), urls, ignore_attr = TRUE)
+})
+
+test_that("ragnar_find_links() scopes index.html pages to their directory", {
+  site <- local_link_site(c(
+    "/manual/index.html" = paste0(
+      '<a href="topic.html">Topic</a>',
+      '<a href="/manual-other/topic.html">Sibling</a>'
+    ),
+    "/manual/topic.html" = '<a href="details.html">Details</a>'
+  ))
+
+  expect_equal(
+    ragnar_find_links(
+      site$url("/manual/index.html"),
+      children_only = TRUE,
+      depth = 1,
+      progress = FALSE
+    ),
+    paste0(site$url(), c("manual/details.html", "manual/topic.html")),
+    ignore_attr = TRUE
+  )
+})
+
+test_that("ragnar_find_links() follows the default entry across JS redirects", {
+  site <- local_link_site(c(
+    "/redirect.html" = paste0(
+      '<script>var redirects = {"old": "/wrong.html", "": "nested/hop.html"};',
+      'window.location.replace(redirect);</script>'
+    ),
+    "/nested/hop.html" = paste0(
+      '<script>var redirects = {"": \'../right.html\'};',
+      'window.location.replace(redirect);</script>'
+    ),
+    "/right.html" = '<a href="right-child.html">Child</a>',
+    "/wrong.html" = '<a href="wrong-child.html">Child</a>'
+  ))
+
+  result <- ragnar_find_links(site$url("/redirect.html"))
+  expect_equal(result, site$url("/right-child.html"), ignore_attr = TRUE)
+  expect_named(attr(result, "last_modified"), site$url("/right.html"))
+})
+
+test_that("ragnar_find_links() parses HEAD timestamps in a non-English locale", {
+  old_locale <- Sys.getlocale("LC_TIME")
+  withr::defer(Sys.setlocale("LC_TIME", old_locale))
+  locale_name <- if (.Platform$OS.type == "windows") {
+    "French_France.utf8"
+  } else {
+    "fr_FR.UTF-8"
+  }
+  locale <- suppressWarnings(Sys.setlocale("LC_TIME", locale_name))
+  skip_if(identical(locale, ""), "French LC_TIME is unavailable")
+
+  site <- local_link_site(c(
+    "/" = '<a href="/topic.html">Topic</a>',
+    "/topic.html" = "<p>Topic</p>"
+  ))
+  result <- ragnar_find_links(site$url(), get_timestamps = TRUE)
+  timestamps <- attr(result, "last_modified")
+  expected <- as.POSIXct("2015-10-21 07:28:00", tz = "UTC")
+
+  expect_equal(as.numeric(timestamps[site$url()]), as.numeric(expected))
+  expect_equal(
+    as.numeric(timestamps[site$url("/topic.html")]),
+    as.numeric(expected)
+  )
+  expect_identical(Sys.getlocale("LC_TIME"), locale)
+})
+
+test_that("ragnar_find_links() detects JavaScript redirect cycles promptly", {
+  site <- local_link_site(
+    c(
+      "/a.html" = paste0(
+        '<script>var redirects = {"": "/b.html"};',
+        'window.location.replace(redirect);</script>'
+      ),
+      "/b.html" = paste0(
+        '<script>var redirects = {"": "/a.html"};',
+        'window.location.replace(redirect);</script>'
+      )
+    ),
+    max_requests = 6
+  )
+
+  expect_error(
+    ragnar_find_links(site$url("/a.html")),
+    "JavaScript redirect cycle"
+  )
+  requests <- httr2::request(site$url("/requests")) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json(simplifyVector = TRUE)
+  expect_equal(requests, c("/a.html", "/b.html"))
 })

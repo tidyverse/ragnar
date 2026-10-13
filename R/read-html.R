@@ -568,7 +568,10 @@ ragnar_find_links <- function(
           raw <- httr2::resp_header(resp, "Last-Modified", default = NA)
           if (!is.na(raw)) {
             tryCatch(
-              as.POSIXct(raw, format = "%a, %d %b %Y %H:%M:%S", tz = "GMT"),
+              withr::with_locale(
+                c(LC_TIME = "C"),
+                as.POSIXct(raw, format = "%a, %d %b %Y %H:%M:%S", tz = "GMT")
+              ),
               error = \(e) .POSIXct(NA_real_)
             )
           } else {
@@ -669,7 +672,9 @@ html_find_links <- function(x, absolute = TRUE) {
     links <- url_absolute2(links, xml_url2(x))
     # Remove links with doubled path segments, which can arise when a page's
     # resolved URL already contains a path prefix that a relative href repeats.
-    links <- links[!stri_detect_regex(links, "(/[^/]+(?:/[^/]+)*)\\1")]
+    paths <- stri_extract_first_regex(links, "^[^?#]*")
+    paths <- sub("^[^:]+://[^/]*", "", paths)
+    links <- links[!stri_detect_regex(paths, "(/[^/]+(?:/[^/]+)*)\\1(?=/|$)")]
   }
 
   links
@@ -704,7 +709,9 @@ url_absolute2 <- function(urls, baseurl) {
 
 url_normalize_stem <- function(url) {
   check_string(url)
-  if (endsWith(url, ".html")) {
+  if (endsWith(url, "/index.html")) {
+    sub("index\\.html$", "", url)
+  } else if (endsWith(url, ".html")) {
     sub("\\.html$", "", url)
   } else {
     url
@@ -716,7 +723,7 @@ stri_subset_startswith_fixed <- function(str, pattern, ...) {
 }
 
 # workaround for https://github.com/r-lib/xml2/issues/453
-read_html2 <- function(url, ...) {
+read_html2 <- function(url, ..., redirect_chain = character()) {
   # For some reason curl is both erroring and warning when the URL is invalid or
   # returns 404. We don't really want the warnings, so we discard them.
   if (!is_url(url)) {
@@ -752,7 +759,11 @@ read_html2 <- function(url, ...) {
 
   # Some sites (e.g. docs.posit.co) serve JS-only redirect pages that curl
   # cannot follow. Detect the pattern and re-fetch the redirect target.
-  out <- follow_js_redirect(out, ...)
+  out <- follow_js_redirect(
+    out,
+    ...,
+    redirect_chain = c(redirect_chain, url, hdata$url)
+  )
 
   out
 }
@@ -761,28 +772,36 @@ read_html2 <- function(url, ...) {
 #   var redirects = {"": "../some/path.html"};  window.location.replace(redirect)
 # These are static files that redirect browsers but have no <a> links, so
 # curl lands on a blank page. We parse the redirect target and re-fetch.
-follow_js_redirect <- function(doc, ...) {
+follow_js_redirect <- function(doc, ..., redirect_chain) {
   script_text <- doc |>
     xml2::xml_find_first(".//script[contains(., 'redirects')]") |>
     xml2::xml_text()
-  if (is.na(script_text)) return(doc)
-  if (!grepl("window\\.location\\.replace", script_text)) return(doc)
+  if (is.na(script_text)) {
+    return(doc)
+  }
+  if (!grepl("window\\.location\\.replace", script_text)) {
+    return(doc)
+  }
 
-  # Extract the default redirect: {"": "TARGET"} or {"": 'TARGET'}
+  # Extract only the default entry: crawling strips fragments from links.
+  # Supported forms are {"": "TARGET"} and {"": 'TARGET'}.
   m <- regmatches(
     script_text,
-    regexpr('"[^"]*"\\s*:\\s*["\']([^"\']+)["\']', script_text, perl = TRUE)
+    regexpr('""\\s*:\\s*["\']([^"\']+)["\']', script_text, perl = TRUE)
   )
-  if (!length(m)) return(doc)
-  target <- sub('^"[^"]*"\\s*:\\s*["\']([^"\']+)["\']$', "\\1", m)
+  if (!length(m)) {
+    return(doc)
+  }
+  target <- sub('^""\\s*:\\s*["\']([^"\']+)["\']$', "\\1", m)
 
   base_url <- attr(doc, "resolved_url", exact = TRUE) %||% xml2::xml_url(doc)
   redirect_url <- xml2::url_absolute(target, base_url)
 
-  # Guard against redirect loops
-  if (identical(redirect_url, base_url)) return(doc)
+  if (redirect_url %in% redirect_chain) {
+    cli::cli_abort("JavaScript redirect cycle at {.url {redirect_url}}.")
+  }
 
-  read_html2(redirect_url, ...)
+  read_html2(redirect_url, ..., redirect_chain = redirect_chain)
 }
 
 is_url <- function(path) {
