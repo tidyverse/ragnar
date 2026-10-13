@@ -149,7 +149,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpHBHvdb/duckdb
+#> ℹ /tmp/RtmpLXwF3t/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -166,7 +166,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpHBHvdb/duckdb
+#> ℹ /tmp/RtmpLXwF3t/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -184,7 +184,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpHBHvdb/duckdb
+#> ℹ /tmp/RtmpLXwF3t/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -199,7 +199,7 @@ store <- ragnar_store_create(
   embed = NULL
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpHBHvdb/duckdb
+#> ℹ /tmp/RtmpLXwF3t/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
