@@ -210,20 +210,18 @@ test_that("ragnar_find_links() excludes .md source file links", {
   expect_true(any(grepl("page\\.html$", result)))
 })
 
-test_that("ragnar_find_links() excludes links with doubled path segments", {
+test_that("ragnar_find_links() preserves valid repeated path segments", {
+  urls <- c(
+    "https://example.com/appendix/library/appendix/library/page.html",
+    "https://example.com/appendix/library/page.html",
+    "https://github.com/duckdb/duckdb"
+  )
   html <- withr::local_tempfile(
     fileext = ".html",
-    lines = c(
-      '<html><body>',
-      '<a href="https://example.com/appendix/library/appendix/library/page.html">Doubled</a>',
-      '<a href="https://example.com/appendix/library/page.html">Good</a>',
-      '</body></html>'
-    )
+    lines = paste0('<a href="', urls, '">Link</a>')
   )
 
-  result <- ragnar_find_links(html)
-  expect_false(any(grepl("appendix/library/appendix/library", result)))
-  expect_true(any(grepl("appendix/library/page\\.html$", result)))
+  expect_equal(ragnar_find_links(html), sort(urls), ignore_attr = TRUE)
 })
 
 test_that("ragnar_find_links() preserves and crawls distinct path segments", {
@@ -231,10 +229,11 @@ test_that("ragnar_find_links() preserves and crawls distinct path segments", {
     "/" = paste0(
       '<a href="/guide/guides.html">Guides</a>',
       '<a href="/en/enterprise.html">Enterprise</a>',
-      '<a href="/guide/guide/page.html">Doubled</a>'
+      '<a href="guide/guide/page.html">Repeated</a>'
     ),
     "/guide/guides.html" = '<a href="details.html">Details</a>',
-    "/en/enterprise.html" = '<a href="details.html">Details</a>'
+    "/en/enterprise.html" = '<a href="details.html">Details</a>',
+    "/guide/guide/page.html" = '<a href="details.html">Details</a>'
   ))
 
   expect_equal(
@@ -245,14 +244,16 @@ test_that("ragnar_find_links() preserves and crawls distinct path segments", {
         "guide/guides.html",
         "guide/details.html",
         "en/enterprise.html",
-        "en/details.html"
+        "en/details.html",
+        "guide/guide/page.html",
+        "guide/guide/details.html"
       )
     )),
     ignore_attr = TRUE
   )
 })
 
-test_that("ragnar_find_links() checks only URL paths for doubled segments", {
+test_that("ragnar_find_links() preserves links with repetitions in hosts and queries", {
   urls <- c(
     "https://example.com/example.com/topic.html",
     "https://example.com/topic.html?next=/guide/guide"
@@ -354,5 +355,25 @@ test_that("ragnar_find_links() detects JavaScript redirect cycles promptly", {
   requests <- httr2::request(site$url("/requests")) |>
     httr2::req_perform() |>
     httr2::resp_body_json(simplifyVector = TRUE)
-  expect_equal(requests, c("/a.html", "/b.html"))
+  expect_equal(requests$path, c("/a.html", "/b.html"))
+})
+
+test_that("ragnar_find_links() reuses validation HEAD responses for timestamps", {
+  site <- local_link_site(c(
+    "/" = '<a href="/a">A</a><a href="/b">B</a>',
+    "/a" = "<p>A</p>",
+    "/b" = "<p>B</p>"
+  ))
+
+  result <- ragnar_find_links(site$url(), validate = TRUE, get_timestamps = TRUE)
+  urls <- paste0(site$url(), c("a", "b"))
+  expect_equal(result, urls, ignore_attr = TRUE)
+  timestamps <- attr(result, "last_modified")
+  expected <- as.POSIXct("2015-10-21 07:28:00", tz = "UTC")
+  expect_equal(as.numeric(timestamps[urls]), rep(as.numeric(expected), 2))
+
+  requests <- httr2::request(site$url("/requests")) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json(simplifyVector = TRUE)
+  expect_equal(sort(requests$path[requests$method == "head"]), c("/a", "/b"))
 })

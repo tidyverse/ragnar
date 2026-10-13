@@ -526,6 +526,7 @@ ragnar_find_links <- function(
   out <- out[nzchar(out)]
   out <- unique(sort(url_filter_fn(out)))
 
+  head_resps <- list()
   # Validate that we can acess all the URL's
   if (validate) {
     resps <- out |>
@@ -542,6 +543,8 @@ ragnar_find_links <- function(
     problems <- c(problems, errors)
 
     out <- out[is_ok]
+    head_resps <- resps[is_ok]
+    names(head_resps) <- out
   }
 
   if (length(problems)) {
@@ -554,16 +557,19 @@ ragnar_find_links <- function(
   if (get_timestamps) {
     unvisited <- setdiff(out, names(last_modified))
     if (length(unvisited)) {
-      resps <- unvisited |>
-        lapply(\(url) {
-          httr2::request(url) |>
-            httr2::req_method("HEAD") |>
-            httr2::req_timeout(10) |>
-            httr2::req_error(is_error = \(resp) FALSE)
-        }) |>
-        httr2::req_perform_parallel(on_error = "continue")
-      for (i in seq_along(unvisited)) {
-        resp <- resps[[i]]
+      need_head <- setdiff(unvisited, names(head_resps))
+      if (length(need_head)) {
+        head_resps[need_head] <- need_head |>
+          lapply(\(url) {
+            httr2::request(url) |>
+              httr2::req_method("HEAD") |>
+              httr2::req_timeout(10) |>
+              httr2::req_error(is_error = \(resp) FALSE)
+          }) |>
+          httr2::req_perform_parallel(on_error = "continue")
+      }
+      for (url in unvisited) {
+        resp <- head_resps[[url]]
         ts <- if (inherits(resp, "httr2_response")) {
           raw <- httr2::resp_header(resp, "Last-Modified", default = NA)
           if (!is.na(raw)) {
@@ -580,7 +586,7 @@ ragnar_find_links <- function(
         } else {
           .POSIXct(NA_real_)
         }
-        last_modified[[unvisited[[i]]]] <- ts
+        last_modified[[url]] <- ts
       }
     }
   }
@@ -669,12 +675,8 @@ html_find_links <- function(x, absolute = TRUE) {
   links <- sort(unique(links))
 
   if (absolute) {
+    # Repeated path segments can be valid, e.g. GitHub owner/repository URLs.
     links <- url_absolute2(links, xml_url2(x))
-    # Remove links with doubled path segments, which can arise when a page's
-    # resolved URL already contains a path prefix that a relative href repeats.
-    paths <- stri_extract_first_regex(links, "^[^?#]*")
-    paths <- sub("^[^:]+://[^/]*", "", paths)
-    links <- links[!stri_detect_regex(paths, "(/[^/]+(?:/[^/]+)*)\\1(?=/|$)")]
   }
 
   links
