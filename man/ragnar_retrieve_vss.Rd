@@ -55,6 +55,10 @@ If \code{filter} is supplied, the function first performs the similarity
 search, then applies the filter in an outer SQL query. It uses the HNSW
 index when possible and falls back to a sequential scan for large result
 sets or filtered queries.
+
+Store metadata must not use \code{metric_name} or \code{metric_value}, ignoring case.
+Retrieval fails with an error if these names conflict. Create a store with
+different names for those metadata columns.
 }
 \note{
 The results are not re-ranked after identifying the unique values.
