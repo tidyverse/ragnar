@@ -41,7 +41,7 @@ ragnar_store_atlas(
 
 This function requires the `embedding-atlas` Python package (\>= 0.20.0)
 in your reticulate Python environment, the `duckdb` R package (\>=
-1.4.0), and `nanoarrow` (\>= 0.8.0) to transfer data from the DuckDB
+1.5.0), and `nanoarrow` (\>= 0.8.0) to transfer data from the DuckDB
 store to Python.
 
 ## Examples
@@ -56,7 +56,7 @@ store <- ragnar_store_create(
   embed = embed_ollama(model = "embeddinggemma:300m-qat-q4_0")
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4a4wPs/duckdb
+#> ℹ /tmp/RtmpHBHvdb/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.

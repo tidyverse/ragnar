@@ -2,6 +2,24 @@
 
 ## ragnar (development version)
 
+- ragnar now requires DuckDB \>= 1.5.0, whose row-ID fetching keeps
+  indexed VSS retrieval bounded to the selected matches.
+
+- [`ragnar_retrieve_vss()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_vss.md)
+  now fetches embeddings and document text after selecting the final
+  matches, reducing intermediate memory use. Store connections disable
+  insertion-order preservation, and the store documentation explains how
+  to set a deployment-specific DuckDB memory limit
+  ([\#188](https://github.com/tidyverse/ragnar/issues/188)).
+
+- VSS filters can now reference `metric_value`, `metric_name`, and, for
+  version 2 stores, `origin` and `text`. Filtered searches spanning the
+  initial 5,000 candidates now respect `top_k`.
+
+- Retrieval now rejects metadata named `metric_name` or `metric_value`,
+  ignoring case, with an error asking for different metadata column
+  names.
+
 - Fixed an error when creating an embedding function by omitting `x` or
   passing `x = NULL`. Helpers such as
   [`embed_bedrock()`](https://ragnar.tidyverse.org/dev/reference/embed_bedrock.md),

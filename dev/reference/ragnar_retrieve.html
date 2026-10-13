@@ -86,6 +86,12 @@ overlapping chunks are merged with <code><a href="chunks_deoverlap.html">chunks_
 represents a chunk and always contains a <code>text</code> column.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Store metadata must not use <code>metric_name</code> or <code>metric_value</code>, ignoring
+case. Retrieval fails with an error if these names conflict. Create a store
+with different names for those metadata columns.</p>
+    </div>
+    <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
     <p>The results are not re-ranked after identifying the unique values.</p>
     </div>

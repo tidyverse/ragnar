@@ -57,7 +57,9 @@ ragnar_retrieve_bm25(
 ## Value
 
 A tibble ordered by descending BM25 `metric_value` (higher is more
-relevant), with a `metric_name` column set to "bm25".
+relevant), with a `metric_name` column set to "bm25". Store metadata
+must not use these names, ignoring case; retrieval fails with an error
+if they conflict.
 
 ## See also
 

@@ -115,6 +115,9 @@ ordered by <code>metric_value</code>.</p>
 search, then applies the filter in an outer SQL query. It uses the HNSW
 index when possible and falls back to a sequential scan for large result
 sets or filtered queries.</p>
+<p>Store metadata must not use <code>metric_name</code> or <code>metric_value</code>, ignoring case.
+Retrieval fails with an error if these names conflict. Create a store with
+different names for those metadata columns.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>

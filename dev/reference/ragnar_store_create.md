@@ -124,6 +124,22 @@ to prepare `chunks` for `version = 1` is with
 and
 [`ragnar_chunk()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md).
 
+### Memory use
+
+Store connections disable DuckDB's insertion-order preservation to
+reduce memory use. Use an explicit `ORDER BY` when querying the
+connection directly if row order matters.
+
+DuckDB sets a default `memory_limit` based on available system memory.
+For deployments with a smaller process memory budget, lower this limit
+after creating or connecting to a store, for example:
+
+    DBI::dbExecute(store@con, "SET memory_limit = '4GB'")
+
+Choose a limit that leaves room for R and other allocations. This
+setting limits DuckDB's buffer manager, not total process memory; HNSW
+indexes and some other allocations are outside this limit.
+
 ## Examples
 
 ``` r
@@ -133,7 +149,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4a4wPs/duckdb
+#> ℹ /tmp/RtmpHBHvdb/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -150,7 +166,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4a4wPs/duckdb
+#> ℹ /tmp/RtmpHBHvdb/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -168,7 +184,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4a4wPs/duckdb
+#> ℹ /tmp/RtmpHBHvdb/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -183,7 +199,7 @@ store <- ragnar_store_create(
   embed = NULL
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4a4wPs/duckdb
+#> ℹ /tmp/RtmpHBHvdb/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
