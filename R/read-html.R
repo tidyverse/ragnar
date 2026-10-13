@@ -375,6 +375,8 @@ ragnar_read_document <- function(
 #'     \item{`problems`}{A data frame with columns `link` and `problem`,
 #'       present only when one or more URLs could not be fetched during crawling.}
 #'   }
+#'   Joins and row-binding combine links as ordinary character vectors. To keep
+#'   timestamps in the combined data, store them in a separate column first.
 #' @export
 #'
 #' @examples
@@ -603,6 +605,20 @@ ragnar_find_links <- function(
   class(out) <- c("ragnar_links", "character")
   out
 }
+
+
+# Crawl metadata describes the original crawl, not a combined URL column.
+#' @exportS3Method vctrs::vec_ptype2
+vec_ptype2.ragnar_links.ragnar_links <- function(x, y, ...) character()
+
+#' @exportS3Method vctrs::vec_ptype2
+vec_ptype2.ragnar_links.character <- function(x, y, ...) character()
+
+#' @exportS3Method vctrs::vec_ptype2
+vec_ptype2.character.ragnar_links <- function(x, y, ...) character()
+
+#' @exportS3Method vctrs::vec_cast
+vec_cast.character.ragnar_links <- function(x, to, ...) vctrs::vec_data(x)
 
 
 #' @export

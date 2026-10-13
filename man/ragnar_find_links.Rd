@@ -61,6 +61,8 @@ or \code{get_timestamps = FALSE} and the page was not visited) are \code{NA}.}
 \item{\code{problems}}{A data frame with columns \code{link} and \code{problem},
 present only when one or more URLs could not be fetched during crawling.}
 }
+Joins and row-binding combine links as ordinary character vectors. To keep
+timestamps in the combined data, store them in a separate column first.
 }
 \description{
 Find links on a page

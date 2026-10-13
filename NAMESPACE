@@ -2,6 +2,10 @@
 
 S3method(pillar::tbl_sum,ragnar::MarkdownDocumentChunks)
 S3method(print,ragnar_links)
+S3method(vctrs::vec_cast,character.ragnar_links)
+S3method(vctrs::vec_ptype2,character.ragnar_links)
+S3method(vctrs::vec_ptype2,ragnar_links.character)
+S3method(vctrs::vec_ptype2,ragnar_links.ragnar_links)
 export(MarkdownDocument)
 export(MarkdownDocumentChunks)
 export(chunks_deoverlap)

@@ -103,6 +103,75 @@ test_that("a single discovered link can be read and stored", {
   expect_equal(tbl(store@con, "chunks") |> collect() |> nrow(), nrow(chunks))
 })
 
+test_that("discovered links can be joined with cached character URLs", {
+  site <- local_link_site(c(
+    "/" = '<a href="/a">A</a><a href="/b">B</a>',
+    "/a" = "<p>A</p>",
+    "/b" = "<p>B</p>"
+  ))
+  links <- ragnar_find_links(site$url(), get_timestamps = TRUE)
+  urls <- as.character(links)
+  modified <- .POSIXct(as.numeric(attr(links, "last_modified")[urls]), tz = "UTC")
+  discovered <- tibble(url = links, last_modified = modified)
+  cached <- tibble(url = rev(urls), content = c("B", "A"))
+
+  expect_equal(
+    left_join(discovered, cached, by = "url"),
+    tibble(url = urls, last_modified = modified, content = c("A", "B"))
+  )
+  expect_equal(
+    left_join(cached, discovered, by = "url"),
+    tibble(url = rev(urls), content = c("B", "A"), last_modified = rev(modified))
+  )
+})
+
+test_that("discovered links can be row-bound across separate crawls", {
+  html_a <- withr::local_tempfile(
+    fileext = ".html",
+    lines = '<a href="https://example.com/a">A</a>'
+  )
+  html_b <- withr::local_tempfile(
+    fileext = ".html",
+    lines = '<a href="https://example.com/b">B</a>'
+  )
+  first <- tibble(url = ragnar_find_links(html_a))
+  second <- tibble(url = ragnar_find_links(html_b))
+
+  expect_equal(
+    bind_rows(first, second),
+    tibble(url = c("https://example.com/a", "https://example.com/b"))
+  )
+  expect_equal(
+    bind_rows(second, first),
+    tibble(url = c("https://example.com/b", "https://example.com/a"))
+  )
+  expect_equal(
+    bind_rows(first, first),
+    tibble(url = rep("https://example.com/a", 2))
+  )
+  cached <- tibble(url = "https://example.com/cached")
+  expect_equal(
+    bind_rows(first, cached),
+    tibble(url = c("https://example.com/a", "https://example.com/cached"))
+  )
+  expect_equal(
+    bind_rows(cached, first),
+    tibble(url = c("https://example.com/cached", "https://example.com/a"))
+  )
+})
+
+test_that("empty crawls can be joined and row-bound with character URLs", {
+  html <- withr::local_tempfile(fileext = ".html", lines = "<p>No links.</p>")
+  empty <- tibble(url = ragnar_find_links(html))
+  cached <- tibble(url = "https://example.com/cached")
+
+  expect_equal(left_join(empty, cached, by = "url"), tibble(url = character()))
+  expect_equal(left_join(cached, empty, by = "url"), cached)
+  expect_equal(bind_rows(empty, cached), cached)
+  expect_equal(bind_rows(cached, empty), cached)
+  expect_equal(bind_rows(empty, empty), tibble(url = character()))
+})
+
 test_that("print.ragnar_links() snapshot with last_modified", {
   urls <- paste0("https://example.com/page-", 1:15)
   lm <- structure(
