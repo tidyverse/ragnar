@@ -685,8 +685,10 @@ html_find_links <- function(x, absolute = TRUE) {
 
   links <- if (is_sitemap(x)) {
     x |>
-      xml2::xml_ns_strip() |>
-      xml2::xml_find_all("//urlset/url/loc", flatten = TRUE) |>
+      xml2::xml_find_all(
+        "//*[local-name() = 'urlset']/*[local-name() = 'url']/*[local-name() = 'loc']",
+        flatten = TRUE
+      ) |>
       xml2::xml_text()
   } else {
     x |>
@@ -704,7 +706,10 @@ html_find_links <- function(x, absolute = TRUE) {
 
   if (absolute) {
     # Repeated path segments can be valid, e.g. GitHub owner/repository URLs.
-    links <- url_absolute2(links, xml_url2(x))
+    base_url <- xml_url2(x)
+    links <- url_absolute2(links, base_url)
+    # Self-links must use the same address as the collected starting page.
+    links[links == stri_replace_last_regex(base_url, "/$", "")] <- base_url
   }
 
   links
@@ -712,8 +717,9 @@ html_find_links <- function(x, absolute = TRUE) {
 
 is_sitemap <- function(x) {
   has_sitemap <- x |>
-    xml2::xml_ns_strip() |>
-    xml2::xml_find_first("//sitemapindex | //urlset")
+    xml2::xml_find_first(
+      "//*[local-name() = 'sitemapindex' or local-name() = 'urlset']"
+    )
   length(has_sitemap) > 0
 }
 

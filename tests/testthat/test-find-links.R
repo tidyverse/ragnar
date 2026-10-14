@@ -11,6 +11,59 @@ test_that("ragnar_find_links() returns only the root URL when there are no links
   )
 })
 
+test_that("ragnar_find_links() deduplicates roots with absolute self-links", {
+  app <- webfakes::new_app()
+  app$use(function(req, res) {
+    url <- paste0("http://", req$get_header("host"), req$path)
+    res$send(paste0(
+      '<a href="', url, '">Self</a>',
+      '<a href="topic.html">Topic</a>'
+    ))
+  })
+  site <- webfakes::new_app_process(app)
+  withr::defer(site$stop())
+
+  for (path in c("/", "/manual/")) {
+    for (children_only in c(FALSE, TRUE)) {
+      result <- ragnar_find_links(site$url(path), children_only = children_only)
+      expect_equal(
+        result,
+        site$url(c(path, paste0(path, "topic.html"))),
+        ignore_attr = TRUE
+      )
+      expect_named(attr(result, "last_modified"), site$url(path))
+    }
+  }
+})
+
+test_that("an absolute root self-link is ingested as one document", {
+  skip_on_cran() # See comment in test-read-markdown.R
+  app <- webfakes::new_app()
+  app$get("/", function(req, res) {
+    url <- paste0("http://", req$get_header("host"), "/")
+    res$send(paste0(
+      '<h1>Root</h1><p>A document to ingest.</p>',
+      '<a href="', url, '">Self</a>'
+    ))
+  })
+  site <- webfakes::new_app_process(app)
+  withr::defer(site$stop())
+  links <- ragnar_find_links(site$url())
+  expect_equal(links, site$url(), ignore_attr = TRUE)
+
+  store <- ragnar_store_create(
+    embed = \(x) matrix(1, nrow = length(x), ncol = 3)
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+
+  expect_no_error(for (link in links) {
+    chunks <- link |> read_as_markdown() |> markdown_chunk()
+    ragnar_store_insert(store, chunks)
+  })
+  documents <- tbl(store@con, "documents") |> collect()
+  expect_equal(documents$origin, site$url())
+})
+
 test_that("ragnar_find_links() normalizes fragments in starting URLs", {
   site <- local_link_site(c(
     "/page.html" = paste0(
@@ -73,6 +126,29 @@ test_that("ragnar_find_links() excludes sitemap documents from its results", {
   for (input in inputs) {
     expect_equal(ragnar_find_links(input), urls, ignore_attr = TRUE)
   }
+})
+
+test_that("ragnar_find_links() preserves caller-owned XML namespaces", {
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<url><loc>https://example.com/page.html</loc>',
+    '<lastmod>2026-10-14</lastmod></url></urlset>'
+  )
+  site <- local_link_site(c("/sitemap.xml" = xml))
+  doc <- xml2::read_xml(site$url("/sitemap.xml"))
+  before <- as.character(doc)
+  namespaces <- xml2::xml_ns(doc)
+  ns <- c(sm = "http://www.sitemaps.org/schemas/sitemap/0.9")
+
+  result <- ragnar_find_links(doc)
+
+  expect_equal(result, "https://example.com/page.html", ignore_attr = TRUE)
+  expect_equal(as.character(doc), before)
+  expect_equal(xml2::xml_ns(doc), namespaces)
+  expect_equal(
+    xml2::xml_text(xml2::xml_find_all(doc, "//sm:lastmod", ns)),
+    "2026-10-14"
+  )
 })
 
 test_that("ragnar_find_links() validates local paths and HTTP links together", {
