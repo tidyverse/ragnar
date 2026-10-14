@@ -839,5 +839,10 @@ is_url <- function(path) {
 }
 
 xml_url2 <- function(x) {
-  attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x)
+  url <- attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x)
+  if (is_url(url)) {
+    stri_extract_first_regex(url, "^[^#]*")
+  } else {
+    url
+  }
 }

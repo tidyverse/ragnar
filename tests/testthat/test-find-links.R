@@ -11,6 +11,50 @@ test_that("ragnar_find_links() returns only the root URL when there are no links
   )
 })
 
+test_that("ragnar_find_links() normalizes fragments in starting URLs", {
+  site <- local_link_site(c(
+    "/page.html" = paste0(
+      '<a href="page.html#intro">Intro</a>',
+      '<a href="page/topic.html">Topic</a>'
+    ),
+    "/page/topic.html" = "<p>Topic</p>"
+  ))
+  urls <- site$url(c("/page.html", "/page/topic.html"))
+
+  for (depth in 0:1) {
+    for (children_only in c(FALSE, TRUE)) {
+      result <- ragnar_find_links(
+        site$url("/page.html#intro"),
+        depth = depth,
+        children_only = children_only,
+        progress = FALSE
+      )
+      expect_equal(result, urls, ignore_attr = TRUE)
+      visited <- if (depth == 0) urls[1] else urls
+      expect_named(attr(result, "last_modified"), visited)
+    }
+  }
+})
+
+test_that("ragnar_find_links() preserves queries when stripping root fragments", {
+  site <- local_link_site(c("/page.html" = "<p>No links.</p>"))
+  url <- site$url("/page.html?view=full")
+
+  result <- ragnar_find_links(paste0(url, "#intro"))
+  expect_equal(result, url, ignore_attr = TRUE)
+  expect_named(attr(result, "last_modified"), url)
+})
+
+test_that("ragnar_find_links() preserves hashes in local root filenames", {
+  html <- withr::local_tempfile(fileext = "#intro.html", lines = "<p>No links.</p>")
+
+  expect_equal(
+    ragnar_find_links(html),
+    normalizePath(html, winslash = "/"),
+    ignore_attr = TRUE
+  )
+})
+
 test_that("ragnar_find_links() excludes sitemap documents from its results", {
   urls <- c("https://example.com/a.html", "https://example.com/b.html")
   xml <- paste0(
