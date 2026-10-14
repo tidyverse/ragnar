@@ -414,8 +414,11 @@ ragnar_find_links <- function(
 ) {
   rlang::check_dots_empty()
 
-  if (!inherits(x, "xml_node")) {
+  if (inherits(x, "xml_node")) {
+    requested_url <- xml_url2(x)
+  } else {
     check_string(x)
+    requested_url <- url_normalize(x)
     x <- read_html2(x)
   }
 
@@ -448,7 +451,9 @@ ragnar_find_links <- function(
   last_modified <- list()
 
   start_url <- xml_url2(x)
+  resolved[requested_url] <- start_url
   deque$append(list(url = start_url, depth = 0))
+  queued$add(requested_url)
   queued$add(start_url)
   if (!is_sitemap(x)) {
     collected$add(start_url)
@@ -539,7 +544,15 @@ ragnar_find_links <- function(
   if (validate) {
     urls <- out[is_url(out)]
     paths <- out[!is_url(out)]
-    missing_paths <- paths[!file.exists(paths)]
+    local_paths <- map_chr(paths, \(path) {
+      if (startsWith(path, "file://")) {
+        path <- curl::curl_parse_url(path)$path
+        # Windows file URIs can prefix a drive letter with /.
+        path <- sub("^/([A-Za-z]:/)", "\\1", path)
+      }
+      path
+    })
+    missing_paths <- paths[!file.exists(local_paths)]
     resps <- urls |>
       lapply(\(url) url |> httr2::request() |> httr2::req_method("HEAD")) |>
       httr2::req_perform_parallel(on_error = "continue")

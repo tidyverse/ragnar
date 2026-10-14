@@ -97,6 +97,52 @@ test_that("recursive back-links ingest the root only once", {
   expect_equal(sort(documents$origin), urls)
 })
 
+test_that("known redirected root aliases are ingested only once", {
+  skip_on_cran() # See comment in test-read-markdown.R
+  app <- webfakes::new_app()
+  app$use(function(req, res) {
+    if (req$path == "/manual") {
+      return(res$redirect("/manual/"))
+    }
+    if (req$path == "/redirect.html") {
+      return(res$send(paste0(
+        '<script>var redirects = {"": "/js-manual/"};',
+        'window.location.replace(redirect);</script>'
+      )))
+    }
+    alias <- if (req$path == "/js-manual/") "/redirect.html" else "/manual"
+    res$send(paste0(
+      '<h1>Manual</h1><p>A document to ingest.</p>',
+      '<a href="', alias, '">Alias</a>'
+    ))
+  })
+  site <- webfakes::new_app_process(app)
+  withr::defer(site$stop())
+
+  targets <- c("/manual" = "/manual/", "/redirect.html" = "/js-manual/")
+  for (alias in names(targets)) {
+    for (depth in 0:1) {
+      links <- ragnar_find_links(
+        site$url(alias), depth = depth, progress = FALSE
+      )
+      expect_equal(links, site$url(targets[[alias]]), ignore_attr = TRUE)
+      expect_named(attr(links, "last_modified"), site$url(targets[[alias]]))
+    }
+  }
+
+  store <- ragnar_store_create(
+    embed = \(x) matrix(1, nrow = length(x), ncol = 3)
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  links <- ragnar_find_links(site$url("/manual"))
+  expect_no_error(for (link in links) {
+    chunks <- link |> read_as_markdown() |> markdown_chunk()
+    ragnar_store_insert(store, chunks)
+  })
+  documents <- tbl(store@con, "documents") |> collect()
+  expect_equal(documents$origin, site$url("/manual/"))
+})
+
 test_that("ragnar_find_links() preserves distinct slashless and directory pages", {
   site <- local_link_site(c(
     "/manual/" = '<a href="/manual">Slashless</a>',
@@ -265,6 +311,44 @@ test_that("ragnar_find_links() validates local paths and HTTP links together", {
     httr2::resp_body_json(simplifyVector = TRUE)
   expect_equal(requests$method, "head")
   expect_equal(requests$path, "/remote.html")
+})
+
+test_that("ragnar_find_links() validates file URIs without changing the URLs", {
+  fixture <- withr::local_tempdir()
+  writeLines("<p>Topic</p>", file.path(fixture, "topic.html"))
+  writeLines("<p>Space</p>", file.path(fixture, "topic space.html"))
+  paths <- normalizePath(
+    file.path(fixture, c("topic.html", "topic space.html")), winslash = "/"
+  )
+  uris <- paste0("file:///", sub("^/", "", paths))
+  uris <- gsub(" ", "%20", uris, fixed = TRUE)
+  uris <- c(uris, sub("^file://", "file://localhost", uris[1]))
+  html <- file.path(fixture, "index.html")
+  writeLines(paste0('<a href="', uris, '">Topic</a>'), html)
+
+  expect_no_warning(result <- ragnar_find_links(
+    html, validate = TRUE, get_timestamps = TRUE
+  ))
+  expect_equal(
+    result, sort(c(normalizePath(html, winslash = "/"), uris)),
+    ignore_attr = TRUE
+  )
+  expect_null(attr(result, "problems"))
+  expect_true(all(is.na(attr(result, "last_modified"))))
+})
+
+test_that("ragnar_find_links() reports missing file URIs as their original URLs", {
+  fixture <- normalizePath(withr::local_tempdir(), winslash = "/")
+  uri <- paste0("file:///", sub("^/", "", fixture), "/missing%20topic.html")
+  html <- file.path(fixture, "index.html")
+  writeLines(paste0('<a href="', uri, '">Missing</a>'), html)
+
+  expect_warning(
+    result <- ragnar_find_links(html, validate = TRUE),
+    "Some links could not be followed"
+  )
+  expect_equal(result, normalizePath(html, winslash = "/"), ignore_attr = TRUE)
+  expect_equal(attr(result, "problems"), tibble(url = uri, err = "File does not exist"))
 })
 
 test_that("ragnar_find_links() validates a local root without outgoing links", {
