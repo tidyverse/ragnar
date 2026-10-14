@@ -11,6 +11,86 @@ test_that("ragnar_find_links() returns only the root URL when there are no links
   )
 })
 
+test_that("ragnar_find_links() excludes sitemap documents from its results", {
+  urls <- c("https://example.com/a.html", "https://example.com/b.html")
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    paste0("<url><loc>", urls, "</loc></url>", collapse = ""),
+    "</urlset>"
+  )
+  sitemap <- withr::local_tempfile(fileext = "sitemap.xml", lines = xml)
+  site <- local_link_site(c("/sitemap.xml" = xml))
+
+  inputs <- list(
+    sitemap,
+    site$url("/sitemap.xml"),
+    xml2::read_xml(site$url("/sitemap.xml"))
+  )
+  for (input in inputs) {
+    expect_equal(ragnar_find_links(input), urls, ignore_attr = TRUE)
+  }
+})
+
+test_that("ragnar_find_links() validates local paths and HTTP links together", {
+  site <- local_link_site(c("/remote.html" = "<p>Remote</p>"))
+  fixture <- withr::local_tempdir()
+  writeLines(
+    paste0(
+      '<a href="topic.html">Local</a>',
+      '<a href="', site$url("/remote.html"), '">Remote</a>'
+    ),
+    file.path(fixture, "index.html")
+  )
+  writeLines("<p>Local</p>", file.path(fixture, "topic.html"))
+  withr::local_dir(fixture)
+
+  expect_no_warning(result <- ragnar_find_links(
+    "index.html", validate = TRUE, get_timestamps = TRUE
+  ))
+  paths <- normalizePath(c("index.html", "topic.html"), winslash = "/")
+  urls <- sort(c(paths, site$url("/remote.html")))
+  expect_equal(result, urls, ignore_attr = TRUE)
+  expect_null(attr(result, "problems"))
+  timestamps <- attr(result, "last_modified")
+  expect_named(timestamps, urls)
+  expect_true(all(is.na(timestamps[paths])))
+  expect_equal(
+    as.numeric(timestamps[site$url("/remote.html")]),
+    as.numeric(as.POSIXct("2015-10-21 07:28:00", tz = "UTC"))
+  )
+
+  requests <- httr2::request(site$url("/requests")) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json(simplifyVector = TRUE)
+  expect_equal(requests$method, "head")
+  expect_equal(requests$path, "/remote.html")
+})
+
+test_that("ragnar_find_links() validates a local root without outgoing links", {
+  html <- withr::local_tempfile(fileext = ".html", lines = "<p>No links.</p>")
+
+  expect_no_warning(result <- ragnar_find_links(html, validate = TRUE))
+  expect_equal(result, normalizePath(html, winslash = "/"), ignore_attr = TRUE)
+  expect_null(attr(result, "problems"))
+})
+
+test_that("ragnar_find_links() reports missing local files during validation", {
+  fixture <- withr::local_tempdir()
+  writeLines('<a href="missing.html">Missing</a>', file.path(fixture, "index.html"))
+  withr::local_dir(fixture)
+
+  expect_warning(
+    result <- ragnar_find_links("index.html", validate = TRUE),
+    "Some links could not be followed"
+  )
+  root <- normalizePath("index.html", winslash = "/")
+  expect_equal(result, root, ignore_attr = TRUE)
+  expect_equal(
+    attr(result, "problems"),
+    tibble(url = file.path(dirname(root), "missing.html"), err = "File does not exist")
+  )
+})
+
 test_that("ragnar_find_links() returns no links when no children match", {
   html <- withr::local_tempfile(
     fileext = ".html",

@@ -351,9 +351,9 @@ ragnar_read_document <- function(
 #'   subset them to return a smaller list. This can be useful for filtering out
 #'   URL's by rules different than `children_only` which only checks the prefix.
 #'
-#' @param validate Default is `FALSE`. If `TRUE` sends a `HEAD` request for each
-#'   link and removes those that are not accessible. Requests are sent in parallel
-#'   using [httr2::req_perform_parallel()].
+#' @param validate Default is `FALSE`. If `TRUE`, checks that local files exist
+#'   and sends a `HEAD` request for each remote link, removing those that are not
+#'   accessible. Requests are sent in parallel using [httr2::req_perform_parallel()].
 #'
 #' @param get_timestamps Default is `FALSE`. If `TRUE`, sends parallel `HEAD`
 #'   requests for any discovered URLs that were not visited during crawling, and
@@ -363,10 +363,13 @@ ragnar_read_document <- function(
 #'   timestamp has not changed since the last run. Note that not all hosting
 #'   platforms set `Last-Modified`; S3-backed sites (including many
 #'   `docs.posit.co` pages) and GitHub Pages do, while Netlify-hosted sites
-#'   (e.g. `quarto.org`) do not. Missing headers are recorded as `NA`.
+#'   (e.g. `quarto.org`) do not. Missing headers and local file timestamps are
+#'   recorded as `NA`.
 #'
 #' @return A `ragnar_links` object: a character vector of URLs, sorted
-#'   alphabetically and deduplicated, with the following attributes:
+#'   alphabetically and deduplicated. The starting page is included unless it is
+#'   a sitemap, subject to filtering and validation. The vector has the following
+#'   attributes:
 #'   \describe{
 #'     \item{`last_modified`}{A named `POSIXct` vector mapping each crawled URL
 #'       to its `Last-Modified` timestamp. Always present. URLs for which the
@@ -447,7 +450,9 @@ ragnar_find_links <- function(
   start_url <- xml_url2(x)
   deque$append(list(url = start_url, depth = 0))
   queued$add(start_url)
-  collected$add(start_url)
+  if (!is_sitemap(x)) {
+    collected$add(start_url)
+  }
   if (!depth) {
     progress <- FALSE
   }
@@ -530,24 +535,30 @@ ragnar_find_links <- function(
   out <- unique(sort(url_filter_fn(out)))
 
   head_resps <- list()
-  # Validate that we can acess all the URL's
+  # Validate local files through the filesystem and remote links with HEAD.
   if (validate) {
-    resps <- out |>
+    urls <- out[is_url(out)]
+    paths <- out[!is_url(out)]
+    missing_paths <- paths[!file.exists(paths)]
+    resps <- urls |>
       lapply(\(url) url |> httr2::request() |> httr2::req_method("HEAD")) |>
       httr2::req_perform_parallel(on_error = "continue")
 
     is_ok <- resps |>
       map_lgl(\(x) inherits(x, "httr2_response"))
 
-    errors <- map2(out[!is_ok], resps[!is_ok], function(url, err) {
+    errors <- map2(urls[!is_ok], resps[!is_ok], function(url, err) {
       list(url = url, err = conditionMessage(err))
     })
+    errors <- c(errors, lapply(missing_paths, \(path) {
+      list(url = path, err = "File does not exist")
+    }))
 
     problems <- c(problems, errors)
 
-    out <- out[is_ok]
+    out <- setdiff(out, c(missing_paths, urls[!is_ok]))
     head_resps <- resps[is_ok]
-    names(head_resps) <- out
+    names(head_resps) <- urls[is_ok]
   }
 
   if (length(problems)) {
@@ -560,7 +571,7 @@ ragnar_find_links <- function(
   if (get_timestamps) {
     unvisited <- setdiff(out, names(last_modified))
     if (length(unvisited)) {
-      need_head <- setdiff(unvisited, names(head_resps))
+      need_head <- setdiff(unvisited[is_url(unvisited)], names(head_resps))
       if (length(need_head)) {
         head_resps[need_head] <- need_head |>
           lapply(\(url) {
