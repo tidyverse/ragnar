@@ -31,6 +31,10 @@
   ([\#187](https://github.com/tidyverse/ragnar/issues/187)).
 
 - [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  can now include the starting page with `include_root = TRUE`
+  ([\#199](https://github.com/tidyverse/ragnar/issues/199)).
+
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
   now returns an empty character vector instead of erroring when no
   links are found or all links are filtered out.
 

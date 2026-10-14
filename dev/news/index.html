@@ -49,6 +49,7 @@
 <li><p>VSS filters can now reference <code>metric_value</code>, <code>metric_name</code>, and, for version 2 stores, <code>origin</code> and <code>text</code>. Filtered searches spanning the initial 5,000 candidates now respect <code>top_k</code>.</p></li>
 <li><p>Retrieval now rejects metadata named <code>metric_name</code> or <code>metric_value</code>, ignoring case, with an error asking for different metadata column names.</p></li>
 <li><p>Fixed an error when creating an embedding function by omitting <code>x</code> or passing <code>x = NULL</code>. Helpers such as <code><a href="../reference/embed_bedrock.html">embed_bedrock()</a></code>, <code><a href="../reference/embed_azure_openai.html">embed_azure_openai()</a></code>, and <code><a href="../reference/embed_google_vertex.html">embed_google_vertex()</a></code> now correctly return a function that preserves the supplied configuration arguments (<a href="https://github.com/tidyverse/ragnar/issues/187" class="external-link">#187</a>).</p></li>
+<li><p><code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> can now include the starting page with <code>include_root = TRUE</code> (<a href="https://github.com/tidyverse/ragnar/issues/199" class="external-link">#199</a>).</p></li>
 <li><p><code><a href="../reference/ragnar_find_links.html">ragnar_find_links()</a></code> now returns an empty character vector instead of erroring when no links are found or all links are filtered out.</p></li>
 </ul></div>
     <div class="section level2">
