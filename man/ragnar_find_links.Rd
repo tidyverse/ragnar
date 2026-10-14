@@ -12,7 +12,8 @@ ragnar_find_links(
   ...,
   url_filter = identity,
   validate = FALSE,
-  get_timestamps = FALSE
+  get_timestamps = FALSE,
+  include_root = FALSE
 )
 }
 \arguments{
@@ -50,12 +51,15 @@ platforms set \code{Last-Modified}; S3-backed sites (including many
 \code{docs.posit.co} pages) and GitHub Pages do, while Netlify-hosted sites
 (e.g. \code{quarto.org}) do not. Missing headers and local file timestamps are
 recorded as \code{NA}.}
+
+\item{include_root}{Default is \code{FALSE}. If \code{TRUE}, also includes the starting
+page in the results, subject to \code{children_only}, \code{url_filter}, and \code{validate}.
+Sitemap inputs contribute only their listed URLs. If \code{FALSE}, the starting
+page can still be returned when it is found through a link.}
 }
 \value{
 A \code{ragnar_links} object: a character vector of URLs, sorted
-alphabetically and deduplicated. The starting page is included unless it is
-a sitemap, subject to filtering and validation. The vector has the following
-attributes:
+alphabetically and deduplicated, with the following attributes:
 \describe{
 \item{\code{last_modified}}{A named \code{POSIXct} vector mapping each crawled URL
 to its \code{Last-Modified} timestamp. Always present. URLs for which the
@@ -74,6 +78,8 @@ Find links on a page
 \dontrun{
 ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 ragnar_find_links("https://ellmer.tidyverse.org/")
+# Include the starting page when collecting documents for ingestion
+ragnar_find_links("https://ellmer.tidyverse.org/", include_root = TRUE)
 ragnar_find_links(
   paste0("https://github.com/Snowflake-Labs/sfquickstarts/",
          "tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection"),

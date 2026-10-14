@@ -1,11 +1,76 @@
-test_that("ragnar_find_links() includes the root URL in its results", {
+test_that("ragnar_find_links() includes the root only when requested", {
   html <- withr::local_tempfile(
     fileext = ".html",
     lines = '<html><body><a href="https://example.com/page">Page</a></body></html>'
   )
 
-  result <- ragnar_find_links(html)
-  expect_true(normalizePath(html, winslash = "/") %in% result)
+  url <- "https://example.com/page"
+  expect_equal(ragnar_find_links(html), url, ignore_attr = TRUE)
+  expect_equal(
+    ragnar_find_links(html, include_root = FALSE), url, ignore_attr = TRUE
+  )
+  expect_equal(
+    ragnar_find_links(html, include_root = TRUE),
+    sort(c(normalizePath(html, winslash = "/"), url)),
+    ignore_attr = TRUE
+  )
+})
+
+test_that("ragnar_find_links() controls root inclusion independently of child scoping", {
+  site <- local_link_site(c(
+    "/manual/index.html" = paste0(
+      '<a href="topic.html">Child</a>',
+      '<a href="/other/topic.html">Sibling</a>'
+    ),
+    "/manual/topic.html" = "<p>Child</p>",
+    "/other/topic.html" = "<p>Sibling</p>"
+  ))
+  root <- site$url("/manual/index.html")
+
+  for (children_only in c(FALSE, TRUE)) {
+    urls <- site$url("/manual/topic.html")
+    if (!children_only) {
+      urls <- c(urls, site$url("/other/topic.html"))
+    }
+    expect_equal(
+      ragnar_find_links(root, children_only = children_only),
+      urls,
+      ignore_attr = TRUE
+    )
+    for (include_root in c(FALSE, TRUE)) {
+      expected <- if (include_root) sort(c(root, urls)) else urls
+      expect_equal(
+        ragnar_find_links(
+          root, children_only = children_only, include_root = include_root
+        ),
+        expected,
+        ignore_attr = TRUE
+      )
+    }
+  }
+})
+
+test_that("ragnar_find_links() filters an explicitly included root", {
+  url <- "https://example.com/page"
+  html <- withr::local_tempfile(
+    fileext = ".html", lines = paste0('<a href="', url, '">Page</a>')
+  )
+  root <- normalizePath(html, winslash = "/")
+
+  expect_equal(
+    ragnar_find_links(
+      html, children_only = "https://example.com/", include_root = TRUE
+    ),
+    url,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    ragnar_find_links(
+      html, url_filter = \(urls) setdiff(urls, root), include_root = TRUE
+    ),
+    url,
+    ignore_attr = TRUE
+  )
 })
 
 test_that("ragnar_find_links() deduplicates roots with absolute self-links", {
@@ -22,13 +87,17 @@ test_that("ragnar_find_links() deduplicates roots with absolute self-links", {
 
   for (path in c("/", "/manual/")) {
     for (children_only in c(FALSE, TRUE)) {
-      result <- ragnar_find_links(site$url(path), children_only = children_only)
-      expect_equal(
-        result,
-        site$url(c(path, paste0(path, "topic.html"))),
-        ignore_attr = TRUE
-      )
-      expect_named(attr(result, "last_modified"), site$url(path))
+      for (include_root in c(FALSE, TRUE)) {
+        result <- ragnar_find_links(
+          site$url(path), children_only = children_only, include_root = include_root
+        )
+        expect_equal(
+          result,
+          site$url(c(path, paste0(path, "topic.html"))),
+          ignore_attr = TRUE
+        )
+        expect_named(attr(result, "last_modified"), site$url(path))
+      }
     }
   }
 })
@@ -45,7 +114,7 @@ test_that("an absolute root self-link is ingested as one document", {
   })
   site <- webfakes::new_app_process(app)
   withr::defer(site$stop())
-  links <- ragnar_find_links(site$url())
+  links <- ragnar_find_links(site$url(), include_root = TRUE)
   expect_equal(links, site$url(), ignore_attr = TRUE)
 
   store <- ragnar_store_create(
@@ -76,7 +145,9 @@ test_that("recursive back-links ingest the root only once", {
   urls <- site$url(c("/", "/child.html"))
 
   for (depth in 1:2) {
-    links <- ragnar_find_links(site$url(), depth = depth, progress = FALSE)
+    links <- ragnar_find_links(
+      site$url(), depth = depth, progress = FALSE, include_root = TRUE
+    )
     expect_equal(links, urls, ignore_attr = TRUE)
     expect_named(attr(links, "last_modified"), urls)
   }
@@ -85,7 +156,9 @@ test_that("recursive back-links ingest the root only once", {
     embed = \(x) matrix(1, nrow = length(x), ncol = 3)
   )
   withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
-  links <- ragnar_find_links(site$url(), depth = 1, progress = FALSE)
+  links <- ragnar_find_links(
+    site$url(), depth = 1, progress = FALSE, include_root = TRUE
+  )
   expect_no_error(for (link in links) {
     chunks <- link |> read_as_markdown() |> markdown_chunk()
     ragnar_store_insert(store, chunks)
@@ -120,7 +193,8 @@ test_that("known redirected root aliases are ingested only once", {
   for (alias in names(targets)) {
     for (depth in 0:1) {
       links <- ragnar_find_links(
-        site$url(alias), depth = depth, progress = FALSE
+        site$url(alias), depth = depth, progress = FALSE,
+        include_root = TRUE
       )
       expect_equal(links, site$url(targets[[alias]]), ignore_attr = TRUE)
       expect_named(attr(links, "last_modified"), site$url(targets[[alias]]))
@@ -131,7 +205,7 @@ test_that("known redirected root aliases are ingested only once", {
     embed = \(x) matrix(1, nrow = length(x), ncol = 3)
   )
   withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
-  links <- ragnar_find_links(site$url("/manual"))
+  links <- ragnar_find_links(site$url("/manual"), include_root = TRUE)
   expect_no_error(for (link in links) {
     chunks <- link |> read_as_markdown() |> markdown_chunk()
     ragnar_store_insert(store, chunks)
@@ -149,7 +223,8 @@ test_that("ragnar_find_links() preserves distinct slashless and directory pages"
 
   for (depth in 0:1) {
     result <- ragnar_find_links(
-      site$url("/manual/"), depth = depth, progress = FALSE
+      site$url("/manual/"), depth = depth, progress = FALSE,
+      include_root = TRUE
     )
     paths <- c("/manual", "/manual/")
     if (depth == 1) {
@@ -161,7 +236,7 @@ test_that("ragnar_find_links() preserves distinct slashless and directory pages"
   }
 
   expect_equal(
-    ragnar_find_links(site$url("/manual")),
+    ragnar_find_links(site$url("/manual"), include_root = TRUE),
     site$url(c("/manual", "/manual/", "/manual/details.html")),
     ignore_attr = TRUE
   )
@@ -181,7 +256,9 @@ test_that("ragnar_find_links() treats an empty HTTP path as the site root", {
 
   for (url in c(sub("/$", "", site$url()), site$url())) {
     for (depth in 0:1) {
-      result <- ragnar_find_links(url, depth = depth, progress = FALSE)
+      result <- ragnar_find_links(
+        url, depth = depth, progress = FALSE, include_root = TRUE
+      )
       expect_equal(result, site$url(), ignore_attr = TRUE)
       expect_named(attr(result, "last_modified"), site$url())
     }
@@ -204,7 +281,8 @@ test_that("ragnar_find_links() normalizes fragments in starting URLs", {
         site$url("/page.html#intro"),
         depth = depth,
         children_only = children_only,
-        progress = FALSE
+        progress = FALSE,
+        include_root = TRUE
       )
       expect_equal(result, urls, ignore_attr = TRUE)
       visited <- if (depth == 0) urls[1] else urls
@@ -217,7 +295,7 @@ test_that("ragnar_find_links() preserves queries when stripping root fragments",
   site <- local_link_site(c("/page.html" = "<p>No links.</p>"))
   url <- site$url("/page.html?view=full")
 
-  result <- ragnar_find_links(paste0(url, "#intro"))
+  result <- ragnar_find_links(paste0(url, "#intro"), include_root = TRUE)
   expect_equal(result, url, ignore_attr = TRUE)
   expect_named(attr(result, "last_modified"), url)
 })
@@ -226,7 +304,7 @@ test_that("ragnar_find_links() preserves hashes in local root filenames", {
   html <- withr::local_tempfile(fileext = "#intro.html", lines = "<p>No links.</p>")
 
   expect_equal(
-    ragnar_find_links(html),
+    ragnar_find_links(html, include_root = TRUE),
     normalizePath(html, winslash = "/"),
     ignore_attr = TRUE
   )
@@ -248,7 +326,13 @@ test_that("ragnar_find_links() excludes sitemap documents from its results", {
     xml2::read_xml(site$url("/sitemap.xml"))
   )
   for (input in inputs) {
-    expect_equal(ragnar_find_links(input), urls, ignore_attr = TRUE)
+    for (include_root in c(FALSE, TRUE)) {
+      expect_equal(
+        ragnar_find_links(input, include_root = include_root),
+        urls,
+        ignore_attr = TRUE
+      )
+    }
   }
 })
 
@@ -264,7 +348,7 @@ test_that("ragnar_find_links() preserves caller-owned XML namespaces", {
   namespaces <- xml2::xml_ns(doc)
   ns <- c(sm = "http://www.sitemaps.org/schemas/sitemap/0.9")
 
-  result <- ragnar_find_links(doc)
+  result <- ragnar_find_links(doc, include_root = TRUE)
 
   expect_equal(result, "https://example.com/page.html", ignore_attr = TRUE)
   expect_equal(as.character(doc), before)
@@ -289,7 +373,8 @@ test_that("ragnar_find_links() validates local paths and HTTP links together", {
   withr::local_dir(fixture)
 
   expect_no_warning(result <- ragnar_find_links(
-    "index.html", validate = TRUE, get_timestamps = TRUE
+    "index.html", validate = TRUE, get_timestamps = TRUE,
+    include_root = TRUE
   ))
   paths <- normalizePath(c("index.html", "topic.html"), winslash = "/")
   urls <- sort(c(paths, site$url("/remote.html")))
@@ -324,7 +409,8 @@ test_that("ragnar_find_links() validates file URIs without changing the URLs", {
   writeLines(paste0('<a href="', uris, '">Topic</a>'), html)
 
   expect_no_warning(result <- ragnar_find_links(
-    html, validate = TRUE, get_timestamps = TRUE
+    html, validate = TRUE, get_timestamps = TRUE,
+    include_root = TRUE
   ))
   expect_equal(
     result, sort(c(normalizePath(html, winslash = "/"), uris)),
@@ -349,7 +435,9 @@ test_that("ragnar_find_links() reports malformed file URIs and keeps valid links
   )
 
   expect_warning(
-    result <- ragnar_find_links(html, validate = TRUE, get_timestamps = TRUE),
+    result <- ragnar_find_links(
+      html, validate = TRUE, get_timestamps = TRUE, include_root = TRUE
+    ),
     "Some links could not be followed"
   )
   expect_equal(
@@ -388,7 +476,8 @@ test_that("ragnar_find_links() validates and timestamps schemes regardless of ca
 
   for (validate in c(FALSE, TRUE)) {
     expect_no_warning(result <- ragnar_find_links(
-      html, validate = validate, get_timestamps = TRUE
+      html, validate = validate, get_timestamps = TRUE,
+      include_root = TRUE
     ))
     expect_equal(result, urls, ignore_attr = TRUE)
     expect_null(attr(result, "problems"))
@@ -415,7 +504,7 @@ test_that("ragnar_find_links() reports missing file URIs as their original URLs"
   writeLines(paste0('<a href="', uri, '">Missing</a>'), html)
 
   expect_warning(
-    result <- ragnar_find_links(html, validate = TRUE),
+    result <- ragnar_find_links(html, validate = TRUE, include_root = TRUE),
     "Some links could not be followed"
   )
   expect_equal(result, normalizePath(html, winslash = "/"), ignore_attr = TRUE)
@@ -425,7 +514,9 @@ test_that("ragnar_find_links() reports missing file URIs as their original URLs"
 test_that("ragnar_find_links() validates a local root without outgoing links", {
   html <- withr::local_tempfile(fileext = ".html", lines = "<p>No links.</p>")
 
-  expect_no_warning(result <- ragnar_find_links(html, validate = TRUE))
+  expect_no_warning(result <- ragnar_find_links(
+    html, validate = TRUE, include_root = TRUE
+  ))
   expect_equal(result, normalizePath(html, winslash = "/"), ignore_attr = TRUE)
   expect_null(attr(result, "problems"))
 })
@@ -436,7 +527,7 @@ test_that("ragnar_find_links() reports missing local files during validation", {
   withr::local_dir(fixture)
 
   expect_warning(
-    result <- ragnar_find_links("index.html", validate = TRUE),
+    result <- ragnar_find_links("index.html", validate = TRUE, include_root = TRUE),
     "Some links could not be followed"
   )
   root <- normalizePath("index.html", winslash = "/")

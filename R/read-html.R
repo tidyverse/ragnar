@@ -366,10 +366,13 @@ ragnar_read_document <- function(
 #'   (e.g. `quarto.org`) do not. Missing headers and local file timestamps are
 #'   recorded as `NA`.
 #'
+#' @param include_root Default is `FALSE`. If `TRUE`, also includes the starting
+#'   page in the results, subject to `children_only`, `url_filter`, and `validate`.
+#'   Sitemap inputs contribute only their listed URLs. If `FALSE`, the starting
+#'   page can still be returned when it is found through a link.
+#'
 #' @return A `ragnar_links` object: a character vector of URLs, sorted
-#'   alphabetically and deduplicated. The starting page is included unless it is
-#'   a sitemap, subject to filtering and validation. The vector has the following
-#'   attributes:
+#'   alphabetically and deduplicated, with the following attributes:
 #'   \describe{
 #'     \item{`last_modified`}{A named `POSIXct` vector mapping each crawled URL
 #'       to its `Last-Modified` timestamp. Always present. URLs for which the
@@ -386,6 +389,8 @@ ragnar_read_document <- function(
 #' \dontrun{
 #' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 #' ragnar_find_links("https://ellmer.tidyverse.org/")
+#' # Include the starting page when collecting documents for ingestion
+#' ragnar_find_links("https://ellmer.tidyverse.org/", include_root = TRUE)
 #' ragnar_find_links(
 #'   paste0("https://github.com/Snowflake-Labs/sfquickstarts/",
 #'          "tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection"),
@@ -410,9 +415,11 @@ ragnar_find_links <- function(
   ...,
   url_filter = identity,
   validate = FALSE,
-  get_timestamps = FALSE
+  get_timestamps = FALSE,
+  include_root = FALSE
 ) {
   rlang::check_dots_empty()
+  stopifnot(is.logical(include_root), length(include_root) == 1L, !is.na(include_root))
 
   if (inherits(x, "xml_node")) {
     requested_url <- xml_url2(x)
@@ -455,7 +462,7 @@ ragnar_find_links <- function(
   deque$append(list(url = start_url, depth = 0))
   queued$add(requested_url)
   queued$add(start_url)
-  if (!is_sitemap(x)) {
+  if (include_root && !is_sitemap(x)) {
     collected$add(start_url)
   }
   if (!depth) {
