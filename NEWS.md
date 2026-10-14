@@ -21,6 +21,9 @@
     `embed_azure_openai()`, and `embed_google_vertex()` now correctly return
     a function that preserves the supplied configuration arguments (#187).
 
+-   `ragnar_find_links()` can now include the starting page with
+    `include_root = TRUE` (#199).
+
 -   `ragnar_find_links()` now returns an empty character vector instead of
     erroring when no links are found or all links are filtered out.
 

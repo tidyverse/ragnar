@@ -351,9 +351,9 @@ ragnar_read_document <- function(
 #'   subset them to return a smaller list. This can be useful for filtering out
 #'   URL's by rules different than `children_only` which only checks the prefix.
 #'
-#' @param validate Default is `FALSE`. If `TRUE` sends a `HEAD` request for each
-#'   link and removes those that are not accessible. Requests are sent in parallel
-#'   using [httr2::req_perform_parallel()].
+#' @param validate Default is `FALSE`. If `TRUE`, checks that local files exist
+#'   and sends a `HEAD` request for each remote link, removing those that are not
+#'   accessible. Requests are sent in parallel using [httr2::req_perform_parallel()].
 #'
 #' @param get_timestamps Default is `FALSE`. If `TRUE`, sends parallel `HEAD`
 #'   requests for any discovered URLs that were not visited during crawling, and
@@ -363,7 +363,13 @@ ragnar_read_document <- function(
 #'   timestamp has not changed since the last run. Note that not all hosting
 #'   platforms set `Last-Modified`; S3-backed sites (including many
 #'   `docs.posit.co` pages) and GitHub Pages do, while Netlify-hosted sites
-#'   (e.g. `quarto.org`) do not. Missing headers are recorded as `NA`.
+#'   (e.g. `quarto.org`) do not. Missing headers and local file timestamps are
+#'   recorded as `NA`.
+#'
+#' @param include_root Default is `FALSE`. If `TRUE`, also includes the starting
+#'   page in the results, subject to `children_only`, `url_filter`, and `validate`.
+#'   Sitemap inputs contribute only their listed URLs. If `FALSE`, the starting
+#'   page can still be returned when it is found through a link.
 #'
 #' @return A `ragnar_links` object: a character vector of URLs, sorted
 #'   alphabetically and deduplicated, with the following attributes:
@@ -383,6 +389,8 @@ ragnar_read_document <- function(
 #' \dontrun{
 #' ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 #' ragnar_find_links("https://ellmer.tidyverse.org/")
+#' # Include the starting page when collecting documents for ingestion
+#' ragnar_find_links("https://ellmer.tidyverse.org/", include_root = TRUE)
 #' ragnar_find_links(
 #'   paste0("https://github.com/Snowflake-Labs/sfquickstarts/",
 #'          "tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection"),
@@ -407,12 +415,17 @@ ragnar_find_links <- function(
   ...,
   url_filter = identity,
   validate = FALSE,
-  get_timestamps = FALSE
+  get_timestamps = FALSE,
+  include_root = FALSE
 ) {
   rlang::check_dots_empty()
+  stopifnot(is.logical(include_root), length(include_root) == 1L, !is.na(include_root))
 
-  if (!inherits(x, "xml_node")) {
+  if (inherits(x, "xml_node")) {
+    requested_url <- xml_url2(x)
+  } else {
     check_string(x)
+    requested_url <- url_normalize(x)
     x <- read_html2(x)
   }
 
@@ -445,8 +458,13 @@ ragnar_find_links <- function(
   last_modified <- list()
 
   start_url <- xml_url2(x)
+  resolved[requested_url] <- start_url
   deque$append(list(url = start_url, depth = 0))
+  queued$add(requested_url)
   queued$add(start_url)
+  if (include_root && !is_sitemap(x)) {
+    collected$add(start_url)
+  }
   if (!depth) {
     progress <- FALSE
   }
@@ -529,24 +547,43 @@ ragnar_find_links <- function(
   out <- unique(sort(url_filter_fn(out)))
 
   head_resps <- list()
-  # Validate that we can acess all the URL's
+  # Validate local files through the filesystem and remote links with HEAD.
   if (validate) {
-    resps <- out |>
+    urls <- out[is_url(out)]
+    paths <- out[!is_url(out)]
+    path_results <- lapply(paths, \(path) {
+      tryCatch({
+        if (grepl("^file://", path, ignore.case = TRUE)) {
+          path <- curl::curl_parse_url(path)$path
+          # Windows file URIs can prefix a drive letter with /.
+          path <- sub("^/([A-Za-z]:/)", "\\1", path)
+        }
+        if (!file.exists(path)) {
+          stop("File does not exist", call. = FALSE)
+        }
+        TRUE
+      }, error = identity)
+    })
+    paths_ok <- map_lgl(path_results, isTRUE)
+    resps <- urls |>
       lapply(\(url) url |> httr2::request() |> httr2::req_method("HEAD")) |>
       httr2::req_perform_parallel(on_error = "continue")
 
     is_ok <- resps |>
       map_lgl(\(x) inherits(x, "httr2_response"))
 
-    errors <- map2(out[!is_ok], resps[!is_ok], function(url, err) {
+    errors <- map2(urls[!is_ok], resps[!is_ok], function(url, err) {
       list(url = url, err = conditionMessage(err))
     })
+    errors <- c(errors, map2(paths[!paths_ok], path_results[!paths_ok], \(path, err) {
+      list(url = path, err = conditionMessage(err))
+    }))
 
     problems <- c(problems, errors)
 
-    out <- out[is_ok]
+    out <- setdiff(out, c(paths[!paths_ok], urls[!is_ok]))
     head_resps <- resps[is_ok]
-    names(head_resps) <- out
+    names(head_resps) <- urls[is_ok]
   }
 
   if (length(problems)) {
@@ -559,7 +596,7 @@ ragnar_find_links <- function(
   if (get_timestamps) {
     unvisited <- setdiff(out, names(last_modified))
     if (length(unvisited)) {
-      need_head <- setdiff(unvisited, names(head_resps))
+      need_head <- setdiff(unvisited[is_url(unvisited)], names(head_resps))
       if (length(need_head)) {
         head_resps[need_head] <- need_head |>
           lapply(\(url) {
@@ -673,8 +710,10 @@ html_find_links <- function(x, absolute = TRUE) {
 
   links <- if (is_sitemap(x)) {
     x |>
-      xml2::xml_ns_strip() |>
-      xml2::xml_find_all("//urlset/url/loc", flatten = TRUE) |>
+      xml2::xml_find_all(
+        "//*[local-name() = 'urlset']/*[local-name() = 'url']/*[local-name() = 'loc']",
+        flatten = TRUE
+      ) |>
       xml2::xml_text()
   } else {
     x |>
@@ -685,7 +724,6 @@ html_find_links <- function(x, absolute = TRUE) {
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
   links <- links[!links %in% c("", "/", "./", "./index.html")] # remove self links
-  links <- stri_replace_last_regex(links, "/$", "") # strip trailing /
   # Strip links to source files (e.g. .md source files served alongside HTML)
   links <- links[!stri_detect_regex(links, "\\.md$")]
   links <- sort(unique(links))
@@ -700,8 +738,9 @@ html_find_links <- function(x, absolute = TRUE) {
 
 is_sitemap <- function(x) {
   has_sitemap <- x |>
-    xml2::xml_ns_strip() |>
-    xml2::xml_find_first("//sitemapindex | //urlset")
+    xml2::xml_find_first(
+      "//*[local-name() = 'sitemapindex' or local-name() = 'urlset']"
+    )
   length(has_sitemap) > 0
 }
 
@@ -722,7 +761,7 @@ url_absolute2 <- function(urls, baseurl) {
   # https://docs.posit.co/drivers/2024.03.0/pdf/Simba Teradata ODBC Connector Install and Configuration Guide.pdf
   na_links <- is.na(links)
   links[na_links] <- urls[na_links]
-  links
+  url_normalize(links)
 }
 
 url_normalize_stem <- function(url) {
@@ -823,9 +862,19 @@ follow_js_redirect <- function(doc, ..., redirect_chain) {
 }
 
 is_url <- function(path) {
-  grepl("^(http|ftp)s?://", path)
+  grepl("^(http|ftp)s?://", path, ignore.case = TRUE)
+}
+
+url_normalize <- function(urls) {
+  remote <- is_url(urls)
+  urls[remote] <- stri_extract_first_regex(urls[remote], "^[^#]*")
+  # HTTP requests use / for an empty path; slashes in other paths are meaningful.
+  urls[remote] <- sub(
+    "^(https?://[^/?]+)(\\?|$)", "\\1/\\2", urls[remote], ignore.case = TRUE
+  )
+  urls
 }
 
 xml_url2 <- function(x) {
-  attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x)
+  url_normalize(attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x))
 }
