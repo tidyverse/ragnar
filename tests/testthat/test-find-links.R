@@ -64,6 +64,87 @@ test_that("an absolute root self-link is ingested as one document", {
   expect_equal(documents$origin, site$url())
 })
 
+test_that("recursive back-links ingest the root only once", {
+  skip_on_cran() # See comment in test-read-markdown.R
+  app <- webfakes::new_app()
+  app$get("/", function(req, res) {
+    res$send('<h1>Root</h1><a href="child.html">Child</a>')
+  })
+  app$get("/child.html", function(req, res) {
+    url <- paste0("http://", req$get_header("host"), "/")
+    res$send(paste0('<h1>Child</h1><a href="', url, '">Root</a>'))
+  })
+  site <- webfakes::new_app_process(app)
+  withr::defer(site$stop())
+  urls <- site$url(c("/", "/child.html"))
+
+  for (depth in 1:2) {
+    links <- ragnar_find_links(site$url(), depth = depth, progress = FALSE)
+    expect_equal(links, urls, ignore_attr = TRUE)
+    expect_named(attr(links, "last_modified"), urls)
+  }
+
+  store <- ragnar_store_create(
+    embed = \(x) matrix(1, nrow = length(x), ncol = 3)
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  links <- ragnar_find_links(site$url(), depth = 1, progress = FALSE)
+  expect_no_error(for (link in links) {
+    chunks <- link |> read_as_markdown() |> markdown_chunk()
+    ragnar_store_insert(store, chunks)
+  })
+  documents <- tbl(store@con, "documents") |> collect()
+  expect_equal(sort(documents$origin), urls)
+})
+
+test_that("ragnar_find_links() preserves distinct slashless and directory pages", {
+  site <- local_link_site(c(
+    "/manual/" = '<a href="/manual">Slashless</a>',
+    "/manual" = '<a href="/manual/">Directory</a><a href="/manual/details.html">Details</a>',
+    "/manual/details.html" = "<p>Details</p>"
+  ))
+
+  for (depth in 0:1) {
+    result <- ragnar_find_links(
+      site$url("/manual/"), depth = depth, progress = FALSE
+    )
+    paths <- c("/manual", "/manual/")
+    if (depth == 1) {
+      paths <- c(paths, "/manual/details.html")
+    }
+    expect_equal(result, site$url(paths), ignore_attr = TRUE)
+    visited <- if (depth == 0) "/manual/" else c("/manual", "/manual/")
+    expect_named(attr(result, "last_modified"), site$url(visited))
+  }
+
+  expect_equal(
+    ragnar_find_links(site$url("/manual")),
+    site$url(c("/manual", "/manual/", "/manual/details.html")),
+    ignore_attr = TRUE
+  )
+})
+
+test_that("ragnar_find_links() treats an empty HTTP path as the site root", {
+  app <- webfakes::new_app()
+  app$get("/", function(req, res) {
+    url <- paste0("http://", req$get_header("host"))
+    res$send(paste0(
+      '<a href="', url, '">Root</a>',
+      '<a href="', url, '/">Root with slash</a>'
+    ))
+  })
+  site <- webfakes::new_app_process(app)
+  withr::defer(site$stop())
+
+  for (url in c(sub("/$", "", site$url()), site$url())) {
+    for (depth in 0:1) {
+      result <- ragnar_find_links(url, depth = depth, progress = FALSE)
+      expect_equal(result, site$url(), ignore_attr = TRUE)
+      expect_named(attr(result, "last_modified"), site$url())
+    }
+  }
+})
+
 test_that("ragnar_find_links() normalizes fragments in starting URLs", {
   site <- local_link_site(c(
     "/page.html" = paste0(

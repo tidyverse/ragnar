@@ -699,17 +699,13 @@ html_find_links <- function(x, absolute = TRUE) {
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
   links <- links[!links %in% c("", "/", "./", "./index.html")] # remove self links
-  links <- stri_replace_last_regex(links, "/$", "") # strip trailing /
   # Strip links to source files (e.g. .md source files served alongside HTML)
   links <- links[!stri_detect_regex(links, "\\.md$")]
   links <- sort(unique(links))
 
   if (absolute) {
     # Repeated path segments can be valid, e.g. GitHub owner/repository URLs.
-    base_url <- xml_url2(x)
-    links <- url_absolute2(links, base_url)
-    # Self-links must use the same address as the collected starting page.
-    links[links == stri_replace_last_regex(base_url, "/$", "")] <- base_url
+    links <- url_absolute2(links, xml_url2(x))
   }
 
   links
@@ -740,7 +736,7 @@ url_absolute2 <- function(urls, baseurl) {
   # https://docs.posit.co/drivers/2024.03.0/pdf/Simba Teradata ODBC Connector Install and Configuration Guide.pdf
   na_links <- is.na(links)
   links[na_links] <- urls[na_links]
-  links
+  url_normalize(links)
 }
 
 url_normalize_stem <- function(url) {
@@ -844,11 +840,14 @@ is_url <- function(path) {
   grepl("^(http|ftp)s?://", path)
 }
 
+url_normalize <- function(urls) {
+  remote <- is_url(urls)
+  urls[remote] <- stri_extract_first_regex(urls[remote], "^[^#]*")
+  # HTTP requests use / for an empty path; slashes in other paths are meaningful.
+  urls[remote] <- sub("^(https?://[^/?]+)(\\?|$)", "\\1/\\2", urls[remote])
+  urls
+}
+
 xml_url2 <- function(x) {
-  url <- attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x)
-  if (is_url(url)) {
-    stri_extract_first_regex(url, "^[^#]*")
-  } else {
-    url
-  }
+  url_normalize(attr(x, "resolved_url", TRUE) %||% xml2::xml_url(x))
 }
