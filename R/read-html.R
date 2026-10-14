@@ -544,15 +544,20 @@ ragnar_find_links <- function(
   if (validate) {
     urls <- out[is_url(out)]
     paths <- out[!is_url(out)]
-    local_paths <- map_chr(paths, \(path) {
-      if (startsWith(path, "file://")) {
-        path <- curl::curl_parse_url(path)$path
-        # Windows file URIs can prefix a drive letter with /.
-        path <- sub("^/([A-Za-z]:/)", "\\1", path)
-      }
-      path
+    path_results <- lapply(paths, \(path) {
+      tryCatch({
+        if (grepl("^file://", path, ignore.case = TRUE)) {
+          path <- curl::curl_parse_url(path)$path
+          # Windows file URIs can prefix a drive letter with /.
+          path <- sub("^/([A-Za-z]:/)", "\\1", path)
+        }
+        if (!file.exists(path)) {
+          stop("File does not exist", call. = FALSE)
+        }
+        TRUE
+      }, error = identity)
     })
-    missing_paths <- paths[!file.exists(local_paths)]
+    paths_ok <- map_lgl(path_results, isTRUE)
     resps <- urls |>
       lapply(\(url) url |> httr2::request() |> httr2::req_method("HEAD")) |>
       httr2::req_perform_parallel(on_error = "continue")
@@ -563,13 +568,13 @@ ragnar_find_links <- function(
     errors <- map2(urls[!is_ok], resps[!is_ok], function(url, err) {
       list(url = url, err = conditionMessage(err))
     })
-    errors <- c(errors, lapply(missing_paths, \(path) {
-      list(url = path, err = "File does not exist")
+    errors <- c(errors, map2(paths[!paths_ok], path_results[!paths_ok], \(path, err) {
+      list(url = path, err = conditionMessage(err))
     }))
 
     problems <- c(problems, errors)
 
-    out <- setdiff(out, c(missing_paths, urls[!is_ok]))
+    out <- setdiff(out, c(paths[!paths_ok], urls[!is_ok]))
     head_resps <- resps[is_ok]
     names(head_resps) <- urls[is_ok]
   }
@@ -850,14 +855,16 @@ follow_js_redirect <- function(doc, ..., redirect_chain) {
 }
 
 is_url <- function(path) {
-  grepl("^(http|ftp)s?://", path)
+  grepl("^(http|ftp)s?://", path, ignore.case = TRUE)
 }
 
 url_normalize <- function(urls) {
   remote <- is_url(urls)
   urls[remote] <- stri_extract_first_regex(urls[remote], "^[^#]*")
   # HTTP requests use / for an empty path; slashes in other paths are meaningful.
-  urls[remote] <- sub("^(https?://[^/?]+)(\\?|$)", "\\1/\\2", urls[remote])
+  urls[remote] <- sub(
+    "^(https?://[^/?]+)(\\?|$)", "\\1/\\2", urls[remote], ignore.case = TRUE
+  )
   urls
 }
 

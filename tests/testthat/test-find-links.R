@@ -337,6 +337,80 @@ test_that("ragnar_find_links() validates file URIs without changing the URLs", {
   expect_true(all(is.na(attr(result, "last_modified"))))
 })
 
+test_that("ragnar_find_links() reports malformed file URIs and keeps valid links", {
+  site <- local_link_site(c("/topic.html" = "<p>Remote</p>"))
+  fixture <- normalizePath(withr::local_tempdir(), winslash = "/")
+  writeLines("<p>Local</p>", file.path(fixture, "topic.html"))
+  writeLines("<p>Space</p>", file.path(fixture, "topic space.html"))
+  uri <- paste0("file:///", sub("^/", "", fixture), "/topic.html")
+  malformed <- paste0("file:///", sub("^/", "", fixture), "/topic space.html")
+  malformed <- c(malformed, sub("^file", "FILE", malformed))
+  html <- file.path(fixture, "index.html")
+  writeLines(
+    paste0('<a href="', c(uri, site$url("/topic.html"), malformed), '">Link</a>'),
+    html
+  )
+
+  expect_warning(
+    result <- ragnar_find_links(html, validate = TRUE, get_timestamps = TRUE),
+    "Some links could not be followed"
+  )
+  expect_equal(
+    result, sort(c(normalizePath(html, winslash = "/"), uri, site$url("/topic.html"))),
+    ignore_attr = TRUE
+  )
+  problems <- attr(result, "problems")
+  expect_equal(problems$url, sort(malformed))
+  expect_match(problems$err, "Failed to parse URL", all = TRUE)
+})
+
+test_that("ragnar_find_links() validates and timestamps schemes regardless of case", {
+  site <- local_link_site(c(
+    "/" = "<p>Root</p>",
+    "/TOPIC.html" = "<p>Uppercase</p>",
+    "/Mixed.html" = "<p>Mixed case</p>"
+  ))
+  fixture <- normalizePath(withr::local_tempdir(), winslash = "/")
+  writeLines("<p>Local</p>", file.path(fixture, "local.html"))
+  writeLines("<p>Space</p>", file.path(fixture, "local space.html"))
+  prefix <- paste0("file:///", sub("^/", "", fixture), "/")
+  uris <- c(
+    sub("^file", "FILE", paste0(prefix, "local.html")),
+    sub("^file", "fIlE", paste0(prefix, "local%20space.html"))
+  )
+  remote <- c(
+    sub("^http", "HTTP", site$url("/TOPIC.html")),
+    sub("^http", "hTtP", site$url("/Mixed.html")),
+    sub("^http", "HTTP", sub("/$", "", site$url()))
+  )
+  html <- file.path(fixture, "index.html")
+  writeLines(paste0('<a href="', c(remote, uris), '">Link</a>'), html)
+  expected_remote <- c(remote[1:2], paste0(remote[3], "/"))
+  local <- c(normalizePath(html, winslash = "/"), uris)
+  urls <- sort(c(local, expected_remote))
+
+  for (validate in c(FALSE, TRUE)) {
+    expect_no_warning(result <- ragnar_find_links(
+      html, validate = validate, get_timestamps = TRUE
+    ))
+    expect_equal(result, urls, ignore_attr = TRUE)
+    expect_null(attr(result, "problems"))
+    timestamps <- attr(result, "last_modified")
+    expect_named(timestamps, urls)
+    expect_equal(
+      as.numeric(timestamps[expected_remote]),
+      rep(as.numeric(as.POSIXct("2015-10-21 07:28:00", tz = "UTC")), 3)
+    )
+    expect_true(all(is.na(timestamps[local])))
+  }
+
+  requests <- httr2::request(site$url("/requests")) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json(simplifyVector = TRUE)
+  expect_equal(sort(requests$path), sort(rep(c("/", "/TOPIC.html", "/Mixed.html"), 2)))
+  expect_equal(requests$method, rep("head", 6))
+})
+
 test_that("ragnar_find_links() reports missing file URIs as their original URLs", {
   fixture <- normalizePath(withr::local_tempdir(), winslash = "/")
   uri <- paste0("file:///", sub("^/", "", fixture), "/missing%20topic.html")
