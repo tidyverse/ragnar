@@ -15,7 +15,10 @@
 #'   `length(paths)` and `parallel::detectCores()` (with a minimum of 1).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
-#' @returns `store`, invisibly.
+#' @returns `store`, invisibly, with an `ingest_summary` attribute: a tibble
+#'   with columns `origin` (character) and `status` (character). Possible
+#'   status values are `"ok"` (ingested), `"skipped_exists"` (origin already
+#'   in the store), and `"error"` (worker failed).
 #' @export
 ragnar_store_ingest <- function(
   store,
@@ -34,15 +37,46 @@ ragnar_store_ingest <- function(
   stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
 
   check_character(paths, allow_na = FALSE)
-  length(paths) || return(invisible(store))
+
+  build_summary <- function(rows) {
+    if (!length(rows)) {
+      return(tibble(origin = character(), status = character()))
+    }
+    tibble(
+      origin = vapply(rows, `[[`, character(1L), "origin"),
+      status = vapply(rows, `[[`, character(1L), "status")
+    )
+  }
+
+  if (!length(paths)) {
+    attr(store, "ingest_summary") <- build_summary(list())
+    return(invisible(store))
+  }
+
   paths <- prepare_ingest_paths(paths, store)
 
   prepare <- rlang::as_function(prepare)
 
+  # Paths already in the store are skipped; record them immediately.
+  skipped <- paths[!paths$is_new_origin, "origin", drop = TRUE]
+  new_paths <- paths[paths$is_new_origin, , drop = FALSE]
+
+  summary_rows <- vector("list", length(skipped) + nrow(new_paths))
+  idx <- 0L
+  for (s in skipped) {
+    idx <- idx + 1L
+    summary_rows[[idx]] <- list(origin = s, status = "skipped_exists")
+  }
+
+  if (!nrow(new_paths)) {
+    attr(store, "ingest_summary") <- build_summary(summary_rows[seq_len(idx)])
+    return(invisible(store))
+  }
+
   if (is.null(n_workers)) {
     n_workers <-
-      max(na.rm = TRUE, parallel::detectCores(), 4L) |>
-      min(nrow(paths) %/% 4L, 8) |>
+      min(na.rm = TRUE, parallel::detectCores(), 4L) |>
+      min(nrow(new_paths) %/% 4L, 8) |>
       max(2L)
     if (progress) {
       cli::cli_inform("Launching {n_workers} parallel workers.")
@@ -80,19 +114,19 @@ ragnar_store_ingest <- function(
   )
 
   work_expr <- quote(do_ingest_remote_work(path, store, prepare, embed))
-  for (i in seq_len(nrow(paths))) {
+  for (i in seq_len(nrow(new_paths))) {
     task_queue$push_mirai(
       work_expr,
-      path = paths$origin[[i]],
-      embed = paths$is_new_origin[[i]]
+      path = new_paths$origin[[i]],
+      embed = new_paths$is_new_origin[[i]]
     )
   }
 
   if (isTRUE(progress)) {
     cli::cli_progress_bar(
       "Ingesting",
-      total = nrow(paths),
-      format_done = "{.alert-success Finished ingesting {nrow(paths)} files in {cli::pb_elapsed}}",
+      total = nrow(new_paths),
+      format_done = "{.alert-success Finished ingesting {nrow(new_paths)} files in {cli::pb_elapsed}}",
       format_failed = "{.alert-danger {cli::pb_name} failed after {cli::pb_elapsed}}"
     )
   }
@@ -101,10 +135,17 @@ ragnar_store_ingest <- function(
     result <- task_queue$pop_result(unavailable = break)
 
     if (mirai::is_error_value(result)) {
-      # browser()
       cond <- attributes(result)
+      origin <- cond[["ragnar_origin"]] %||% NA_character_
       class(cond) <- cond$condition.class
-      warning(cond)
+      rlang::warn(
+        conditionMessage(cond),
+        class = "ragnar_worker_error",
+        origin = origin,
+        call = NULL
+      )
+      idx <- idx + 1L
+      summary_rows[[idx]] <- list(origin = origin, status = "error")
       next
     }
 
@@ -114,10 +155,13 @@ ragnar_store_ingest <- function(
       )
     }
     ragnar_store_update(store, result)
-    # tryCatch(ragnar_store_update(store, result), error = function(e) browser()) {
+
+    origin <- result@document@origin
+    idx <- idx + 1L
+    summary_rows[[idx]] <- list(origin = origin, status = "ok")
 
     if (progress) {
-      cli::cli_alert_info(paste("ingested:", result@document@origin))
+      cli::cli_alert_info(paste("ingested:", origin))
       cli::cli_progress_update()
     }
   }
@@ -130,6 +174,8 @@ ragnar_store_ingest <- function(
     ragnar_store_build_index(store)
   }
 
+  attr(store, "ingest_summary") <- build_summary(summary_rows[seq_len(idx)])
+
   invisible(store)
 }
 
@@ -139,6 +185,7 @@ do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
     error = function(e) {
       fmt <- '`prepare("%s")` signaled an Error: %s'
       e$message <- sprintf(fmt, path, conditionMessage(e))
+      e$ragnar_origin <- path
       stop(e)
     }
   )
