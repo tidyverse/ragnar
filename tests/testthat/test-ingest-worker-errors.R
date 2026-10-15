@@ -1,0 +1,121 @@
+## Tests for #205: worker errors emit structured conditions
+
+# The production change that would make these tests fail:
+# reverting to bare warning(cond) without a ragnar_ingest_worker_error class.
+
+test_that("worker error emits a classed ragnar_ingest_worker_error warning", {
+  skip_on_cran()
+
+  store <- ragnar_store_create(
+    tempfile(fileext = ".store"),
+    embed = NULL,
+    overwrite = TRUE
+  )
+
+  bad_prepare <- function(path) stop("intentional worker failure")
+
+  expect_warning(
+    ragnar_store_ingest(
+      store,
+      paths = "https://example.com/page1.html",
+      prepare = bad_prepare,
+      progress = FALSE,
+      build_index = FALSE
+    ),
+    class = "ragnar_ingest_worker_error"
+  )
+})
+
+test_that("ragnar_ingest_worker_error warning carries the failed path", {
+  skip_on_cran()
+
+  store <- ragnar_store_create(
+    tempfile(fileext = ".store"),
+    embed = NULL,
+    overwrite = TRUE
+  )
+
+  bad_prepare <- function(path) stop("boom")
+
+  w <- tryCatch(
+    withCallingHandlers(
+      ragnar_store_ingest(
+        store,
+        paths = "https://example.com/fail-me.html",
+        prepare = bad_prepare,
+        progress = FALSE,
+        build_index = FALSE
+      ),
+      ragnar_ingest_worker_error = function(w) {
+        invokeRestart("muffleWarning")
+      }
+    ),
+    ragnar_ingest_worker_error = function(w) w
+  )
+
+  # capture the condition properly
+  captured <- NULL
+  withCallingHandlers(
+    ragnar_store_ingest(
+      store,
+      paths = "https://example.com/fail-me.html",
+      prepare = bad_prepare,
+      progress = FALSE,
+      build_index = FALSE
+    ),
+    ragnar_ingest_worker_error = function(w) {
+      captured <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_false(is.null(captured))
+  expect_true(inherits(captured, "ragnar_ingest_worker_error"))
+  expect_equal(captured$path, "https://example.com/fail-me.html")
+})
+
+test_that("ingest continues past worker errors (does not abort)", {
+  skip_on_cran()
+
+  good_path <- tempfile(fileext = ".md")
+  writeLines(c("# Hello", "Some content."), good_path)
+
+  store <- ragnar_store_create(
+    tempfile(fileext = ".store"),
+    embed = NULL,
+    overwrite = TRUE
+  )
+
+  bad_prepare <- function(path) {
+    if (grepl("bad", path)) stop("intentional failure")
+    path |> ragnar::read_as_markdown() |> ragnar::markdown_chunk()
+  }
+
+  expect_warning(
+    ragnar_store_ingest(
+      store,
+      paths = c("bad://not-real/page.html", good_path),
+      prepare = bad_prepare,
+      progress = FALSE,
+      build_index = FALSE,
+      n_workers = 1L
+    ),
+    class = "ragnar_ingest_worker_error"
+  )
+
+  # The good path should still have been ingested
+  n <- DBI::dbGetQuery(store@con, "SELECT COUNT(*) AS n FROM documents")$n
+  expect_equal(n, 1L)
+})
+
+test_that("browser() comment is removed from ingest.R error handling", {
+  # This is a code-quality assertion: the leftover browser() scaffolding
+  # should not be present in the source.
+  pkg_root <- rprojroot::find_package_root_file()
+  ingest_path <- file.path(pkg_root, "R", "ingest.R")
+  ingest_src <- readLines(ingest_path, warn = FALSE)
+  expect_false(
+    any(grepl("browser()", ingest_src, fixed = TRUE)),
+    label = "browser() call found in ingest.R — remove development scaffolding"
+  )
+})

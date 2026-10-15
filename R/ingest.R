@@ -11,8 +11,9 @@
 #' @param prepare Function that converts a single path into a
 #'   `MarkdownDocumentChunks` object. It is called with an argument `path` and
 #'   should return the prepared chunks (with or without an `embedding` column).
-#' @param n_workers Number of worker processes to use. Defaults to the smaller of
-#'   `length(paths)` and `parallel::detectCores()` (with a minimum of 1).
+#' @param n_workers Number of worker processes to use. Default is
+#'   `max(2, min(detectCores(), nrow(paths) %/% 4L, 8))`: at most 8 workers,
+#'   at most one worker per 4 pages, at least 2.
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
 #' @returns `store`, invisibly.
@@ -40,10 +41,10 @@ ragnar_store_ingest <- function(
   prepare <- rlang::as_function(prepare)
 
   if (is.null(n_workers)) {
-    n_workers <-
-      max(na.rm = TRUE, parallel::detectCores(), 4L) |>
-      min(nrow(paths) %/% 4L, 8) |>
-      max(2L)
+    n_workers <- compute_default_n_workers(
+      n_paths = nrow(paths),
+      n_cores = parallel::detectCores()
+    )
     if (progress) {
       cli::cli_inform("Launching {n_workers} parallel workers.")
     }
@@ -101,10 +102,14 @@ ragnar_store_ingest <- function(
     result <- task_queue$pop_result(unavailable = break)
 
     if (mirai::is_error_value(result)) {
-      # browser()
       cond <- attributes(result)
-      class(cond) <- cond$condition.class
-      warning(cond)
+      failed_path <- cond$ragnar_path %||% "<unknown>"
+      rlang::warn(
+        message = conditionMessage(structure(cond, class = cond$condition.class)),
+        class   = "ragnar_ingest_worker_error",
+        path    = failed_path,
+        call    = NULL
+      )
       next
     }
 
@@ -114,7 +119,6 @@ ragnar_store_ingest <- function(
       )
     }
     ragnar_store_update(store, result)
-    # tryCatch(ragnar_store_update(store, result), error = function(e) browser()) {
 
     if (progress) {
       cli::cli_alert_info(paste("ingested:", result@document@origin))
@@ -139,6 +143,7 @@ do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
     error = function(e) {
       fmt <- '`prepare("%s")` signaled an Error: %s'
       e$message <- sprintf(fmt, path, conditionMessage(e))
+      e$ragnar_path <- path
       stop(e)
     }
   )
@@ -254,4 +259,16 @@ prepare_ingest_paths <- function(paths, store) {
     ) |>
     arrange(rank, !.data$is_new_origin) |>
     select(-rank)
+}
+
+
+# Extracted to allow unit testing without mocking detectCores().
+# Formula: max(2, min(n_cores, n_paths %/% 4L, 8L))
+# - At most 8 workers (avoids over-parallelising embedding API calls)
+# - At most one worker per 4 pages (avoids daemon startup overhead on tiny jobs)
+# - At least 2 workers
+compute_default_n_workers <- function(n_paths, n_cores) {
+  min(n_cores, n_paths %/% 4L) |>
+    min(8L) |>
+    max(2L)
 }
