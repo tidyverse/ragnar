@@ -16,11 +16,21 @@
 #'   `MarkdownDocumentChunks` object. It is called with an argument `path` and
 #'   should return the prepared chunks (with or without an `embedding` column).
 #' @param n_workers Number of worker processes to use. The default is
-#'   `max(2L, min(n_cores, length(unique(paths)) %/% 4L, 8L))`, where `n_cores`
-#'   is the count returned by [parallel::detectCores()] (or 4 if unavailable).
+#'   `max(2L, min(n_cores, n_paths %/% 4L, 8L))`, where `n_paths` is the number of
+#'   unique paths not already in the store and `n_cores` is the count returned
+#'   by [parallel::detectCores()] (or 4 if unavailable).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
-#' @returns `store`, invisibly.
+#' @returns `store`, invisibly, with an `ingest_summary` attribute: a tibble
+#'   with one row per input path, in input order, and columns:
+#'   * `path` (character): the input file path or URL.
+#'   * `status` (character): `"ok"` (processed successfully), `"skipped_exists"` (origin
+#'     already in the store), or `"error"` (worker failed).
+#'   * `n_chunks` (integer): the number of chunks stored for the document's
+#'     origin after ingestion, or `0L` for worker failures.
+#'   * `message` (character): the worker error message, or `NA` otherwise.
+#'
+#'   Duplicate input paths share an outcome and are processed once.
 #' @export
 ragnar_store_ingest <- function(
   store,
@@ -39,17 +49,65 @@ ragnar_store_ingest <- function(
   stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
 
   check_character(paths, allow_na = FALSE)
-  length(paths) || return(invisible(store))
+
+  summary <- tibble(
+    path = as.character(paths),
+    status = NA_character_,
+    n_chunks = 0L,
+    message = NA_character_
+  )
+
+  if (!length(paths)) {
+    attr(store, "ingest_summary") <- summary
+    return(invisible(store))
+  }
+
+  origins <- summary$path
+  finish_ingest <- function() {
+    completed <- summary$status != "error"
+    local_duckdb_register(
+      store@con,
+      "ingest_summary_origins",
+      tibble(origin = unique(origins[completed]))
+    )
+    counts <- DBI::dbGetQuery(
+      store@con,
+      "
+      SELECT p.origin, COUNT(e.chunk_id)::INTEGER AS n_chunks
+      FROM ingest_summary_origins p
+      LEFT JOIN documents d USING(origin)
+      LEFT JOIN embeddings e USING(doc_id)
+      GROUP BY p.origin
+      "
+    )
+    summary$n_chunks[completed] <- counts$n_chunks[
+      match(origins[completed], counts$origin)
+    ]
+    if (build_index) {
+      ragnar_store_build_index(store)
+    }
+    attr(store, "ingest_summary") <- summary
+    invisible(store)
+  }
+
   paths <- prepare_ingest_paths(paths, store)
 
   prepare <- rlang::as_function(prepare)
+
+  path_idx <- match(summary$path, paths$origin)
+  summary$status[!paths$is_new_origin[path_idx]] <- "skipped_exists"
+  new_paths <- paths[paths$is_new_origin, , drop = FALSE]
+
+  if (!nrow(new_paths)) {
+    return(finish_ingest())
+  }
 
   if (is.null(n_workers)) {
     n_cores <- parallel::detectCores()
     if (is.na(n_cores)) {
       n_cores <- 4L
     }
-    n_workers <- max(2L, min(n_cores, nrow(paths) %/% 4L, 8L))
+    n_workers <- max(2L, min(n_cores, nrow(new_paths) %/% 4L, 8L))
     if (progress) {
       cli::cli_inform("Launching {n_workers} parallel workers.")
     }
@@ -86,19 +144,19 @@ ragnar_store_ingest <- function(
   )
 
   work_expr <- quote(do_ingest_remote_work(path, store, prepare, embed))
-  for (i in seq_len(nrow(paths))) {
+  for (i in seq_len(nrow(new_paths))) {
     task_queue$push_mirai(
       work_expr,
-      path = paths$origin[[i]],
-      embed = paths$is_new_origin[[i]]
+      path = new_paths$origin[[i]],
+      embed = new_paths$is_new_origin[[i]]
     )
   }
 
   if (isTRUE(progress)) {
     cli::cli_progress_bar(
       "Ingesting",
-      total = nrow(paths),
-      format_done = "{.alert-success Finished ingesting {nrow(paths)} files in {cli::pb_elapsed}}",
+      total = nrow(new_paths),
+      format_done = "{.alert-success Finished ingesting {nrow(new_paths)} files in {cli::pb_elapsed}}",
       format_failed = "{.alert-danger {cli::pb_name} failed after {cli::pb_elapsed}}"
     )
   }
@@ -122,6 +180,10 @@ ragnar_store_ingest <- function(
         path = task$path,
         call = NULL
       )
+      rows <- summary$path == task$path
+      summary$status[rows] <- "error"
+      summary$n_chunks[rows] <- 0L
+      summary$message[rows] <- message
       next
     }
 
@@ -132,8 +194,13 @@ ragnar_store_ingest <- function(
     }
     ragnar_store_update(store, result)
 
+    origin <- result@document@origin
+    rows <- summary$path == task$path
+    summary$status[rows] <- "ok"
+    origins[rows] <- origin
+
     if (progress) {
-      cli::cli_alert_info(paste("ingested:", result@document@origin))
+      cli::cli_alert_info(paste("ingested:", origin))
       cli::cli_progress_update()
     }
   }
@@ -142,11 +209,7 @@ ragnar_store_ingest <- function(
     cli::cli_progress_done()
   }
 
-  if (build_index) {
-    ragnar_store_build_index(store)
-  }
-
-  invisible(store)
+  finish_ingest()
 }
 
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {

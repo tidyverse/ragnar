@@ -23,15 +23,27 @@ ragnar_store_ingest(
 should return the prepared chunks (with or without an \code{embedding} column).}
 
 \item{n_workers}{Number of worker processes to use. The default is
-\code{max(2L, min(n_cores, length(unique(paths)) \%/\% 4L, 8L))}, where \code{n_cores}
-is the count returned by \code{\link[parallel:detectCores]{parallel::detectCores()}} (or 4 if unavailable).}
+\code{max(2L, min(n_cores, n_paths \%/\% 4L, 8L))}, where \code{n_paths} is the number of
+unique paths not already in the store and \code{n_cores} is the count returned
+by \code{\link[parallel:detectCores]{parallel::detectCores()}} (or 4 if unavailable).}
 
 \item{progress}{Logical; if \code{TRUE}, show a CLI progress bar.}
 
 \item{build_index}{Logical; whether to call \code{ragnar_store_build_index()} after ingestion.}
 }
 \value{
-\code{store}, invisibly.
+\code{store}, invisibly, with an \code{ingest_summary} attribute: a tibble
+with one row per input path, in input order, and columns:
+\itemize{
+\item \code{path} (character): the input file path or URL.
+\item \code{status} (character): \code{"ok"} (processed successfully), \code{"skipped_exists"} (origin
+already in the store), or \code{"error"} (worker failed).
+\item \code{n_chunks} (integer): the number of chunks stored for the document's
+origin after ingestion, or \code{0L} for worker failures.
+\item \code{message} (character): the worker error message, or \code{NA} otherwise.
+}
+
+Duplicate input paths share an outcome and are processed once.
 }
 \description{
 \code{ragnar_store_ingest()} distributes document preparation work over multiple

@@ -133,6 +133,16 @@ test_that("worker exits warn with their path and allow ingestion to finish", {
     }
   )
 
+  expect_equal(
+    attr(result, "ingest_summary") |> arrange(path),
+    tibble(
+      path = c("exiting-worker", "valid-worker"),
+      status = c("error", "ok"),
+      n_chunks = c(0L, 1L),
+      message = c(conditionMessage(captured), NA_character_)
+    )
+  )
+  attr(result, "ingest_summary") <- NULL
   expect_identical(result, store)
   expect_s3_class(captured, "ragnar_ingest_worker_error")
   expect_equal(captured$path, "exiting-worker")
@@ -174,6 +184,14 @@ test_that("worker interruptions report a useful message and their path", {
     }
   )
 
+  expect_equal(
+    attr(result, "ingest_summary"),
+    tibble(
+      path = "interrupted-worker", status = "error", n_chunks = 0L,
+      message = "Worker interrupted."
+    )
+  )
+  attr(result, "ingest_summary") <- NULL
   expect_identical(result, store)
   expect_s3_class(captured, "ragnar_ingest_worker_error")
   expect_equal(captured$path, "interrupted-worker")
