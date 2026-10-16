@@ -445,6 +445,58 @@ ragnar_store_sync <- function(
   invisible(store)
 }
 
+#' Audit a Ragnar store against an expected set of URLs
+#'
+#' `ragnar_store_audit()` checks which URLs from an expected set are present in
+#' the store's `documents` table. Use it to verify that all pages were
+#' successfully ingested after a [ragnar_store_ingest()] run.
+#'
+#' @param store A `DuckDBRagnarStore` (version 2 only).
+#' @param expected A character vector or [`ragnar_links`][ragnar_find_links()]
+#'   object of URLs to check.
+#'
+#' @returns A tibble with one row per URL in `expected` and columns:
+#'   - `origin` (character): the expected URL.
+#'   - `status` (character): `"present"` or `"missing"`.
+#'   - `chunks` (integer): number of embedding rows for this origin; `0L` when
+#'     missing.
+#'   - `ingested_at` (POSIXct): timestamp from `documents`; `NA` when missing.
+#'
+#' @export
+ragnar_store_audit <- function(store, expected) {
+  stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
+  if (store@version != 2L) {
+    rlang::abort(
+      "`ragnar_store_audit()` only supports version 2 stores.",
+      call = NULL
+    )
+  }
+  check_character(expected, allow_na = FALSE)
+
+  con <- store@con
+
+  expected_df <- tibble::tibble(origin = unique(as.character(expected)))
+  local_duckdb_register(con, "audit_expected", expected_df)
+
+  result <- DBI::dbGetQuery(
+    con,
+    "
+    SELECT
+      e.origin,
+      CASE WHEN d.origin IS NOT NULL THEN 'present' ELSE 'missing' END AS status,
+      COALESCE(CAST(COUNT(em.doc_id) AS INTEGER), 0) AS chunks,
+      d.ingested_at
+    FROM audit_expected e
+    LEFT JOIN documents d USING(origin)
+    LEFT JOIN embeddings em ON em.doc_id = d.doc_id
+    GROUP BY e.origin, d.origin, d.ingested_at
+    ORDER BY e.origin
+    "
+  )
+
+  tibble::as_tibble(result)
+}
+
 #' Build a Ragnar Store index
 #'
 #' A search index must be built before calling `ragnar_retrieve()`. If
