@@ -399,30 +399,32 @@ ragnar_store_sync <- function(
     to_delete_df <- tibble::tibble(origin = to_delete)
     local_duckdb_register(con, "origins_to_delete", to_delete_df)
 
-    # DuckDB checks FK constraints at statement level within a transaction,
-    # so we must delete child rows (embeddings) before parent rows (documents)
-    # in separate statements. We do this outside an explicit transaction:
-    # embeddings first (satisfies FK), then documents, then page_metadata.
-    DBI::dbExecute(
-      con,
-      "
-      DELETE FROM embeddings
-      WHERE doc_id IN (
-        SELECT doc_id FROM documents
-        WHERE origin IN (SELECT origin FROM origins_to_delete)
+    # All three deletes are wrapped in a single transaction for atomicity:
+    # either all stale origins are removed or none are. Embeddings must be
+    # deleted before documents because the embeddings table references doc_id
+    # (enforced by application code; DuckDB 1.x lacks deferred FK checking).
+    dbWithTransaction2(con, {
+      DBI::dbExecute(
+        con,
+        "
+        DELETE FROM embeddings
+        WHERE doc_id IN (
+          SELECT doc_id FROM documents
+          WHERE origin IN (SELECT origin FROM origins_to_delete)
+        )
+        "
       )
-      "
-    )
-    DBI::dbExecute(
-      con,
-      "DELETE FROM documents
-       WHERE origin IN (SELECT origin FROM origins_to_delete)"
-    )
-    DBI::dbExecute(
-      con,
-      "DELETE FROM page_metadata
-       WHERE origin IN (SELECT origin FROM origins_to_delete)"
-    )
+      DBI::dbExecute(
+        con,
+        "DELETE FROM documents
+         WHERE origin IN (SELECT origin FROM origins_to_delete)"
+      )
+      DBI::dbExecute(
+        con,
+        "DELETE FROM page_metadata
+         WHERE origin IN (SELECT origin FROM origins_to_delete)"
+      )
+    })
   }
 
   if (rebuild_index && length(to_delete)) {

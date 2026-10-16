@@ -100,8 +100,10 @@ ragnar_store_create_v2 <- function(
       );
 
       CREATE OR REPLACE TABLE embeddings (
+        -- doc_id intentionally has no FOREIGN KEY constraint: DuckDB 1.x does not
+        -- support deferred FK checking or ON DELETE CASCADE, so transactional
+        -- deletes would fail. Referential integrity is enforced by application code.
         doc_id INTEGER NOT NULL,
-        FOREIGN KEY (doc_id) REFERENCES documents (doc_id),
         chunk_id INTEGER DEFAULT nextval('chunk_id_seq'),
         start INTEGER,
         "end" INTEGER,
