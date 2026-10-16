@@ -120,6 +120,28 @@ test_that("retrieving works as expected", {
   expect_equal(nrow(ret), 3)
 })
 
+test_that("document freshness fields do not change retrieval columns", {
+  skip_on_cran()
+  skip_if_cant_load_duckdb_extensions()
+
+  store <- ragnar_store_create(
+    embed = function(x) matrix(1, nrow = length(x), ncol = 2L),
+    embedding_size = 2L
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  maybe_set_threads(store)
+  ragnar_store_insert(
+    store, MarkdownDocument("foo bar", origin = "document") |> markdown_chunk()
+  )
+  ragnar_store_build_index(store)
+  columns <- c(DBI::dbListFields(store@con, "chunks"), "metric_name", "metric_value")
+
+  retrieved <- ragnar_retrieve_vss(store, "foo")
+  expect_setequal(names(retrieved), columns)
+  retrieved <- ragnar_retrieve_vss(store, "foo", filter = origin == "document")
+  expect_setequal(names(retrieved), columns)
+})
+
 test_that("deoverlapping empty retrieval results preserves the output schema", {
   skip_on_cran() # See comment (above) in test-retrieve.R
   skip_if_cant_load_duckdb_extensions()

@@ -5,7 +5,7 @@
 #
 #   attr(result, "ingest_summary") is a tibble with columns:
 #     - path      <chr>: the input path/URL
-#     - status    <chr>: one of "ok", "skipped_exists", "error"
+#     - status    <chr>: one of "ok", "skipped_unchanged", "error"
 #     - n_chunks  <int>: the number of stored chunks, or zero on error
 #     - message   <chr>: the worker error message, or NA
 
@@ -65,9 +65,9 @@ test_that("successfully ingested paths have status 'ok'", {
   )
 })
 
-# --- re-ingesting an existing origin reports "skipped_exists" -----------------
+# --- re-ingesting an existing origin reports "skipped_unchanged" -----------------
 
-test_that("paths already in the store have status 'skipped_exists'", {
+test_that("paths already in the store have status 'skipped_unchanged'", {
   skip_on_cran()
   paths <- local_md_paths(2)
   store <- local_store()
@@ -88,7 +88,7 @@ test_that("paths already in the store have status 'skipped_exists'", {
     summary,
     tibble(
       path = paths,
-      status = "skipped_exists",
+      status = "skipped_unchanged",
       n_chunks = counts$n_chunks[match(paths, counts$origin)],
       message = NA_character_
     )
@@ -116,7 +116,7 @@ test_that("ingest_summary distinguishes new paths from existing ones", {
     summary,
     tibble(
       path = c(old_paths, new_paths),
-      status = c("skipped_exists", "ok"),
+      status = c("skipped_unchanged", "ok"),
       n_chunks = 1L,
       message = NA_character_
     )
@@ -229,21 +229,23 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
 
   store <- ragnar_store_create(embed = NULL)
   withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  canonical <- withr::local_tempfile(fileext = ".md")
+  writeLines("Canonical document source.", canonical)
   document <- MarkdownDocument(
     paste(rep("Some content for several chunks.", 20), collapse = "\n\n"),
-    origin = "canonical"
+    origin = canonical
   )
   chunks <- markdown_chunk(document, target_size = 50, target_overlap = 0)
   ragnar_store_insert(store, chunks)
   expect_gt(nrow(chunks), 1L)
 
   prepare <- function(path) {
-    text <- if (path == "alias-subset") {
+    text <- if (path != "alias-replacement") {
       paste(rep("Some content for several chunks.", 20), collapse = "\n\n")
     } else {
       "Replacement content."
     }
-    chunks <- ragnar::MarkdownDocument(text, origin = "canonical") |>
+    chunks <- ragnar::MarkdownDocument(text, origin = canonical) |>
       ragnar::markdown_chunk(target_size = 50, target_overlap = 0)
     if (path == "alias-subset") {
       chunks <- dplyr::slice(chunks, 1L)
@@ -251,22 +253,27 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
     chunks
   }
 
+  ragnar_store_ingest(
+    store, canonical, prepare = prepare,
+    n_workers = 1L, progress = FALSE, build_index = FALSE
+  )
+
   result <- ragnar_store_ingest(
-    store, c("canonical", "alias-subset"), prepare = prepare,
+    store, c(canonical, "alias-subset"), prepare = prepare,
     n_workers = 1L, progress = FALSE, build_index = FALSE
   )
   expect_identical(
     attr(result, "ingest_summary"),
     tibble(
-      path = c("canonical", "alias-subset"),
-      status = c("skipped_exists", "ok"),
+      path = c(canonical, "alias-subset"),
+      status = c("skipped_unchanged", "ok"),
       n_chunks = nrow(chunks),
       message = NA_character_
     )
   )
 
   result <- ragnar_store_ingest(
-    store, c("canonical", "alias-replacement"), prepare = prepare,
+    store, c(canonical, "alias-replacement"), prepare = prepare,
     n_workers = 1L, progress = FALSE, build_index = FALSE
   )
   expect_equal(
@@ -276,8 +283,8 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
   expect_identical(
     attr(result, "ingest_summary"),
     tibble(
-      path = c("canonical", "alias-replacement"),
-      status = c("skipped_exists", "ok"),
+      path = c(canonical, "alias-replacement"),
+      status = c("skipped_unchanged", "ok"),
       n_chunks = 1L,
       message = NA_character_
     )
