@@ -23,6 +23,11 @@ represents a chunk and always contains a \code{text} column.
 Runs \code{\link[=ragnar_retrieve_vss]{ragnar_retrieve_vss()}} and \code{\link[=ragnar_retrieve_bm25]{ragnar_retrieve_bm25()}} and get the distinct
 documents.
 }
+\details{
+Store metadata must not use \code{metric_name} or \code{metric_value}, ignoring
+case. Retrieval fails with an error if these names conflict. Create a store
+with different names for those metadata columns.
+}
 \note{
 The results are not re-ranked after identifying the unique values.
 }

@@ -3,6 +3,51 @@
 -   `markdown_chunk()` no longer misplaces heading boundaries when the input
     contains combining characters (NFD-normalized text) (@taekop, #158).
 
+-   `ragnar_store_ingest()` now skips unchanged sources using modification
+    times or a hash of the prepared Markdown. `ragnar_store_sync()` removes
+    documents outside a supplied set of origins. Recreate existing v2 stores
+    to use the new format; stores are not migrated automatically (#200, #201).
+
+-   `ragnar_store_ingest()` now returns an `ingest_summary` attribute reporting
+    each input path's status, stored chunk count, and worker error message.
+    Index requests are honored when all paths already exist (#202, #208).
+
+-   `ragnar_store_ingest()` now reports worker failures as
+    `ragnar_ingest_worker_error` warnings with a `path` field identifying the
+    failed input, including when `prepare()` returns an invalid result or a
+    worker exits (#205).
+
+-   `ragnar_store_ingest()` now limits its default worker count by the detected
+    core count, with a minimum of two workers. If core detection is unavailable,
+    four cores are assumed (#206).
+
+-   ragnar now requires DuckDB >= 1.5.0, whose row-ID fetching keeps indexed
+    VSS retrieval bounded to the selected matches.
+
+-   `ragnar_retrieve_vss()` now fetches embeddings and document text after
+    selecting the final matches, reducing intermediate memory use. Store
+    connections disable insertion-order preservation, and the store
+    documentation explains how to set a deployment-specific DuckDB memory
+    limit (#188).
+
+-   VSS filters can now reference `metric_value`, `metric_name`, and, for
+    version 2 stores, `origin` and `text`. Filtered searches spanning the
+    initial 5,000 candidates now respect `top_k`.
+
+-   Retrieval now rejects metadata named `metric_name` or `metric_value`,
+    ignoring case, with an error asking for different metadata column names.
+
+-   Fixed an error when creating an embedding function by omitting `x` or
+    passing `x = NULL`. Helpers such as `embed_bedrock()`,
+    `embed_azure_openai()`, and `embed_google_vertex()` now correctly return
+    a function that preserves the supplied configuration arguments (#187).
+
+-   `ragnar_find_links()` can now include the starting page with
+    `include_root = TRUE` (#199).
+
+-   `ragnar_find_links()` now returns an empty character vector instead of
+    erroring when no links are found or all links are filtered out.
+
 # ragnar 0.3.1
 
 -   `ragnar_store_atlas()` now works with Embedding Atlas >= 0.20.0 and uses

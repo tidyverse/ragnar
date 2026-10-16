@@ -33,11 +33,12 @@ Imports:
     mirai (>= 2.6.0),
     dbplyr,
     dplyr,
-    duckdb (>= 1.3.1),
+    duckdb (>= 1.5.0),
     glue,
     httr2,
     jsonlite,
     methods,
+    nanonext,
     reticulate (>= 1.42.0),
     rlang (>= 1.1.0),
     rvest,
@@ -63,7 +64,8 @@ Suggests:
     testthat (>= 3.0.0),
     tibble,
     jose,
-    openssl
+    openssl,
+    webfakes
 VignetteBuilder:
     knitr
 Config/Needs/website: tidyverse/tidytemplate, rmarkdown

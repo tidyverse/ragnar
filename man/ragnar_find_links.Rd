@@ -11,7 +11,9 @@ ragnar_find_links(
   progress = TRUE,
   ...,
   url_filter = identity,
-  validate = FALSE
+  validate = FALSE,
+  get_timestamps = FALSE,
+  include_root = FALSE
 )
 }
 \arguments{
@@ -35,12 +37,39 @@ when \code{depth > 0}.}
 subset them to return a smaller list. This can be useful for filtering out
 URL's by rules different than \code{children_only} which only checks the prefix.}
 
-\item{validate}{Default is \code{FALSE}. If \code{TRUE} sends a \code{HEAD} request for each
-link and removes those that are not accessible. Requests are sent in parallel
-using \code{\link[httr2:req_perform_parallel]{httr2::req_perform_parallel()}}.}
+\item{validate}{Default is \code{FALSE}. If \code{TRUE}, checks that local files exist
+and sends a \code{HEAD} request for each remote link, removing those that are not
+accessible. Requests are sent in parallel using \code{\link[httr2:req_perform_parallel]{httr2::req_perform_parallel()}}.}
+
+\item{get_timestamps}{Default is \code{FALSE}. If \code{TRUE}, sends parallel \code{HEAD}
+requests for any discovered URLs that were not visited during crawling, and
+records their \code{Last-Modified} response header. Pages fetched during crawling
+already have their timestamp from the \code{GET} response at no extra cost.
+Useful for incremental ingest: callers can skip re-fetching pages whose
+timestamp has not changed since the last run. Note that not all hosting
+platforms set \code{Last-Modified}; S3-backed sites (including many
+\code{docs.posit.co} pages) and GitHub Pages do, while Netlify-hosted sites
+(e.g. \code{quarto.org}) do not. Missing headers and local file timestamps are
+recorded as \code{NA}.}
+
+\item{include_root}{Default is \code{FALSE}. If \code{TRUE}, also includes the starting
+page in the results, subject to \code{children_only}, \code{url_filter}, and \code{validate}.
+Sitemap inputs contribute only their listed URLs. If \code{FALSE}, the starting
+page can still be returned when it is found through a link.}
 }
 \value{
-A character vector of links on the page.
+A \code{ragnar_links} object: a character vector of URLs, sorted
+alphabetically and deduplicated, with the following attributes:
+\describe{
+\item{\code{last_modified}}{A named \code{POSIXct} vector mapping each crawled URL
+to its \code{Last-Modified} timestamp. Always present. URLs for which the
+server did not return a timestamp (either because the header was absent
+or \code{get_timestamps = FALSE} and the page was not visited) are \code{NA}.}
+\item{\code{problems}}{A data frame with columns \code{link} and \code{problem},
+present only when one or more URLs could not be fetched during crawling.}
+}
+Joins and row-binding combine links as ordinary character vectors. To keep
+timestamps in the combined data, store them in a separate column first.
 }
 \description{
 Find links on a page
@@ -49,11 +78,22 @@ Find links on a page
 \dontrun{
 ragnar_find_links("https://r4ds.hadley.nz/base-R.html")
 ragnar_find_links("https://ellmer.tidyverse.org/")
+# Include the starting page when collecting documents for ingestion
+ragnar_find_links("https://ellmer.tidyverse.org/", include_root = TRUE)
 ragnar_find_links(
   paste0("https://github.com/Snowflake-Labs/sfquickstarts/",
          "tree/master/site/sfguides/src/build_a_custom_model_for_anomaly_detection"),
   children_only = "https://github.com/Snowflake-Labs/sfquickstarts",
   depth = 1
 )
+
+# Retrieve Last-Modified timestamps for all discovered URLs
+links <- ragnar_find_links(
+  "https://docs.posit.co/",
+  children_only = TRUE,
+  depth = 1,
+  get_timestamps = TRUE
+)
+attr(links, "last_modified")
 }
 }

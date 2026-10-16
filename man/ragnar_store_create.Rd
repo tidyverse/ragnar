@@ -76,6 +76,10 @@ modifying chunks directly before insertion. Chunks can be augmented via the
 easiest way to prepare \code{chunks} for \code{version = 2} is with
 \code{read_as_markdown()} and \code{markdown_chunk()}.
 
+Incremental ingestion and store synchronization require the current v2
+format. Recreate older v2 stores with \code{ragnar_store_create()}; existing
+stores are not migrated automatically.
+
 \strong{Version 1 – flat chunks}
 
 With \code{version = 1}, ragnar keeps all chunks in a single table. This lets you
@@ -87,6 +91,24 @@ Additionally, if you intend to call \code{ragnar_store_update()}, it is your
 responsibility to provide \code{rlang::hash(original_full_document)} with each
 chunk. The easiest way to prepare \code{chunks} for \code{version = 1} is with
 \code{ragnar_read()} and \code{ragnar_chunk()}.
+}
+
+\subsection{Memory use}{
+
+Store connections disable DuckDB's insertion-order preservation to reduce
+memory use. Use an explicit \verb{ORDER BY} when querying the connection directly
+if row order matters.
+
+DuckDB sets a default \code{memory_limit} based on available system memory. For
+deployments with a smaller process memory budget, lower this limit after
+creating or connecting to a store, for example:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{DBI::dbExecute(store@con, "SET memory_limit = '4GB'")
+}\if{html}{\out{</div>}}
+
+Choose a limit that leaves room for R and other allocations. This setting
+limits DuckDB's buffer manager, not total process memory; HNSW indexes and
+some other allocations are outside this limit.
 }
 }
 \examples{

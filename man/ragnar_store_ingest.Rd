@@ -22,19 +22,40 @@ ragnar_store_ingest(
 \code{MarkdownDocumentChunks} object. It is called with an argument \code{path} and
 should return the prepared chunks (with or without an \code{embedding} column).}
 
-\item{n_workers}{Number of worker processes to use. Defaults to the smaller of
-\code{length(paths)} and \code{parallel::detectCores()} (with a minimum of 1).}
+\item{n_workers}{Number of worker processes to use. The default is
+\code{max(2L, min(n_cores, n_paths \%/\% 4L, 8L))}, where \code{n_paths} is the number of
+unique paths requiring ingestion and \code{n_cores} is the count returned
+by \code{\link[parallel:detectCores]{parallel::detectCores()}} (or 4 if unavailable).}
 
 \item{progress}{Logical; if \code{TRUE}, show a CLI progress bar.}
 
 \item{build_index}{Logical; whether to call \code{ragnar_store_build_index()} after ingestion.}
 }
 \value{
-\code{store}, invisibly.
+\code{store}, invisibly, with an \code{ingest_summary} attribute: a tibble
+with one row per input path, in input order, and columns:
+\itemize{
+\item \code{path} (character): the input file path or URL.
+\item \code{status} (character): \code{"ok"} (processed successfully), \code{"skipped_unchanged"}
+(origin in the store and confirmed unchanged), or \code{"error"} (worker failed).
+\item \code{n_chunks} (integer): the number of chunks stored for the document's
+origin after ingestion, or \code{0L} for worker failures.
+\item \code{message} (character): the worker error message, or \code{NA} otherwise.
+}
+
+Duplicate input paths share an outcome and are processed once.
 }
 \description{
 \code{ragnar_store_ingest()} distributes document preparation work over multiple
 processes using \href{https://mirai.r-lib.org}{mirai}. Each worker calls \code{prepare}
 on a single path and returns the resulting chunks (and any warnings) to the
 main process, which then writes them to the store.
+
+Worker errors signal a \code{ragnar_ingest_worker_error} warning with a \code{path}
+field identifying the failed input. Ingestion continues with the remaining
+paths.
+
+Unchanged modification times skip document preparation. When a modification
+time is unavailable or changes, \code{prepare()} runs and a hash of the prepared
+Markdown avoids embedding and storing unchanged content.
 }
