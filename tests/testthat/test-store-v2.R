@@ -1,3 +1,44 @@
+test_that("v2 updates replace shortened documents and preserve unchanged subsets", {
+  skip_on_cran()
+
+  store <- ragnar_store_create(
+    embed = function(x) matrix(1, nrow = length(x), ncol = 2L),
+    embedding_size = 2L
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  document <- MarkdownDocument("ABCDE", origin = "document")
+  chunks <- markdown_chunk(
+    document, target_size = 1L, target_overlap = 0, max_snap_dist = 0
+  )
+  ragnar_store_update(store, chunks)
+  doc_id <- DBI::dbGetQuery(store@con, "SELECT doc_id FROM documents")$doc_id
+
+  store@embed <- function(x) stop("Unchanged chunks should not be embedded.")
+  ragnar_store_update(store, dplyr::slice(chunks, 1:2))
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT COUNT(*) AS n FROM chunks")$n,
+    5
+  )
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT text FROM documents")$text,
+    "ABCDE"
+  )
+
+  shortened <- MarkdownDocument("AB", origin = "document") |>
+    markdown_chunk(target_size = 1L, target_overlap = 0, max_snap_dist = 0)
+  shortened$embedding <- matrix(1, nrow = nrow(shortened), ncol = 2L)
+  ragnar_store_update(store, shortened)
+
+  expect_identical(
+    DBI::dbGetQuery(store@con, "SELECT doc_id, text FROM documents"),
+    data.frame(doc_id = doc_id, text = "AB")
+  )
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT text FROM chunks ORDER BY start")$text,
+    c("A", "B")
+  )
+})
+
 test_that("ragnar_store_update/insert, v2", {
   skip_on_cran() # See comment in test-retrieve.R
   store <- ragnar_store_create(

@@ -315,6 +315,16 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   con <- store@con
 
+  documents <- tibble(
+    origin = chunks@document@origin,
+    text = as.character(chunks@document)
+  )
+  existing_document <- dbGetQuery(
+    con,
+    "SELECT doc_id, text = ? AS is_unchanged FROM documents WHERE origin = ?",
+    params = list(documents$text, documents$origin)
+  )
+
   join_cols <- setdiff(
     c(dbListFields(con, "embeddings"), "text"),
     c("doc_id", "chunk_id", "embedding")
@@ -322,7 +332,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
 
   existing <- tbl(con, "chunks") |>
     filter(origin == !!chunks@document@origin) |>
-    select(doc_id, dplyr::all_of(join_cols)) |>
+    select(dplyr::all_of(join_cols)) |>
     collect()
 
   new_chunks <- anti_join(
@@ -331,14 +341,10 @@ ragnar_store_update_v2 <- function(store, chunks) {
     by = join_by(!!!join_cols)
   )
 
-  if (!nrow(new_chunks)) {
+  # Retain existing chunk subsets only when the full document is unchanged.
+  if (!nrow(new_chunks) && isTRUE(existing_document$is_unchanged)) {
     return(invisible(store))
   }
-
-  documents <- tibble(
-    origin = chunks@document@origin,
-    text = as.character(chunks@document)
-  )
 
   if (!is.null(store@embed) && !"embedding" %in% names(chunks)) {
     chunks$embedding <-
@@ -349,7 +355,7 @@ ragnar_store_update_v2 <- function(store, chunks) {
     select(any_of(dbListFields(con, "embeddings")))
 
   dbWithTransaction2(con, {
-    doc_id <- unique(existing$doc_id)
+    doc_id <- existing_document$doc_id
 
     if (length(doc_id)) {
       dbExecute(
