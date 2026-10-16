@@ -108,6 +108,10 @@ with
 and
 [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md).
 
+Incremental ingestion and store synchronization require the current v2
+format. Recreate older v2 stores with `ragnar_store_create()`; existing
+stores are not migrated automatically.
+
 **Version 1 – flat chunks**
 
 With `version = 1`, ragnar keeps all chunks in a single table. This lets
@@ -149,7 +153,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpCZLDAt/duckdb
+#> ℹ /tmp/RtmpsevYFT/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -166,7 +170,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpCZLDAt/duckdb
+#> ℹ /tmp/RtmpsevYFT/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -184,7 +188,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpCZLDAt/duckdb
+#> ℹ /tmp/RtmpsevYFT/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -199,7 +203,7 @@ store <- ragnar_store_create(
   embed = NULL
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpCZLDAt/duckdb
+#> ℹ /tmp/RtmpsevYFT/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.

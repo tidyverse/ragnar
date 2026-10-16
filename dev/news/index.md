@@ -3,6 +3,15 @@
 ## ragnar (development version)
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  now skips unchanged sources using modification times or a hash of the
+  prepared Markdown.
+  [`ragnar_store_sync()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_sync.md)
+  removes documents outside a supplied set of origins. Recreate existing
+  v2 stores to use the new format; stores are not migrated automatically
+  ([\#200](https://github.com/tidyverse/ragnar/issues/200),
+  [\#201](https://github.com/tidyverse/ragnar/issues/201)).
+
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
   now returns an `ingest_summary` attribute reporting each input path’s
   status, stored chunk count, and worker error message. Index requests
   are honored when all paths already exist

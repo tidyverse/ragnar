@@ -39,6 +39,9 @@ Store embeddings in DuckDB for fast, local queries.
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
   : Concurrently ingest documents into a Ragnar store
 
+- [`ragnar_store_sync()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_sync.md)
+  : Remove stale documents from a Ragnar store
+
 - [`ragnar_store_build_index()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_build_index.md)
   : Build a Ragnar Store index
 

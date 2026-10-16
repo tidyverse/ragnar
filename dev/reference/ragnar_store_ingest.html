@@ -5,13 +5,19 @@ on a single path and returns the resulting chunks (and any warnings) to the
 main process, which then writes them to the store.
 Worker errors signal a ragnar_ingest_worker_error warning with a path
 field identifying the failed input. Ingestion continues with the remaining
-paths."><meta property="og:description" content="ragnar_store_ingest() distributes document preparation work over multiple
+paths.
+Unchanged modification times skip document preparation. When a modification
+time is unavailable or changes, prepare() runs and a hash of the prepared
+Markdown avoids embedding and storing unchanged content."><meta property="og:description" content="ragnar_store_ingest() distributes document preparation work over multiple
 processes using mirai. Each worker calls prepare
 on a single path and returns the resulting chunks (and any warnings) to the
 main process, which then writes them to the store.
 Worker errors signal a ragnar_ingest_worker_error warning with a path
 field identifying the failed input. Ingestion continues with the remaining
-paths."><meta property="og:image" content="https://ragnar.tidyverse.org/logo.png"><meta name="robots" content="noindex"><script src="https://cdn.jsdelivr.net/gh/posit-dev/supported-by-posit/js/badge.min.js" data-max-height="43" data-light-bg="#666f76" data-light-fg="#f9f9f9"></script><!-- Privacy-friendly analytics by Plausible --><script async src="https://plausible.io/js/pa-mlM4WLuJLg4aagiFFaC47.js"></script><script>
+paths.
+Unchanged modification times skip document preparation. When a modification
+time is unavailable or changes, prepare() runs and a hash of the prepared
+Markdown avoids embedding and storing unchanged content."><meta property="og:image" content="https://ragnar.tidyverse.org/logo.png"><meta name="robots" content="noindex"><script src="https://cdn.jsdelivr.net/gh/posit-dev/supported-by-posit/js/badge.min.js" data-max-height="43" data-light-bg="#666f76" data-light-fg="#f9f9f9"></script><!-- Privacy-friendly analytics by Plausible --><script async src="https://plausible.io/js/pa-mlM4WLuJLg4aagiFFaC47.js"></script><script>
   window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script></head><body>
@@ -63,6 +69,9 @@ main process, which then writes them to the store.</p>
 <p>Worker errors signal a <code>ragnar_ingest_worker_error</code> warning with a <code>path</code>
 field identifying the failed input. Ingestion continues with the remaining
 paths.</p>
+<p>Unchanged modification times skip document preparation. When a modification
+time is unavailable or changes, <code>prepare()</code> runs and a hash of the prepared
+Markdown avoids embedding and storing unchanged content.</p>
     </div>
 
     <div class="section level2">
@@ -98,7 +107,7 @@ should return the prepared chunks (with or without an <code>embedding</code> col
 <dt id="arg-n-workers">n_workers<a class="anchor" aria-label="anchor" href="#arg-n-workers"></a></dt>
 <dd><p>Number of worker processes to use. The default is
 <code>max(2L, min(n_cores, n_paths %/% 4L, 8L))</code>, where <code>n_paths</code> is the number of
-unique paths not already in the store and <code>n_cores</code> is the count returned
+unique paths requiring ingestion and <code>n_cores</code> is the count returned
 by <code><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">parallel::detectCores()</a></code> (or 4 if unavailable).</p></dd>
 
 
@@ -114,8 +123,8 @@ by <code><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-l
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>store</code>, invisibly, with an <code>ingest_summary</code> attribute: a tibble
 with one row per input path, in input order, and columns:</p><ul><li><p><code>path</code> (character): the input file path or URL.</p></li>
-<li><p><code>status</code> (character): <code>"ok"</code> (processed successfully), <code>"skipped_exists"</code> (origin
-already in the store), or <code>"error"</code> (worker failed).</p></li>
+<li><p><code>status</code> (character): <code>"ok"</code> (processed successfully), <code>"skipped_unchanged"</code>
+(origin in the store and confirmed unchanged), or <code>"error"</code> (worker failed).</p></li>
 <li><p><code>n_chunks</code> (integer): the number of chunks stored for the document's
 origin after ingestion, or <code>0L</code> for worker failures.</p></li>
 <li><p><code>message</code> (character): the worker error message, or <code>NA</code> otherwise.</p></li>
