@@ -97,8 +97,9 @@ should return the prepared chunks (with or without an <code>embedding</code> col
 
 <dt id="arg-n-workers">n_workers<a class="anchor" aria-label="anchor" href="#arg-n-workers"></a></dt>
 <dd><p>Number of worker processes to use. The default is
-<code>max(2L, min(n_cores, length(unique(paths)) %/% 4L, 8L))</code>, where <code>n_cores</code>
-is the count returned by <code><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">parallel::detectCores()</a></code> (or 4 if unavailable).</p></dd>
+<code>max(2L, min(n_cores, n_paths %/% 4L, 8L))</code>, where <code>n_paths</code> is the number of
+unique paths not already in the store and <code>n_cores</code> is the count returned
+by <code><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">parallel::detectCores()</a></code> (or 4 if unavailable).</p></dd>
 
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
@@ -111,7 +112,14 @@ is the count returned by <code><a href="https://rdrr.io/r/parallel/detectCores.h
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>store</code>, invisibly.</p>
+    <p><code>store</code>, invisibly, with an <code>ingest_summary</code> attribute: a tibble
+with one row per input path, in input order, and columns:</p><ul><li><p><code>path</code> (character): the input file path or URL.</p></li>
+<li><p><code>status</code> (character): <code>"ok"</code> (processed successfully), <code>"skipped_exists"</code> (origin
+already in the store), or <code>"error"</code> (worker failed).</p></li>
+<li><p><code>n_chunks</code> (integer): the number of chunks stored for the document's
+origin after ingestion, or <code>0L</code> for worker failures.</p></li>
+<li><p><code>message</code> (character): the worker error message, or <code>NA</code> otherwise.</p></li>
+</ul><p>Duplicate input paths share an outcome and are processed once.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

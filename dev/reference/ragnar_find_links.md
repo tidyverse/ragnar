@@ -187,10 +187,7 @@ links <- ragnar_find_links(
   get_timestamps = TRUE
 )
 #> ⠙ Finding links: 51 | On queue: 0 | Current depth: 1 | [2s]
-#> [working] (1016 + 0) -> 10 -> 85 | ■■■                                …
-#> [working] (694 + 0) -> 10 -> 407 | ■■■■■■■■■■■■                      3…
-#> [working] (262 + 0) -> 10 -> 839 | ■■■■■■■■■■■■■■■■■■■■■■■■          7…
-#> [working] (0 + 0) -> 1 -> 1110 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100%
+#> [working] (623 + 0) -> 6 -> 482 | ■■■■■■■■■■■■■■                    43%
 #> [working] (0 + 0) -> 0 -> 1111 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100%
 #> ⠙ Finding links: 51 | On queue: 0 | Current depth: 1 | [2s]
 attr(links, "last_modified")
@@ -1729,7 +1726,7 @@ attr(links, "last_modified")
 #>                                                                                                         https://docs.posit.co/ide/user/ 
 #>                                                                                                               "2026-10-14 22:31:14 UTC" 
 #>                                                                                               https://docs.posit.co/ide/user/2026.10.0/ 
-#>                                                                                                               "2026-10-15 23:16:22 UTC" 
+#>                                                                                                               "2026-10-15 17:12:20 UTC" 
 #>                                                                            https://docs.posit.co/ide/user/ide/guide/tools/posit-ai.html 
 #>                                                                                                               "2026-10-14 22:31:14 UTC" 
 #>                                                                                                        https://docs.posit.co/index.html 

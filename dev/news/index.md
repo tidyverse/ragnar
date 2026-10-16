@@ -3,6 +3,13 @@
 ## ragnar (development version)
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  now returns an `ingest_summary` attribute reporting each input path’s
+  status, stored chunk count, and worker error message. Index requests
+  are honored when all paths already exist
+  ([\#202](https://github.com/tidyverse/ragnar/issues/202),
+  [\#208](https://github.com/tidyverse/ragnar/issues/208)).
+
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
   now reports worker failures as `ragnar_ingest_worker_error` warnings
   with a `path` field identifying the failed input, including when
   `prepare()` returns an invalid result or a worker exits

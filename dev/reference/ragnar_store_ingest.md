@@ -41,8 +41,9 @@ ragnar_store_ingest(
 - n_workers:
 
   Number of worker processes to use. The default is
-  `max(2L, min(n_cores, length(unique(paths)) %/% 4L, 8L))`, where
-  `n_cores` is the count returned by
+  `max(2L, min(n_cores, n_paths %/% 4L, 8L))`, where `n_paths` is the
+  number of unique paths not already in the store and `n_cores` is the
+  count returned by
   [`parallel::detectCores()`](https://rdrr.io/r/parallel/detectCores.html)
   (or 4 if unavailable).
 
@@ -58,4 +59,18 @@ ragnar_store_ingest(
 
 ## Value
 
-`store`, invisibly.
+`store`, invisibly, with an `ingest_summary` attribute: a tibble with
+one row per input path, in input order, and columns:
+
+- `path` (character): the input file path or URL.
+
+- `status` (character): `"ok"` (processed successfully),
+  `"skipped_exists"` (origin already in the store), or `"error"` (worker
+  failed).
+
+- `n_chunks` (integer): the number of chunks stored for the document's
+  origin after ingestion, or `0L` for worker failures.
+
+- `message` (character): the worker error message, or `NA` otherwise.
+
+Duplicate input paths share an outcome and are processed once.
