@@ -439,9 +439,11 @@ page_is_unchanged <- function(origin, stored_last_modified, stored_content_hash)
   meta <- fetch_page_metadata(origin)
 
   if (!is.na(meta$last_modified) && !is.na(stored_last_modified)) {
-    # Compare at whole-second precision: sub-second round-trip through
-    # DuckDB TIMESTAMPTZ can introduce rounding differences of ~1 microsecond.
-    return(trunc(as.numeric(meta$last_modified)) == trunc(as.numeric(stored_last_modified)))
+    # DuckDB stores timestamps at microsecond precision.
+    return(
+      round(as.numeric(meta$last_modified) * 1e6) ==
+        round(as.numeric(stored_last_modified) * 1e6)
+    )
   }
 
   if (!is.na(meta$content_hash) && !is.na(stored_content_hash)) {

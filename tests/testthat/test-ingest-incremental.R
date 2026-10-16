@@ -26,20 +26,28 @@ test_that("unchanged local files get status 'skipped_unchanged' on re-ingest", {
   expect_equal(summary$status, "skipped_unchanged")
 })
 
-test_that("modified local files are re-ingested after content changes", {
+test_that("local file freshness preserves subsecond modification times", {
   skip_on_cran()
   paths <- local_md_paths(1)
   store <- local_store()
+  mtime <- as.POSIXct("2026-10-16 12:00:00", tz = "UTC")
+  Sys.setFileTime(paths[[1]], mtime + 0.1234562)
 
   ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
 
-  # Modify the file; use Sys.sleep to ensure mtime changes
-  Sys.sleep(1.1)
+  result <- ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
+  expect_equal(attr(result, "ingest_summary")$status, "skipped_unchanged")
+
   writeLines(c("# Modified", "", "New content."), paths[[1]])
+  Sys.setFileTime(paths[[1]], mtime + 0.8)
 
   result <- ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
   summary <- attr(result, "ingest_summary")
   expect_equal(summary$status, "ok")
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT text FROM documents")$text,
+    "# Modified\n\nNew content."
+  )
 })
 
 test_that("page_metadata is written after successful ingest", {
