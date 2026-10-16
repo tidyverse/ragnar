@@ -421,10 +421,11 @@ page_is_unchanged <- function(origin, stored_last_modified) {
   last_modified <- fetch_last_modified(origin)
 
   if (!is.na(last_modified)) {
-    # DuckDB stores timestamps at microsecond precision.
+    # DuckDB rounds to microseconds with ties away from zero.
+    current <- as.numeric(last_modified) * 1e6
+    stored <- as.numeric(stored_last_modified) * 1e6
     return(
-      round(as.numeric(last_modified) * 1e6) ==
-        round(as.numeric(stored_last_modified) * 1e6)
+      trunc(current + sign(current) / 2) == trunc(stored + sign(stored) / 2)
     )
   }
 

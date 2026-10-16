@@ -31,11 +31,15 @@ test_that("local file freshness preserves subsecond modification times", {
   paths <- local_md_paths(1)
   store <- local_store()
   mtime <- as.POSIXct("2026-10-16 12:00:00", tz = "UTC")
-  Sys.setFileTime(paths[[1]], mtime + 0.1234562)
+  Sys.setFileTime(paths[[1]], mtime + 0.1234565)
 
   ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
 
-  result <- ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
+  result <- ragnar_store_ingest(
+    store, paths,
+    prepare = function(path) stop("Unchanged timestamps should skip preparation."),
+    progress = FALSE, build_index = FALSE
+  )
   expect_equal(attr(result, "ingest_summary")$status, "skipped_unchanged")
 
   writeLines(c("# Modified", "", "New content."), paths[[1]])
