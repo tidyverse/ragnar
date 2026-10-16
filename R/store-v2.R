@@ -71,6 +71,7 @@ ragnar_store_create_v2 <- function(
       DROP VIEW IF EXISTS chunks CASCADE;
       DROP TABLE IF EXISTS embeddings CASCADE;
       DROP TABLE IF EXISTS documents CASCADE;
+      DROP TABLE IF EXISTS page_metadata CASCADE;
       DROP SEQUENCE IF EXISTS chunk_id_seq CASCADE;
       DROP SEQUENCE IF EXISTS doc_id_seq CASCADE;
       )--"
@@ -121,6 +122,13 @@ ragnar_store_create_v2 <- function(
           embeddings e
         USING
           (doc_id)
+      );
+
+      CREATE OR REPLACE TABLE page_metadata (
+        origin        VARCHAR PRIMARY KEY,
+        last_modified TIMESTAMPTZ,
+        content_hash  VARCHAR,
+        ingested_at   TIMESTAMPTZ DEFAULT now()
       );
 
       SET enable_progress_bar = false;
