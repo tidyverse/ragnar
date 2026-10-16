@@ -223,3 +223,63 @@ test_that("ingest_summary preserves input paths, ordering, and duplicates", {
   expect_true(all(expected_counts > 1L))
   expect_equal(nrow(counts), 2L)
 })
+
+test_that("ingest_summary counts stored chunks for prepared document origins", {
+  skip_on_cran()
+
+  store <- ragnar_store_create(embed = NULL)
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  document <- MarkdownDocument(
+    paste(rep("Some content for several chunks.", 20), collapse = "\n\n"),
+    origin = "canonical"
+  )
+  chunks <- markdown_chunk(document, target_size = 50, target_overlap = 0)
+  ragnar_store_insert(store, chunks)
+  expect_gt(nrow(chunks), 1L)
+
+  prepare <- function(path) {
+    text <- if (path == "alias-subset") {
+      paste(rep("Some content for several chunks.", 20), collapse = "\n\n")
+    } else {
+      "Replacement content."
+    }
+    chunks <- ragnar::MarkdownDocument(text, origin = "canonical") |>
+      ragnar::markdown_chunk(target_size = 50, target_overlap = 0)
+    if (path == "alias-subset") {
+      chunks <- dplyr::slice(chunks, 1L)
+    }
+    chunks
+  }
+
+  result <- ragnar_store_ingest(
+    store, c("canonical", "alias-subset"), prepare = prepare,
+    n_workers = 1L, progress = FALSE, build_index = FALSE
+  )
+  expect_identical(
+    attr(result, "ingest_summary"),
+    tibble(
+      path = c("canonical", "alias-subset"),
+      status = c("skipped_exists", "ok"),
+      n_chunks = nrow(chunks),
+      message = NA_character_
+    )
+  )
+
+  result <- ragnar_store_ingest(
+    store, c("canonical", "alias-replacement"), prepare = prepare,
+    n_workers = 1L, progress = FALSE, build_index = FALSE
+  )
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT text FROM documents")$text,
+    "Replacement content."
+  )
+  expect_identical(
+    attr(result, "ingest_summary"),
+    tibble(
+      path = c("canonical", "alias-replacement"),
+      status = c("skipped_exists", "ok"),
+      n_chunks = 1L,
+      message = NA_character_
+    )
+  )
+})

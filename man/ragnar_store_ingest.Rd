@@ -36,10 +36,10 @@ by \code{\link[parallel:detectCores]{parallel::detectCores()}} (or 4 if unavaila
 with one row per input path, in input order, and columns:
 \itemize{
 \item \code{path} (character): the input file path or URL.
-\item \code{status} (character): \code{"ok"} (ingested), \code{"skipped_exists"} (origin
+\item \code{status} (character): \code{"ok"} (processed successfully), \code{"skipped_exists"} (origin
 already in the store), or \code{"error"} (worker failed).
-\item \code{n_chunks} (integer): the number of chunks stored for successful or
-existing paths, or \code{0L} for worker failures.
+\item \code{n_chunks} (integer): the number of chunks stored for the document's
+origin after ingestion, or \code{0L} for worker failures.
 \item \code{message} (character): the worker error message, or \code{NA} otherwise.
 }
 

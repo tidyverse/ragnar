@@ -24,10 +24,10 @@
 #' @returns `store`, invisibly, with an `ingest_summary` attribute: a tibble
 #'   with one row per input path, in input order, and columns:
 #'   * `path` (character): the input file path or URL.
-#'   * `status` (character): `"ok"` (ingested), `"skipped_exists"` (origin
+#'   * `status` (character): `"ok"` (processed successfully), `"skipped_exists"` (origin
 #'     already in the store), or `"error"` (worker failed).
-#'   * `n_chunks` (integer): the number of chunks stored for successful or
-#'     existing paths, or `0L` for worker failures.
+#'   * `n_chunks` (integer): the number of chunks stored for the document's
+#'     origin after ingestion, or `0L` for worker failures.
 #'   * `message` (character): the worker error message, or `NA` otherwise.
 #'
 #'   Duplicate input paths share an outcome and are processed once.
@@ -62,21 +62,44 @@ ragnar_store_ingest <- function(
     return(invisible(store))
   }
 
+  origins <- summary$path
+  finish_ingest <- function() {
+    completed <- summary$status != "error"
+    local_duckdb_register(
+      store@con,
+      "ingest_summary_origins",
+      tibble(origin = unique(origins[completed]))
+    )
+    counts <- DBI::dbGetQuery(
+      store@con,
+      "
+      SELECT p.origin, COUNT(e.chunk_id)::INTEGER AS n_chunks
+      FROM ingest_summary_origins p
+      LEFT JOIN documents d USING(origin)
+      LEFT JOIN embeddings e USING(doc_id)
+      GROUP BY p.origin
+      "
+    )
+    summary$n_chunks[completed] <- counts$n_chunks[
+      match(origins[completed], counts$origin)
+    ]
+    if (build_index) {
+      ragnar_store_build_index(store)
+    }
+    attr(store, "ingest_summary") <- summary
+    invisible(store)
+  }
+
   paths <- prepare_ingest_paths(paths, store)
 
   prepare <- rlang::as_function(prepare)
 
   path_idx <- match(summary$path, paths$origin)
-  summary$n_chunks <- paths$n_chunks[path_idx]
   summary$status[!paths$is_new_origin[path_idx]] <- "skipped_exists"
   new_paths <- paths[paths$is_new_origin, , drop = FALSE]
 
   if (!nrow(new_paths)) {
-    if (build_index) {
-      ragnar_store_build_index(store)
-    }
-    attr(store, "ingest_summary") <- summary
-    return(invisible(store))
+    return(finish_ingest())
   }
 
   if (is.null(n_workers)) {
@@ -174,7 +197,7 @@ ragnar_store_ingest <- function(
     origin <- result@document@origin
     rows <- summary$path == task$path
     summary$status[rows] <- "ok"
-    summary$n_chunks[rows] <- nrow(result)
+    origins[rows] <- origin
 
     if (progress) {
       cli::cli_alert_info(paste("ingested:", origin))
@@ -186,13 +209,7 @@ ragnar_store_ingest <- function(
     cli::cli_progress_done()
   }
 
-  if (build_index) {
-    ragnar_store_build_index(store)
-  }
-
-  attr(store, "ingest_summary") <- summary
-
-  invisible(store)
+  finish_ingest()
 }
 
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
@@ -303,14 +320,9 @@ prepare_ingest_paths <- function(paths, store) {
   paths <- DBI::dbGetQuery(
     store@con,
     "
-    SELECT
-      p.origin,
-      d.origin IS NULL AS is_new_origin,
-      COUNT(e.chunk_id)::INTEGER AS n_chunks
+    SELECT p.origin, d.origin IS NULL AS is_new_origin
     FROM paths_to_ingest p
     LEFT JOIN documents d USING(origin)
-    LEFT JOIN embeddings e USING(doc_id)
-    GROUP BY p.origin, d.origin
     "
   )
 
