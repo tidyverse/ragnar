@@ -71,7 +71,6 @@ ragnar_store_create_v2 <- function(
       DROP VIEW IF EXISTS chunks CASCADE;
       DROP TABLE IF EXISTS embeddings CASCADE;
       DROP TABLE IF EXISTS documents CASCADE;
-      DROP TABLE IF EXISTS page_metadata CASCADE;
       DROP SEQUENCE IF EXISTS chunk_id_seq CASCADE;
       DROP SEQUENCE IF EXISTS doc_id_seq CASCADE;
       )--"
@@ -96,7 +95,10 @@ ragnar_store_create_v2 <- function(
       CREATE OR REPLACE TABLE documents (
         doc_id INTEGER PRIMARY KEY DEFAULT nextval('doc_id_seq'),
         origin VARCHAR UNIQUE,
-        text VARCHAR
+        text VARCHAR,
+        last_modified TIMESTAMPTZ,
+        content_hash VARCHAR,
+        ingested_at TIMESTAMPTZ
       );
 
       CREATE OR REPLACE TABLE embeddings (
@@ -124,13 +126,6 @@ ragnar_store_create_v2 <- function(
           embeddings e
         USING
           (doc_id)
-      );
-
-      CREATE OR REPLACE TABLE page_metadata (
-        origin        VARCHAR PRIMARY KEY,
-        last_modified TIMESTAMPTZ,
-        content_hash  VARCHAR,
-        ingested_at   TIMESTAMPTZ DEFAULT now()
       );
 
       SET enable_progress_bar = false;
@@ -376,10 +371,13 @@ ragnar_store_update_v2 <- function(store, chunks) {
     dbExecute(
       con,
       "
-      INSERT INTO documents
+      INSERT INTO documents (doc_id, origin, text)
       SELECT doc_id, origin, text FROM documents_to_upsert
       ON CONFLICT(doc_id) DO UPDATE SET
-        text = excluded.text;
+        text = excluded.text,
+        last_modified = NULL,
+        content_hash = NULL,
+        ingested_at = NULL;
       "
     )
     dbAppendTable(con, "embeddings", embeddings)

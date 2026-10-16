@@ -26,6 +26,6 @@ When \code{dry_run = TRUE}: the summary tibble directly.
 }
 \description{
 \code{ragnar_store_sync()} deletes any documents whose \code{origin} is not in \code{keep},
-along with their embeddings and page metadata. Use \code{dry_run = TRUE} to
+along with their embeddings. Use \code{dry_run = TRUE} to
 preview what would be deleted without modifying the store.
 }

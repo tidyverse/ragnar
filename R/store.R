@@ -270,7 +270,11 @@ ragnar_store_connect <- function(
     stop("Store must be created with ragnar_store_create()")
   }
 
-  if (version == 2L && !"page_metadata" %in% tables) {
+  if (
+    version == 2L &&
+      !all(c("last_modified", "content_hash", "ingested_at") %in%
+        dbListFields(con, "documents"))
+  ) {
     dbDisconnect(con, shutdown = TRUE)
     rlang::abort(
       "This store uses an older v2 format. Recreate it with `ragnar_store_create()`."
@@ -347,7 +351,7 @@ ragnar_store_update <- function(store, chunks) {
 #' Remove stale documents from a Ragnar store
 #'
 #' `ragnar_store_sync()` deletes any documents whose `origin` is not in `keep`,
-#' along with their embeddings and page metadata. Use `dry_run = TRUE` to
+#' along with their embeddings. Use `dry_run = TRUE` to
 #' preview what would be deleted without modifying the store.
 #'
 #' @param store A `DuckDBRagnarStore` (version 2 only).
@@ -410,7 +414,7 @@ ragnar_store_sync <- function(
     to_delete_df <- tibble::tibble(origin = to_delete)
     local_duckdb_register(con, "origins_to_delete", to_delete_df)
 
-    # All three deletes are wrapped in a single transaction for atomicity:
+    # Both deletes are wrapped in a single transaction for atomicity:
     # either all stale origins are removed or none are. Embeddings must be
     # deleted before documents because the embeddings table references doc_id
     # (enforced by application code; DuckDB 1.x lacks deferred FK checking).
@@ -428,11 +432,6 @@ ragnar_store_sync <- function(
       DBI::dbExecute(
         con,
         "DELETE FROM documents
-         WHERE origin IN (SELECT origin FROM origins_to_delete)"
-      )
-      DBI::dbExecute(
-        con,
-        "DELETE FROM page_metadata
          WHERE origin IN (SELECT origin FROM origins_to_delete)"
       )
     })

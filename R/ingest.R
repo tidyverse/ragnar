@@ -201,27 +201,21 @@ ragnar_store_ingest <- function(
     }
 
     origin <- chunks@document@origin
-    page_meta_df <- tibble(
-      origin = origin,
-      last_modified = result$last_modified,
-      content_hash = result$content_hash
-    )
-    local_duckdb_register(store@con, "page_meta_to_upsert", page_meta_df)
     # An unchanged task must not replace newer metadata from another input
     # that prepared the same document origin.
     DBI::dbExecute(
       store@con,
       "
-      INSERT INTO page_metadata (origin, last_modified, content_hash)
-      SELECT origin, last_modified::TIMESTAMPTZ, content_hash
-      FROM page_meta_to_upsert
-      ON CONFLICT(origin) DO UPDATE SET
-        last_modified = excluded.last_modified,
-        content_hash  = excluded.content_hash,
-        ingested_at   = now()
-      WHERE NOT ? OR page_metadata.content_hash = excluded.content_hash
+      UPDATE documents SET
+        last_modified = ?::TIMESTAMPTZ,
+        content_hash = ?,
+        ingested_at = now()
+      WHERE origin = ? AND (NOT ? OR content_hash = ?)
       ",
-      params = list(result$is_unchanged)
+      params = list(
+        result$last_modified, result$content_hash, origin,
+        result$is_unchanged, result$content_hash
+      )
     )
 
     rows <- summary$path == task$path
@@ -367,11 +361,10 @@ prepare_ingest_paths <- function(paths, store) {
     SELECT
       p.origin,
       d.origin IS NULL AS is_new_origin,
-      pm.last_modified AS stored_last_modified,
-      pm.content_hash  AS stored_content_hash
+      d.last_modified AS stored_last_modified,
+      d.content_hash  AS stored_content_hash
     FROM paths_to_ingest p
     LEFT JOIN documents d USING(origin)
-    LEFT JOIN page_metadata pm USING(origin)
     "
   )
 

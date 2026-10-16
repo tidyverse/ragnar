@@ -139,7 +139,7 @@ ragnar_retrieve_vss <- function(
       ",
       "
       SELECT
-        doc.* EXCLUDE (text, doc_id),
+        doc.origin,
         {select_chunks('e')},
         '{method}' AS metric_name,
         {metric_value} AS metric_value,
@@ -182,7 +182,7 @@ ragnar_retrieve_vss <- function(
       query <- glue(
         "
         SELECT
-          doc.* EXCLUDE (text, doc_id),
+          doc.origin,
           e.*,
           doc.text[ e.start: e.end ] AS text
         FROM ({query}) AS e

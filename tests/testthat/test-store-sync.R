@@ -59,16 +59,25 @@ test_that("ragnar_store_sync() dry_run returns summary tibble without modifying 
   expect_setequal(remaining, paths)
 })
 
-test_that("ragnar_store_sync() also removes page_metadata for deleted origins", {
+test_that("ragnar_store_sync() preserves freshness only for kept documents", {
   skip_on_cran()
   paths <- local_md_paths(2)
   store <- local_store()
   ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
+  metadata <- DBI::dbGetQuery(
+    store@con,
+    "SELECT origin, last_modified, content_hash, ingested_at
+     FROM documents WHERE origin = ?",
+    params = list(paths[[1]])
+  )
 
   ragnar_store_sync(store, keep = paths[1], rebuild_index = FALSE)
 
-  meta_origins <- DBI::dbGetQuery(store@con, "SELECT origin FROM page_metadata")$origin
-  expect_false(paths[[2]] %in% meta_origins)
+  remaining <- DBI::dbGetQuery(
+    store@con,
+    "SELECT origin, last_modified, content_hash, ingested_at FROM documents"
+  )
+  expect_equal(remaining, metadata)
 })
 
 test_that("ragnar_store_sync() errors on v1 store", {

@@ -54,16 +54,49 @@ test_that("local file freshness preserves subsecond modification times", {
   )
 })
 
-test_that("page_metadata is written after successful ingest", {
+test_that("document freshness fields are written after successful ingest", {
   skip_on_cran()
   paths <- local_md_paths(1)
   store <- local_store()
+  mtime <- as.POSIXct("2026-10-16 12:00:00", tz = "UTC")
+  Sys.setFileTime(paths[[1]], mtime)
 
   ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
 
-  meta <- DBI::dbGetQuery(store@con, "SELECT * FROM page_metadata")
+  meta <- DBI::dbGetQuery(store@con, "SELECT * FROM documents")
   expect_equal(nrow(meta), 1L)
   expect_equal(meta$origin, paths[[1]])
+  expect_equal(meta$last_modified, mtime)
+  expect_equal(meta$content_hash, rlang::hash(meta$text))
+  expect_false(is.na(meta$ingested_at))
+})
+
+test_that("direct content updates clear stale document freshness", {
+  skip_on_cran()
+  path <- withr::local_tempfile(fileext = ".md")
+  writeLines("Original source.", path)
+  store <- ragnar_store_create(embed = NULL)
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  ragnar_store_ingest(
+    store, path, n_workers = 1L, progress = FALSE, build_index = FALSE
+  )
+
+  ragnar_store_update(
+    store, MarkdownDocument("Manual update.", origin = path) |> markdown_chunk()
+  )
+  meta <- DBI::dbGetQuery(
+    store@con, "SELECT last_modified, content_hash, ingested_at FROM documents"
+  )
+  expect_true(all(is.na(meta)))
+
+  result <- ragnar_store_ingest(
+    store, path, n_workers = 1L, progress = FALSE, build_index = FALSE
+  )
+  expect_equal(attr(result, "ingest_summary")$status, "ok")
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT text FROM documents")$text,
+    "Original source."
+  )
 })
 
 test_that("ingest_summary includes 'skipped_unchanged' as a possible status", {
