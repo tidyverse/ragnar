@@ -6,14 +6,18 @@
 #' on a single path and returns the resulting chunks (and any warnings) to the
 #' main process, which then writes them to the store.
 #'
+#' Worker errors signal a `ragnar_ingest_worker_error` warning with a `path`
+#' field identifying the failed input. Ingestion continues with the remaining
+#' paths.
+#'
 #' @param store A `RagnarStore`. Currently only version 2 stores are supported.
 #' @param paths Character vector of file paths or URLs to ingest.
 #' @param prepare Function that converts a single path into a
 #'   `MarkdownDocumentChunks` object. It is called with an argument `path` and
 #'   should return the prepared chunks (with or without an `embedding` column).
-#' @param n_workers Number of worker processes to use. Default is
-#'   `max(2, min(detectCores(), nrow(paths) %/% 4L, 8))`: at most 8 workers,
-#'   at most one worker per 4 pages, at least 2.
+#' @param n_workers Number of worker processes to use. The default is
+#'   `max(2L, min(n_cores, length(unique(paths)) %/% 4L, 8L))`, where `n_cores`
+#'   is the count returned by [parallel::detectCores()] (or 4 if unavailable).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
 #' @returns `store`, invisibly.
@@ -41,10 +45,11 @@ ragnar_store_ingest <- function(
   prepare <- rlang::as_function(prepare)
 
   if (is.null(n_workers)) {
-    n_workers <- compute_default_n_workers(
-      n_paths = nrow(paths),
-      n_cores = parallel::detectCores()
-    )
+    n_cores <- parallel::detectCores()
+    if (is.na(n_cores)) {
+      n_cores <- 4L
+    }
+    n_workers <- max(2L, min(n_cores, nrow(paths) %/% 4L, 8L))
     if (progress) {
       cli::cli_inform("Launching {n_workers} parallel workers.")
     }
@@ -105,10 +110,13 @@ ragnar_store_ingest <- function(
       cond <- attributes(result)
       failed_path <- cond$ragnar_path %||% "<unknown>"
       rlang::warn(
-        message = conditionMessage(structure(cond, class = cond$condition.class)),
-        class   = "ragnar_ingest_worker_error",
-        path    = failed_path,
-        call    = NULL
+        message = conditionMessage(structure(
+          cond,
+          class = cond$condition.class
+        )),
+        class = "ragnar_ingest_worker_error",
+        path = failed_path,
+        call = NULL
       )
       next
     }
@@ -139,7 +147,20 @@ ragnar_store_ingest <- function(
 
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
   tryCatch(
-    chunks <- prepare(path),
+    {
+      chunks <- prepare(path)
+      if (!S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
+        stop("Expected a MarkdownDocumentChunks object.", call. = FALSE)
+      }
+
+      if (embed) {
+        tryCatch(
+          chunks <- do_embed(store, chunks),
+          error = function(e) NULL
+        )
+      }
+      chunks
+    },
     error = function(e) {
       fmt <- '`prepare("%s")` signaled an Error: %s'
       e$message <- sprintf(fmt, path, conditionMessage(e))
@@ -147,20 +168,6 @@ do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
       stop(e)
     }
   )
-  if (!S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
-    msg <- glue(
-      '`prepare("{path}")` did not return a MarkdownDocumentChunks object'
-    )
-    stop(msg, call. = FALSE)
-  }
-
-  if (embed) {
-    tryCatch(
-      chunks <- do_embed(store, chunks),
-      error = function(e) NULL
-    )
-  }
-  chunks
 }
 
 do_embed <- function(store, chunks) {
@@ -259,16 +266,4 @@ prepare_ingest_paths <- function(paths, store) {
     ) |>
     arrange(rank, !.data$is_new_origin) |>
     select(-rank)
-}
-
-
-# Extracted to allow unit testing without mocking detectCores().
-# Formula: max(2, min(n_cores, n_paths %/% 4L, 8L))
-# - At most 8 workers (avoids over-parallelising embedding API calls)
-# - At most one worker per 4 pages (avoids daemon startup overhead on tiny jobs)
-# - At least 2 workers
-compute_default_n_workers <- function(n_paths, n_cores) {
-  min(n_cores, n_paths %/% 4L) |>
-    min(8L) |>
-    max(2L)
 }

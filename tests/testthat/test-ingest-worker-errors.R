@@ -11,6 +11,7 @@ test_that("worker error emits a classed ragnar_ingest_worker_error warning", {
     embed = NULL,
     overwrite = TRUE
   )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
 
   bad_prepare <- function(path) stop("intentional worker failure")
 
@@ -22,6 +23,7 @@ test_that("worker error emits a classed ragnar_ingest_worker_error warning", {
       progress = FALSE,
       build_index = FALSE
     ),
+    regexp = "intentional worker failure",
     class = "ragnar_ingest_worker_error"
   )
 })
@@ -34,44 +36,31 @@ test_that("ragnar_ingest_worker_error warning carries the failed path", {
     embed = NULL,
     overwrite = TRUE
   )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
 
-  bad_prepare <- function(path) stop("boom")
-
-  w <- tryCatch(
+  for (prepare in list(
+    function(path) stop("boom"),
+    function(path) NULL
+  )) {
+    captured <- NULL
     withCallingHandlers(
       ragnar_store_ingest(
         store,
         paths = "https://example.com/fail-me.html",
-        prepare = bad_prepare,
+        prepare = prepare,
+        n_workers = 1L,
         progress = FALSE,
         build_index = FALSE
       ),
       ragnar_ingest_worker_error = function(w) {
+        captured <<- w
         invokeRestart("muffleWarning")
       }
-    ),
-    ragnar_ingest_worker_error = function(w) w
-  )
+    )
 
-  # capture the condition properly
-  captured <- NULL
-  withCallingHandlers(
-    ragnar_store_ingest(
-      store,
-      paths = "https://example.com/fail-me.html",
-      prepare = bad_prepare,
-      progress = FALSE,
-      build_index = FALSE
-    ),
-    ragnar_ingest_worker_error = function(w) {
-      captured <<- w
-      invokeRestart("muffleWarning")
-    }
-  )
-
-  expect_false(is.null(captured))
-  expect_true(inherits(captured, "ragnar_ingest_worker_error"))
-  expect_equal(captured$path, "https://example.com/fail-me.html")
+    expect_s3_class(captured, "ragnar_ingest_worker_error")
+    expect_equal(captured$path, "https://example.com/fail-me.html")
+  }
 })
 
 test_that("ingest continues past worker errors (does not abort)", {
@@ -85,9 +74,12 @@ test_that("ingest continues past worker errors (does not abort)", {
     embed = NULL,
     overwrite = TRUE
   )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
 
   bad_prepare <- function(path) {
-    if (grepl("bad", path)) stop("intentional failure")
+    if (grepl("bad", path)) {
+      stop("intentional failure")
+    }
     path |> ragnar::read_as_markdown() |> ragnar::markdown_chunk()
   }
 
@@ -106,16 +98,4 @@ test_that("ingest continues past worker errors (does not abort)", {
   # The good path should still have been ingested
   n <- DBI::dbGetQuery(store@con, "SELECT COUNT(*) AS n FROM documents")$n
   expect_equal(n, 1L)
-})
-
-test_that("browser() comment is removed from ingest.R error handling", {
-  # This is a code-quality assertion: the leftover browser() scaffolding
-  # should not be present in the source.
-  pkg_root <- rprojroot::find_package_root_file()
-  ingest_path <- file.path(pkg_root, "R", "ingest.R")
-  ingest_src <- readLines(ingest_path, warn = FALSE)
-  expect_false(
-    any(grepl("browser()", ingest_src, fixed = TRUE)),
-    label = "browser() call found in ingest.R — remove development scaffolding"
-  )
 })

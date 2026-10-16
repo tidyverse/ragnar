@@ -22,8 +22,9 @@ ragnar_store_ingest(
 \code{MarkdownDocumentChunks} object. It is called with an argument \code{path} and
 should return the prepared chunks (with or without an \code{embedding} column).}
 
-\item{n_workers}{Number of worker processes to use. Defaults to the smaller of
-\code{length(paths)} and \code{parallel::detectCores()} (with a minimum of 1).}
+\item{n_workers}{Number of worker processes to use. The default is
+\code{max(2L, min(n_cores, length(unique(paths)) \%/\% 4L, 8L))}, where \code{n_cores}
+is the count returned by \code{\link[parallel:detectCores]{parallel::detectCores()}} (or 4 if unavailable).}
 
 \item{progress}{Logical; if \code{TRUE}, show a CLI progress bar.}
 
@@ -37,4 +38,8 @@ should return the prepared chunks (with or without an \code{embedding} column).}
 processes using \href{https://mirai.r-lib.org}{mirai}. Each worker calls \code{prepare}
 on a single path and returns the resulting chunks (and any warnings) to the
 main process, which then writes them to the store.
+
+Worker errors signal a \code{ragnar_ingest_worker_error} warning with a \code{path}
+field identifying the failed input. Ingestion continues with the remaining
+paths.
 }
