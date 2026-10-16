@@ -22,9 +22,15 @@
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
 #' @returns `store`, invisibly, with an `ingest_summary` attribute: a tibble
-#'   with columns `origin` (character) and `status` (character). Possible
-#'   status values are `"ok"` (ingested), `"skipped_exists"` (origin already
-#'   in the store), and `"error"` (worker failed).
+#'   with one row per input path, in input order, and columns:
+#'   * `path` (character): the input file path or URL.
+#'   * `status` (character): `"ok"` (ingested), `"skipped_exists"` (origin
+#'     already in the store), or `"error"` (worker failed).
+#'   * `n_chunks` (integer): the number of chunks stored for successful or
+#'     existing paths, or `0L` for worker failures.
+#'   * `message` (character): the worker error message, or `NA` otherwise.
+#'
+#'   Duplicate input paths share an outcome and are processed once.
 #' @export
 ragnar_store_ingest <- function(
   store,
@@ -44,18 +50,15 @@ ragnar_store_ingest <- function(
 
   check_character(paths, allow_na = FALSE)
 
-  build_summary <- function(rows) {
-    if (!length(rows)) {
-      return(tibble(origin = character(), status = character()))
-    }
-    tibble(
-      origin = vapply(rows, `[[`, character(1L), "origin"),
-      status = vapply(rows, `[[`, character(1L), "status")
-    )
-  }
+  summary <- tibble(
+    path = as.character(paths),
+    status = NA_character_,
+    n_chunks = 0L,
+    message = NA_character_
+  )
 
   if (!length(paths)) {
-    attr(store, "ingest_summary") <- build_summary(list())
+    attr(store, "ingest_summary") <- summary
     return(invisible(store))
   }
 
@@ -63,22 +66,16 @@ ragnar_store_ingest <- function(
 
   prepare <- rlang::as_function(prepare)
 
-  # Paths already in the store are skipped; record them immediately.
-  skipped <- paths[!paths$is_new_origin, "origin", drop = TRUE]
+  path_idx <- match(summary$path, paths$origin)
+  summary$n_chunks <- paths$n_chunks[path_idx]
+  summary$status[!paths$is_new_origin[path_idx]] <- "skipped_exists"
   new_paths <- paths[paths$is_new_origin, , drop = FALSE]
-
-  summary_rows <- vector("list", length(skipped) + nrow(new_paths))
-  idx <- 0L
-  for (s in skipped) {
-    idx <- idx + 1L
-    summary_rows[[idx]] <- list(origin = s, status = "skipped_exists")
-  }
 
   if (!nrow(new_paths)) {
     if (build_index) {
       ragnar_store_build_index(store)
     }
-    attr(store, "ingest_summary") <- build_summary(summary_rows[seq_len(idx)])
+    attr(store, "ingest_summary") <- summary
     return(invisible(store))
   }
 
@@ -160,8 +157,10 @@ ragnar_store_ingest <- function(
         path = task$path,
         call = NULL
       )
-      idx <- idx + 1L
-      summary_rows[[idx]] <- list(origin = task$path, status = "error")
+      rows <- summary$path == task$path
+      summary$status[rows] <- "error"
+      summary$n_chunks[rows] <- 0L
+      summary$message[rows] <- message
       next
     }
 
@@ -173,8 +172,9 @@ ragnar_store_ingest <- function(
     ragnar_store_update(store, result)
 
     origin <- result@document@origin
-    idx <- idx + 1L
-    summary_rows[[idx]] <- list(origin = origin, status = "ok")
+    rows <- summary$path == task$path
+    summary$status[rows] <- "ok"
+    summary$n_chunks[rows] <- nrow(result)
 
     if (progress) {
       cli::cli_alert_info(paste("ingested:", origin))
@@ -190,7 +190,7 @@ ragnar_store_ingest <- function(
     ragnar_store_build_index(store)
   }
 
-  attr(store, "ingest_summary") <- build_summary(summary_rows[seq_len(idx)])
+  attr(store, "ingest_summary") <- summary
 
   invisible(store)
 }
@@ -303,9 +303,14 @@ prepare_ingest_paths <- function(paths, store) {
   paths <- DBI::dbGetQuery(
     store@con,
     "
-    SELECT p.origin, d.origin IS NULL AS is_new_origin
+    SELECT
+      p.origin,
+      d.origin IS NULL AS is_new_origin,
+      COUNT(e.chunk_id)::INTEGER AS n_chunks
     FROM paths_to_ingest p
     LEFT JOIN documents d USING(origin)
+    LEFT JOIN embeddings e USING(doc_id)
+    GROUP BY p.origin, d.origin
     "
   )
 

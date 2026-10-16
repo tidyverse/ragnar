@@ -33,9 +33,17 @@ by \code{\link[parallel:detectCores]{parallel::detectCores()}} (or 4 if unavaila
 }
 \value{
 \code{store}, invisibly, with an \code{ingest_summary} attribute: a tibble
-with columns \code{origin} (character) and \code{status} (character). Possible
-status values are \code{"ok"} (ingested), \code{"skipped_exists"} (origin already
-in the store), and \code{"error"} (worker failed).
+with one row per input path, in input order, and columns:
+\itemize{
+\item \code{path} (character): the input file path or URL.
+\item \code{status} (character): \code{"ok"} (ingested), \code{"skipped_exists"} (origin
+already in the store), or \code{"error"} (worker failed).
+\item \code{n_chunks} (integer): the number of chunks stored for successful or
+existing paths, or \code{0L} for worker failures.
+\item \code{message} (character): the worker error message, or \code{NA} otherwise.
+}
+
+Duplicate input paths share an outcome and are processed once.
 }
 \description{
 \code{ragnar_store_ingest()} distributes document preparation work over multiple
