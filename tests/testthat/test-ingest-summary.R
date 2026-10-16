@@ -5,7 +5,7 @@
 #
 #   attr(result, "ingest_summary") is a tibble with columns:
 #     - path      <chr>: the input path/URL
-#     - status    <chr>: one of "ok", "skipped_exists", "error"
+#     - status    <chr>: one of "ok", "skipped_unchanged", "error"
 #     - n_chunks  <int>: the number of stored chunks, or zero on error
 #     - message   <chr>: the worker error message, or NA
 
@@ -65,9 +65,9 @@ test_that("successfully ingested paths have status 'ok'", {
   )
 })
 
-# --- re-ingesting an existing origin reports "skipped_exists" -----------------
+# --- re-ingesting an existing origin reports "skipped_unchanged" -----------------
 
-test_that("paths already in the store have status 'skipped_exists'", {
+test_that("paths already in the store have status 'skipped_unchanged'", {
   skip_on_cran()
   paths <- local_md_paths(2)
   store <- local_store()
@@ -88,7 +88,7 @@ test_that("paths already in the store have status 'skipped_exists'", {
     summary,
     tibble(
       path = paths,
-      status = "skipped_exists",
+      status = "skipped_unchanged",
       n_chunks = counts$n_chunks[match(paths, counts$origin)],
       message = NA_character_
     )
@@ -116,7 +116,7 @@ test_that("ingest_summary distinguishes new paths from existing ones", {
     summary,
     tibble(
       path = c(old_paths, new_paths),
-      status = c("skipped_exists", "ok"),
+      status = c("skipped_unchanged", "ok"),
       n_chunks = 1L,
       message = NA_character_
     )
@@ -238,7 +238,7 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
   expect_gt(nrow(chunks), 1L)
 
   prepare <- function(path) {
-    text <- if (path == "alias-subset") {
+    text <- if (path != "alias-replacement") {
       paste(rep("Some content for several chunks.", 20), collapse = "\n\n")
     } else {
       "Replacement content."
@@ -259,7 +259,7 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
     attr(result, "ingest_summary"),
     tibble(
       path = c("canonical", "alias-subset"),
-      status = c("skipped_exists", "ok"),
+      status = c("ok", "ok"),
       n_chunks = nrow(chunks),
       message = NA_character_
     )
@@ -277,7 +277,7 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
     attr(result, "ingest_summary"),
     tibble(
       path = c("canonical", "alias-replacement"),
-      status = c("skipped_exists", "ok"),
+      status = c("ok", "ok"),
       n_chunks = 1L,
       message = NA_character_
     )

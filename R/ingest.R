@@ -17,15 +17,15 @@
 #'   should return the prepared chunks (with or without an `embedding` column).
 #' @param n_workers Number of worker processes to use. The default is
 #'   `max(2L, min(n_cores, n_paths %/% 4L, 8L))`, where `n_paths` is the number of
-#'   unique paths not already in the store and `n_cores` is the count returned
+#'   unique paths requiring ingestion and `n_cores` is the count returned
 #'   by [parallel::detectCores()] (or 4 if unavailable).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
 #' @returns `store`, invisibly, with an `ingest_summary` attribute: a tibble
 #'   with one row per input path, in input order, and columns:
 #'   * `path` (character): the input file path or URL.
-#'   * `status` (character): `"ok"` (processed successfully), `"skipped_exists"` (origin
-#'     already in the store), or `"error"` (worker failed).
+#'   * `status` (character): `"ok"` (processed successfully), `"skipped_unchanged"`
+#'     (origin in the store and confirmed unchanged), or `"error"` (worker failed).
 #'   * `n_chunks` (integer): the number of chunks stored for the document's
 #'     origin after ingestion, or `0L` for worker failures.
 #'   * `message` (character): the worker error message, or `NA` otherwise.
@@ -95,8 +95,10 @@ ragnar_store_ingest <- function(
   prepare <- rlang::as_function(prepare)
 
   path_idx <- match(summary$path, paths$origin)
-  summary$status[!paths$is_new_origin[path_idx]] <- "skipped_exists"
-  new_paths <- paths[paths$is_new_origin, , drop = FALSE]
+  skipped <- !paths$is_new_origin & paths$is_unchanged
+  summary$status[skipped[path_idx]] <- "skipped_unchanged"
+  new_paths <- paths[!skipped, , drop = FALSE]
+  new_paths$is_new_origin[] <- TRUE
 
   if (!nrow(new_paths)) {
     return(finish_ingest())
@@ -194,7 +196,32 @@ ragnar_store_ingest <- function(
     }
     ragnar_store_update(store, result)
 
-    origin <- result@document@origin
+    # Record page metadata so future ingests can skip unchanged pages
+    origin_val <- result@document@origin
+    page_meta  <- tryCatch(
+      fetch_page_metadata(origin_val),
+      error = function(e) list(last_modified = NA_real_, content_hash = NA_character_)
+    )
+    page_meta_df <- tibble(
+      origin        = origin_val,
+      last_modified = page_meta$last_modified,
+      content_hash  = page_meta$content_hash %||% NA_character_
+    )
+    local_duckdb_register(store@con, "page_meta_to_upsert", page_meta_df)
+    DBI::dbExecute(
+      store@con,
+      "
+      INSERT INTO page_metadata (origin, last_modified, content_hash)
+      SELECT origin, last_modified::TIMESTAMPTZ, content_hash
+      FROM page_meta_to_upsert
+      ON CONFLICT(origin) DO UPDATE SET
+        last_modified = excluded.last_modified,
+        content_hash  = excluded.content_hash,
+        ingested_at   = now()
+      "
+    )
+
+    origin <- origin_val
     rows <- summary$path == task$path
     summary$status[rows] <- "ok"
     origins[rows] <- origin
@@ -315,16 +342,32 @@ prepare_ingest_paths <- function(paths, store) {
   paths <- unique(as.character(paths))
   paths <- tibble(origin = paths)
 
-  # add 'is_new_origin' col
+  # Check which origins already exist in documents, and load any stored metadata
   local_duckdb_register(store@con, "paths_to_ingest", paths)
   paths <- DBI::dbGetQuery(
     store@con,
     "
-    SELECT p.origin, d.origin IS NULL AS is_new_origin
+    SELECT
+      p.origin,
+      d.origin IS NULL AS is_new_origin,
+      pm.last_modified AS stored_last_modified,
+      pm.content_hash  AS stored_content_hash
     FROM paths_to_ingest p
     LEFT JOIN documents d USING(origin)
+    LEFT JOIN page_metadata pm USING(origin)
     "
   )
+
+  # For existing origins, check freshness. New origins are always dispatched.
+  paths$is_unchanged <- FALSE
+  existing_idx <- which(!paths$is_new_origin)
+  for (i in existing_idx) {
+    paths$is_unchanged[[i]] <- page_is_unchanged(
+      paths$origin[[i]],
+      paths$stored_last_modified[[i]],
+      paths$stored_content_hash[[i]]
+    )
+  }
 
   # uniformly distribute new and old origins
   paths |>
@@ -333,7 +376,7 @@ prepare_ingest_paths <- function(paths, store) {
       rank = dplyr::percent_rank(row_number())
     ) |>
     arrange(rank, !.data$is_new_origin) |>
-    select(-rank)
+    select(-rank, -dplyr::any_of(c("stored_last_modified", "stored_content_hash")))
 }
 
 # Returns list(last_modified = <POSIXct|NA>, content_hash = <chr|NA>)
@@ -396,7 +439,9 @@ page_is_unchanged <- function(origin, stored_last_modified, stored_content_hash)
   meta <- fetch_page_metadata(origin)
 
   if (!is.na(meta$last_modified) && !is.na(stored_last_modified)) {
-    return(as.numeric(meta$last_modified) == as.numeric(stored_last_modified))
+    # Compare at whole-second precision: sub-second round-trip through
+    # DuckDB TIMESTAMPTZ can introduce rounding differences of ~1 microsecond.
+    return(trunc(as.numeric(meta$last_modified)) == trunc(as.numeric(stored_last_modified)))
   }
 
   if (!is.na(meta$content_hash) && !is.na(stored_content_hash)) {
