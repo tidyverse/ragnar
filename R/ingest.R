@@ -335,3 +335,73 @@ prepare_ingest_paths <- function(paths, store) {
     arrange(rank, !.data$is_new_origin) |>
     select(-rank)
 }
+
+# Returns list(last_modified = <POSIXct|NA>, content_hash = <chr|NA>)
+# For HTTP URLs: HEAD first; if Last-Modified present, return it and skip hash.
+# If no Last-Modified, fetch body and hash it.
+# For local paths: use file.mtime(); no hash needed.
+fetch_page_metadata <- function(origin) {
+  if (grepl("^https?://", origin)) {
+    resp <- tryCatch(
+      httr2::request(origin) |>
+        httr2::req_method("HEAD") |>
+        httr2::req_perform(),
+      error = function(e) NULL
+    )
+    if (!is.null(resp)) {
+      lm_raw <- httr2::resp_header(resp, "Last-Modified")
+      if (!is.null(lm_raw) && nzchar(lm_raw)) {
+        lm <- tryCatch(
+          as.POSIXct(lm_raw, format = "%a, %d %b %Y %H:%M:%S GMT", tz = "UTC"),
+          error = function(e) NA_real_
+        )
+        if (!is.na(lm)) {
+          return(list(last_modified = lm, content_hash = NA_character_))
+        }
+      }
+    }
+    # Fall back: fetch full content and hash it
+    content <- tryCatch({
+      resp2 <- httr2::request(origin) |> httr2::req_perform()
+      httr2::resp_body_string(resp2)
+    }, error = function(e) NULL)
+    if (is.null(content)) {
+      return(list(last_modified = NA_real_, content_hash = NA_character_))
+    }
+    return(list(
+      last_modified = NA_real_,
+      content_hash  = rlang::hash(content)
+    ))
+  }
+
+  # Local file
+  if (file.exists(origin)) {
+    return(list(
+      last_modified = file.mtime(origin),
+      content_hash  = NA_character_
+    ))
+  }
+
+  list(last_modified = NA_real_, content_hash = NA_character_)
+}
+
+# Returns TRUE if the page is unchanged relative to stored metadata.
+# stored_last_modified: POSIXct or NA; stored_content_hash: character or NA.
+# Returns FALSE if either stored value is NA (always re-ingest when unknown).
+page_is_unchanged <- function(origin, stored_last_modified, stored_content_hash) {
+  if (is.na(stored_last_modified) && is.na(stored_content_hash)) {
+    return(FALSE)
+  }
+
+  meta <- fetch_page_metadata(origin)
+
+  if (!is.na(meta$last_modified) && !is.na(stored_last_modified)) {
+    return(as.numeric(meta$last_modified) == as.numeric(stored_last_modified))
+  }
+
+  if (!is.na(meta$content_hash) && !is.na(stored_content_hash)) {
+    return(meta$content_hash == stored_content_hash)
+  }
+
+  FALSE
+}
