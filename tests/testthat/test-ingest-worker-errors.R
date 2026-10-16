@@ -99,3 +99,45 @@ test_that("ingest continues past worker errors (does not abort)", {
   n <- DBI::dbGetQuery(store@con, "SELECT COUNT(*) AS n FROM documents")$n
   expect_equal(n, 1L)
 })
+
+test_that("worker exits warn with their path and allow ingestion to finish", {
+  skip_on_cran()
+
+  store <- ragnar_store_create(
+    withr::local_tempfile(fileext = ".store"),
+    embed = NULL
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+
+  prepare <- function(path) {
+    if (path == "exiting-worker") {
+      quit(save = "no", status = 1L)
+    }
+    ragnar::MarkdownDocument("Some content.", origin = path) |>
+      ragnar::markdown_chunk()
+  }
+
+  captured <- NULL
+  withCallingHandlers(
+    result <- ragnar_store_ingest(
+      store,
+      paths = c("exiting-worker", "valid-worker"),
+      prepare = prepare,
+      n_workers = 2L,
+      progress = FALSE,
+      build_index = FALSE
+    ),
+    ragnar_ingest_worker_error = function(w) {
+      captured <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_identical(result, store)
+  expect_s3_class(captured, "ragnar_ingest_worker_error")
+  expect_equal(captured$path, "exiting-worker")
+  expect_equal(
+    DBI::dbGetQuery(store@con, "SELECT origin FROM documents")$origin,
+    "valid-worker"
+  )
+})

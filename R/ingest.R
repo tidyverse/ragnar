@@ -104,18 +104,19 @@ ragnar_store_ingest <- function(
   }
 
   repeat {
-    result <- task_queue$pop_result(unavailable = break)
+    task <- task_queue$pop_result(unavailable = break)
+    result <- task$data
 
     if (mirai::is_error_value(result)) {
-      cond <- attributes(result)
-      failed_path <- cond$ragnar_path %||% "<unknown>"
+      message <- if (mirai::is_mirai_error(result)) {
+        conditionMessage(result)
+      } else {
+        nanonext::nng_error(result)
+      }
       rlang::warn(
-        message = conditionMessage(structure(
-          cond,
-          class = cond$condition.class
-        )),
+        message = message,
         class = "ragnar_ingest_worker_error",
-        path = failed_path,
+        path = task$path,
         call = NULL
       )
       next
@@ -164,7 +165,6 @@ do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
     error = function(e) {
       fmt <- '`prepare("%s")` signaled an Error: %s'
       e$message <- sprintf(fmt, path, conditionMessage(e))
-      e$ragnar_path <- path
       stop(e)
     }
   )
@@ -202,8 +202,10 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
     ) {
       mirai_args <- .pending[[1L]]
       .pending <<- .pending[-1L]
-      .active[[length(.active) + 1L]] <<-
-        inject(mirai::mirai(!!!mirai_args, .compute = .compute))
+      .active[[length(.active) + 1L]] <<- list(
+        mirai = inject(mirai::mirai(!!!mirai_args, .compute = .compute)),
+        path = mirai_args$path
+      )
     }
   }
 
@@ -212,11 +214,11 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
       out <- .finished[[1L]]
       .finished <<- .finished[-1]
       .launch_jobs()
-      return(out$data)
+      return(list(data = out$mirai$data, path = out$path))
     }
 
     if (length(.active)) {
-      idx <- mirai::race_mirai(.active)
+      idx <- mirai::race_mirai(lapply(.active, `[[`, "mirai"))
       .finished <<- c(.finished, .active[idx])
       .active <<- .active[-idx]
       return(pop_result(unavailable = unavailable))
