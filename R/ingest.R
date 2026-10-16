@@ -6,13 +6,18 @@
 #' on a single path and returns the resulting chunks (and any warnings) to the
 #' main process, which then writes them to the store.
 #'
+#' Worker errors signal a `ragnar_ingest_worker_error` warning with a `path`
+#' field identifying the failed input. Ingestion continues with the remaining
+#' paths.
+#'
 #' @param store A `RagnarStore`. Currently only version 2 stores are supported.
 #' @param paths Character vector of file paths or URLs to ingest.
 #' @param prepare Function that converts a single path into a
 #'   `MarkdownDocumentChunks` object. It is called with an argument `path` and
 #'   should return the prepared chunks (with or without an `embedding` column).
-#' @param n_workers Number of worker processes to use. Defaults to the smaller of
-#'   `length(paths)` and `parallel::detectCores()` (with a minimum of 1).
+#' @param n_workers Number of worker processes to use. The default is
+#'   `max(2L, min(n_cores, length(unique(paths)) %/% 4L, 8L))`, where `n_cores`
+#'   is the count returned by [parallel::detectCores()] (or 4 if unavailable).
 #' @param progress Logical; if `TRUE`, show a CLI progress bar.
 #' @param build_index Logical; whether to call `ragnar_store_build_index()` after ingestion.
 #' @returns `store`, invisibly.
@@ -40,10 +45,11 @@ ragnar_store_ingest <- function(
   prepare <- rlang::as_function(prepare)
 
   if (is.null(n_workers)) {
-    n_workers <-
-      max(na.rm = TRUE, parallel::detectCores(), 4L) |>
-      min(nrow(paths) %/% 4L, 8) |>
-      max(2L)
+    n_cores <- parallel::detectCores()
+    if (is.na(n_cores)) {
+      n_cores <- 4L
+    }
+    n_workers <- max(2L, min(n_cores, nrow(paths) %/% 4L, 8L))
     if (progress) {
       cli::cli_inform("Launching {n_workers} parallel workers.")
     }
@@ -98,13 +104,24 @@ ragnar_store_ingest <- function(
   }
 
   repeat {
-    result <- task_queue$pop_result(unavailable = break)
+    task <- task_queue$pop_result(unavailable = break)
+    result <- task$data
 
     if (mirai::is_error_value(result)) {
-      # browser()
-      cond <- attributes(result)
-      class(cond) <- cond$condition.class
-      warning(cond)
+      message <- if (mirai::is_mirai_error(result)) {
+        conditionMessage(result)
+      } else if (mirai::is_mirai_interrupt(result)) {
+        # mirai does not retain the interrupt condition's message.
+        "Worker interrupted."
+      } else {
+        nanonext::nng_error(result)
+      }
+      rlang::warn(
+        message = message,
+        class = "ragnar_ingest_worker_error",
+        path = task$path,
+        call = NULL
+      )
       next
     }
 
@@ -114,7 +131,6 @@ ragnar_store_ingest <- function(
       )
     }
     ragnar_store_update(store, result)
-    # tryCatch(ragnar_store_update(store, result), error = function(e) browser()) {
 
     if (progress) {
       cli::cli_alert_info(paste("ingested:", result@document@origin))
@@ -135,27 +151,26 @@ ragnar_store_ingest <- function(
 
 do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
   tryCatch(
-    chunks <- prepare(path),
+    {
+      chunks <- prepare(path)
+      if (!S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
+        stop("Expected a MarkdownDocumentChunks object.", call. = FALSE)
+      }
+
+      if (embed) {
+        tryCatch(
+          chunks <- do_embed(store, chunks),
+          error = function(e) NULL
+        )
+      }
+      chunks
+    },
     error = function(e) {
       fmt <- '`prepare("%s")` signaled an Error: %s'
       e$message <- sprintf(fmt, path, conditionMessage(e))
       stop(e)
     }
   )
-  if (!S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
-    msg <- glue(
-      '`prepare("{path}")` did not return a MarkdownDocumentChunks object'
-    )
-    stop(msg, call. = FALSE)
-  }
-
-  if (embed) {
-    tryCatch(
-      chunks <- do_embed(store, chunks),
-      error = function(e) NULL
-    )
-  }
-  chunks
 }
 
 do_embed <- function(store, chunks) {
@@ -190,8 +205,10 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
     ) {
       mirai_args <- .pending[[1L]]
       .pending <<- .pending[-1L]
-      .active[[length(.active) + 1L]] <<-
-        inject(mirai::mirai(!!!mirai_args, .compute = .compute))
+      .active[[length(.active) + 1L]] <<- list(
+        mirai = inject(mirai::mirai(!!!mirai_args, .compute = .compute)),
+        path = mirai_args$path
+      )
     }
   }
 
@@ -200,11 +217,11 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
       out <- .finished[[1L]]
       .finished <<- .finished[-1]
       .launch_jobs()
-      return(out$data)
+      return(list(data = out$mirai$data, path = out$path))
     }
 
     if (length(.active)) {
-      idx <- mirai::race_mirai(.active)
+      idx <- mirai::race_mirai(lapply(.active, `[[`, "mirai"))
       .finished <<- c(.finished, .active[idx])
       .active <<- .active[-idx]
       return(pop_result(unavailable = unavailable))

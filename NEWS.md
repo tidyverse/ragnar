@@ -1,5 +1,14 @@
 # ragnar (development version)
 
+-   `ragnar_store_ingest()` now reports worker failures as
+    `ragnar_ingest_worker_error` warnings with a `path` field identifying the
+    failed input, including when `prepare()` returns an invalid result or a
+    worker exits (#205).
+
+-   `ragnar_store_ingest()` now limits its default worker count by the detected
+    core count, with a minimum of two workers. If core detection is unavailable,
+    four cores are assumed (#206).
+
 -   ragnar now requires DuckDB >= 1.5.0, whose row-ID fetching keeps indexed
     VSS retrieval bounded to the selected matches.
 
