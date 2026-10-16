@@ -75,6 +75,9 @@ ragnar_store_ingest <- function(
   }
 
   if (!nrow(new_paths)) {
+    if (build_index) {
+      ragnar_store_build_index(store)
+    }
     attr(store, "ingest_summary") <- build_summary(summary_rows[seq_len(idx)])
     return(invisible(store))
   }
