@@ -110,6 +110,9 @@ ragnar_store_ingest <- function(
     if (mirai::is_error_value(result)) {
       message <- if (mirai::is_mirai_error(result)) {
         conditionMessage(result)
+      } else if (mirai::is_mirai_interrupt(result)) {
+        # mirai does not retain the interrupt condition's message.
+        "Worker interrupted."
       } else {
         nanonext::nng_error(result)
       }

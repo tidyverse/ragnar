@@ -141,3 +141,41 @@ test_that("worker exits warn with their path and allow ingestion to finish", {
     "valid-worker"
   )
 })
+
+test_that("worker interruptions report a useful message and their path", {
+  skip_on_cran()
+
+  store <- ragnar_store_create(
+    withr::local_tempfile(fileext = ".store"),
+    embed = NULL
+  )
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+
+  prepare <- function(path) {
+    stop(structure(
+      list(message = "interrupted"),
+      class = c("interrupt", "condition")
+    ))
+  }
+
+  captured <- NULL
+  withCallingHandlers(
+    result <- ragnar_store_ingest(
+      store,
+      paths = "interrupted-worker",
+      prepare = prepare,
+      n_workers = 1L,
+      progress = FALSE,
+      build_index = FALSE
+    ),
+    ragnar_ingest_worker_error = function(w) {
+      captured <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_identical(result, store)
+  expect_s3_class(captured, "ragnar_ingest_worker_error")
+  expect_equal(captured$path, "interrupted-worker")
+  expect_equal(conditionMessage(captured), "Worker interrupted.")
+})
