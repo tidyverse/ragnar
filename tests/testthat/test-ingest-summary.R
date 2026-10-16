@@ -229,9 +229,11 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
 
   store <- ragnar_store_create(embed = NULL)
   withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  canonical <- withr::local_tempfile(fileext = ".md")
+  writeLines("Canonical document source.", canonical)
   document <- MarkdownDocument(
     paste(rep("Some content for several chunks.", 20), collapse = "\n\n"),
-    origin = "canonical"
+    origin = canonical
   )
   chunks <- markdown_chunk(document, target_size = 50, target_overlap = 0)
   ragnar_store_insert(store, chunks)
@@ -243,7 +245,7 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
     } else {
       "Replacement content."
     }
-    chunks <- ragnar::MarkdownDocument(text, origin = "canonical") |>
+    chunks <- ragnar::MarkdownDocument(text, origin = canonical) |>
       ragnar::markdown_chunk(target_size = 50, target_overlap = 0)
     if (path == "alias-subset") {
       chunks <- dplyr::slice(chunks, 1L)
@@ -251,22 +253,27 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
     chunks
   }
 
+  ragnar_store_ingest(
+    store, canonical, prepare = prepare,
+    n_workers = 1L, progress = FALSE, build_index = FALSE
+  )
+
   result <- ragnar_store_ingest(
-    store, c("canonical", "alias-subset"), prepare = prepare,
+    store, c(canonical, "alias-subset"), prepare = prepare,
     n_workers = 1L, progress = FALSE, build_index = FALSE
   )
   expect_identical(
     attr(result, "ingest_summary"),
     tibble(
-      path = c("canonical", "alias-subset"),
-      status = c("ok", "ok"),
+      path = c(canonical, "alias-subset"),
+      status = c("skipped_unchanged", "ok"),
       n_chunks = nrow(chunks),
       message = NA_character_
     )
   )
 
   result <- ragnar_store_ingest(
-    store, c("canonical", "alias-replacement"), prepare = prepare,
+    store, c(canonical, "alias-replacement"), prepare = prepare,
     n_workers = 1L, progress = FALSE, build_index = FALSE
   )
   expect_equal(
@@ -276,8 +283,8 @@ test_that("ingest_summary counts stored chunks for prepared document origins", {
   expect_identical(
     attr(result, "ingest_summary"),
     tibble(
-      path = c("canonical", "alias-replacement"),
-      status = c("ok", "ok"),
+      path = c(canonical, "alias-replacement"),
+      status = c("skipped_unchanged", "ok"),
       n_chunks = 1L,
       message = NA_character_
     )
