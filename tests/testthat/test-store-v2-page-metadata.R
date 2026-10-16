@@ -27,3 +27,17 @@ test_that("ragnar_store_connect() recognises stores with page_metadata", {
   expect_true("page_metadata" %in% tables)
   DBI::dbDisconnect(store2@con, shutdown = TRUE)
 })
+
+test_that("connecting to an older v2 store asks users to recreate it", {
+  skip_on_cran()
+  location <- withr::local_tempfile(fileext = ".duckdb")
+  store <- ragnar_store_create(location, embed = NULL)
+  DBI::dbExecute(store@con, "DROP TABLE page_metadata")
+  DBI::dbDisconnect(store@con, shutdown = TRUE)
+
+  expect_error(
+    ragnar_store_connect(location, read_only = FALSE),
+    "Recreate it with `ragnar_store_create()`.",
+    fixed = TRUE
+  )
+})

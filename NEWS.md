@@ -1,5 +1,10 @@
 # ragnar (development version)
 
+-   `ragnar_store_ingest()` now skips unchanged sources using modification
+    times or a hash of the prepared Markdown. `ragnar_store_sync()` removes
+    documents outside a supplied set of origins. Recreate existing v2 stores
+    to use the new format; stores are not migrated automatically (#200, #201).
+
 -   `ragnar_store_ingest()` now returns an `ingest_summary` attribute reporting
     each input path's status, stored chunk count, and worker error message.
     Index requests are honored when all paths already exist (#202, #208).

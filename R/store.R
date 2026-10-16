@@ -15,6 +15,10 @@
 #' easiest way to prepare `chunks` for `version = 2` is with
 #' `read_as_markdown()` and `markdown_chunk()`.
 #'
+#' Incremental ingestion and store synchronization require the current v2
+#' format. Recreate older v2 stores with `ragnar_store_create()`; existing
+#' stores are not migrated automatically.
+#'
 #' **Version 1 – flat chunks**
 #'
 #' With `version = 1`, ragnar keeps all chunks in a single table. This lets you
@@ -264,6 +268,13 @@ ragnar_store_connect <- function(
     version <- 1L
   } else {
     stop("Store must be created with ragnar_store_create()")
+  }
+
+  if (version == 2L && !"page_metadata" %in% tables) {
+    dbDisconnect(con, shutdown = TRUE)
+    rlang::abort(
+      "This store uses an older v2 format. Recreate it with `ragnar_store_create()`."
+    )
   }
 
   dbExecute(con, "INSTALL fts; INSTALL vss;")
