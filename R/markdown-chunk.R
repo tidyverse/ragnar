@@ -247,13 +247,15 @@ markdown_node_positions <- function(md, type = NULL, text = FALSE) {
   df$sourcepos <- NULL
 
   # prepare to convert byte index to a char index
-  chars <- stri_split_boundaries(md, type = "character")[[1L]]
+  # Count code points (not grapheme clusters) so offsets agree with stri_length()/stri_sub() (#158).
+  cps <- utf8ToInt(md)
+  chars <- intToUtf8(cps, multiple = TRUE)
   char_lens <- stri_numbytes(chars)
   char_startbytes <- cumsum(c(1L, char_lens))
   # TODO: this assume "\n" is the line sep. crlf should have been normalized out
   # by read_as_markdown(), but we should be robust to crlf here in case document was
   # read another way.
-  line_startbyte <- c(1L, char_startbytes[chars == "\n"] + 1L)
+  line_startbyte <- c(1L, char_startbytes[cps == 10L] + 1L)
 
   # # -1 because both start_line and start_line_byte are inclusive.
   # E.g, map "1:1" to 1

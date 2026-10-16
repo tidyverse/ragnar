@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `markdown_chunk()` no longer misplaces heading boundaries when the input
+    contains combining characters (NFD-normalized text) (@taekop, #158).
+
 -   `ragnar_store_ingest()` now skips unchanged sources using modification
     times or a hash of the prepared Markdown. `ragnar_store_sync()` removes
     documents outside a supplied set of origins. Recreate existing v2 stores
