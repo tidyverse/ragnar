@@ -2,6 +2,12 @@
 
 ## ragnar (development version)
 
+- [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
+  no longer misplaces heading boundaries when the input contains
+  combining characters (NFD-normalized text)
+  ([@taekop](https://github.com/taekop),
+  [\#158](https://github.com/tidyverse/ragnar/issues/158)).
+
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
   now skips unchanged sources using modification times or a hash of the
   prepared Markdown.
