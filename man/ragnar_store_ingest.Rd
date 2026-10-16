@@ -54,4 +54,8 @@ main process, which then writes them to the store.
 Worker errors signal a \code{ragnar_ingest_worker_error} warning with a \code{path}
 field identifying the failed input. Ingestion continues with the remaining
 paths.
+
+Unchanged modification times skip document preparation. When a modification
+time is unavailable or changes, \code{prepare()} runs and a hash of the prepared
+Markdown avoids embedding and storing unchanged content.
 }

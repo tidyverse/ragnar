@@ -10,6 +10,10 @@
 #' field identifying the failed input. Ingestion continues with the remaining
 #' paths.
 #'
+#' Unchanged modification times skip document preparation. When a modification
+#' time is unavailable or changes, `prepare()` runs and a hash of the prepared
+#' Markdown avoids embedding and storing unchanged content.
+#'
 #' @param store A `RagnarStore`. Currently only version 2 stores are supported.
 #' @param paths Character vector of file paths or URLs to ingest.
 #' @param prepare Function that converts a single path into a
@@ -98,7 +102,6 @@ ragnar_store_ingest <- function(
   skipped <- !paths$is_new_origin & paths$is_unchanged
   summary$status[skipped[path_idx]] <- "skipped_unchanged"
   new_paths <- paths[!skipped, , drop = FALSE]
-  new_paths$is_new_origin[] <- TRUE
 
   if (!nrow(new_paths)) {
     return(finish_ingest())
@@ -142,15 +145,18 @@ ragnar_store_ingest <- function(
     prepare = prepare,
     store = store,
     do_ingest_remote_work = do_ingest_remote_work,
+    fetch_last_modified = fetch_last_modified,
     do_embed = do_embed
   )
 
-  work_expr <- quote(do_ingest_remote_work(path, store, prepare, embed))
+  work_expr <- quote(
+    do_ingest_remote_work(path, store, prepare, stored_content_hash)
+  )
   for (i in seq_len(nrow(new_paths))) {
     task_queue$push_mirai(
       work_expr,
       path = new_paths$origin[[i]],
-      embed = new_paths$is_new_origin[[i]]
+      stored_content_hash = new_paths$stored_content_hash[[i]]
     )
   }
 
@@ -189,25 +195,20 @@ ragnar_store_ingest <- function(
       next
     }
 
-    if (!S7::S7_inherits(result, MarkdownDocumentChunks)) {
-      stop(
-        "Unexpected result from `prepare()`. Expected a `MarkdownDocumentChunks` object."
-      )
+    chunks <- result$chunks
+    if (!result$is_unchanged) {
+      ragnar_store_update(store, chunks)
     }
-    ragnar_store_update(store, result)
 
-    # Record page metadata so future ingests can skip unchanged pages
-    origin_val <- result@document@origin
-    page_meta  <- tryCatch(
-      fetch_page_metadata(origin_val),
-      error = function(e) list(last_modified = NA_real_, content_hash = NA_character_)
-    )
+    origin <- chunks@document@origin
     page_meta_df <- tibble(
-      origin        = origin_val,
-      last_modified = page_meta$last_modified,
-      content_hash  = page_meta$content_hash %||% NA_character_
+      origin = origin,
+      last_modified = result$last_modified,
+      content_hash = result$content_hash
     )
     local_duckdb_register(store@con, "page_meta_to_upsert", page_meta_df)
+    # An unchanged task must not replace newer metadata from another input
+    # that prepared the same document origin.
     DBI::dbExecute(
       store@con,
       "
@@ -218,12 +219,13 @@ ragnar_store_ingest <- function(
         last_modified = excluded.last_modified,
         content_hash  = excluded.content_hash,
         ingested_at   = now()
-      "
+      WHERE NOT ? OR page_metadata.content_hash = excluded.content_hash
+      ",
+      params = list(result$is_unchanged)
     )
 
-    origin <- origin_val
     rows <- summary$path == task$path
-    summary$status[rows] <- "ok"
+    summary$status[rows] <- if (result$is_unchanged) "skipped_unchanged" else "ok"
     origins[rows] <- origin
 
     if (progress) {
@@ -239,21 +241,36 @@ ragnar_store_ingest <- function(
   finish_ingest()
 }
 
-do_ingest_remote_work <- function(path, store, prepare, embed = TRUE) {
+do_ingest_remote_work <- function(path, store, prepare, stored_content_hash) {
   tryCatch(
     {
+      last_modified <- fetch_last_modified(path)
       chunks <- prepare(path)
       if (!S7::S7_inherits(chunks, MarkdownDocumentChunks)) {
         stop("Expected a MarkdownDocumentChunks object.", call. = FALSE)
       }
 
-      if (embed) {
+      if (
+        !identical(chunks@document@origin, path) || is.na(last_modified) ||
+          !isTRUE(last_modified == fetch_last_modified(path))
+      ) {
+        last_modified <- .POSIXct(NA_real_)
+      }
+      content_hash <- rlang::hash(as.character(chunks@document))
+      is_unchanged <- identical(content_hash, stored_content_hash)
+
+      if (!is_unchanged) {
         tryCatch(
           chunks <- do_embed(store, chunks),
           error = function(e) NULL
         )
       }
-      chunks
+      list(
+        chunks = chunks,
+        last_modified = last_modified,
+        content_hash = content_hash,
+        is_unchanged = is_unchanged
+      )
     },
     error = function(e) {
       fmt <- '`prepare("%s")` signaled an Error: %s'
@@ -364,8 +381,7 @@ prepare_ingest_paths <- function(paths, store) {
   for (i in existing_idx) {
     paths$is_unchanged[[i]] <- page_is_unchanged(
       paths$origin[[i]],
-      paths$stored_last_modified[[i]],
-      paths$stored_content_hash[[i]]
+      paths$stored_last_modified[[i]]
     )
   }
 
@@ -376,14 +392,10 @@ prepare_ingest_paths <- function(paths, store) {
       rank = dplyr::percent_rank(row_number())
     ) |>
     arrange(rank, !.data$is_new_origin) |>
-    select(-rank, -dplyr::any_of(c("stored_last_modified", "stored_content_hash")))
+    select(-rank, -dplyr::any_of("stored_last_modified"))
 }
 
-# Returns list(last_modified = <POSIXct|NA>, content_hash = <chr|NA>)
-# For HTTP URLs: HEAD first; if Last-Modified present, return it and skip hash.
-# If no Last-Modified, fetch body and hash it.
-# For local paths: use file.mtime(); no hash needed.
-fetch_page_metadata <- function(origin) {
+fetch_last_modified <- function(origin) {
   if (grepl("^https?://", origin)) {
     resp <- tryCatch(
       httr2::request(origin) |>
@@ -392,62 +404,28 @@ fetch_page_metadata <- function(origin) {
       error = function(e) NULL
     )
     if (!is.null(resp)) {
-      lm_raw <- httr2::resp_header(resp, "Last-Modified")
-      if (!is.null(lm_raw) && nzchar(lm_raw)) {
-        lm <- tryCatch(
-          as.POSIXct(lm_raw, format = "%a, %d %b %Y %H:%M:%S GMT", tz = "UTC"),
-          error = function(e) NA_real_
-        )
-        if (!is.na(lm)) {
-          return(list(last_modified = lm, content_hash = NA_character_))
-        }
-      }
+      return(curl::parse_date(httr2::resp_header(resp, "Last-Modified") %||% ""))
     }
-    # Fall back: fetch full content and hash it
-    content <- tryCatch({
-      resp2 <- httr2::request(origin) |> httr2::req_perform()
-      httr2::resp_body_string(resp2)
-    }, error = function(e) NULL)
-    if (is.null(content)) {
-      return(list(last_modified = NA_real_, content_hash = NA_character_))
-    }
-    return(list(
-      last_modified = NA_real_,
-      content_hash  = rlang::hash(content)
-    ))
+    return(.POSIXct(NA_real_))
   }
 
-  # Local file
-  if (file.exists(origin)) {
-    return(list(
-      last_modified = file.mtime(origin),
-      content_hash  = NA_character_
-    ))
-  }
-
-  list(last_modified = NA_real_, content_hash = NA_character_)
+  file.mtime(origin)
 }
 
-# Returns TRUE if the page is unchanged relative to stored metadata.
-# stored_last_modified: POSIXct or NA; stored_content_hash: character or NA.
-# Returns FALSE if either stored value is NA (always re-ingest when unknown).
-page_is_unchanged <- function(origin, stored_last_modified, stored_content_hash) {
-  if (is.na(stored_last_modified) && is.na(stored_content_hash)) {
+# Hash comparisons run in the worker against the prepared Markdown.
+page_is_unchanged <- function(origin, stored_last_modified) {
+  if (is.na(stored_last_modified)) {
     return(FALSE)
   }
 
-  meta <- fetch_page_metadata(origin)
+  last_modified <- fetch_last_modified(origin)
 
-  if (!is.na(meta$last_modified) && !is.na(stored_last_modified)) {
+  if (!is.na(last_modified)) {
     # DuckDB stores timestamps at microsecond precision.
     return(
-      round(as.numeric(meta$last_modified) * 1e6) ==
+      round(as.numeric(last_modified) * 1e6) ==
         round(as.numeric(stored_last_modified) * 1e6)
     )
-  }
-
-  if (!is.na(meta$content_hash) && !is.na(stored_content_hash)) {
-    return(meta$content_hash == stored_content_hash)
   }
 
   FALSE
