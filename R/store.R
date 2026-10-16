@@ -333,6 +333,106 @@ ragnar_store_update <- function(store, chunks) {
   invisible(store)
 }
 
+#' Remove stale documents from a Ragnar store
+#'
+#' `ragnar_store_sync()` deletes any documents whose `origin` is not in `keep`,
+#' along with their embeddings and page metadata. Use `dry_run = TRUE` to
+#' preview what would be deleted without modifying the store.
+#'
+#' @param store A `DuckDBRagnarStore` (version 2 only).
+#' @param keep Character vector of origin URLs or file paths to retain.
+#'   All other origins currently in the store are deleted.
+#' @param dry_run Logical. If `TRUE`, return a summary tibble of what would
+#'   be deleted without making any changes. Default `FALSE`.
+#' @param rebuild_index Logical. If `TRUE` (default), rebuild search indexes
+#'   after deletion via [ragnar_store_build_index()].
+#'
+#' @returns When `dry_run = FALSE`: `store` invisibly, with a `sync_summary`
+#'   attribute -- a tibble with columns `origin` (character) and `action`
+#'   (character: `"kept"` or `"deleted"`).
+#'   When `dry_run = TRUE`: the summary tibble directly.
+#'
+#' @export
+ragnar_store_sync <- function(
+  store,
+  keep,
+  dry_run       = FALSE,
+  rebuild_index = TRUE
+) {
+  stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
+  if (store@version != 2L) {
+    rlang::abort(
+      "`ragnar_store_sync()` only supports version 2 stores.",
+      call = NULL
+    )
+  }
+  check_character(keep, allow_na = FALSE)
+  check_bool(dry_run)
+  check_bool(rebuild_index)
+
+  con <- store@con
+
+  # Identify all current origins and classify as kept or deleted
+  keep_df <- tibble::tibble(origin = unique(as.character(keep)))
+  local_duckdb_register(con, "origins_to_keep", keep_df)
+
+  summary <- DBI::dbGetQuery(
+    con,
+    "
+    SELECT
+      d.origin,
+      CASE WHEN k.origin IS NOT NULL THEN 'kept' ELSE 'deleted' END AS action
+    FROM documents d
+    LEFT JOIN origins_to_keep k USING(origin)
+    ORDER BY action, d.origin
+    "
+  )
+  summary <- tibble::as_tibble(summary)
+
+  if (dry_run) {
+    return(summary)
+  }
+
+  to_delete <- summary$origin[summary$action == "deleted"]
+
+  if (length(to_delete)) {
+    to_delete_df <- tibble::tibble(origin = to_delete)
+    local_duckdb_register(con, "origins_to_delete", to_delete_df)
+
+    # DuckDB checks FK constraints at statement level within a transaction,
+    # so we must delete child rows (embeddings) before parent rows (documents)
+    # in separate statements. We do this outside an explicit transaction:
+    # embeddings first (satisfies FK), then documents, then page_metadata.
+    DBI::dbExecute(
+      con,
+      "
+      DELETE FROM embeddings
+      WHERE doc_id IN (
+        SELECT doc_id FROM documents
+        WHERE origin IN (SELECT origin FROM origins_to_delete)
+      )
+      "
+    )
+    DBI::dbExecute(
+      con,
+      "DELETE FROM documents
+       WHERE origin IN (SELECT origin FROM origins_to_delete)"
+    )
+    DBI::dbExecute(
+      con,
+      "DELETE FROM page_metadata
+       WHERE origin IN (SELECT origin FROM origins_to_delete)"
+    )
+  }
+
+  if (rebuild_index && length(to_delete)) {
+    ragnar_store_build_index(store)
+  }
+
+  attr(store, "sync_summary") <- summary
+  invisible(store)
+}
+
 #' Build a Ragnar Store index
 #'
 #' A search index must be built before calling `ragnar_retrieve()`. If
