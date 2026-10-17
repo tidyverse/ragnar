@@ -359,6 +359,105 @@ test_that("ragnar_find_links() preserves caller-owned XML namespaces", {
   )
 })
 
+test_that("ragnar_find_links() reads lastmod dates from sitemap XML", {
+  urls <- c("https://example.com/a.html", "https://example.com/b.html")
+  lastmods <- c("2024-03-15", "2025-11-01")
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    paste0(
+      "<url><loc>", urls, "</loc><lastmod>", lastmods, "</lastmod></url>",
+      collapse = ""
+    ),
+    "</urlset>"
+  )
+  sitemap <- withr::local_tempfile(fileext = "sitemap.xml", lines = xml)
+
+  result <- ragnar_find_links(sitemap)
+  lm <- attr(result, "last_modified")
+
+  expect_equal(
+    as.numeric(lm[urls[1]]),
+    as.numeric(as.POSIXct("2024-03-15", tz = "UTC"))
+  )
+  expect_equal(
+    as.numeric(lm[urls[2]]),
+    as.numeric(as.POSIXct("2025-11-01", tz = "UTC"))
+  )
+})
+
+test_that("ragnar_find_links() reads lastmod from a served sitemap without HEAD requests", {
+  urls <- c("https://example.com/a.html", "https://example.com/b.html")
+  lastmods <- c("2024-03-15", "2025-11-01")
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    paste0(
+      "<url><loc>", urls, "</loc><lastmod>", lastmods, "</lastmod></url>",
+      collapse = ""
+    ),
+    "</urlset>"
+  )
+  site <- local_link_site(c("/sitemap.xml" = xml))
+
+  result <- ragnar_find_links(site$url("/sitemap.xml"), get_timestamps = TRUE)
+  lm <- attr(result, "last_modified")
+
+  expect_equal(
+    as.numeric(lm[urls[1]]),
+    as.numeric(as.POSIXct("2024-03-15", tz = "UTC"))
+  )
+  expect_equal(
+    as.numeric(lm[urls[2]]),
+    as.numeric(as.POSIXct("2025-11-01", tz = "UTC"))
+  )
+
+  # No HEAD requests should be issued for URLs already covered by lastmod
+  requests <- httr2::request(site$url("/requests")) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json(simplifyVector = TRUE)
+  expect_equal(requests$method[requests$method == "head"], character(0))
+})
+
+test_that("ragnar_find_links() does not error on sitemap with relative <loc> URLs", {
+  # When a sitemap has relative URLs in <loc>, sitemap_lastmod is keyed by the
+  # relative URLs. After url_absolute2(), links become absolute URLs. Then
+  # sitemap_lastmod[abs_links] returns values with NA names (the relative keys
+  # are not found). The loop that copies lastmod values then calls lm_map[[NA]],
+  # which throws "subscript out of bounds" on an atomic POSIXct vector.
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<url><loc>/page1/</loc><lastmod>2024-03-15</lastmod></url>',
+    '<url><loc>/page2/</loc><lastmod>2025-11-01</lastmod></url>',
+    '</urlset>'
+  )
+  site <- local_link_site(c("/sitemap.xml" = xml))
+  expect_no_error(ragnar_find_links(site$url("/sitemap.xml")))
+})
+
+test_that("ragnar_find_links() warns and records problems for non-HTTP sitemap <loc> values", {
+  # Some sitemaps contain broken <loc> values such as "None" (unexpanded Quarto
+  # template) or "$DEPLOY_PREVIEW_URL/..." (unexpanded CI variable). These are
+  # not valid HTTP URLs and should be reported via the problems mechanism rather
+  # than silently returned as URLs.
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<url><loc>https://example.com/good/</loc><lastmod>2024-03-15</lastmod></url>',
+    '<url><loc>None</loc><lastmod>2024-06-01</lastmod></url>',
+    '<url><loc>$DEPLOY_PREVIEW_URL/page/</loc></url>',
+    '</urlset>'
+  )
+  site <- local_link_site(c("/sitemap.xml" = xml))
+  expect_warning(
+    result <- ragnar_find_links(site$url("/sitemap.xml")),
+    "could not be followed"
+  )
+  # Good URL is returned; bad ones are not
+  expect_true(any(grepl("good", result)))
+  expect_false(any(grepl("None|DEPLOY", result)))
+  # Bad locs appear in problems
+  problems <- attr(result, "problems")
+  expect_true(any(grepl("None|DEPLOY", problems$url)))
+})
+
 test_that("ragnar_find_links() validates local paths and HTTP links together", {
   site <- local_link_site(c("/remote.html" = "<p>Remote</p>"))
   fixture <- withr::local_tempdir()
