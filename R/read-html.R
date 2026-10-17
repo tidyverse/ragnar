@@ -492,10 +492,13 @@ ragnar_find_links <- function(
             page <- read_html2(item$url)
             resolved_url <- xml_url2(page) # maybe redirected
             resolved[item$url] <- resolved_url
+            found_links <- html_find_links(page)
             list(
-              links = html_find_links(page),
+              links = found_links,
               resolved_url = resolved_url,
-              last_modified = attr(page, "last_modified", exact = TRUE) %||% .POSIXct(NA_real_)
+              last_modified = attr(page, "last_modified", exact = TRUE) %||% .POSIXct(NA_real_),
+              link_lastmod = attr(found_links, "lastmod", exact = TRUE),
+              bad_locs = attr(found_links, "bad_locs", exact = TRUE)
             )
           },
 
@@ -503,15 +506,31 @@ ragnar_find_links <- function(
             # if there's an issue finding child links we log it into the `problems` table
             # which is included in the output as an attribute.
             problems[[length(problems) + 1]] <<- list(
-              link = item$url,
-              problem = conditionMessage(e)
+              url = item$url,
+              err = conditionMessage(e)
             )
             resolved[item$url] <- ""
-            list(links = character(0), resolved_url = NULL, last_modified = NULL)
+            list(links = character(0), resolved_url = NULL, last_modified = NULL, link_lastmod = NULL, bad_locs = NULL)
           }
         )
         if (!is.null(page_result$resolved_url)) {
           last_modified[[page_result$resolved_url]] <- page_result$last_modified
+        }
+        if (!is.null(page_result$link_lastmod)) {
+          lm_map <- as.list(page_result$link_lastmod)
+          for (nm in names(lm_map)) {
+            if (!is.null(nm) && !is.na(nm)) {
+              last_modified[[nm]] <- lm_map[[nm]]
+            }
+          }
+        }
+        if (length(page_result$bad_locs)) {
+          for (bad in page_result$bad_locs) {
+            problems[[length(problems) + 1]] <- list(
+              url = bad,
+              err = paste0("Sitemap <loc> is not a valid HTTP URL: ", bad)
+            )
+          }
         }
         links <- page_result$links
 
@@ -708,18 +727,36 @@ html_find_links <- function(x, absolute = TRUE) {
     x <- read_html2(x)
   }
 
+  sitemap_lastmod <- NULL
   links <- if (is_sitemap(x)) {
-    x |>
+    url_nodes <- x |>
       xml2::xml_find_all(
-        "//*[local-name() = 'urlset']/*[local-name() = 'url']/*[local-name() = 'loc']",
-        flatten = TRUE
-      ) |>
+        "//*[local-name() = 'urlset']/*[local-name() = 'url']"
+      )
+    locs <- url_nodes |>
+      xml2::xml_find_first("*[local-name() = 'loc']") |>
       xml2::xml_text()
+    lastmod_text <- url_nodes |>
+      xml2::xml_find_first("*[local-name() = 'lastmod']") |>
+      xml2::xml_text(trim = TRUE)
+    lastmod_ts <- tryCatch(
+      as.POSIXct(lastmod_text, format = "%Y-%m-%d", tz = "UTC"),
+      error = \(e) .POSIXct(rep(NA_real_, length(locs)))
+    )
+    names(lastmod_ts) <- locs
+    sitemap_lastmod <- lastmod_ts
+    bad <- locs[!is.na(locs) & !is_url(locs)]
+    good <- locs[is.na(locs) | is_url(locs)]
+    attr(good, "bad_locs") <- bad
+    good
   } else {
     x |>
       xml_find_all(".//a[@href]") |>
       xml_attr("href", default = "")
   }
+
+  # Save bad_locs before filtering strips the attribute
+  bad_locs <- attr(links, "bad_locs")
 
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
@@ -731,6 +768,14 @@ html_find_links <- function(x, absolute = TRUE) {
   if (absolute) {
     # Repeated path segments can be valid, e.g. GitHub owner/repository URLs.
     links <- url_absolute2(links, xml_url2(x))
+  }
+
+  if (!is.null(sitemap_lastmod)) {
+    attr(links, "lastmod") <- sitemap_lastmod[links]
+  }
+
+  if (length(bad_locs)) {
+    attr(links, "bad_locs") <- bad_locs
   }
 
   links
