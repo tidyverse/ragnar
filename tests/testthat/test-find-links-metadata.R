@@ -71,6 +71,6 @@ test_that("metadata results retain crawl problems for links removed by validatio
   expect_named(rows, c("source", "last_modified"))
   expect_equal(nrow(rows), 0L)
   problems <- attr(rows, "problems")
-  expect_equal(problems$url, site$url("/missing.html"))
-  expect_match(problems$err, "404")
+  expect_equal(problems$link, site$url("/missing.html"))
+  expect_match(problems$problem, "404")
 })

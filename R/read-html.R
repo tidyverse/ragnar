@@ -519,8 +519,8 @@ ragnar_find_links <- function(
             # if there's an issue finding child links we log it into the `problems` table
             # which is included in the output as an attribute.
             problems[[length(problems) + 1]] <<- list(
-              url = item$url,
-              err = conditionMessage(e)
+              link = item$url,
+              problem = conditionMessage(e)
             )
             resolved[item$url] <- ""
             list(links = character(0), resolved_url = NULL, last_modified = NULL, link_lastmod = NULL, bad_locs = NULL)
@@ -547,8 +547,8 @@ ragnar_find_links <- function(
         if (length(page_result$bad_locs)) {
           for (bad in page_result$bad_locs) {
             problems[[length(problems) + 1]] <- list(
-              url = bad,
-              err = paste0("Sitemap <loc> is not a valid HTTP URL: ", bad)
+              link = bad,
+              problem = paste0("Sitemap <loc> is not a valid HTTP URL: ", bad)
             )
           }
         }
@@ -612,10 +612,10 @@ ragnar_find_links <- function(
       map_lgl(\(x) inherits(x, "httr2_response"))
 
     errors <- map2(urls[!is_ok], resps[!is_ok], function(url, err) {
-      list(url = url, err = conditionMessage(err))
+      list(link = url, problem = conditionMessage(err))
     })
     errors <- c(errors, map2(paths[!paths_ok], path_results[!paths_ok], \(path, err) {
-      list(url = path, err = conditionMessage(err))
+      list(link = path, problem = conditionMessage(err))
     }))
 
     problems <- c(problems, errors)

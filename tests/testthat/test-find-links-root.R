@@ -420,7 +420,7 @@ test_that("ragnar_find_links() warns and records problems for non-HTTP sitemap <
   expect_false(any(grepl("None|DEPLOY", result)))
   # Bad locs appear in problems
   problems <- attr(result, "problems")
-  expect_true(any(grepl("None|DEPLOY", problems$url)))
+  expect_true(any(grepl("None|DEPLOY", problems$link)))
 })
 
 test_that("ragnar_find_links() validates local paths and HTTP links together", {
@@ -509,8 +509,8 @@ test_that("ragnar_find_links() reports malformed file URIs and keeps valid links
     ignore_attr = TRUE
   )
   problems <- attr(result, "problems")
-  expect_equal(problems$url, sort(malformed))
-  expect_match(problems$err, "Failed to parse URL", all = TRUE)
+  expect_equal(problems$link, sort(malformed))
+  expect_match(problems$problem, "Failed to parse URL", all = TRUE)
 })
 
 test_that("ragnar_find_links() validates and timestamps schemes regardless of case", {
@@ -572,7 +572,7 @@ test_that("ragnar_find_links() reports missing file URIs as their original URLs"
     "Some links could not be followed"
   )
   expect_equal(result, normalizePath(html, winslash = "/"), ignore_attr = TRUE)
-  expect_equal(attr(result, "problems"), tibble(url = uri, err = "File does not exist"))
+  expect_equal(attr(result, "problems"), tibble(link = uri, problem = "File does not exist"))
 })
 
 test_that("ragnar_find_links() validates a local root without outgoing links", {
@@ -598,6 +598,6 @@ test_that("ragnar_find_links() reports missing local files during validation", {
   expect_equal(result, root, ignore_attr = TRUE)
   expect_equal(
     attr(result, "problems"),
-    tibble(url = file.path(dirname(root), "missing.html"), err = "File does not exist")
+    tibble(link = file.path(dirname(root), "missing.html"), problem = "File does not exist")
   )
 })
