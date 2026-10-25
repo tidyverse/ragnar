@@ -13,7 +13,8 @@ ragnar_find_links(
   url_filter = identity,
   validate = FALSE,
   get_timestamps = FALSE,
-  include_root = FALSE
+  include_root = FALSE,
+  metadata = FALSE
 )
 }
 \arguments{
@@ -56,9 +57,14 @@ recorded as \code{NA}.}
 page in the results, subject to \code{children_only}, \code{url_filter}, and \code{validate}.
 Sitemap inputs contribute only their listed URLs. If \code{FALSE}, the starting
 page can still be returned when it is found through a link.}
+
+\item{metadata}{Default is \code{FALSE}. If \code{TRUE}, returns a tibble with a
+character \code{source} column and a \code{POSIXct} \code{last_modified} column, with one
+row per returned link. Missing timestamps are \code{NA}. This does not request
+additional timestamps; use \code{get_timestamps = TRUE} for that.}
 }
 \value{
-A \code{ragnar_links} object: a character vector of URLs, sorted
+By default, a \code{ragnar_links} object: a character vector of URLs, sorted
 alphabetically and deduplicated, with the following attributes:
 \describe{
 \item{\code{last_modified}}{A named \code{POSIXct} vector mapping each crawled URL
@@ -69,7 +75,10 @@ or \code{get_timestamps = FALSE} and the page was not visited) are \code{NA}.}
 present only when one or more URLs could not be fetched during crawling.}
 }
 Joins and row-binding combine links as ordinary character vectors. To keep
-timestamps in the combined data, store them in a separate column first.
+timestamps in the combined data, use \code{metadata = TRUE}. This returns a tibble
+with \code{source} and \code{last_modified} columns in the same order as the default
+vector. Both return types retain the \code{problems} attribute when present,
+including problems for links excluded from the results.
 }
 \description{
 Find links on a page
@@ -92,8 +101,9 @@ links <- ragnar_find_links(
   "https://docs.posit.co/",
   children_only = TRUE,
   depth = 1,
-  get_timestamps = TRUE
+  get_timestamps = TRUE,
+  metadata = TRUE
 )
-attr(links, "last_modified")
+links$last_modified
 }
 }

@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+-   `ragnar_find_links(metadata = TRUE)` returns a tibble with `source` and
+    `last_modified` columns, so timestamps stay with their links through joins
+    and row-binding. The default remains a character vector (#212).
+
 -   `markdown_chunk()` no longer misplaces heading boundaries when the input
     contains combining characters (NFD-normalized text) (@taekop, #158).
 

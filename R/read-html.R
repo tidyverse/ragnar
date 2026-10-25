@@ -371,7 +371,12 @@ ragnar_read_document <- function(
 #'   Sitemap inputs contribute only their listed URLs. If `FALSE`, the starting
 #'   page can still be returned when it is found through a link.
 #'
-#' @return A `ragnar_links` object: a character vector of URLs, sorted
+#' @param metadata Default is `FALSE`. If `TRUE`, returns a tibble with a
+#'   character `source` column and a `POSIXct` `last_modified` column, with one
+#'   row per returned link. Missing timestamps are `NA`. This does not request
+#'   additional timestamps; use `get_timestamps = TRUE` for that.
+#'
+#' @return By default, a `ragnar_links` object: a character vector of URLs, sorted
 #'   alphabetically and deduplicated, with the following attributes:
 #'   \describe{
 #'     \item{`last_modified`}{A named `POSIXct` vector mapping each crawled URL
@@ -382,7 +387,10 @@ ragnar_read_document <- function(
 #'       present only when one or more URLs could not be fetched during crawling.}
 #'   }
 #'   Joins and row-binding combine links as ordinary character vectors. To keep
-#'   timestamps in the combined data, store them in a separate column first.
+#'   timestamps in the combined data, use `metadata = TRUE`. This returns a tibble
+#'   with `source` and `last_modified` columns in the same order as the default
+#'   vector. Both return types retain the `problems` attribute when present,
+#'   including problems for links excluded from the results.
 #' @export
 #'
 #' @examples
@@ -403,9 +411,10 @@ ragnar_read_document <- function(
 #'   "https://docs.posit.co/",
 #'   children_only = TRUE,
 #'   depth = 1,
-#'   get_timestamps = TRUE
+#'   get_timestamps = TRUE,
+#'   metadata = TRUE
 #' )
-#' attr(links, "last_modified")
+#' links$last_modified
 #' }
 ragnar_find_links <- function(
   x,
@@ -416,10 +425,12 @@ ragnar_find_links <- function(
   url_filter = identity,
   validate = FALSE,
   get_timestamps = FALSE,
-  include_root = FALSE
+  include_root = FALSE,
+  metadata = FALSE
 ) {
   rlang::check_dots_empty()
   stopifnot(is.logical(include_root), length(include_root) == 1L, !is.na(include_root))
+  stopifnot(is.logical(metadata), length(metadata) == 1L, !is.na(metadata))
 
   if (inherits(x, "xml_node")) {
     requested_url <- xml_url2(x)
@@ -656,6 +667,17 @@ ragnar_find_links <- function(
     attr(out, "last_modified") <- structure(
       numeric(0), class = c("POSIXct", "POSIXt"), names = character(0)
     )
+  }
+
+  if (metadata) {
+    rows <- tibble(
+      source = as.character(out),
+      last_modified = .POSIXct(
+        as.numeric(attr(out, "last_modified")[out]), tz = "UTC"
+      )
+    )
+    attr(rows, "problems") <- attr(out, "problems")
+    return(rows)
   }
 
   class(out) <- c("ragnar_links", "character")
