@@ -4,23 +4,36 @@
 \alias{ragnar_store_audit}
 \title{Audit a Ragnar store against an expected set of URLs}
 \usage{
-ragnar_store_audit(store, expected)
+ragnar_store_audit(store, expected, group_by = NULL)
 }
 \arguments{
 \item{store}{A \code{DuckDBRagnarStore} (version 2 only).}
 
 \item{expected}{A character vector or \code{\link[=ragnar_find_links]{ragnar_links}}
-object of URLs to check.}
+object of URLs or file paths to check, or a data frame with a character
+column named \code{source} containing those origins.}
+
+\item{group_by}{Optional name of a column in \code{expected} to group by. It must
+differ from the summary column names below. The default, \code{NULL}, reports
+totals for the full expected set.}
 }
 \value{
-A tibble with one row per URL in \code{expected} and columns:
+A tibble with one row, or one row per group when \code{group_by} is set,
+with columns:
 \itemize{
-\item \code{origin} (character): the expected URL.
-\item \code{status} (character): \code{"present"} or \code{"missing"}.
-\item \code{chunks} (integer): number of embedding rows for this origin; \code{0L} when
-missing.
-\item \code{ingested_at} (POSIXct): timestamp from \code{documents}; \code{NA} when missing.
+\item The grouping column, when requested, in order of first appearance.
+\item \code{expected} (integer): number of distinct expected origins.
+\item \code{ingested} (integer): number of expected origins present in the store.
+\item \code{missing} (integer): number of expected origins absent from the store.
+\item \code{chunks} (integer): total stored chunks for the expected origins.
+\item \code{missing_urls} (list): a character vector of missing origins for each row,
+or \code{character()} when all expected origins are present.
 }
+
+Duplicate origins are counted once per group. Origins stored outside the
+expected set are excluded. Empty ungrouped input returns one row of zero
+counts; empty grouped input returns zero rows. Read-only connections are
+supported.
 }
 \description{
 \code{ragnar_store_audit()} checks which URLs from an expected set are present in
