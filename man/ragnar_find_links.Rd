@@ -44,8 +44,10 @@ accessible. Requests are sent in parallel using \code{\link[httr2:req_perform_pa
 
 \item{get_timestamps}{Default is \code{FALSE}. If \code{TRUE}, sends parallel \code{HEAD}
 requests for any discovered URLs that were not visited during crawling, and
-records their \code{Last-Modified} response header. Pages fetched during crawling
-already have their timestamp from the \code{GET} response at no extra cost.
+records their \code{Last-Modified} response header. Sitemap \verb{<lastmod>} dates and
+datetimes are recorded without extra requests; only missing or invalid
+sitemap dates need \code{HEAD} requests. Pages fetched during crawling use the
+\code{GET} response header when present and retain their sitemap date otherwise.
 Useful for incremental ingest: callers can skip re-fetching pages whose
 timestamp has not changed since the last run. Note that not all hosting
 platforms set \code{Last-Modified}; S3-backed sites (including many

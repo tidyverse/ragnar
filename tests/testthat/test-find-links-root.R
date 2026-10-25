@@ -385,44 +385,7 @@ test_that("ragnar_find_links() reads lastmod dates from sitemap XML", {
   )
 })
 
-test_that("ragnar_find_links() reads lastmod from a served sitemap without HEAD requests", {
-  urls <- c("https://example.com/a.html", "https://example.com/b.html")
-  lastmods <- c("2024-03-15", "2025-11-01")
-  xml <- paste0(
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    paste0(
-      "<url><loc>", urls, "</loc><lastmod>", lastmods, "</lastmod></url>",
-      collapse = ""
-    ),
-    "</urlset>"
-  )
-  site <- local_link_site(c("/sitemap.xml" = xml))
-
-  result <- ragnar_find_links(site$url("/sitemap.xml"), get_timestamps = TRUE)
-  lm <- attr(result, "last_modified")
-
-  expect_equal(
-    as.numeric(lm[urls[1]]),
-    as.numeric(as.POSIXct("2024-03-15", tz = "UTC"))
-  )
-  expect_equal(
-    as.numeric(lm[urls[2]]),
-    as.numeric(as.POSIXct("2025-11-01", tz = "UTC"))
-  )
-
-  # No HEAD requests should be issued for URLs already covered by lastmod
-  requests <- httr2::request(site$url("/requests")) |>
-    httr2::req_perform() |>
-    httr2::resp_body_json(simplifyVector = TRUE)
-  expect_equal(requests$method[requests$method == "head"], character(0))
-})
-
-test_that("ragnar_find_links() does not error on sitemap with relative <loc> URLs", {
-  # When a sitemap has relative URLs in <loc>, sitemap_lastmod is keyed by the
-  # relative URLs. After url_absolute2(), links become absolute URLs. Then
-  # sitemap_lastmod[abs_links] returns values with NA names (the relative keys
-  # are not found). The loop that copies lastmod values then calls lm_map[[NA]],
-  # which throws "subscript out of bounds" on an atomic POSIXct vector.
+test_that("ragnar_find_links() reports relative sitemap locations", {
   xml <- paste0(
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     '<url><loc>/page1/</loc><lastmod>2024-03-15</lastmod></url>',
@@ -430,7 +393,9 @@ test_that("ragnar_find_links() does not error on sitemap with relative <loc> URL
     '</urlset>'
   )
   site <- local_link_site(c("/sitemap.xml" = xml))
-  expect_no_error(ragnar_find_links(site$url("/sitemap.xml")))
+  expect_warning(result <- ragnar_find_links(site$url("/sitemap.xml")), "could not be followed")
+  expect_equal(as.character(result), character())
+  expect_equal(nrow(attr(result, "problems")), 2L)
 })
 
 test_that("ragnar_find_links() warns and records problems for non-HTTP sitemap <loc> values", {

@@ -357,8 +357,10 @@ ragnar_read_document <- function(
 #'
 #' @param get_timestamps Default is `FALSE`. If `TRUE`, sends parallel `HEAD`
 #'   requests for any discovered URLs that were not visited during crawling, and
-#'   records their `Last-Modified` response header. Pages fetched during crawling
-#'   already have their timestamp from the `GET` response at no extra cost.
+#'   records their `Last-Modified` response header. Sitemap `<lastmod>` dates and
+#'   datetimes are recorded without extra requests; only missing or invalid
+#'   sitemap dates need `HEAD` requests. Pages fetched during crawling use the
+#'   `GET` response header when present and retain their sitemap date otherwise.
 #'   Useful for incremental ingest: callers can skip re-fetching pages whose
 #'   timestamp has not changed since the last run. Note that not all hosting
 #'   platforms set `Last-Modified`; S3-backed sites (including many
@@ -525,14 +527,21 @@ ragnar_find_links <- function(
           }
         )
         if (!is.null(page_result$resolved_url)) {
-          last_modified[[page_result$resolved_url]] <- page_result$last_modified
+          # Prefer the response header, retaining sitemap dates across redirects.
+          timestamps <- c(
+            page_result$last_modified,
+            last_modified[[page_result$resolved_url]],
+            last_modified[[item$url]]
+          )
+          last_modified[[page_result$resolved_url]] <- timestamps[!is.na(timestamps)][1L]
         }
         if (!is.null(page_result$link_lastmod)) {
-          lm_map <- as.list(page_result$link_lastmod)
+          # Missing sitemap dates still need the normal HEAD request path.
+          lm_map <- as.list(
+            page_result$link_lastmod[!is.na(page_result$link_lastmod)]
+          )
           for (nm in names(lm_map)) {
-            if (!is.null(nm) && !is.na(nm)) {
-              last_modified[[nm]] <- lm_map[[nm]]
-            }
+            last_modified[[nm]] <- lm_map[[nm]]
           }
         }
         if (length(page_result$bad_locs)) {
@@ -757,18 +766,27 @@ html_find_links <- function(x, absolute = TRUE) {
       )
     locs <- url_nodes |>
       xml2::xml_find_first("*[local-name() = 'loc']") |>
-      xml2::xml_text()
+      xml2::xml_text(trim = TRUE)
     lastmod_text <- url_nodes |>
       xml2::xml_find_first("*[local-name() = 'lastmod']") |>
       xml2::xml_text(trim = TRUE)
-    lastmod_ts <- tryCatch(
-      as.POSIXct(lastmod_text, format = "%Y-%m-%d", tz = "UTC"),
-      error = \(e) .POSIXct(rep(NA_real_, length(locs)))
+    date_only <- grepl("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", lastmod_text)
+    datetime <- grepl(
+      "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\\.[0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      lastmod_text
     )
-    names(lastmod_ts) <- locs
-    sitemap_lastmod <- lastmod_ts
-    bad <- locs[!is.na(locs) & !is_url(locs)]
-    good <- locs[is.na(locs) | is_url(locs)]
+    lastmod_text[!date_only & !datetime] <- NA_character_
+    lastmod_text[date_only] <- paste0(lastmod_text[date_only], "T00:00:00Z")
+    lastmod_text <- sub("(T[0-9]{2}:[0-9]{2})(Z|[+-])", "\\1:00\\2", lastmod_text)
+    lastmod_text <- sub("Z$", "+0000", lastmod_text)
+    lastmod_text <- sub("([+-][0-9]{2}):([0-9]{2})$", "\\1\\2", lastmod_text)
+    sitemap_lastmod <- as.POSIXct(
+      lastmod_text, format = "%Y-%m-%dT%H:%M:%OS%z", tz = "UTC"
+    )
+    names(sitemap_lastmod) <- url_normalize(locs)
+    valid <- !is.na(locs) & grepl("^https?://", locs, ignore.case = TRUE)
+    bad <- locs[!valid]
+    good <- locs[valid]
     attr(good, "bad_locs") <- bad
     good
   } else {
