@@ -381,12 +381,13 @@ ragnar_read_document <- function(
 #' @return By default, a `ragnar_links` object: a character vector of URLs, sorted
 #'   alphabetically and deduplicated, with the following attributes:
 #'   \describe{
-#'     \item{`last_modified`}{A named `POSIXct` vector mapping each crawled URL
-#'       to its `Last-Modified` timestamp. Always present. URLs for which the
-#'       server did not return a timestamp (either because the header was absent
-#'       or `get_timestamps = FALSE` and the page was not visited) are `NA`.}
+#'     \item{`last_modified`}{A named `POSIXct` vector of timestamps from response
+#'       headers and sitemap entries. Always present. URLs without a known
+#'       timestamp are `NA` or absent from this vector; `metadata = TRUE` gives
+#'       every returned link a row with `NA` for an unknown timestamp.}
 #'     \item{`problems`}{A data frame with columns `link` and `problem`,
-#'       present only when one or more URLs could not be fetched during crawling.}
+#'       present when a link could not be fetched or validated, or a sitemap
+#'       entry lacks an absolute HTTP(S) URL.}
 #'   }
 #'   Joins and row-binding combine links as ordinary character vectors. To keep
 #'   timestamps in the combined data, use `metadata = TRUE`. This returns a tibble

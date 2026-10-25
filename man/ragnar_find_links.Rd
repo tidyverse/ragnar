@@ -69,12 +69,13 @@ additional timestamps; use \code{get_timestamps = TRUE} for that.}
 By default, a \code{ragnar_links} object: a character vector of URLs, sorted
 alphabetically and deduplicated, with the following attributes:
 \describe{
-\item{\code{last_modified}}{A named \code{POSIXct} vector mapping each crawled URL
-to its \code{Last-Modified} timestamp. Always present. URLs for which the
-server did not return a timestamp (either because the header was absent
-or \code{get_timestamps = FALSE} and the page was not visited) are \code{NA}.}
+\item{\code{last_modified}}{A named \code{POSIXct} vector of timestamps from response
+headers and sitemap entries. Always present. URLs without a known
+timestamp are \code{NA} or absent from this vector; \code{metadata = TRUE} gives
+every returned link a row with \code{NA} for an unknown timestamp.}
 \item{\code{problems}}{A data frame with columns \code{link} and \code{problem},
-present only when one or more URLs could not be fetched during crawling.}
+present when a link could not be fetched or validated, or a sitemap
+entry lacks an absolute HTTP(S) URL.}
 }
 Joins and row-binding combine links as ordinary character vectors. To keep
 timestamps in the combined data, use \code{metadata = TRUE}. This returns a tibble
