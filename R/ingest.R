@@ -352,32 +352,38 @@ mirai_queue <- function(max_uncollected = NULL, .compute = NULL) {
 prepare_ingest_paths <- function(paths, store) {
   paths <- unique(as.character(paths))
   paths <- tibble(origin = paths)
+  con <- store@con
 
-  # Check which origins already exist in documents, and load any stored metadata
-  local_duckdb_register(store@con, "paths_to_ingest", paths)
+  # Only fetch modification times for origins with stored freshness metadata.
+  local_duckdb_register(con, "paths_to_ingest", paths)
+  modification_times <- DBI::dbGetQuery(
+    con,
+    "
+    SELECT d.origin
+    FROM paths_to_ingest p
+    JOIN documents d USING(origin)
+    WHERE d.last_modified IS NOT NULL
+    "
+  )
+  modification_times$last_modified <- .POSIXct(vapply(
+    modification_times$origin, fetch_last_modified, numeric(1)
+  ))
+  local_duckdb_register(con, "ingest_modification_times", modification_times)
+
+  # Compare all timestamps using the same DuckDB conversion as storage.
   paths <- DBI::dbGetQuery(
-    store@con,
+    con,
     "
     SELECT
       p.origin,
       d.origin IS NULL AS is_new_origin,
-      d.last_modified AS stored_last_modified,
-      d.content_hash  AS stored_content_hash
+      d.content_hash AS stored_content_hash,
+      COALESCE(m.last_modified::TIMESTAMPTZ = d.last_modified, FALSE) AS is_unchanged
     FROM paths_to_ingest p
     LEFT JOIN documents d USING(origin)
+    LEFT JOIN ingest_modification_times m USING(origin)
     "
   )
-
-  # For existing origins, check freshness. New origins are always dispatched.
-  paths$is_unchanged <- FALSE
-  existing_idx <- which(!paths$is_new_origin)
-  for (i in existing_idx) {
-    paths$is_unchanged[[i]] <- page_is_unchanged(
-      store@con,
-      paths$origin[[i]],
-      paths$stored_last_modified[[i]]
-    )
-  }
 
   # uniformly distribute new and old origins
   paths |>
@@ -386,7 +392,7 @@ prepare_ingest_paths <- function(paths, store) {
       rank = dplyr::percent_rank(row_number())
     ) |>
     arrange(rank, !.data$is_new_origin) |>
-    select(-rank, -dplyr::any_of("stored_last_modified"))
+    select(-rank)
 }
 
 fetch_last_modified <- function(origin) {
@@ -404,23 +410,4 @@ fetch_last_modified <- function(origin) {
   }
 
   file.mtime(origin)
-}
-
-# Hash comparisons run in the worker against the prepared Markdown.
-page_is_unchanged <- function(con, origin, stored_last_modified) {
-  if (is.na(stored_last_modified)) {
-    return(FALSE)
-  }
-
-  last_modified <- fetch_last_modified(origin)
-  if (is.na(last_modified)) {
-    return(FALSE)
-  }
-
-  # Use the same timestamp conversion as storage, including subsecond rounding.
-  DBI::dbGetQuery(
-    con,
-    "SELECT ?::TIMESTAMPTZ = ?::TIMESTAMPTZ AS unchanged",
-    params = list(last_modified, stored_last_modified)
-  )$unchanged
 }
