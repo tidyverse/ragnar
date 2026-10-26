@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `ragnar_store_ingest()` skips unchanged files with subsecond modification
+    times consistently with DuckDB 2.0.
+
 -   `markdown_chunk()` no longer misplaces heading boundaries when the input
     contains combining characters (NFD-normalized text) (@taekop, #158).
 

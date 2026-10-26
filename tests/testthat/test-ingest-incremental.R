@@ -28,10 +28,10 @@ test_that("unchanged local files get status 'skipped_unchanged' on re-ingest", {
 
 test_that("local file freshness preserves subsecond modification times", {
   skip_on_cran()
-  paths <- local_md_paths(1)
+  paths <- local_md_paths(2)
   store <- local_store()
   mtime <- as.POSIXct("2026-10-16 12:00:00", tz = "UTC")
-  Sys.setFileTime(paths[[1]], mtime + 0.1234565)
+  Sys.setFileTime(paths, mtime + c(0.1234565, 0.1234575))
 
   ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
 
@@ -40,16 +40,19 @@ test_that("local file freshness preserves subsecond modification times", {
     prepare = function(path) stop("Unchanged timestamps should skip preparation."),
     progress = FALSE, build_index = FALSE
   )
-  expect_equal(attr(result, "ingest_summary")$status, "skipped_unchanged")
+  expect_equal(attr(result, "ingest_summary")$status, rep("skipped_unchanged", 2))
 
   writeLines(c("# Modified", "", "New content."), paths[[1]])
   Sys.setFileTime(paths[[1]], mtime + 0.8)
 
   result <- ragnar_store_ingest(store, paths, progress = FALSE, build_index = FALSE)
   summary <- attr(result, "ingest_summary")
-  expect_equal(summary$status, "ok")
+  expect_equal(summary$status, c("ok", "skipped_unchanged"))
   expect_equal(
-    DBI::dbGetQuery(store@con, "SELECT text FROM documents")$text,
+    DBI::dbGetQuery(
+      store@con, "SELECT text FROM documents WHERE origin = ?",
+      params = list(paths[[1]])
+    )$text,
     "# Modified\n\nNew content."
   )
 })

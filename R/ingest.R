@@ -373,6 +373,7 @@ prepare_ingest_paths <- function(paths, store) {
   existing_idx <- which(!paths$is_new_origin)
   for (i in existing_idx) {
     paths$is_unchanged[[i]] <- page_is_unchanged(
+      store@con,
       paths$origin[[i]],
       paths$stored_last_modified[[i]]
     )
@@ -406,21 +407,20 @@ fetch_last_modified <- function(origin) {
 }
 
 # Hash comparisons run in the worker against the prepared Markdown.
-page_is_unchanged <- function(origin, stored_last_modified) {
+page_is_unchanged <- function(con, origin, stored_last_modified) {
   if (is.na(stored_last_modified)) {
     return(FALSE)
   }
 
   last_modified <- fetch_last_modified(origin)
-
-  if (!is.na(last_modified)) {
-    # DuckDB rounds to microseconds with ties away from zero.
-    current <- as.numeric(last_modified) * 1e6
-    stored <- as.numeric(stored_last_modified) * 1e6
-    return(
-      trunc(current + sign(current) / 2) == trunc(stored + sign(stored) / 2)
-    )
+  if (is.na(last_modified)) {
+    return(FALSE)
   }
 
-  FALSE
+  # Use the same timestamp conversion as storage, including subsecond rounding.
+  DBI::dbGetQuery(
+    con,
+    "SELECT ?::TIMESTAMPTZ = ?::TIMESTAMPTZ AS unchanged",
+    params = list(last_modified, stored_last_modified)
+  )$unchanged
 }
