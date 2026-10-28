@@ -187,3 +187,53 @@ test_that("ragnar_find_links() retains sitemap dates when crawled pages omit hea
     as.numeric(as.POSIXct("2015-10-21 07:28:00", tz = "UTC"))
   )
 })
+
+test_that("GET timestamps take precedence regardless of sitemap crawl order", {
+  for (sitemap_first in c(FALSE, TRUE)) {
+    local({
+      app <- webfakes::new_app()
+      app$locals$sitemap <- if (sitemap_first) "/a.xml" else "/z.xml"
+      app$use(function(req, res, locals) {
+        if (req$path == "/") {
+          return(res$send(paste0(
+            '<a href="/page">Page</a><a href="/no-header">No header</a>',
+            '<a href="',
+            locals$sitemap,
+            '">Sitemap</a>'
+          )))
+        }
+        if (req$path == locals$sitemap) {
+          root <- paste0("http://", req$get_header("host"))
+          return(res$send(paste0(
+            "<urlset>",
+            paste0(
+              "<url><loc>",
+              root,
+              c("/page", "/no-header", "/unvisited"),
+              "</loc><lastmod>2024-03-15</lastmod></url>",
+              collapse = ""
+            ),
+            "</urlset>"
+          )))
+        }
+        if (req$path == "/page") {
+          res$set_header("Last-Modified", "Fri, 15 Mar 2024 18:25:30 GMT")
+        }
+        res$send("<p>Page</p>")
+      })
+      site <- webfakes::new_app_process(app)
+      withr::defer(site$stop())
+
+      result <- ragnar_find_links(site$url(), depth = 1, progress = FALSE)
+      urls <- site$url(c("/page", "/no-header", "/unvisited"))
+      expect_true(all(urls %in% result))
+      expect_equal(
+        as.numeric(attr(result, "last_modified")[urls]),
+        as.numeric(as.POSIXct(
+          c("2024-03-15 18:25:30", rep("2024-03-15 00:00:00", 2)),
+          tz = "UTC"
+        ))
+      )
+    })
+  }
+})

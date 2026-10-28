@@ -541,9 +541,12 @@ ragnar_find_links <- function(
           lm_map <- as.list(
             page_result$link_lastmod[!is.na(page_result$link_lastmod)]
           )
-          for (nm in names(lm_map)) {
-            last_modified[[nm]] <- lm_map[[nm]]
-          }
+          # Fill missing dates in a batch, preserving known response timestamps.
+          known <- names(last_modified)[
+            !vapply(last_modified, is.na, logical(1))
+          ]
+          lm_map <- lm_map[!names(lm_map) %in% known]
+          last_modified[names(lm_map)] <- lm_map
         }
         if (length(page_result$bad_locs)) {
           for (bad in page_result$bad_locs) {
