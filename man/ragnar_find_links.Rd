@@ -13,7 +13,8 @@ ragnar_find_links(
   url_filter = identity,
   validate = FALSE,
   get_timestamps = FALSE,
-  include_root = FALSE
+  include_root = FALSE,
+  metadata = FALSE
 )
 }
 \arguments{
@@ -43,8 +44,10 @@ accessible. Requests are sent in parallel using \code{\link[httr2:req_perform_pa
 
 \item{get_timestamps}{Default is \code{FALSE}. If \code{TRUE}, sends parallel \code{HEAD}
 requests for any discovered URLs that were not visited during crawling, and
-records their \code{Last-Modified} response header. Pages fetched during crawling
-already have their timestamp from the \code{GET} response at no extra cost.
+records their \code{Last-Modified} response header. Sitemap \verb{<lastmod>} dates and
+datetimes are recorded without extra requests; only missing or invalid
+sitemap dates need \code{HEAD} requests. Pages fetched during crawling use the
+\code{GET} response header when present and retain their sitemap date otherwise.
 Useful for incremental ingest: callers can skip re-fetching pages whose
 timestamp has not changed since the last run. Note that not all hosting
 platforms set \code{Last-Modified}; S3-backed sites (including many
@@ -56,20 +59,29 @@ recorded as \code{NA}.}
 page in the results, subject to \code{children_only}, \code{url_filter}, and \code{validate}.
 Sitemap inputs contribute only their listed URLs. If \code{FALSE}, the starting
 page can still be returned when it is found through a link.}
+
+\item{metadata}{Default is \code{FALSE}. If \code{TRUE}, returns a tibble with a
+character \code{source} column and a \code{POSIXct} \code{last_modified} column, with one
+row per returned link. Missing timestamps are \code{NA}. This does not request
+additional timestamps; use \code{get_timestamps = TRUE} for that.}
 }
 \value{
-A \code{ragnar_links} object: a character vector of URLs, sorted
+By default, a \code{ragnar_links} object: a character vector of URLs, sorted
 alphabetically and deduplicated, with the following attributes:
 \describe{
-\item{\code{last_modified}}{A named \code{POSIXct} vector mapping each crawled URL
-to its \code{Last-Modified} timestamp. Always present. URLs for which the
-server did not return a timestamp (either because the header was absent
-or \code{get_timestamps = FALSE} and the page was not visited) are \code{NA}.}
+\item{\code{last_modified}}{A named \code{POSIXct} vector of timestamps from response
+headers and sitemap entries. Always present. URLs without a known
+timestamp are \code{NA} or absent from this vector; \code{metadata = TRUE} gives
+every returned link a row with \code{NA} for an unknown timestamp.}
 \item{\code{problems}}{A data frame with columns \code{link} and \code{problem},
-present only when one or more URLs could not be fetched during crawling.}
+present when a link could not be fetched or validated, or a sitemap
+entry lacks an absolute HTTP(S) URL.}
 }
 Joins and row-binding combine links as ordinary character vectors. To keep
-timestamps in the combined data, store them in a separate column first.
+timestamps in the combined data, use \code{metadata = TRUE}. This returns a tibble
+with \code{source} and \code{last_modified} columns in the same order as the default
+vector. Both return types retain the \code{problems} attribute when present,
+including problems for links excluded from the results.
 }
 \description{
 Find links on a page
@@ -92,8 +104,9 @@ links <- ragnar_find_links(
   "https://docs.posit.co/",
   children_only = TRUE,
   depth = 1,
-  get_timestamps = TRUE
+  get_timestamps = TRUE,
+  metadata = TRUE
 )
-attr(links, "last_modified")
+links$last_modified
 }
 }

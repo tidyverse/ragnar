@@ -1,5 +1,14 @@
 # ragnar (development version)
 
+-   `ragnar_find_links()` reads modification dates and datetimes from sitemaps,
+    avoiding timestamp requests for URLs with a known date. Invalid sitemap
+    locations are reported in the `problems` attribute. Crawl and validation
+    problems use the documented `link` and `problem` columns (@andrie, #212).
+
+-   `ragnar_find_links(metadata = TRUE)` returns a tibble with `source` and
+    `last_modified` columns, so timestamps stay with their links through joins
+    and row-binding. The default remains a character vector (#212).
+
 -   `ragnar_store_ingest()` skips unchanged files with subsecond modification
     times consistently with DuckDB 2.0.
 

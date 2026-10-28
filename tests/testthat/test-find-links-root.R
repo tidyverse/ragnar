@@ -359,6 +359,70 @@ test_that("ragnar_find_links() preserves caller-owned XML namespaces", {
   )
 })
 
+test_that("ragnar_find_links() reads lastmod dates from sitemap XML", {
+  urls <- c("https://example.com/a.html", "https://example.com/b.html")
+  lastmods <- c("2024-03-15", "2025-11-01")
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    paste0(
+      "<url><loc>", urls, "</loc><lastmod>", lastmods, "</lastmod></url>",
+      collapse = ""
+    ),
+    "</urlset>"
+  )
+  sitemap <- withr::local_tempfile(fileext = "sitemap.xml", lines = xml)
+
+  result <- ragnar_find_links(sitemap)
+  lm <- attr(result, "last_modified")
+
+  expect_equal(
+    as.numeric(lm[urls[1]]),
+    as.numeric(as.POSIXct("2024-03-15", tz = "UTC"))
+  )
+  expect_equal(
+    as.numeric(lm[urls[2]]),
+    as.numeric(as.POSIXct("2025-11-01", tz = "UTC"))
+  )
+})
+
+test_that("ragnar_find_links() reports relative sitemap locations", {
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<url><loc>/page1/</loc><lastmod>2024-03-15</lastmod></url>',
+    '<url><loc>/page2/</loc><lastmod>2025-11-01</lastmod></url>',
+    '</urlset>'
+  )
+  site <- local_link_site(c("/sitemap.xml" = xml))
+  expect_warning(result <- ragnar_find_links(site$url("/sitemap.xml")), "could not be followed")
+  expect_equal(as.character(result), character())
+  expect_equal(nrow(attr(result, "problems")), 2L)
+})
+
+test_that("ragnar_find_links() warns and records problems for non-HTTP sitemap <loc> values", {
+  # Some sitemaps contain broken <loc> values such as "None" (unexpanded Quarto
+  # template) or "$DEPLOY_PREVIEW_URL/..." (unexpanded CI variable). These are
+  # not valid HTTP URLs and should be reported via the problems mechanism rather
+  # than silently returned as URLs.
+  xml <- paste0(
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<url><loc>https://example.com/good/</loc><lastmod>2024-03-15</lastmod></url>',
+    '<url><loc>None</loc><lastmod>2024-06-01</lastmod></url>',
+    '<url><loc>$DEPLOY_PREVIEW_URL/page/</loc></url>',
+    '</urlset>'
+  )
+  site <- local_link_site(c("/sitemap.xml" = xml))
+  expect_warning(
+    result <- ragnar_find_links(site$url("/sitemap.xml")),
+    "could not be followed"
+  )
+  # Good URL is returned; bad ones are not
+  expect_true(any(grepl("good", result)))
+  expect_false(any(grepl("None|DEPLOY", result)))
+  # Bad locs appear in problems
+  problems <- attr(result, "problems")
+  expect_true(any(grepl("None|DEPLOY", problems$link)))
+})
+
 test_that("ragnar_find_links() validates local paths and HTTP links together", {
   site <- local_link_site(c("/remote.html" = "<p>Remote</p>"))
   fixture <- withr::local_tempdir()
@@ -445,8 +509,8 @@ test_that("ragnar_find_links() reports malformed file URIs and keeps valid links
     ignore_attr = TRUE
   )
   problems <- attr(result, "problems")
-  expect_equal(problems$url, sort(malformed))
-  expect_match(problems$err, "Failed to parse URL", all = TRUE)
+  expect_equal(problems$link, sort(malformed))
+  expect_match(problems$problem, "Failed to parse URL", all = TRUE)
 })
 
 test_that("ragnar_find_links() validates and timestamps schemes regardless of case", {
@@ -508,7 +572,7 @@ test_that("ragnar_find_links() reports missing file URIs as their original URLs"
     "Some links could not be followed"
   )
   expect_equal(result, normalizePath(html, winslash = "/"), ignore_attr = TRUE)
-  expect_equal(attr(result, "problems"), tibble(url = uri, err = "File does not exist"))
+  expect_equal(attr(result, "problems"), tibble(link = uri, problem = "File does not exist"))
 })
 
 test_that("ragnar_find_links() validates a local root without outgoing links", {
@@ -534,6 +598,6 @@ test_that("ragnar_find_links() reports missing local files during validation", {
   expect_equal(result, root, ignore_attr = TRUE)
   expect_equal(
     attr(result, "problems"),
-    tibble(url = file.path(dirname(root), "missing.html"), err = "File does not exist")
+    tibble(link = file.path(dirname(root), "missing.html"), problem = "File does not exist")
   )
 })

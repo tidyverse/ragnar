@@ -357,8 +357,10 @@ ragnar_read_document <- function(
 #'
 #' @param get_timestamps Default is `FALSE`. If `TRUE`, sends parallel `HEAD`
 #'   requests for any discovered URLs that were not visited during crawling, and
-#'   records their `Last-Modified` response header. Pages fetched during crawling
-#'   already have their timestamp from the `GET` response at no extra cost.
+#'   records their `Last-Modified` response header. Sitemap `<lastmod>` dates and
+#'   datetimes are recorded without extra requests; only missing or invalid
+#'   sitemap dates need `HEAD` requests. Pages fetched during crawling use the
+#'   `GET` response header when present and retain their sitemap date otherwise.
 #'   Useful for incremental ingest: callers can skip re-fetching pages whose
 #'   timestamp has not changed since the last run. Note that not all hosting
 #'   platforms set `Last-Modified`; S3-backed sites (including many
@@ -371,18 +373,27 @@ ragnar_read_document <- function(
 #'   Sitemap inputs contribute only their listed URLs. If `FALSE`, the starting
 #'   page can still be returned when it is found through a link.
 #'
-#' @return A `ragnar_links` object: a character vector of URLs, sorted
+#' @param metadata Default is `FALSE`. If `TRUE`, returns a tibble with a
+#'   character `source` column and a `POSIXct` `last_modified` column, with one
+#'   row per returned link. Missing timestamps are `NA`. This does not request
+#'   additional timestamps; use `get_timestamps = TRUE` for that.
+#'
+#' @return By default, a `ragnar_links` object: a character vector of URLs, sorted
 #'   alphabetically and deduplicated, with the following attributes:
 #'   \describe{
-#'     \item{`last_modified`}{A named `POSIXct` vector mapping each crawled URL
-#'       to its `Last-Modified` timestamp. Always present. URLs for which the
-#'       server did not return a timestamp (either because the header was absent
-#'       or `get_timestamps = FALSE` and the page was not visited) are `NA`.}
+#'     \item{`last_modified`}{A named `POSIXct` vector of timestamps from response
+#'       headers and sitemap entries. Always present. URLs without a known
+#'       timestamp are `NA` or absent from this vector; `metadata = TRUE` gives
+#'       every returned link a row with `NA` for an unknown timestamp.}
 #'     \item{`problems`}{A data frame with columns `link` and `problem`,
-#'       present only when one or more URLs could not be fetched during crawling.}
+#'       present when a link could not be fetched or validated, or a sitemap
+#'       entry lacks an absolute HTTP(S) URL.}
 #'   }
 #'   Joins and row-binding combine links as ordinary character vectors. To keep
-#'   timestamps in the combined data, store them in a separate column first.
+#'   timestamps in the combined data, use `metadata = TRUE`. This returns a tibble
+#'   with `source` and `last_modified` columns in the same order as the default
+#'   vector. Both return types retain the `problems` attribute when present,
+#'   including problems for links excluded from the results.
 #' @export
 #'
 #' @examples
@@ -403,9 +414,10 @@ ragnar_read_document <- function(
 #'   "https://docs.posit.co/",
 #'   children_only = TRUE,
 #'   depth = 1,
-#'   get_timestamps = TRUE
+#'   get_timestamps = TRUE,
+#'   metadata = TRUE
 #' )
-#' attr(links, "last_modified")
+#' links$last_modified
 #' }
 ragnar_find_links <- function(
   x,
@@ -416,10 +428,12 @@ ragnar_find_links <- function(
   url_filter = identity,
   validate = FALSE,
   get_timestamps = FALSE,
-  include_root = FALSE
+  include_root = FALSE,
+  metadata = FALSE
 ) {
   rlang::check_dots_empty()
   stopifnot(is.logical(include_root), length(include_root) == 1L, !is.na(include_root))
+  stopifnot(is.logical(metadata), length(metadata) == 1L, !is.na(metadata))
 
   if (inherits(x, "xml_node")) {
     requested_url <- xml_url2(x)
@@ -492,10 +506,13 @@ ragnar_find_links <- function(
             page <- read_html2(item$url)
             resolved_url <- xml_url2(page) # maybe redirected
             resolved[item$url] <- resolved_url
+            found_links <- html_find_links(page)
             list(
-              links = html_find_links(page),
+              links = found_links,
               resolved_url = resolved_url,
-              last_modified = attr(page, "last_modified", exact = TRUE) %||% .POSIXct(NA_real_)
+              last_modified = attr(page, "last_modified", exact = TRUE) %||% .POSIXct(NA_real_),
+              link_lastmod = attr(found_links, "lastmod", exact = TRUE),
+              bad_locs = attr(found_links, "bad_locs", exact = TRUE)
             )
           },
 
@@ -507,11 +524,44 @@ ragnar_find_links <- function(
               problem = conditionMessage(e)
             )
             resolved[item$url] <- ""
-            list(links = character(0), resolved_url = NULL, last_modified = NULL)
+            list(links = character(0), resolved_url = NULL, last_modified = NULL, link_lastmod = NULL, bad_locs = NULL)
           }
         )
         if (!is.null(page_result$resolved_url)) {
-          last_modified[[page_result$resolved_url]] <- page_result$last_modified
+          # Prefer the response header, retaining sitemap dates across redirects.
+          timestamps <- c(
+            page_result$last_modified,
+            last_modified[[page_result$resolved_url]],
+            last_modified[[item$url]]
+          )
+          last_modified[[page_result$resolved_url]] <- timestamps[!is.na(timestamps)][1L]
+        }
+        if (!is.null(page_result$link_lastmod)) {
+          # Missing sitemap dates still need the normal HEAD request path.
+          lm_map <- as.list(
+            page_result$link_lastmod[!is.na(page_result$link_lastmod)]
+          )
+          # Use the same resolved URLs as result collection, including redirects
+          # visited before this sitemap was discovered.
+          redirects <- unlist(reticulate::py_to_r(resolved), use.names = TRUE)
+          destinations <- redirects[names(lm_map)]
+          redirected <- !is.na(destinations) & nzchar(destinations)
+          names(lm_map)[redirected] <- destinations[redirected]
+          lm_map <- lm_map[!duplicated(names(lm_map))]
+          # Fill missing dates in a batch, preserving known response timestamps.
+          known <- names(last_modified)[
+            !vapply(last_modified, is.na, logical(1))
+          ]
+          lm_map <- lm_map[!names(lm_map) %in% known]
+          last_modified[names(lm_map)] <- lm_map
+        }
+        if (length(page_result$bad_locs)) {
+          for (bad in page_result$bad_locs) {
+            problems[[length(problems) + 1]] <- list(
+              link = bad,
+              problem = paste0("Sitemap <loc> is not a valid HTTP URL: ", bad)
+            )
+          }
         }
         links <- page_result$links
 
@@ -573,10 +623,10 @@ ragnar_find_links <- function(
       map_lgl(\(x) inherits(x, "httr2_response"))
 
     errors <- map2(urls[!is_ok], resps[!is_ok], function(url, err) {
-      list(url = url, err = conditionMessage(err))
+      list(link = url, problem = conditionMessage(err))
     })
     errors <- c(errors, map2(paths[!paths_ok], path_results[!paths_ok], \(path, err) {
-      list(url = path, err = conditionMessage(err))
+      list(link = path, problem = conditionMessage(err))
     }))
 
     problems <- c(problems, errors)
@@ -637,6 +687,17 @@ ragnar_find_links <- function(
     attr(out, "last_modified") <- structure(
       numeric(0), class = c("POSIXct", "POSIXt"), names = character(0)
     )
+  }
+
+  if (metadata) {
+    rows <- tibble(
+      source = as.character(out),
+      last_modified = .POSIXct(
+        as.numeric(attr(out, "last_modified")[out]), tz = "UTC"
+      )
+    )
+    attr(rows, "problems") <- attr(out, "problems")
+    return(rows)
   }
 
   class(out) <- c("ragnar_links", "character")
@@ -708,18 +769,48 @@ html_find_links <- function(x, absolute = TRUE) {
     x <- read_html2(x)
   }
 
+  sitemap_lastmod <- NULL
   links <- if (is_sitemap(x)) {
-    x |>
+    url_nodes <- x |>
       xml2::xml_find_all(
-        "//*[local-name() = 'urlset']/*[local-name() = 'url']/*[local-name() = 'loc']",
-        flatten = TRUE
-      ) |>
-      xml2::xml_text()
+        "//*[local-name() = 'urlset']/*[local-name() = 'url']"
+      )
+    locs <- url_nodes |>
+      xml2::xml_find_first("*[local-name() = 'loc']") |>
+      xml2::xml_text(trim = TRUE)
+    lastmod_text <- url_nodes |>
+      xml2::xml_find_first("*[local-name() = 'lastmod']") |>
+      xml2::xml_text(trim = TRUE)
+    date_only <- grepl("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", lastmod_text)
+    datetime <- grepl(
+      "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\\.[0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      lastmod_text
+    )
+    lastmod_text[!date_only & !datetime] <- NA_character_
+    lastmod_text[date_only] <- paste0(lastmod_text[date_only], "T00:00:00Z")
+    lastmod_text <- sub("(T[0-9]{2}:[0-9]{2})(Z|[+-])", "\\1:00\\2", lastmod_text)
+    lastmod_text <- sub("Z$", "+0000", lastmod_text)
+    lastmod_text <- sub("([+-][0-9]{2}):([0-9]{2})$", "\\1\\2", lastmod_text)
+    sitemap_lastmod <- as.POSIXct(
+      lastmod_text, format = "%Y-%m-%dT%H:%M:%OS%z", tz = "UTC"
+    )
+    names(sitemap_lastmod) <- url_normalize(locs)
+    # Keep the first known date when multiple locations normalize to one URL.
+    sitemap_lastmod <- sitemap_lastmod[!is.na(sitemap_lastmod)]
+    sitemap_lastmod <- sitemap_lastmod[!duplicated(names(sitemap_lastmod))]
+    valid <- !is.na(locs) & grepl("^https?://", locs, ignore.case = TRUE)
+    bad <- locs[!valid]
+    good <- locs[valid]
+    attr(good, "bad_locs") <- bad
+    good
   } else {
     x |>
       xml_find_all(".//a[@href]") |>
       xml_attr("href", default = "")
   }
+
+  # Save bad_locs before filtering strips the attribute
+  bad_locs <- attr(links, "bad_locs")
 
   # Canonicalize links
   links <- stri_extract_first_regex(links, "^[^#]*") # strip section links
@@ -731,6 +822,14 @@ html_find_links <- function(x, absolute = TRUE) {
   if (absolute) {
     # Repeated path segments can be valid, e.g. GitHub owner/repository URLs.
     links <- url_absolute2(links, xml_url2(x))
+  }
+
+  if (!is.null(sitemap_lastmod)) {
+    attr(links, "lastmod") <- sitemap_lastmod[links]
+  }
+
+  if (length(bad_locs)) {
+    attr(links, "bad_locs") <- bad_locs
   }
 
   links
