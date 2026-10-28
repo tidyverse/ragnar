@@ -2,11 +2,22 @@
 
 ## ragnar (development version)
 
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  skips unchanged files with subsecond modification times consistently
+  with DuckDB 2.0.
+
 - [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
   no longer misplaces heading boundaries when the input contains
   combining characters (NFD-normalized text)
   ([@taekop](https://github.com/taekop),
   [\#158](https://github.com/tidyverse/ragnar/issues/158)).
+
+- [`ragnar_store_audit()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_audit.md)
+  reports expected, ingested, and missing origins, stored chunk counts,
+  and missing URLs, optionally grouped by a column in the expected data
+  frame ([@andrie](https://github.com/andrie),
+  [\#203](https://github.com/tidyverse/ragnar/issues/203),
+  [\#210](https://github.com/tidyverse/ragnar/issues/210)).
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
   now skips unchanged sources using modification times or a hash of the

@@ -139,7 +139,7 @@ ragnar_find_links("https://ellmer.tidyverse.org/")
 #> 3  <NA>               
 #> 4  <NA>               
 #> 5  <NA>               
-#> 6  2026-10-15 16:18:20
+#> 6  2026-10-23 20:50:27
 #> 7  <NA>               
 #> 8  <NA>               
 #> 9  <NA>               
@@ -165,7 +165,7 @@ ragnar_find_links("https://ellmer.tidyverse.org/", include_root = TRUE)
 #> 3  <NA>               
 #> 4  <NA>               
 #> 5  <NA>               
-#> 6  2026-10-15 16:18:20
+#> 6  2026-10-23 20:50:27
 #> 7  <NA>               
 #> 8  <NA>               
 #> 9  <NA>               
@@ -186,30 +186,44 @@ links <- ragnar_find_links(
   depth = 1,
   get_timestamps = TRUE
 )
-#> ⠙ Finding links: 51 | On queue: 0 | Current depth: 1 | [2s]
+#> ⠙ Finding links: 14 | On queue: 37 | Current depth: 1 | [2s]
+#> ⠹ Finding links: 24 | On queue: 27 | Current depth: 1 | [4s]
+#> ⠸ Finding links: 40 | On queue: 11 | Current depth: 1 | [7s]
+#> ⠼ Finding links: 52 | On queue: 0 | Current depth: 1 | [10s]
+#> [working] (986 + 0) -> 10 -> 116 | ■■■■                              1…
+#> [working] (762 + 0) -> 10 -> 340 | ■■■■■■■■■■                        3…
+#> [working] (537 + 0) -> 10 -> 565 | ■■■■■■■■■■■■■■■■                  5…
+#> [working] (286 + 0) -> 10 -> 816 | ■■■■■■■■■■■■■■■■■■■■■■■           7…
+#> [working] (66 + 0) -> 10 -> 1036 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■     9…
+#> [working] (0 + 0) -> 0 -> 1112 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100%
+#> ⠼ Finding links: 52 | On queue: 0 | Current depth: 1 | [10s]
 attr(links, "last_modified")
 #>                                                                                                                  https://docs.posit.co/ 
-#>                                                                                                               "2026-10-15 18:37:04 UTC" 
+#>                                                                                                               "2026-10-26 16:26:16 UTC" 
+#>                                                                                          https://docs.posit.co/announcements/index.html 
+#>                                                                                                               "2026-10-26 16:17:00 UTC" 
+#>                                                                     https://docs.posit.co/announcements/posts/2026-10-21-php2shell.html 
+#>                                                                                                               "2026-10-26 16:17:00 UTC" 
 #>                                                                                                         https://docs.posit.co/chronicle 
-#>                                                                                                               "2026-09-22 13:51:33 UTC" 
+#>                                                                                                               "2026-10-27 13:59:14 UTC" 
 #>                                                                                                        https://docs.posit.co/chronicle/ 
-#>                                                                                                               "2026-09-22 13:51:33 UTC" 
+#>                                                                                                               "2026-10-27 13:59:14 UTC" 
 #>                                                                           https://docs.posit.co/chronicle/getting-started/installation/ 
-#>                                                                                                               "2026-09-22 13:51:32 UTC" 
+#>                                                                                                               "2026-10-27 13:59:14 UTC" 
 #>                                                                       https://docs.posit.co/chronicle/getting-started/requirements.html 
-#>                                                                                                               "2026-09-22 13:51:32 UTC" 
+#>                                                                                                               "2026-10-27 13:59:14 UTC" 
 #>                                                                                     https://docs.posit.co/chronicle/news/whats-new.html 
-#>                                                                                                               "2026-09-22 13:51:33 UTC" 
+#>                                                                                                               "2026-10-27 13:59:15 UTC" 
 #>                                                                                                             https://docs.posit.co/cloud 
 #>                                                                                                               "2026-09-29 21:31:25 UTC" 
 #>                                                                                         https://docs.posit.co/cloud-products/index.html 
-#>                                                                                                               "2026-10-15 18:28:59 UTC" 
+#>                                                                                                               "2026-10-26 16:17:02 UTC" 
 #>                                                                                               https://docs.posit.co/concepts/index.html 
-#>                                                                                                               "2026-10-15 18:28:59 UTC" 
+#>                                                                                                               "2026-10-26 16:17:02 UTC" 
 #>                                                                                 https://docs.posit.co/concepts/managed-credentials.html 
-#>                                                                                                               "2026-10-15 18:28:59 UTC" 
+#>                                                                                                               "2026-10-26 16:17:02 UTC" 
 #>                                                                                                    https://docs.posit.co/connect-cloud/ 
-#>                                                                                                               "2026-10-16 14:02:42 UTC" 
+#>                                                                                                               "2026-10-20 16:39:46 UTC" 
 #>                                                                                                          https://docs.posit.co/connect/ 
 #>                                                                                                               "2026-10-13 16:17:52 UTC" 
 #>                                                                   https://docs.posit.co/connect/2024.04.0/admin/appendix/configuration/ 
@@ -1013,27 +1027,27 @@ attr(links, "last_modified")
 #>                                                                                      https://docs.posit.co/data-sources/user/index.html 
 #>                                                                                                               "2026-10-15 18:01:01 UTC" 
 #>                                                                                             https://docs.posit.co/enterprise/index.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:21 UTC" 
 #>                                                                                                  https://docs.posit.co/getting-started/ 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:21 UTC" 
 #>                                                                                https://docs.posit.co/getting-started/configuration.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:21 UTC" 
 #>                                                                                     https://docs.posit.co/getting-started/database.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:21 UTC" 
 #>                                                                                        https://docs.posit.co/getting-started/index.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:21 UTC" 
 #>                                                                              https://docs.posit.co/getting-started/install-planner.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                   https://docs.posit.co/getting-started/networking.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                       https://docs.posit.co/getting-started/sizing.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                      https://docs.posit.co/getting-started/storage.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                                            https://docs.posit.co/guides 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                                       https://docs.posit.co/guides.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                                             https://docs.posit.co/helm/ 
 #>                                                                                                               "2026-10-15 18:39:27 UTC" 
 #>                                                                             https://docs.posit.co/helm/charts/posit-chronicle/NEWS.html 
@@ -1063,27 +1077,27 @@ attr(links, "last_modified")
 #>                                                                                https://docs.posit.co/helm/examples/workbench/index.html 
 #>                                                                                                               "2026-10-15 18:39:27 UTC" 
 #>                                                                https://docs.posit.co/how-to-guides/guides/install-ssl-certificates.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                     https://docs.posit.co/how-to-guides/guides/migrate-shiny-server-pro-to-connect.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                          https://docs.posit.co/how-to-guides/index.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                             https://docs.posit.co/how-to-guides/upgrade-os-and-product/ 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                                                                                  https://docs.posit.co/ide/desktop-pro/ 
-#>                                                                                                               "2026-10-14 22:29:05 UTC" 
+#>                                                                                                               "2026-10-27 22:07:45 UTC" 
 #>                                                                                        https://docs.posit.co/ide/desktop-pro/2026.10.0/ 
-#>                                                                                                               "2026-10-15 17:10:56 UTC" 
+#>                                                                                                               "2026-10-27 22:07:39 UTC" 
 #>                                                    https://docs.posit.co/ide/desktop-pro/database_drivers/install_database_drivers.html 
-#>                                                                                                               "2026-10-14 22:29:05 UTC" 
+#>                                                                                                               "2026-10-27 22:07:45 UTC" 
 #>                                                                   https://docs.posit.co/ide/desktop-pro/getting_started/activation.html 
-#>                                                                                                               "2026-10-14 22:29:05 UTC" 
+#>                                                                                                               "2026-10-27 22:07:45 UTC" 
 #>                                                                 https://docs.posit.co/ide/desktop-pro/getting_started/installation.html 
-#>                                                                                                               "2026-10-14 22:29:05 UTC" 
+#>                                                                                                               "2026-10-27 22:07:45 UTC" 
 #>                                                                                                         https://docs.posit.co/ide/news/ 
 #>                                                                                                               "2026-10-14 22:30:13 UTC" 
 #>                                                                                                   https://docs.posit.co/ide/server-pro/ 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/2023.09.1/database/configuration.html 
 #>                                                                                                               "2023-10-18 22:31:05 UTC" 
 #>                                          https://docs.posit.co/ide/server-pro/2024.04.0/auditing_and_monitoring/prometheus_metrics.html 
@@ -1099,471 +1113,471 @@ attr(links, "last_modified")
 #>                                          https://docs.posit.co/ide/server-pro/2026.04.0/admin/positron_sessions/positron-assistant.html 
 #>                                                                                                               "2026-05-07 02:55:23 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/access_and_security/outgoing_proxies.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:52 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/access_and_security/secure_sockets.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:52 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/access_and_security/security_considerations.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:52 UTC" 
 #>                                                                                             https://docs.posit.co/ide/server-pro/admin/ 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/access_and_security/access_and_security.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/admin/access_and_security/cookies.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/admin/access_and_security/network_port_and_address.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/access_and_security/outgoing_proxies.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/access_and_security/pam_sessions.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/admin/access_and_security/running_with_a_proxy.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/admin/access_and_security/secure_sockets.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                             https://docs.posit.co/ide/server-pro/admin/access_and_security/security_considerations.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/access_and_security/selinux_configuration.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/access_and_security/selinux_customization.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/access_and_security/server_permissions.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                                       https://docs.posit.co/ide/server-pro/admin/ai/agent-activity.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/ai/ai-provider-controls.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                                   https://docs.posit.co/ide/server-pro/admin/ai/assistant-controls.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/ai/upgrading_posit_assistant.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/audit_coverage.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                          https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/audited_workbench_jobs.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                         https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/auditing_and_monitoring.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                          https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/auditing_configuration.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/chronicle.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                        https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/monitoring_configuration.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/opentelemetry.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/prometheus_metrics.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/admin/auditing_and_monitoring/server_health_checks.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:53 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/admin/authenticating_users/active_directory.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/authenticating_users/authenticating_users.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/admin/authenticating_users/authentication_migration.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/admin/authenticating_users/authorization_timeout.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/authenticating_users/aws_credentials.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/authenticating_users/customizing_signin.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                        https://docs.posit.co/ide/server-pro/admin/authenticating_users/delegated_azure_credentials.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                      https://docs.posit.co/ide/server-pro/admin/authenticating_users/openid_connect_authentication.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/authenticating_users/pam_authentication.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                             https://docs.posit.co/ide/server-pro/admin/authenticating_users/proxied_authentication.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/authenticating_users/restricting_access.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/admin/authenticating_users/saml_sso.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/authenticating_users/user_access_overview.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/data_connectivity/connectivity_using_odbc.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                         https://docs.posit.co/ide/server-pro/admin/data_connectivity/connectivity_using_r_packages.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/data_connectivity/data_connectivity.html 
-#>                                                                                                               "2026-10-14 22:41:21 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/data_connectivity/snippet_files.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/database/audit/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/database/audit/database.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/database/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                                       https://docs.posit.co/ide/server-pro/admin/database/database.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                                      https://docs.posit.co/ide/server-pro/admin/database/migration.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/getting_started/accessing_the_server.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/admin/getting_started/initial-configuration.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/admin/getting_started/installation/index.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:54 UTC" 
 #>                                     https://docs.posit.co/ide/server-pro/admin/getting_started/installation/install-rstudio-server.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/getting_started/installation/installation.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                    https://docs.posit.co/ide/server-pro/admin/getting_started/installation/kubernetes_installation.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                  https://docs.posit.co/ide/server-pro/admin/getting_started/installation/multi_server_installation.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/getting_started/management_script.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/getting_started/networking.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/getting_started/requirements.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/getting_started/sizing.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/getting_started/support.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/hardening/browser_security.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                      https://docs.posit.co/ide/server-pro/admin/hardening/database.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/admin/hardening/encryption.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/hardening/example_secure_configuration.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/admin/hardening/hardening.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                         https://docs.posit.co/ide/server-pro/admin/hardening/other.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/hardening/r_session_security.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                                   https://docs.posit.co/ide/server-pro/admin/index.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/integration/amazon-efs.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/integration/aws-sagemaker.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:55 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/integration/configure-sagemaker.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/admin/integration/custom_oauth.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/integration/databricks.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                       https://docs.posit.co/ide/server-pro/admin/integration/index.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/integration/jupyter-ha.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/integration/jupyter-kubernetes.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/admin/integration/jupyter-multiple-python-versions.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/integration/jupyter-slurm.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/integration/jupyter-standalone.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/admin/integration/jupyter.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/integration/launcher-kubernetes.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/integration/launcher-slurm.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/admin/integration/pyspark.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/integration/reticulate.html 
-#>                                                                                                               "2026-10-14 22:41:22 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                   https://docs.posit.co/ide/server-pro/admin/integration/snowflake.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/integration/snowflake/native-app/index.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/admin/integration/sparklyr.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/job_launcher/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/job_launcher/job_launcher.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:56 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/job_launcher/kubernetes_plugin.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/job_launcher/launcher_administration.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/admin/job_launcher/load_balancing.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/job_launcher/local_plugin.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/admin/job_launcher/managed_credentials_in_jobs.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/job_launcher/slurm_plugin.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/job_launcher/troubleshooting-kubernetes.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/job_launcher/using_docker_images.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/jupyter_sessions/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/jupyter_sessions/jupyter_sessions.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/admin/jupyter_sessions/package_installation.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/jupyter_sessions/troubleshooting.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:57 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/admin/license_management/license_management.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/load_balancing/access_and_availability.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/load_balancing/balancing_methods.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/load_balancing/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/admin/load_balancing/load_balancing.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/admin/load_balancing/load_balancing_vs_job_launcher.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                           https://docs.posit.co/ide/server-pro/admin/positron_sessions/ 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/positron_sessions/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/positron_sessions/extension_configuration.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/positron_sessions/index.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/positron_sessions/interpreter_settings.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/positron_sessions/multiple_sessions.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/admin/positron_sessions/package_installation.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/positron_sessions/troubleshooting.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/positron_sessions/upgrading_positron.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/positron_sessions/user_settings.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/admin/positron_sessions/workbench_job_interpreters.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/python/configuring_default.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                            https://docs.posit.co/ide/server-pro/admin/python/index.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/admin/python/installing_python.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/admin/python/package_installation.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/admin/python/using_multiple_versions_of_python.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/admin/quick-starts/active-directory.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/admin/quick-starts/entraid-openid.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                      https://docs.posit.co/ide/server-pro/admin/quick-starts/index.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/admin/quick-starts/okta-openid.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/quick-starts/resource-limits.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                   https://docs.posit.co/ide/server-pro/admin/r/configuring_default.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                                 https://docs.posit.co/ide/server-pro/admin/r/index.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                          https://docs.posit.co/ide/server-pro/admin/r/installing_r.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/admin/r/managing_upgrades.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:58 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/admin/r/session_initialization.html 
-#>                                                                                                               "2026-10-14 22:41:23 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/r/using_multiple_versions_of_r.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/admin/reference-architectures/ 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/reference-architectures/architecture-faqs.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/reference-architectures/aws/aws-eks.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/admin/reference-architectures/aws/aws-load-balanced.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                         https://docs.posit.co/ide/server-pro/admin/reference-architectures/aws/aws-parallelcluster.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                    https://docs.posit.co/ide/server-pro/admin/reference-architectures/aws/aws-single-server-robust.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/admin/reference-architectures/aws/aws-single-server.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/reference-architectures/azure/azure-aks.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                       https://docs.posit.co/ide/server-pro/admin/reference-architectures/azure/azure-load-balanced.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                https://docs.posit.co/ide/server-pro/admin/reference-architectures/azure/azure-single-server-robust.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                       https://docs.posit.co/ide/server-pro/admin/reference-architectures/azure/azure-single-server.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/admin/reference-architectures/generic-architectures.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/admin/reference-architectures/index.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/reference/audit_data_dictionary.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/reference/data_dictionary.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/admin/reference/header_cookie_dictionary.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/reference/launcher_conf.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/reference/r_package_dependencies.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/reference/rserver_conf.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/reference/rsession_conf.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/reference/rstudio_ide_commands.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/admin/reference/rstudio_server_cli.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/reference/session_user_settings.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                       https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/customizing_session_settings.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/directory_management.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/feature_limits.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:29:59 UTC" 
 #>                                             https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/first_project_template.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/index.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/multiple_r_sessions.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/notifications.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/package_installation.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/project_sharing.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                         https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/r_executable_and_libraries.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                             https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/rstudio_connect_server.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/session_startup_scripts.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/terminal_websockets.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/user_and_group_profiles.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/admin/server_management/administrative_dashboard.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/admin/server_management/backup_guide.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                             https://docs.posit.co/ide/server-pro/admin/server_management/core_administrative_tasks.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/server_management/logging.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/server_management/server_management.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/admin/server_management/server_migration.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/server_management/session_storage.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/sessions/idle_timeouts.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/sessions/session_hooks.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                              https://docs.posit.co/ide/server-pro/admin/tutorial_api/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/tutorial_api/interface.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/admin/tutorial_api/tutorial_api.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/tutorial_api/tutorial_api_callbacks.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/tutorial_api/tutorial_api_methods.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/upgrade/upgrade-from-open-source.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                                         https://docs.posit.co/ide/server-pro/admin/upgrade/upgrade.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/admin/upgrade/upgrade_positron.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/user_provisioning/azure.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/user_provisioning/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:24 UTC" 
+#>                                                                                                               "2026-10-27 22:30:00 UTC" 
 #>                                             https://docs.posit.co/ide/server-pro/admin/user_provisioning/just_in_time_provisioning.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/user_provisioning/license_limits.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/user_provisioning/managing_tokens.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/user_provisioning/managing_users.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/user_provisioning/okta.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/admin/user_provisioning/sssd.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/admin/user_provisioning/transferring_existing_users.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/admin/user_provisioning/user_provisioning.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/admin/vscode_sessions/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/admin/vscode_sessions/extension_configuration.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/admin/vscode_sessions/multiple_sessions.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/admin/vscode_sessions/package_installation.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/admin/vscode_sessions/troubleshooting.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/admin/vscode_sessions/user_settings.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/admin/vscode_sessions/vs_code_sessions.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/admin/vscode_sessions/workbench_job_interpreters.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/admin/workbench_api/interface.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/admin/workbench_api/workbench_api.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:01 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/auditing_and_monitoring/prometheus_metrics.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/authenticating_users/authenticating_users.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                          https://docs.posit.co/ide/server-pro/authenticating_users/aws_credentials.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/authenticating_users/delegated_azure_credentials.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/getting_started/installation/installation.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                          https://docs.posit.co/ide/server-pro/getting_started/installation/kubernetes_installation.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                        https://docs.posit.co/ide/server-pro/getting_started/installation/multi_server_installation.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/getting_started/networking.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/getting_started/requirements.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                                       https://docs.posit.co/ide/server-pro/getting_started/support.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:02 UTC" 
 #>                                                                                         https://docs.posit.co/ide/server-pro/index.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/integration/aws-sagemaker.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/integration/jupyter-multiple-python-versions.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/integration/jupyter-standalone.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/integration/launcher-slurm.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                                        https://docs.posit.co/ide/server-pro/integration/reticulate.html 
-#>                                                                                                               "2026-10-14 22:41:25 UTC" 
+#>                                                                                                               "2026-10-27 22:30:03 UTC" 
 #>                                                                                          https://docs.posit.co/ide/server-pro/licenses/ 
-#>                                                                                                               "2026-10-14 22:41:26 UTC" 
+#>                                                                                                               "2026-10-27 22:30:04 UTC" 
 #>                                                                                https://docs.posit.co/ide/server-pro/licenses/index.html 
-#>                                                                                                               "2026-10-14 22:41:26 UTC" 
+#>                                                                                                               "2026-10-27 22:30:04 UTC" 
 #>                                                                                https://docs.posit.co/ide/server-pro/load-balancing.html 
-#>                                                                                                               "2026-10-14 22:41:26 UTC" 
+#>                                                                                                               "2026-10-27 22:30:04 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/load_balancing/load_balancing.html 
-#>                                                                                                               "2026-10-14 22:41:26 UTC" 
+#>                                                                                                               "2026-10-27 22:30:04 UTC" 
 #>                                                                                    https://docs.posit.co/ide/server-pro/r-sessions.html 
-#>                                                                                                               "2026-10-14 22:41:26 UTC" 
+#>                                                                                                               "2026-10-27 22:30:04 UTC" 
 #>                                                                           https://docs.posit.co/ide/server-pro/reference-architectures/ 
-#>                                                                                                               "2026-10-14 22:41:27 UTC" 
+#>                                                                                                               "2026-10-27 22:30:05 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/reference-architectures/aws-eks.html 
 #>                                                                                                               "2025-04-03 19:54:08 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/reference-architectures/aws-parallelcluster.html 
@@ -1571,241 +1585,241 @@ attr(links, "last_modified")
 #>                                                     https://docs.posit.co/ide/server-pro/reference-architectures/aws-single-server.html 
 #>                                                                                                               "2025-04-03 19:54:08 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/reference-architectures/generic-architectures.html 
-#>                                                                                                               "2026-10-14 22:41:27 UTC" 
+#>                                                                                                               "2026-10-27 22:30:05 UTC" 
 #>                                                                        https://docs.posit.co/ide/server-pro/reference/rserver_conf.html 
 #>                                                                                                               "2025-09-08 22:19:16 UTC" 
 #>                                                                                              https://docs.posit.co/ide/server-pro/user/ 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                                                    https://docs.posit.co/ide/server-pro/user/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/user/jupyter-lab/getting-started/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/user/jupyter-lab/guide/extensions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/user/jupyter-lab/guide/git.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/user/jupyter-lab/guide/jupyter-kernel-management.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/user/jupyter-lab/guide/posit-workbench-extension.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                    https://docs.posit.co/ide/server-pro/user/jupyter-lab/guide/recommended-settings-and-extensions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/user/jupyter-lab/guide/settings.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/user/jupyter-lab/reference/faq.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/user/jupyter-lab/reference/other-resources.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                   https://docs.posit.co/ide/server-pro/user/jupyter-notebook/getting-started/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/user/jupyter-notebook/guide/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/user/jupyter-notebook/reference/faq.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:27 UTC" 
 #>                                               https://docs.posit.co/ide/server-pro/user/jupyter-notebook/reference/other-resources.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/user/posit-workbench/getting-started/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/user/posit-workbench/guide/agent-activity.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/user/posit-workbench/guide/python.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/user/posit-workbench/guide/r.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/user/posit-workbench/guide/requirements.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/user/posit-workbench/guide/session-management.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/user/posit-workbench/guide/users-admins-superusers.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/user/posit-workbench/managed-credentials/aws.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/user/posit-workbench/managed-credentials/azure.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                         https://docs.posit.co/ide/server-pro/user/posit-workbench/managed-credentials/custom_oauth.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                           https://docs.posit.co/ide/server-pro/user/posit-workbench/managed-credentials/databricks.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                  https://docs.posit.co/ide/server-pro/user/posit-workbench/managed-credentials/managed-credentials.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                            https://docs.posit.co/ide/server-pro/user/posit-workbench/managed-credentials/snowflake.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/user/posit-workbench/reference/faq.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                https://docs.posit.co/ide/server-pro/user/posit-workbench/reference/other-resources.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                                     https://docs.posit.co/ide/server-pro/user/positron/getting-started/ 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/user/positron/getting-started/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                     https://docs.posit.co/ide/server-pro/user/positron/guide/available-credentials.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/user/positron/guide/extensions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                                       https://docs.posit.co/ide/server-pro/user/positron/guide/git.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/user/positron/guide/interpreter.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/user/positron/guide/posit-assistant.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/user/positron/guide/posit-workbench-extension.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/user/positron/guide/proxying-web-servers.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                       https://docs.posit.co/ide/server-pro/user/positron/guide/recommended-settings-and-extensions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/user/positron/guide/session-timeout.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                                  https://docs.posit.co/ide/server-pro/user/positron/guide/settings.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                 https://docs.posit.co/ide/server-pro/user/positron/guide/using-managed-credentials.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/user/positron/guide/workbench-jobs.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                                   https://docs.posit.co/ide/server-pro/user/positron/reference/faq.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/user/positron/reference/other-resources.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/user/rstudio-pro/getting-started/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:28 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/databricks.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/git.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/multiple-r-versions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/project-sharing.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/session-timeout.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                              https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/using-managed-credentials.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                         https://docs.posit.co/ide/server-pro/user/rstudio-pro/guide/workbench-jobs.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                https://docs.posit.co/ide/server-pro/user/rstudio-pro/reference/faq.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                    https://docs.posit.co/ide/server-pro/user/rstudio-pro/reference/other-resources.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/user/vs-code/getting-started/index.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                      https://docs.posit.co/ide/server-pro/user/vs-code/guide/available-credentials.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                 https://docs.posit.co/ide/server-pro/user/vs-code/guide/extensions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                        https://docs.posit.co/ide/server-pro/user/vs-code/guide/git.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/user/vs-code/guide/posit-workbench-extension.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                       https://docs.posit.co/ide/server-pro/user/vs-code/guide/proxying-web-servers.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/user/vs-code/guide/python-environments.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                        https://docs.posit.co/ide/server-pro/user/vs-code/guide/recommended-settings-and-extensions.html 
-#>                                                                                                               "2026-10-14 22:41:37 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                            https://docs.posit.co/ide/server-pro/user/vs-code/guide/session-timeout.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                   https://docs.posit.co/ide/server-pro/user/vs-code/guide/settings.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                  https://docs.posit.co/ide/server-pro/user/vs-code/guide/using-managed-credentials.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                             https://docs.posit.co/ide/server-pro/user/vs-code/guide/workbench-jobs.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/user/vs-code/reference/appendix.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                    https://docs.posit.co/ide/server-pro/user/vs-code/reference/faq.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                        https://docs.posit.co/ide/server-pro/user/vs-code/reference/other-resources.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                               https://docs.posit.co/ide/server-pro/user_provisioning/configuration.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                           https://docs.posit.co/ide/server-pro/user_provisioning/user_provisioning.html 
-#>                                                                                                               "2026-10-14 22:41:38 UTC" 
+#>                                                                                                               "2026-10-27 22:30:29 UTC" 
 #>                                                                                                         https://docs.posit.co/ide/user/ 
-#>                                                                                                               "2026-10-14 22:31:14 UTC" 
+#>                                                                                                               "2026-10-27 22:09:55 UTC" 
 #>                                                                                               https://docs.posit.co/ide/user/2026.10.0/ 
-#>                                                                                                               "2026-10-15 17:12:20 UTC" 
+#>                                                                                                               "2026-10-27 22:09:25 UTC" 
 #>                                                                            https://docs.posit.co/ide/user/ide/guide/tools/posit-ai.html 
-#>                                                                                                               "2026-10-14 22:31:14 UTC" 
+#>                                                                                                               "2026-10-27 22:09:54 UTC" 
 #>                                                                                                        https://docs.posit.co/index.html 
-#>                                                                                                               "2026-10-15 18:37:04 UTC" 
+#>                                                                                                               "2026-10-26 16:26:16 UTC" 
 #>                                                                                                  https://docs.posit.co/install-planner/ 
-#>                                                                                                               "2026-10-15 18:37:04 UTC" 
+#>                                                                                                               "2026-10-26 16:26:16 UTC" 
 #>                                                                                                     https://docs.posit.co/installation/ 
-#>                                                                                                               "2026-10-15 18:37:04 UTC" 
+#>                                                                                                               "2026-10-26 16:26:16 UTC" 
 #>                                                                                                     https://docs.posit.co/job-launcher/ 
 #>                                                                                                               "2023-08-31 14:06:50 UTC" 
 #>                                                                                      https://docs.posit.co/licensing/licensing-faq.html 
-#>                                                                                                               "2026-10-15 18:37:04 UTC" 
+#>                                                                                                               "2026-10-26 16:26:16 UTC" 
 #>                                                                                          https://docs.posit.co/licensing/licensing.html 
-#>                                                                                                               "2026-10-15 18:37:04 UTC" 
+#>                                                                                                               "2026-10-26 16:26:16 UTC" 
 #>                                                                                                     https://docs.posit.co/partnerships/ 
-#>                                                                                                               "2026-10-15 15:43:02 UTC" 
+#>                                                                                                               "2026-10-27 18:19:30 UTC" 
 #>                                                                                       https://docs.posit.co/partnerships/aws-sagemaker/ 
-#>                                                                                                               "2026-10-15 15:43:02 UTC" 
+#>                                                                                                               "2026-10-27 18:19:30 UTC" 
 #>                                                                             https://docs.posit.co/partnerships/aws-sagemaker/index.html 
-#>                                                                                                               "2026-10-15 15:43:02 UTC" 
+#>                                                                                                               "2026-10-27 18:19:30 UTC" 
 #>                                                                    https://docs.posit.co/partnerships/aws-sagemaker/positron/admin.html 
-#>                                                                                                               "2026-10-15 15:43:02 UTC" 
+#>                                                                                                               "2026-10-27 18:19:30 UTC" 
 #>                                                                     https://docs.posit.co/partnerships/aws-sagemaker/positron/user.html 
-#>                                                                                                               "2026-10-15 15:43:02 UTC" 
+#>                                                                                                               "2026-10-27 18:19:30 UTC" 
 #>                                                                                https://docs.posit.co/partnerships/databricks/index.html 
-#>                                                                                                               "2026-10-15 15:43:02 UTC" 
+#>                                                                                                               "2026-10-27 18:19:30 UTC" 
 #>                                                                                           https://docs.posit.co/partnerships/snowflake/ 
-#>                                                                                                               "2026-10-15 15:43:03 UTC" 
+#>                                                                                                               "2026-10-27 18:19:31 UTC" 
 #>                                                                                 https://docs.posit.co/partnerships/snowflake/index.html 
-#>                                                                                                               "2026-10-15 15:43:03 UTC" 
+#>                                                                                                               "2026-10-27 18:19:31 UTC" 
 #>                                                                    https://docs.posit.co/partnerships/snowflake/posit-team/install.html 
-#>                                                                                                               "2026-10-15 15:43:03 UTC" 
+#>                                                                                                               "2026-10-27 18:19:31 UTC" 
 #>                                                                                             https://docs.posit.co/platform-support.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                                         https://docs.posit.co/posit-ai/ 
-#>                                                                                                               "2026-10-01 22:15:20 UTC" 
+#>                                                                                                               "2026-10-26 16:29:35 UTC" 
 #>                                                                                                    https://docs.posit.co/posit-ai/user/ 
-#>                                                                                                               "2026-10-01 22:15:20 UTC" 
+#>                                                                                                               "2026-10-26 16:29:36 UTC" 
 #>                                                                                    https://docs.posit.co/posit-ai/user/getting-started/ 
-#>                                                                                                               "2026-10-01 22:15:20 UTC" 
+#>                                                                                                               "2026-10-26 16:29:36 UTC" 
 #>                                                                                               https://docs.posit.co/posit-ai/whats-new/ 
-#>                                                                                                               "2026-10-01 22:15:20 UTC" 
+#>                                                                                                               "2026-10-26 16:29:36 UTC" 
 #>                                                                                                       https://docs.posit.co/posit-team/ 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                             https://docs.posit.co/posit-team/index.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                                https://docs.posit.co/previous-versions/ 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                        https://docs.posit.co/previous-versions/connect/ 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                            https://docs.posit.co/previous-versions/package-manager.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                        https://docs.posit.co/previous-versions/rstudio/ 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                      https://docs.posit.co/reference-architectures.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                  https://docs.posit.co/reference-architectures/aws.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                https://docs.posit.co/reference-architectures/azure.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                           https://docs.posit.co/reference-architectures/posit-team.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                     https://docs.posit.co/resources/install-nodejs.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                               https://docs.posit.co/resources/install-python-posit.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:17 UTC" 
 #>                                                                                  https://docs.posit.co/resources/install-python-uv.html 
-#>                                                                                                               "2026-10-15 18:37:05 UTC" 
+#>                                                                                                               "2026-10-26 16:26:18 UTC" 
 #>                                                                                     https://docs.posit.co/resources/install-quarto.html 
-#>                                                                                                               "2026-10-15 18:37:06 UTC" 
+#>                                                                                                               "2026-10-26 16:26:18 UTC" 
 #>                                                                                    https://docs.posit.co/resources/install-r-source.qmd 
 #>                                                                                                                                      NA 
 #>                                                                                          https://docs.posit.co/resources/install-r.html 
-#>                                                                                                               "2026-10-15 18:37:06 UTC" 
+#>                                                                                                               "2026-10-26 16:26:18 UTC" 
 #>                                                                                              https://docs.posit.co/resources/install-r/ 
-#>                                                                                                               "2026-10-15 18:37:06 UTC" 
+#>                                                                                                               "2026-10-26 16:26:18 UTC" 
 #>                                                                                        https://docs.posit.co/resources/open-source.html 
-#>                                                                                                               "2026-10-15 18:37:06 UTC" 
+#>                                                                                                               "2026-10-26 16:26:18 UTC" 
 #>                                                                                             https://docs.posit.co/rsc/integration/rspm/ 
-#>                                                                                                               "2026-10-15 18:37:06 UTC" 
+#>                                                                                                               "2026-10-26 16:26:18 UTC" 
 #>                                                                                                 https://docs.posit.co/rsconnect-python/ 
-#>                                                                                                               "2026-09-10 12:49:37 UTC" 
+#>                                                                                                               "2026-10-16 18:36:23 UTC" 
 #>                                                                                                             https://docs.posit.co/rspm/ 
 #>                                                                                                               "2026-10-14 20:13:17 UTC" 
 #>                                                                             https://docs.posit.co/rspm/2023.04.0/admin/file-storage/s3/ 
@@ -2381,23 +2395,23 @@ attr(links, "last_modified")
 #>                                                                                          https://docs.posit.co/rspm/user/whats-new.html 
 #>                                                                                                               "2026-10-14 20:13:18 UTC" 
 #>                                                                                                     https://docs.posit.co/shiny-server/ 
-#>                                                                                                               "2026-05-28 23:55:50 UTC" 
+#>                                                                                                               "2026-10-28 03:29:38 UTC" 
 #>                                                                                                     https://docs.posit.co/shinyapps.io/ 
 #>                                                                                                               "2026-09-18 22:29:51 UTC" 
 #>                                                                                                      https://docs.posit.co/support.html 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:30 UTC" 
 #>                                                                                                          https://docs.posit.co/support/ 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:30 UTC" 
 #>                                                                                               https://docs.posit.co/supported-versions/ 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:31 UTC" 
 #>                                                                                   https://docs.posit.co/supported-versions/connect.html 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:30 UTC" 
 #>                                                                                     https://docs.posit.co/supported-versions/index.html 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:31 UTC" 
 #>                                                                           https://docs.posit.co/supported-versions/package-manager.html 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:31 UTC" 
 #>                                                                                   https://docs.posit.co/supported-versions/rstudio.html 
-#>                                                                                                               "2026-10-15 18:37:18 UTC" 
+#>                                                                                                               "2026-10-26 16:26:31 UTC" 
 #>                                                                                                  https://docs.posit.co/troubleshooting/ 
 #>                                                                                                               "2026-09-03 19:14:18 UTC" 
 #>                                                                      https://docs.posit.co/troubleshooting/articles/accessing-pins.html 
@@ -2441,7 +2455,7 @@ attr(links, "last_modified")
 #>                      https://docs.posit.co/troubleshooting/articles/kubernetes-sessions-in-posit-workbench-stdin-errors-within-pod.html 
 #>                                                                                                               "2026-09-03 19:14:18 UTC" 
 #>                                     https://docs.posit.co/troubleshooting/articles/list-of-outbound-or-egress-network-destinations.html 
-#>                                                                                                               "2026-10-15 18:29:16 UTC" 
+#>                                                                                                               "2026-10-26 16:17:22 UTC" 
 #>                                    https://docs.posit.co/troubleshooting/articles/long-running-jupyter-sessions-on-posit-workbench.html 
 #>                                                                                                               "2026-09-03 19:14:18 UTC" 
 #>                       https://docs.posit.co/troubleshooting/articles/metadata-is-missing-required-fields-errors-in-package-manager.html 
