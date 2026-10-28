@@ -445,6 +445,106 @@ ragnar_store_sync <- function(
   invisible(store)
 }
 
+#' Audit a Ragnar store against an expected set of URLs
+#'
+#' `ragnar_store_audit()` checks which URLs from an expected set are present in
+#' the store's `documents` table. Use it to verify that all pages were
+#' successfully ingested after a [ragnar_store_ingest()] run.
+#'
+#' @param store A `DuckDBRagnarStore` (version 2 only).
+#' @param expected A character vector or [`ragnar_links`][ragnar_find_links()]
+#'   object of URLs or file paths to check, or a data frame with a character
+#'   column named `source` containing those origins.
+#' @param group_by Optional name of a column in `expected` to group by. It must
+#'   differ from the summary column names below. The default, `NULL`, reports
+#'   totals for the full expected set.
+#'
+#' @returns A tibble with one row, or one row per group when `group_by` is set,
+#'   with columns:
+#'   - The grouping column, when requested, in order of first appearance.
+#'   - `expected` (integer): number of distinct expected origins.
+#'   - `ingested` (integer): number of expected origins present in the store.
+#'   - `missing` (integer): number of expected origins absent from the store.
+#'   - `chunks` (integer): total stored chunks for the expected origins.
+#'   - `missing_urls` (list): a character vector of missing origins for each row,
+#'     or `character()` when all expected origins are present.
+#'
+#'   Duplicate origins are counted once per group. Origins stored outside the
+#'   expected set are excluded. Empty ungrouped input returns one row of zero
+#'   counts; empty grouped input returns zero rows. Read-only connections are
+#'   supported.
+#'
+#' @export
+ragnar_store_audit <- function(store, expected, group_by = NULL) {
+  stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
+  if (store@version != 2L) {
+    rlang::abort(
+      "`ragnar_store_audit()` only supports version 2 stores.",
+      call = NULL
+    )
+  }
+  if (!is.data.frame(expected)) {
+    check_character(expected, allow_na = FALSE)
+    expected <- tibble::tibble(source = as.character(expected))
+  }
+  stopifnot("source" %in% names(expected))
+  check_character(expected$source, allow_na = FALSE)
+  check_string(group_by, allow_null = TRUE)
+  if (!is.null(group_by)) {
+    if (!group_by %in% names(expected)) {
+      cli::cli_abort(
+        "Grouping column {.val {group_by}} is absent from {.arg expected}."
+      )
+    }
+    if (
+      group_by %in% c("expected", "ingested", "missing", "chunks", "missing_urls")
+    ) {
+      cli::cli_abort("{.arg group_by} must differ from the summary column names.")
+    }
+  }
+  origins <- tibble::tibble(.origin = as.character(expected$source))
+  if (!is.null(group_by)) {
+    origins$.group <- expected[[group_by]]
+  }
+  origins <- distinct(origins)
+
+  con <- store@con
+
+  expected_df <- tibble::tibble(origin = unique(origins$.origin))
+  local_duckdb_register(con, "audit_expected", expected_df)
+
+  result <- DBI::dbGetQuery(
+    con,
+    "
+    SELECT
+      e.origin,
+      d.origin IS NOT NULL AS present,
+      CAST(COUNT(em.doc_id) AS INTEGER) AS chunks
+    FROM audit_expected e
+    LEFT JOIN documents d USING(origin)
+    LEFT JOIN embeddings em ON em.doc_id = d.doc_id
+    GROUP BY e.origin, d.origin
+    "
+  )
+
+  i <- match(origins$.origin, result$origin)
+  origins$.present <- result$present[i]
+  origins$.chunks <- result$chunks[i]
+  result <- origins |>
+    dplyr::summarise(
+      expected = dplyr::n(),
+      ingested = sum(.data$.present),
+      missing = sum(!.data$.present),
+      chunks = sum(.data$.chunks),
+      missing_urls = list(.data$.origin[!.data$.present]),
+      .by = any_of(".group")
+    )
+  if (!is.null(group_by)) {
+    names(result)[[1L]] <- group_by
+  }
+  result
+}
+
 #' Build a Ragnar Store index
 #'
 #' A search index must be built before calling `ragnar_retrieve()`. If

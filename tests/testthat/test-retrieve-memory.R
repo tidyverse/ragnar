@@ -147,6 +147,7 @@ test_that("VSS filters search beyond the indexed candidate limit", {
 test_that("indexed VSS fetches embeddings only for bounded matches", {
   skip_on_cran()
   skip_if_cant_load_duckdb_extensions()
+  profile_v2 <- utils::packageVersion("duckdb") >= "2.0.0"
 
   for (version in 1:2) for (shadow_rowid in c(FALSE, TRUE)) local({
     withr::local_seed(42)
@@ -174,7 +175,7 @@ test_that("indexed VSS fetches embeddings only for bounded matches", {
     embedding_scan_rows <- function(node) {
       c(
         if ("embedding" %in% unlist(node$extra_info$Projections)) {
-          node$operator_cardinality
+          if (profile_v2) node$intermediate_rows else node$operator_cardinality
         },
         unlist(lapply(node$children, embedding_scan_rows))
       )
@@ -187,7 +188,9 @@ test_that("indexed VSS fetches embeddings only for bounded matches", {
       if (filtered) args$filter <- TRUE
       retrieved <- do.call(ragnar_retrieve_vss, args)
       profile <- jsonlite::read_json(profile_path)
-      rows <- embedding_scan_rows(profile)
+      # DuckDB 2.0 puts the operator trees in a top-level list.
+      nodes <- if (profile_v2) profile$operator else list(profile)
+      rows <- unlist(lapply(nodes, embedding_scan_rows))
       expect_equal(nrow(retrieved), 3L)
       expect_setequal(names(retrieved), expected_names)
       expect_gt(length(rows), 0L)

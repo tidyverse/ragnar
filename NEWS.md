@@ -9,8 +9,15 @@
     `last_modified` columns, so timestamps stay with their links through joins
     and row-binding. The default remains a character vector (#212).
 
+-   `ragnar_store_ingest()` skips unchanged files with subsecond modification
+    times consistently with DuckDB 2.0.
+
 -   `markdown_chunk()` no longer misplaces heading boundaries when the input
     contains combining characters (NFD-normalized text) (@taekop, #158).
+
+-   `ragnar_store_audit()` reports expected, ingested, and missing origins,
+    stored chunk counts, and missing URLs, optionally grouped by a column in
+    the expected data frame (@andrie, #203, #210).
 
 -   `ragnar_store_ingest()` now skips unchanged sources using modification
     times or a hash of the prepared Markdown. `ragnar_store_sync()` removes
