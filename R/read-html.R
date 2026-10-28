@@ -541,6 +541,13 @@ ragnar_find_links <- function(
           lm_map <- as.list(
             page_result$link_lastmod[!is.na(page_result$link_lastmod)]
           )
+          # Use the same resolved URLs as result collection, including redirects
+          # visited before this sitemap was discovered.
+          redirects <- unlist(reticulate::py_to_r(resolved), use.names = TRUE)
+          destinations <- redirects[names(lm_map)]
+          redirected <- !is.na(destinations) & nzchar(destinations)
+          names(lm_map)[redirected] <- destinations[redirected]
+          lm_map <- lm_map[!duplicated(names(lm_map))]
           # Fill missing dates in a batch, preserving known response timestamps.
           known <- names(last_modified)[
             !vapply(last_modified, is.na, logical(1))
@@ -788,6 +795,9 @@ html_find_links <- function(x, absolute = TRUE) {
       lastmod_text, format = "%Y-%m-%dT%H:%M:%OS%z", tz = "UTC"
     )
     names(sitemap_lastmod) <- url_normalize(locs)
+    # Keep the first known date when multiple locations normalize to one URL.
+    sitemap_lastmod <- sitemap_lastmod[!is.na(sitemap_lastmod)]
+    sitemap_lastmod <- sitemap_lastmod[!duplicated(names(sitemap_lastmod))]
     valid <- !is.na(locs) & grepl("^https?://", locs, ignore.case = TRUE)
     bad <- locs[!valid]
     good <- locs[valid]

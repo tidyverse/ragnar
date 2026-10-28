@@ -237,3 +237,65 @@ test_that("GET timestamps take precedence regardless of sitemap crawl order", {
     })
   }
 })
+
+test_that("sitemap dates follow redirects regardless of crawl order", {
+  for (sitemap_first in c(FALSE, TRUE)) {
+    local({
+      app <- webfakes::new_app()
+      app$locals$sitemap <- if (sitemap_first) "/a.xml" else "/z.xml"
+      app$locals$requests <- data.frame(
+        method = character(),
+        path = character()
+      )
+      app$use(function(req, res, locals) {
+        if (req$path == "/requests") {
+          return(res$send_json(locals$requests))
+        }
+        locals$requests <- rbind(
+          locals$requests,
+          data.frame(method = req$method, path = req$path)
+        )
+        if (req$path == "/") {
+          return(res$send(paste0(
+            '<a href="/old">Old</a><a href="',
+            locals$sitemap,
+            '">Sitemap</a>'
+          )))
+        }
+        if (req$path == "/old") {
+          return(res$redirect("/new"))
+        }
+        if (req$path == locals$sitemap) {
+          root <- paste0("http://", req$get_header("host"))
+          return(res$send(paste0(
+            "<urlset><url><loc>",
+            root,
+            "/old</loc><lastmod>2024-03-15</lastmod></url></urlset>"
+          )))
+        }
+        res$send("<p>Page without a response timestamp</p>")
+      })
+      site <- webfakes::new_app_process(app)
+      withr::defer(site$stop())
+
+      for (get_timestamps in c(FALSE, TRUE)) {
+        rows <- ragnar_find_links(
+          site$url(),
+          depth = 1,
+          progress = FALSE,
+          get_timestamps = get_timestamps,
+          metadata = TRUE
+        )
+        expect_false(site$url("/old") %in% rows$source)
+        expect_equal(
+          rows$last_modified[rows$source == site$url("/new")],
+          as.POSIXct("2024-03-15", tz = "UTC")
+        )
+      }
+      requests <- httr2::request(site$url("/requests")) |>
+        httr2::req_perform() |>
+        httr2::resp_body_json(simplifyVector = TRUE)
+      expect_equal(requests$path[requests$method == "head"], character())
+    })
+  }
+})
