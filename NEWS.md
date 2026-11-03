@@ -1,5 +1,8 @@
 # ragnar (development version)
 
+-   `ragnar_store_ingest()` now prints document origins literally in progress
+    messages.
+
 -   `ragnar_find_links()` reads modification dates and datetimes from sitemaps,
     avoiding timestamp requests for URLs with a known date. Invalid sitemap
     locations are reported in the `problems` attribute. Crawl and validation

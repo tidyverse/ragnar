@@ -223,7 +223,7 @@ ragnar_store_ingest <- function(
     origins[rows] <- origin
 
     if (progress) {
-      cli::cli_alert_info(paste("ingested:", origin))
+      cli::cli_alert_info("ingested: {origin}")
       cli::cli_progress_update()
     }
   }
