@@ -113,7 +113,7 @@ url <- "https://duckdb.org/code_of_conduct"
 read_as_markdown(url) |> cat_head(15)
 #> ---
 #> title: Code of Conduct
-#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
+#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence, or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
@@ -123,7 +123,7 @@ read_as_markdown(url) |> cat_head(15)
 #> 
 #> **All creatures are welcome**: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated.
 #> 
-#> **Be excellent to each other**: We do not tolerate verbal or physical harassment, violence or intimidation.
+#> **Be excellent to each other**: We do not tolerate verbal or physical harassment, violence, or intimidation.
 #> 
 #> We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome.
 
@@ -132,7 +132,7 @@ read_as_markdown(url, html_extract_selectors = "#main_content_wrap") |>
   cat_head()
 #> ---
 #> title: Code of Conduct
-#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
+#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence, or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
@@ -153,7 +153,7 @@ read_as_markdown(
 ) |> cat_head()
 #> ---
 #> title: Code of Conduct
-#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
+#> description: "All creatures are welcome: We aim to create a safe space for all community members, regardless of their age, race, gender, sexual orientation, physical appearance or disability, choice of text editor, or any other qualities by which living beings can be discriminated. Be excellent to each other: We do not tolerate verbal or physical harassment, violence, or intimidation. We do not tolerate life forms who refuse to share this openness and respect towards others: Creatures that are not excellent to others are not welcome. We continuously strive to make our community a better place for everyone – in the best…"
 #> image: https://duckdb.org/images/sharingduckdb.jpg
 #> ---
 #> 
@@ -188,21 +188,21 @@ read_as_markdown(
 ## Convert PDF
 pdf <- file.path(R.home("doc"), "NEWS.pdf")
 read_as_markdown(pdf) |> cat_head(15)
-#> | NEWS    |     | for        | R version |     | 4.6.1 | (2026-06-24) |     |     |
-#> | ------- | --- | ---------- | --------- | --- | ----- | ------------ | --- | --- |
-#> | NEWS    |     | R          | News      |     |       |              |     |     |
-#> | Changes |     | in R 4.6.1 |           |     |       |              |     |     |
-#> New Features:
-#> (cid:136)
-#> The LATEX class ‘jss’ bundled in ‘share/texmf/tex/latex/jss.cls’ has been up-
-#> | dated | to  | work with | ‘hyperref’ | version | 7.01q | (2026/04/24). |     |     |
-#> | ----- | --- | --------- | ---------- | ------- | ----- | ------------- | --- | --- |
-#> (cid:136) Plain-text(andlegacyHTML)conversionforasimpleRd\eqn{}nowhandles\geq,
-#> | \leq, | \neq | \ne |             | \ge |     | \le         |     |     |
-#> | ----- | ---- | --- | ----------- | --- | --- | ----------- | --- | --- |
-#> |       |      | and | in addition | to  | and | (PR#19070). |     |     |
+#> | NEWS    |     | for     | R      | version | 4.6.2 | (2026-10-29) |     |
+#> | ------- | --- | ------- | ------ | ------- | ----- | ------------ | --- |
+#> | NEWS    |     |         | R News |         |       |              |     |
+#> | Changes | in  | R 4.6.2 |        |         |       |              |     |
 #> Bug Fixes:
+#> (cid:136) In plain-text help (Rd2txt), paragraphs are again recognized even when started with
+#> R
+#> | a non-indented |     | Rd  | comment, | (cid:28)xing | a regression | in 4.4.0. |     |
+#> | -------------- | --- | --- | -------- | ------------ | ------------ | --------- | --- |
 #> (cid:136)
+#> rhyper(N, m, n, k) now switches to the (cid:16)large(cid:17) scenario when m + n is larger than
+#> .Machine$integer.max, preventing integer over(cid:29)ow, thanks to Jonathan Blood’s re-
+#> | port | on R-devel. |     |     |     |     |     |     |
+#> | ---- | ----------- | --- | --- | --- | --- | --- | --- |
+#> (cid:136) Fix long standing (Fortran compiler optimization related) bug in nlminb with con-
 ## Alternative:
 # pdftools::pdf_text(pdf) |> cat_head()
 

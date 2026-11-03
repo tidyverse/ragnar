@@ -2,6 +2,9 @@
 
 ## ragnar (development version)
 
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  now prints document origins literally in progress messages.
+
 - [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
   reads modification dates and datetimes from sitemaps, avoiding
   timestamp requests for URLs with a known date. Invalid sitemap
