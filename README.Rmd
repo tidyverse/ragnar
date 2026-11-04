@@ -58,9 +58,11 @@ does not publish the required `fts` and `vss` extensions for
 `windows_arm64_mingw`. Python document conversion also requires dependencies
 that can be installed for the Python interpreter's architecture; the
 Windows ARM64 checks currently fail to build `cryptography` through
-MarkItDown. Package installation, Markdown chunking, and link discovery
-do not initialize Python. Installing the R package alone does not verify
-that conversion or database extensions work on a platform.
+MarkItDown. Installation attempts to warm dependency caches in separate
+processes; a warm-up failure is reported without aborting installation.
+Link discovery and document conversion require a working Python environment.
+Installing the R package alone does not verify that these features or
+database extensions work on a platform.
 
 ## Key Steps
 

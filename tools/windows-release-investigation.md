@@ -44,19 +44,51 @@ logs do not justify pinning or blaming a particular Python dependency.
 
 ### Fix and regression
 
-Commit `9d67e08` removes Python warm-up from configuration. Requirements and
-the delayed import remain in `.onLoad()`; conversion still initializes Python
-and reports its actual errors. The existing separate-process DuckDB warm-up
-remains. This removes the crashing operation from installation, rather than
-swallowing conversion failures or adding a fallback conversion path.
+Commit `fe97ad8` preserves Python cache warm-up, including the actual
+MarkItDown import, but runs it in a separate R subprocess. Its output is
+preserved and a nonzero exit status is reported explicitly before installation continues.
+The existing separate-process DuckDB warm-up remains. Runtime conversion
+requirements and errors are unchanged. No version constraint has been added.
 
-Before the fix, `tools/test-install-no-python.R` failed through the public
-`R CMD INSTALL` interface. Its isolated `PYTHONPATH` supplies a MarkItDown
-module that calls `os._exit(86)`, modeling a native import terminating its
-host process. After the fix, installation, `library(ragnar)`, and public
-`markdown_chunk()` assertions pass without importing it or initializing
-Python. This regression is also wired into Windows repository CI. It tests
-the installation boundary; it is not a reproduction of CRAN's native fault.
+`tools/test-install-warm-cache.R` exercises the public `R CMD INSTALL`
+interface. Its isolated `PYTHONPATH` supplies a MarkItDown module that writes
+a marker and calls `os._exit(86)`, modeling a native import terminating its
+host process. The test requires that the import is attempted, the failure
+is visible in the log, and installation succeeds. Removing the warm-up
+therefore fails this test too. Subsequent `library(ragnar)` and public
+`markdown_chunk()` assertions run without initializing Python.
+
+The regression failed before the subprocess change because no warm-up was
+attempted. Running it against the original `origin/main` also fails, because
+the import terminates configuration. With the subprocess fix it passes and
+reports `Python cache warm-up failed (exit status 86); continuing installation.`
+An ordinary install still prints `Module(markitdown)` and succeeds. Windows
+CI runs the regression. This tests the failure boundary; it is not a
+reproduction of CRAN's unidentified native fault.
+
+### MarkItDown version comparison
+
+MarkItDown 0.1.9 (October 21) expanded its Magika requirement from
+`~=0.6.1` to `>=0.6.1,<2`, as shown in
+[upstream #2722](https://github.com/microsoft/markitdown/pull/2722).
+On Windows x86_64 with Python 3.13.17, the compared environments were:
+
+| MarkItDown | Magika | ONNX Runtime | NumPy | cryptography | Import and public HTML conversion |
+| --- | --- | --- | --- | --- | --- |
+| 0.1.8 | 0.6.3 | 1.20.1 | 2.5.4 | 50.0.2 | Pass |
+| 0.1.9 | 1.0.3 | 1.31.1 | 2.5.4 | 50.0.2 | Pass |
+
+The dependency change is a plausible lead for the CRAN crash, but neither
+configuration reproduced it locally. A `markitdown<0.1.9` constraint cannot
+yet be claimed to fix that crash.
+
+Default uv resolution for native Windows ARM64/Python 3.13 selects
+cryptography 50.0.2 with **both** MarkItDown 0.1.8 and 0.1.9. The older release
+backtracks to Magika 0.6.2 and still selects ONNX Runtime 1.31.1 there.
+Thus pinning MarkItDown alone does not fix the recorded cryptography build
+failure. MarkItDown's own
+[ARM64 CI fix](https://github.com/microsoft/markitdown/pull/2731) builds OpenSSL
+and a native cryptography 50.0.2 wheel, rather than downgrading MarkItDown.
 
 ## R-universe timeout (native Windows ARM64)
 
@@ -92,31 +124,17 @@ observed default setup fails, but it would be incorrect to claim that no
 Python environment can ever be assembled for Windows ARM64. No dependency
 pin or unsupported DuckDB extension substitution was added.
 
-### Identified operation and fix
+### Identified initialization point; hang remains unverified
 
-`ragnar_find_links()` used Python's `collections.deque`, sets, and dictionaries
-for bookkeeping. Even the first local sitemap test therefore called
+`ragnar_find_links()` retains Python's `collections.deque`, sets, and
+dictionaries. Even the first local sitemap test calls
 `reticulate::import("collections")`, which initializes the entire managed
-Python environment, including the failing conversion requirements. This
-dependency was unnecessary for link discovery.
+Python environment, including the failing conversion requirements. This is
+a concrete point to instrument in an ARM64 rerun. The function is unchanged
+from `origin/main`; no link-discovery assertions were removed or weakened.
 
-The new public-API test disables Python initialization and checks HTML link
-deduplication and sitemap timestamps. Before the fix it failed with this stack:
-
-```text
-ragnar_find_links(html)
-  reticulate::import("collections")
-    ensure_python_initialized(required_module = module): Python is unavailable
-```
-
-Commit `fbf3624` uses an R list queue and hashed environments instead. The
-regression passes, as do all existing link-discovery assertions, including
-recursive traversal, redirects, cycles, filtering, and timestamp metadata.
-No tests were skipped or weakened.
-
-This establishes and removes a Python-initialization blocking point in the
-test path. **It does not establish the exact suspended native ARM64 stack or
-prove that the one-hour timeout is fixed.** Neither ARM64 job published a
+**The exact suspended native ARM64 stack remains unknown, and the one-hour
+timeout is not established as fixed.** Neither ARM64 job published a
 partial `testthat.Rout` or an ARM64 artifact, and their job logs contain no
 per-test progress. Native ARM64 hardware was unavailable locally. Keep #213
 open pending a native rerun with per-test progress; do not attribute the
@@ -127,10 +145,11 @@ evidence. The CRAN x86_64 installation crash remains a separate finding.
 
 The complete Windows workflow is supported on x86_64 R. Native ARM64 DuckDB
 indexing/retrieval remains blocked by missing upstream `fts` and `vss`
-binaries. Python conversion on ARM64 also needs a working native dependency
-environment. Installation, Markdown chunking, and link discovery no longer
-initialize Python, but that does not certify all package features on ARM64.
-This boundary is documented in README.Rmd and README.md.
+binaries. Link discovery and Python conversion on ARM64 also need a working
+native Python dependency environment. Installation attempts both cache
+warm-ups, reports failures, and continues. Successful installation does not
+certify all package features on ARM64. This boundary is documented in
+README.Rmd and README.md.
 
 The freshly inspected main had passing R-universe x86_64 checks for
 [release 4.6.2](https://github.com/r-universe/tidyverse/actions/runs/41694454308/job/126455911313),
@@ -179,14 +198,13 @@ evidence about the ARM64 runner.
 
 | Validation | Result |
 | --- | --- |
-| Public link-discovery regression before/after | Fails at `import("collections")` before; both assertions pass after |
-| Entire `find-links` test group after fix | 70 tests, 261 passing expectations, 0 failures/errors/warnings/skips, 81.7 seconds |
-| Public `R CMD INSTALL` fault-injection regression before/after | Exit 1 before; exit 0 after, including load/chunk assertions |
+| Entire `find-links` test group | 69 tests, 259 passing expectations, 0 failures/errors/warnings/skips, 78.55 seconds |
+| Public `R CMD INSTALL` fault-injection regression | Exit 1 on original main and when warm-up is absent; exit 0 with subprocess fix, including attempted-import, diagnostic, load, and chunk assertions |
 | Ordinary source installation, main and fixed | Both exit 0 locally |
-| HTML conversion through `read_as_markdown()` | Passes with Python 3.13.17 and 3.13.18; returns the expected heading and text |
-| Full fixed non-CRAN suite, `UV_OFFLINE=false` | Reporter: **835 pass, 1 fail, 0 warnings, 7 skips**; 175 test blocks, 417.09 seconds |
-| `R CMD check --as-cran --no-manual` | **0 errors, 0 warnings, 2 notes**, 4m 19.5s |
-| Tests within that check | **428 pass, 0 fail, 0 warnings, 87 skips** under existing CRAN conditions |
+| HTML conversion through `read_as_markdown()` | Passes with MarkItDown 0.1.8/Python 3.13.17 and MarkItDown 0.1.9/Python 3.13.17 and 3.13.18 |
+| Full fixed non-CRAN suite, `UV_OFFLINE=false` | Reporter: **833 pass, 1 fail, 0 warnings, 7 skips**; 174 test blocks, 389.55 seconds |
+| `R CMD check --as-cran --no-manual` | **0 errors, 0 warnings, 2 notes**, 3m 21.2s |
+| Tests within that check | **426 pass, 0 fail, 0 warnings, 87 skips** under existing CRAN conditions |
 | Check examples and vignette rebuild | Both OK |
 | `git diff --check` | Clean |
 
@@ -229,7 +247,7 @@ testthat::test_local(filter = "find-links", reporter = "summary", load_package =
 testthat::test_local(reporter = "progress", load_package = "installed")
 
 system2(file.path(R.home("bin"), "Rscript.exe"),
-        c("tools/test-install-no-python.R", shQuote(pkg)))
+        c("tools/test-install-warm-cache.R", shQuote(pkg)))
 
 rcmdcheck::rcmdcheck(
   args = c("--as-cran", "--no-manual"),
