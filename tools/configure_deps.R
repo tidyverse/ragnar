@@ -1,12 +1,31 @@
-# Python requirements are declared in .onLoad() and initialized on first use.
-# Do not import MarkItDown here: native crashes cannot be caught by try(), and
-# must not prevent installation or use of the functions that need only R.
+# Warm dependency caches so examples do not pay the first-use download cost.
+# Run native imports in child processes: try() cannot catch a segmentation
+# fault, and a cache warm-up failure must not abort package installation.
 is_windows <- function() identical(.Platform$OS.type, "windows")
 rscript_exe <- function() {
   file.path(
     R.home("bin"),
     if (is_windows()) "Rscript.exe" else "Rscript"
   )
+}
+
+load_python_in_subprocess <- function() {
+  status <- try(system2(
+    rscript_exe(),
+    "-",
+    input = c(
+      "Sys.setenv(RETICULATE_PYTHON = 'managed', ORT_DISABLE_TELEMETRY = '1')",
+      # Older supported MarkItDown/Magika versions require Python < 3.14
+      # on Windows. Keep this in sync with .onLoad().
+      "reticulate::py_require('markitdown[all]', python_version = '<3.14')",
+      "print(reticulate::py_config())",
+      "reticulate::import('markitdown')"
+    )
+  ))
+  if (!identical(status, 0L)) {
+    detail <- if (is.numeric(status)) sprintf(" (exit status %s)", status) else ""
+    message("Python cache warm-up failed", detail, "; continuing installation.")
+  }
 }
 
 load_duckdb_extensions_in_subprocess <- function() {
@@ -26,6 +45,7 @@ load_duckdb_extensions_in_subprocess <- function() {
   ))
 }
 
+load_python_in_subprocess()
 load_duckdb_extensions_in_subprocess()
 
 NULL

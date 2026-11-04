@@ -49,7 +49,7 @@ jobs:
           needs: check
           cache-version: 2
 
-      - name: Check installation without Python imports
+      - name: Check installation survives Python warm-up failure
         if: runner.os == 'Windows'
         shell: Rscript {0}
         run: |
@@ -59,7 +59,7 @@ jobs:
           )
           status <- system2(
             file.path(R.home("bin"), "Rscript.exe"),
-            c("tools/test-install-no-python.R", shQuote(pkg))
+            c("tools/test-install-warm-cache.R", shQuote(pkg))
           )
           stopifnot(status == 0L)
 
