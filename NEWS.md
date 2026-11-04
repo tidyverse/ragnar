@@ -1,5 +1,9 @@
 # ragnar (development version)
 
+-   On native Windows ARM64, MarkItDown conversion and DuckDB stores now
+    report that they are unsupported before initializing these dependencies.
+    Other features remain enabled.
+
 -   Installation warms the Python dependency cache in a separate process.
     Native import failures remain visible in the installation log but no
     longer abort package installation.

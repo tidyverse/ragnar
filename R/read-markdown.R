@@ -180,6 +180,9 @@ read_as_markdown <- function(
   html_zap_selectors = c("nav"),
   youtube_transcript_formatter = NULL
 ) {
+  if (is_windows_arm64()) {
+    stop("MarkItDown is not currently supported on Windows ARM64.", call. = FALSE)
+  }
   check_string(path)
   check_string(origin, allow_na = TRUE)
   if (startsWith(path, "~")) {

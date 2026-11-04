@@ -45,7 +45,11 @@ load_duckdb_extensions_in_subprocess <- function() {
   ))
 }
 
-load_python_in_subprocess()
-load_duckdb_extensions_in_subprocess()
+if (is_windows() && R.version$arch %in% c("aarch64", "arm64")) {
+  message("MarkItDown and DuckDB stores are not currently supported on Windows ARM64.")
+} else {
+  load_python_in_subprocess()
+  load_duckdb_extensions_in_subprocess()
+}
 
 NULL

@@ -50,9 +50,10 @@ You can install the development version from GitHub with:
 pak::pak("tidyverse/ragnar")
 ```
 
-Windows indexing and retrieval currently require x86_64 R because DuckDB
-does not provide the required `fts` and `vss` extensions for native Windows
-ARM64 R (`windows_arm64_mingw`).
+On native Windows ARM64, ragnar disables MarkItDown document conversion and
+DuckDB stores. Chunking remains available; Python features currently also
+encounter [reticulate's architecture check](https://github.com/rstudio/reticulate/issues/1934).
+Use x86_64 R on Windows for the complete workflow.
 
 ## Key Steps
 
