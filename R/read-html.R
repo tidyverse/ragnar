@@ -463,24 +463,21 @@ ragnar_find_links <- function(
     url_filter
   }
 
-  # Link discovery needs no Python. In particular, do not initialize the
-  # MarkItDown environment just to keep track of a crawl.
-  queue <- list()
-  next_item <- 1L
-  visited <- new.env(parent = emptyenv())
-  queued <- new.env(parent = emptyenv())
-  resolved <- new.env(parent = emptyenv())
-  collected <- new.env(parent = emptyenv())
+  deque <- reticulate::import("collections")$deque()
+  visited <- reticulate::import_builtins()$set()
+  queued <- reticulate::import_builtins()$set()
+  resolved <- reticulate::dict()
+  collected <- reticulate::import_builtins()$set()
   problems <- list()
   last_modified <- list()
 
   start_url <- xml_url2(x)
-  resolved[[requested_url]] <- start_url
-  queue[[1L]] <- list(url = start_url, depth = 0)
-  queued[[requested_url]] <- TRUE
-  queued[[start_url]] <- TRUE
+  resolved[requested_url] <- start_url
+  deque$append(list(url = start_url, depth = 0))
+  queued$add(requested_url)
+  queued$add(start_url)
   if (include_root && !is_sitemap(x)) {
-    collected[[start_url]] <- TRUE
+    collected$add(start_url)
   }
   if (!depth) {
     progress <- FALSE
@@ -488,7 +485,7 @@ ragnar_find_links <- function(
 
   if (progress) {
     pb <- cli::cli_progress_bar(
-      format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(queue) - next_item + 1L} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
+      format = "{cli::pb_spin} Finding links: {length(visited)} | On queue: {length(deque)} | Current depth: {item$depth} | [{round(cli::pb_elapsed_raw)}s]",
       total = NA
     )
   }
@@ -497,20 +494,18 @@ ragnar_find_links <- function(
   # we are able to return the current set of visited pages.
   tryCatch(
     {
-      while (next_item <= length(queue)) {
-        item <- queue[[next_item]]
-        queue[next_item] <- list(NULL)
-        next_item <- next_item + 1L
+      while (length(deque) > 0) {
+        item <- deque$popleft()
         if (progress) {
           cli::cli_progress_update()
         }
 
-        visited[[item$url]] <- TRUE
+        visited$add(item$url)
         page_result <- tryCatch(
           {
             page <- read_html2(item$url)
             resolved_url <- xml_url2(page) # maybe redirected
-            resolved[[item$url]] <- resolved_url
+            resolved[item$url] <- resolved_url
             found_links <- html_find_links(page)
             list(
               links = found_links,
@@ -528,7 +523,7 @@ ragnar_find_links <- function(
               link = item$url,
               problem = conditionMessage(e)
             )
-            resolved[[item$url]] <- ""
+            resolved[item$url] <- ""
             list(links = character(0), resolved_url = NULL, last_modified = NULL, link_lastmod = NULL, bad_locs = NULL)
           }
         )
@@ -548,7 +543,7 @@ ragnar_find_links <- function(
           )
           # Use the same resolved URLs as result collection, including redirects
           # visited before this sitemap was discovered.
-          redirects <- unlist(as.list(resolved), use.names = TRUE)
+          redirects <- unlist(reticulate::py_to_r(resolved), use.names = TRUE)
           destinations <- redirects[names(lm_map)]
           redirected <- !is.na(destinations) & nzchar(destinations)
           names(lm_map)[redirected] <- destinations[redirected]
@@ -572,20 +567,18 @@ ragnar_find_links <- function(
 
         links <- url_filter_fn(links)
 
-        # If depth still supports, we add items to the queue if they are not yet
+        # If depth still supports, we add items to the deque if they are not yet
         # visited or already queued.
         if (item$depth + 1 <= depth) {
           for (link in links) {
-            if (is.null(visited[[link]]) && is.null(queued[[link]])) {
-              queue[[length(queue) + 1L]] <- list(url = link, depth = item$depth + 1)
-              queued[[link]] <- TRUE
+            if (!visited$`__contains__`(link) && !queued$`__contains__`(link)) {
+              deque$append(list(url = link, depth = item$depth + 1))
+              queued$add(link)
             }
           }
         }
 
-        for (link in links) {
-          collected[[link]] <- TRUE
-        }
+        collected$update(as.list(links))
       }
     },
     interrupt = function(e) {
@@ -596,8 +589,10 @@ ragnar_find_links <- function(
     cli::cli_progress_update(force = TRUE)
   }
 
-  out <- vapply(ls(collected, all.names = TRUE), \(x) resolved[[x]] %||% x, "")
-  out <- unname(out)
+  out <- collected
+  get_resolved <- reticulate::py_to_r(resolved$get)
+  out <- reticulate::iterate(out, \(x) get_resolved(x) %||% x)
+  out <- as.character(out)
   out <- out[nzchar(out)]
   out <- unique(sort(url_filter_fn(out)))
 
