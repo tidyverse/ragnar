@@ -1,5 +1,12 @@
 # ragnar (development version)
 
+-   `ragnar_find_links()` no longer initializes Python to manage its crawl
+    queue. Link discovery works without the Python conversion dependencies.
+
+-   Installation no longer initializes Python or imports MarkItDown. Python
+    dependencies are initialized when a conversion is first requested, so a
+    native Python import failure cannot abort package installation.
+
 -   `ragnar_store_ingest()` now prints document origins literally in progress
     messages.
 
