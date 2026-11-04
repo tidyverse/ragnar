@@ -15,9 +15,10 @@ load_python_in_subprocess <- function() {
     "-",
     input = c(
       "Sys.setenv(RETICULATE_PYTHON = 'managed', ORT_DISABLE_TELEMETRY = '1')",
-      # Older supported MarkItDown/Magika versions require Python < 3.14
-      # on Windows. Keep this in sync with .onLoad().
-      "reticulate::py_require('markitdown[all]', python_version = '<3.14')",
+      # Keep dependency constraints in sync with .onLoad().
+      "reticulate::py_require(",
+      "  c('markitdown[all]', 'onnxruntime<=1.20.1; sys_platform == \"win32\"'),",
+      "  python_version = '<3.14')",
       "print(reticulate::py_config())",
       "reticulate::import('markitdown')"
     )
