@@ -132,6 +132,9 @@ ragnar_store_create <- function(
   title = NULL,
   version = 2
 ) {
+  if (is_windows_arm64()) {
+    stop("DuckDB stores are not currently supported on Windows ARM64.", call. = FALSE)
+  }
   check_number_whole(version)
   create <- switch(
     as.integer(version),
@@ -247,6 +250,9 @@ ragnar_store_connect <- function(
   ...,
   read_only = TRUE
 ) {
+  if (is_windows_arm64()) {
+    stop("DuckDB stores are not currently supported on Windows ARM64.", call. = FALSE)
+  }
   check_dots_empty()
 
   if (is_motherduck_location(location)) {

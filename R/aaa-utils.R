@@ -162,6 +162,9 @@ reorder_by_names <- function(object, to_front, to_back = NULL) {
 
 is_windows <- function() identical(.Platform$OS.type, "windows")
 
+is_windows_arm64 <- function() {
+  is_windows() && R.version$arch %in% c("aarch64", "arm64")
+}
 
 prepend <- function(body, head) c(head, body)
 
@@ -302,6 +305,7 @@ can_load_duckdb_extensions <- local({
   # be loaded in a separate process and proceed if that's possible.
   can <- NULL
   function() {
+    if (is_windows_arm64()) return(FALSE)
     if (is.null(can)) {
       can <<- 0L ==
         system2(
