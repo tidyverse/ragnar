@@ -52,4 +52,16 @@ local({
   stopifnot(!file.exists(marker))
   cat("Python warm-up was attempted; its failure did not prevent installation.\n")
   cat("Loading and Markdown chunking did not initialize Python.\n")
+
+  # A successful install must also leave real document conversion working.
+  Sys.unsetenv(c("PYTHONPATH", "RAGNAR_TEST_PYTHON_MARKER"))
+  html <- file.path(root, "document.html")
+  writeLines("<html><body><h1>Heading</h1><p>Some text.</p></body></html>", html)
+  writeLines(c(
+    paste0(".libPaths(c(", deparse(lib), ", .libPaths()))"),
+    paste0("doc <- ragnar::read_as_markdown(", deparse(html), ")"),
+    "stopifnot(as.character(doc) == '# Heading\\n\\nSome text.')"
+  ), script)
+  stopifnot(system2(rscript, c("--vanilla", shQuote(script))) == 0L)
+  cat("Public HTML conversion succeeded in a fresh process.\n")
 })
