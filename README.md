@@ -33,19 +33,9 @@ You can install the development version from GitHub with:
 pak::pak("tidyverse/ragnar")
 ```
 
-### Windows support
-
-Use x86_64 R on Windows for the complete workflow. Native Windows ARM64
-is not currently supported for DuckDB indexing and retrieval: DuckDB 2.0
-does not publish the required `fts` and `vss` extensions for
-`windows_arm64_mingw`. Python document conversion also requires dependencies
-that can be installed for the Python interpreter's architecture; the
-Windows ARM64 checks currently fail to build `cryptography` through
-MarkItDown. Installation attempts to warm dependency caches in separate
-processes; a warm-up failure is reported without aborting installation.
-Link discovery and document conversion require a working Python environment.
-Installing the R package alone does not verify that these features or
-database extensions work on a platform.
+Windows indexing and retrieval currently require x86_64 R because DuckDB
+does not provide the required `fts` and `vss` extensions for native Windows
+ARM64 R (`windows_arm64_mingw`).
 
 ## Key Steps
 
