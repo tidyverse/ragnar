@@ -1,27 +1,6 @@
-# tools/configure_reticulate.R
-
-# Make reticulate setup the ephemeral venv in advance,
-# primarily so CRAN examples run quickly and don't trigger a warning
-
-Sys.setenv(
-  RETICULATE_PYTHON = "managed",
-  ORT_DISABLE_TELEMETRY = "1"
-)
-
-library(reticulate)
-py_require(
-  "markitdown[all]",
-  # Magika 0.6.3 (via MarkItDown) pins onnxruntime<=1.20.1 on Windows.
-  # That ONNX Runtime version has no Python 3.14 wheels.
-  # https://github.com/posit-dev/raghilda/issues/93
-  python_version = "<3.14"
-)
-try({
-  print(py_config())
-  import("markitdown")
-})
-
-
+# Python requirements are declared in .onLoad() and initialized on first use.
+# Do not import MarkItDown here: native crashes cannot be caught by try(), and
+# must not prevent installation or use of the functions that need only R.
 is_windows <- function() identical(.Platform$OS.type, "windows")
 rscript_exe <- function() {
   file.path(
