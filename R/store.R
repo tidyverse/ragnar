@@ -30,7 +30,7 @@
 #' Additionally, if you intend to call `ragnar_store_update()`, it is your
 #' responsibility to provide `rlang::hash(original_full_document)` with each
 #' chunk. The easiest way to prepare `chunks` for `version = 1` is with
-#' `ragnar_read()` and `ragnar_chunk()`.
+#' `read_as_markdown()` and `markdown_chunk()`.
 #'
 #' ## Memory use
 #'
