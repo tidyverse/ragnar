@@ -56,16 +56,55 @@ test_that("ragnar_store_connect() preserves document freshness fields", {
   expect_equal(attr(result, "ingest_summary")$status, "skipped_unchanged")
 })
 
-test_that("connecting to an older v2 store asks users to recreate it", {
-  skip_on_cran()
-  location <- withr::local_tempfile(fileext = ".duckdb")
+local_older_v2_store <- function(path, env = parent.frame()) {
+  location <- withr::local_tempfile(fileext = ".duckdb", .local_envir = env)
   store <- ragnar_store_create(location, embed = NULL)
-  DBI::dbExecute(store@con, "ALTER TABLE documents DROP COLUMN last_modified")
-  DBI::dbDisconnect(store@con, shutdown = TRUE)
-
-  expect_error(
-    ragnar_store_connect(location, read_only = FALSE),
-    "Recreate it with `ragnar_store_create()`.",
-    fixed = TRUE
+  ragnar_store_insert(store, read_as_markdown(path) |> markdown_chunk())
+  ragnar_store_build_index(store)
+  DBI::dbExecute(
+    store@con,
+    "ALTER TABLE documents DROP COLUMN last_modified;
+     ALTER TABLE documents DROP COLUMN content_hash;
+     ALTER TABLE documents DROP COLUMN ingested_at;"
   )
+  DBI::dbDisconnect(store@con, shutdown = TRUE)
+  location
+}
+
+test_that("older v2 stores remain readable without migration", {
+  skip_on_cran()
+  path <- withr::local_tempfile(fileext = ".md")
+  writeLines("Stored document.", path)
+  location <- local_older_v2_store(path)
+
+  store <- ragnar_store_connect(location)
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  expect_equal(
+    DBI::dbListFields(store@con, "documents"),
+    c("doc_id", "origin", "text")
+  )
+  expect_equal(ragnar_retrieve_bm25(store, "stored")$origin, path)
+})
+
+test_that("writable connections upgrade older v2 stores", {
+  skip_on_cran()
+  path <- withr::local_tempfile(fileext = ".md")
+  writeLines("Stored document.", path)
+  location <- local_older_v2_store(path)
+
+  store <- ragnar_store_connect(location, read_only = FALSE)
+  withr::defer(DBI::dbDisconnect(store@con, shutdown = TRUE))
+  expect_setequal(
+    DBI::dbListFields(store@con, "documents"),
+    c("doc_id", "origin", "text", "last_modified", "content_hash", "ingested_at")
+  )
+
+  ingest <- function() {
+    result <- ragnar_store_ingest(
+      store, path, n_workers = 1L, progress = FALSE, build_index = FALSE
+    )
+    attr(result, "ingest_summary")$status
+  }
+  expect_equal(ingest(), "ok")
+  expect_equal(ingest(), "skipped_unchanged")
 })
