@@ -125,9 +125,9 @@ directly (e.g., with `glue()`). Additionally, if you intend to call
 it is your responsibility to provide
 `rlang::hash(original_full_document)` with each chunk. The easiest way
 to prepare `chunks` for `version = 1` is with
-[`ragnar_read()`](https://ragnar.tidyverse.org/dev/reference/ragnar_read.md)
+[`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
 and
-[`ragnar_chunk()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md).
+[`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md).
 
 ### Memory use
 
@@ -154,7 +154,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpcAbEwc/duckdb
+#> ℹ /tmp/RtmpdmrOj7/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -171,7 +171,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpcAbEwc/duckdb
+#> ℹ /tmp/RtmpdmrOj7/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -189,7 +189,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpcAbEwc/duckdb
+#> ℹ /tmp/RtmpdmrOj7/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -204,7 +204,7 @@ store <- ragnar_store_create(
   embed = NULL
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpcAbEwc/duckdb
+#> ℹ /tmp/RtmpdmrOj7/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.

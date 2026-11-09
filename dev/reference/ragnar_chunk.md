@@ -126,6 +126,8 @@ to handle the resulting list-columns when `simplify = TRUE`.
 text <- "This is a long piece of text. It has multiple sentences.
          We want to split it into chunks. Here's another sentence."
 ragnar_chunk(text, max_size = 40) # splits at sentences
+#> Warning: `ragnar_chunk()` was deprecated in ragnar 0.2.0.
+#> ℹ Please use `markdown_chunk()` instead.
 #> [1] "This is a long piece of text."   
 #> [2] "It has multiple sentences."      
 #> [3] "We want to split it into chunks."
@@ -188,6 +190,8 @@ ragnar_chunk(df$text, max_size = 20, boundaries = "sentence")
 # Chunking pre-segmented text
 segments <- c("First segment. ", "Second segment. ", "Third segment. ", "Fourth segment. ")
 ragnar_chunk_segments(segments, max_size = 20)
+#> Warning: `ragnar_chunk_segments()` was deprecated in ragnar 0.2.0.
+#> ℹ Please use `markdown_chunk()` instead.
 #> [1] "First segment."  "Second segment." "Third segment." 
 #> [4] "Fourth segment."
 ragnar_chunk_segments(segments, max_size = 40)

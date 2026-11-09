@@ -2,6 +2,18 @@
 
 ## ragnar (development version)
 
+- [`ragnar_read()`](https://ragnar.tidyverse.org/dev/reference/ragnar_read.md),
+  [`ragnar_chunk()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md),
+  [`ragnar_segment()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md),
+  and
+  [`ragnar_chunk_segments()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md)
+  now emit deprecation warnings. They have been documented as deprecated
+  since ragnar 0.2.0. Use
+  [`read_as_markdown()`](https://ragnar.tidyverse.org/dev/reference/read_as_markdown.md)
+  and
+  [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
+  instead.
+
 - Windows Python environments now require ONNX Runtime 1.20.1 or
   earlier, avoiding native import failures on CRAN’s Windows builders.
 
