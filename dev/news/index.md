@@ -50,8 +50,10 @@
   now skips unchanged sources using modification times or a hash of the
   prepared Markdown.
   [`ragnar_store_sync()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_sync.md)
-  removes documents outside a supplied set of origins. Recreate existing
-  v2 stores to use the new format; stores are not migrated automatically
+  removes documents outside a supplied set of origins. Older v2 stores
+  open unchanged in read-only mode and are upgraded on disk when opened
+  for writing. Existing documents are reprocessed when their sources are
+  next ingested; later runs can skip unchanged sources
   ([\#200](https://github.com/tidyverse/ragnar/issues/200),
   [\#201](https://github.com/tidyverse/ragnar/issues/201)).
 
