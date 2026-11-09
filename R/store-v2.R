@@ -466,3 +466,43 @@ dbWithTransaction2 <- function(con, code, ...) {
     }
   )
 }
+
+
+# Upgrades a v2 store created before freshness tracking (#200, #201).
+#
+# * `documents` gains the freshness columns. NULL means freshness is unknown,
+#   so the next ingest re-processes those documents.
+# * `embeddings` is rebuilt without its foreign key to `documents`, which
+#   prevents deleting documents and their embeddings in one transaction.
+#   `chunk_id` values are kept, so the FTS index stays valid; HNSW indexes on
+#   `embeddings` are dropped with the table and recreated.
+upgrade_v2_store <- function(con) {
+  hnsw_indexes <- dbGetQuery(
+    con,
+    "SELECT sql FROM duckdb_indexes() WHERE table_name = 'embeddings'
+     AND sql ILIKE '%USING HNSW%'"
+  )$sql
+
+  dbWithTransaction2(con, {
+    dbExecute(
+      con,
+      r"--(
+      CREATE TABLE embeddings_upgraded AS SELECT * FROM embeddings;
+      ALTER TABLE embeddings_upgraded ALTER doc_id SET NOT NULL;
+      ALTER TABLE embeddings_upgraded
+        ALTER chunk_id SET DEFAULT nextval('chunk_id_seq');
+      ALTER TABLE embeddings_upgraded ADD PRIMARY KEY (doc_id, start, "end");
+      DROP TABLE embeddings;
+      ALTER TABLE embeddings_upgraded RENAME TO embeddings;
+
+      ALTER TABLE documents ADD COLUMN last_modified TIMESTAMPTZ;
+      ALTER TABLE documents ADD COLUMN content_hash VARCHAR;
+      ALTER TABLE documents ADD COLUMN ingested_at TIMESTAMPTZ;
+      )--"
+    )
+    if (length(hnsw_indexes)) {
+      dbExecute(con, "SET hnsw_enable_experimental_persistence = true")
+      for (sql in hnsw_indexes) dbExecute(con, sql)
+    }
+  })
+}

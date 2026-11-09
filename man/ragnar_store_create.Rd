@@ -76,9 +76,10 @@ modifying chunks directly before insertion. Chunks can be augmented via the
 easiest way to prepare \code{chunks} for \code{version = 2} is with
 \code{read_as_markdown()} and \code{markdown_chunk()}.
 
-Incremental ingestion and store synchronization require the current v2
-format. Recreate older v2 stores with \code{ragnar_store_create()}; existing
-stores are not migrated automatically.
+Older v2 stores can be opened read-only without changing the store.
+Opening one with \code{read_only = FALSE} upgrades its schema on disk. Existing
+documents have unknown freshness and are reprocessed when their sources are
+next ingested; later runs can skip unchanged sources.
 
 \strong{Version 1 – flat chunks}
 

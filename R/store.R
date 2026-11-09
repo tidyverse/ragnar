@@ -15,9 +15,10 @@
 #' easiest way to prepare `chunks` for `version = 2` is with
 #' `read_as_markdown()` and `markdown_chunk()`.
 #'
-#' Incremental ingestion and store synchronization require the current v2
-#' format. Recreate older v2 stores with `ragnar_store_create()`; existing
-#' stores are not migrated automatically.
+#' Older v2 stores can be opened read-only without changing the store.
+#' Opening one with `read_only = FALSE` upgrades its schema on disk. Existing
+#' documents have unknown freshness and are reprocessed when their sources are
+#' next ingested; later runs can skip unchanged sources.
 #'
 #' **Version 1 – flat chunks**
 #'
@@ -276,19 +277,17 @@ ragnar_store_connect <- function(
     stop("Store must be created with ragnar_store_create()")
   }
 
-  if (
-    version == 2L &&
-      !all(c("last_modified", "content_hash", "ingested_at") %in%
-        dbListFields(con, "documents"))
-  ) {
-    dbDisconnect(con, shutdown = TRUE)
-    rlang::abort(
-      "This store uses an older v2 format. Recreate it with `ragnar_store_create()`."
-    )
-  }
-
   dbExecute(con, "INSTALL fts; INSTALL vss;")
   dbExecute(con, "LOAD fts; LOAD vss;")
+
+  # Read-only connections never use the fields added by the upgrade.
+  if (
+    version == 2L &&
+      !read_only &&
+      !"content_hash" %in% dbListFields(con, "documents")
+  ) {
+    upgrade_v2_store(con)
+  }
 
   metadata <- dbReadTable(con, "metadata")
   embed <- unserialize(metadata$embed_func[[1L]])
