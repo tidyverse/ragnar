@@ -2,65 +2,65 @@
 
 ## Breaking changes
 
--   Version 2 stores now record per-document modification times and content
-    hashes. Connecting to a v2 store created by an earlier version of ragnar
-    errors; recreate it with `ragnar_store_create()`. Stores are not migrated
-    automatically (#200, #201).
+-   Version 2 stores now record modification times and content hashes for each
+    document. Connecting to a v2 store created by an earlier version of ragnar
+    errors. Recreate the store with `ragnar_store_create()`; stores are not
+    migrated automatically (#200, #201).
 
--   Retrieval now rejects metadata named `metric_name` or `metric_value`,
-    ignoring case, with an error asking for different metadata column names.
+-   Retrieval now rejects metadata columns named `metric_name` or `metric_value`
+    (ignoring case) and asks for different column names.
 
 -   ragnar now requires DuckDB >= 1.5.0, whose row-ID fetching keeps indexed
     VSS retrieval bounded to the selected matches.
 
 ## New features
 
--   `ragnar_store_ingest()` now skips unchanged sources using modification
-    times or a hash of the prepared Markdown (#200).
+-   `ragnar_store_ingest()` now uses modification times or a hash of the
+    prepared Markdown to skip unchanged sources (#200).
 
--   New `ragnar_store_sync()` removes documents outside a supplied set of
-    origins (#201).
+-   `ragnar_store_sync()` removes documents outside a supplied set of origins
+    (#201).
 
--   New `ragnar_store_audit()` reports expected, ingested, and missing origins,
+-   `ragnar_store_audit()` reports expected, ingested, and missing origins,
     stored chunk counts, and missing URLs, optionally grouped by a column in
     the expected data frame (@andrie, #203, #210).
 
 -   `ragnar_store_ingest()` now returns an `ingest_summary` attribute reporting
-    each input path's status, stored chunk count, and worker error message.
-    Index requests are honored when all paths already exist (#202, #208).
+    the status, stored chunk count, and worker error message for each input path.
+    It honors index requests when all paths already exist (#202, #208).
 
 -   `ragnar_find_links(metadata = TRUE)` returns a tibble with `source` and
-    `last_modified` columns, so timestamps stay with their links through joins
-    and row-binding. The default remains a character vector (#212).
+    `last_modified` columns, so timestamps stay with their links when joining or
+    binding rows. The default remains a character vector (#212).
 
 -   `ragnar_find_links()` reads modification dates and datetimes from sitemaps,
-    avoiding timestamp requests for URLs with a known date. Invalid sitemap
+    avoiding extra timestamp requests for URLs with a known date. Invalid sitemap
     locations are reported in the `problems` attribute. Crawl and validation
-    problems use the documented `link` and `problem` columns (@andrie, #212).
+    problems have the documented `link` and `problem` columns (@andrie, #212).
 
 -   `ragnar_find_links()` can now include the starting page with
     `include_root = TRUE` (#199).
 
--   VSS filters can now reference `metric_value`, `metric_name`, and, for
-    version 2 stores, `origin` and `text`. Filtered searches spanning the
-    initial 5,000 candidates now respect `top_k`.
+-   `ragnar_retrieve_vss()` filters can now reference `metric_value`,
+    `metric_name`, and, for version 2 stores, `origin` and `text`. Filtered
+    searches spanning the initial 5,000 candidates now respect `top_k`.
 
 ## Minor improvements and fixes
 
--   `ragnar_retrieve_vss()` now fetches embeddings and document text after
-    selecting the final matches, reducing intermediate memory use. Store
-    connections disable insertion-order preservation, and the store
-    documentation explains how to set a deployment-specific DuckDB memory
-    limit (#188).
+-   `ragnar_retrieve_vss()` now fetches embeddings and document text for output
+    after ranking and filtering candidates, reducing intermediate memory use.
+    Store connections disable insertion-order preservation, and the store
+    documentation explains how to set a deployment-specific DuckDB memory limit
+    (#188).
 
 -   `ragnar_store_ingest()` now reports worker failures as
     `ragnar_ingest_worker_error` warnings with a `path` field identifying the
     failed input, including when `prepare()` returns an invalid result or a
     worker exits (#205).
 
--   `ragnar_store_ingest()` now limits its default worker count by the detected
-    core count, with a minimum of two workers. If core detection is unavailable,
-    four cores are assumed (#206).
+-   `ragnar_store_ingest()` now limits its default worker count based on the
+    detected core count, with a minimum of two workers. If core detection is
+    unavailable, four cores are assumed (#206).
 
 -   `ragnar_store_ingest()` skips unchanged files with subsecond modification
     times consistently with DuckDB 2.0.
@@ -68,26 +68,27 @@
 -   `ragnar_store_ingest()` now prints document origins literally in progress
     messages.
 
--   `ragnar_find_links()` now returns an empty character vector instead of
-    erroring when no links are found or all links are filtered out.
+-   `ragnar_find_links()` now returns an empty character vector by default when
+    no links are found or all links are filtered out, instead of erroring.
 
 -   `markdown_chunk()` no longer misplaces heading boundaries when the input
     contains combining characters (NFD-normalized text) (@taekop, #158).
 
--   Fixed an error when creating an embedding function by omitting `x` or
-    passing `x = NULL`. Helpers such as `embed_bedrock()`,
-    `embed_azure_openai()`, and `embed_google_vertex()` now correctly return
-    a function that preserves the supplied configuration arguments (#187).
+-   Embedding helpers such as `embed_bedrock()`, `embed_azure_openai()`, and
+    `embed_google_vertex()` now return a function that preserves the supplied
+    configuration arguments when `x` is omitted or `NULL`, instead of erroring
+    (#187).
 
 -   Windows Python environments now require ONNX Runtime 1.20.1 or earlier,
     avoiding native import failures on CRAN's Windows builders.
 
--   Installation warms the Python dependency cache in a separate process.
-    Native import failures remain visible in the installation log but no
-    longer abort package installation.
+-   Installation attempts to warm the Python dependency cache in a separate
+    process, except on native Windows ARM64. Native import failures during
+    warm-up remain visible in the installation log but no longer abort package
+    installation.
 
 -   On native Windows ARM64, MarkItDown conversion and DuckDB stores now
-    report that they are unsupported before initializing these dependencies.
+    report that they are unsupported before initializing them.
     Other features remain enabled.
 
 # ragnar 0.3.1
