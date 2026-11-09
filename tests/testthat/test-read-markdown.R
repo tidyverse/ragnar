@@ -10,7 +10,7 @@ test_that("ragnar_read", {
   doc <- test_doc()
 
   # Reading the document without any arguments yields a single row data frame
-  document <- ragnar_read(doc)
+  lifecycle::expect_deprecated(document <- ragnar_read(doc))
   expect_equal(nrow(document), 1)
   expect_equal(colnames(document), c("origin", "hash", "text"))
 })
@@ -18,12 +18,14 @@ test_that("ragnar_read", {
 
 test_that("ragnar_read() empty doc", {
   skip_on_cran() # See comment (above) in test-read-markdown.R
+  withr::local_options(lifecycle_verbosity = "quiet")
   jpg <- file.path(R.home("doc"), "html", "logo.jpg")
   expect_no_error(ragnar_read(jpg))
 })
 
 test_that("ragnar_read() doc in ~", {
   skip_on_cran() # See comment (above) in test-read-markdown.R
+  withr::local_options(lifecycle_verbosity = "quiet")
   withr::with_tempfile("tilde_file", tmpdir = "~", fileext = ".md", {
     file.copy(
       system.file("store-inspector", "README.md", package = "ragnar"),

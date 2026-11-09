@@ -10,7 +10,7 @@ ragnar_chunks_view(chunks)
 \item{chunks}{A data frame containing a few chunks.}
 }
 \description{
-Visualize chunks read by \code{\link[=ragnar_read]{ragnar_read()}} for quick inspection.
+Visualize chunks produced by \code{\link[=markdown_chunk]{markdown_chunk()}} for quick inspection.
 Helpful for inspecting the results of chunking and reading while iterating
 on the ingestion pipeline.
 }
