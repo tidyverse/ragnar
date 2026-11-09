@@ -1,5 +1,16 @@
 # ragnar (development version)
 
+-   Windows Python environments now require ONNX Runtime 1.20.1 or earlier,
+    avoiding native import failures on CRAN's Windows builders.
+
+-   On native Windows ARM64, MarkItDown conversion and DuckDB stores now
+    report that they are unsupported before initializing these dependencies.
+    Other features remain enabled.
+
+-   Installation warms the Python dependency cache in a separate process.
+    Native import failures remain visible in the installation log but no
+    longer abort package installation.
+
 -   `ragnar_store_ingest()` now prints document origins literally in progress
     messages.
 

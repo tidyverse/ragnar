@@ -12,11 +12,16 @@ ragnartools.markitdown <- NULL
     ORT_DISABLE_TELEMETRY = "1"
   )
   S7::methods_register()
+  if (is_windows_arm64()) {
+    return(invisible(NULL))
+  }
   reticulate::py_require(
-    "markitdown[all]",
-    # Magika 0.6.3 (via MarkItDown) pins onnxruntime<=1.20.1 on Windows.
-    # That ONNX Runtime version has no Python 3.14 wheels.
-    # https://github.com/posit-dev/raghilda/issues/93
+    c(
+      "markitdown[all]",
+      # Newer ONNX Runtime wheels fail to import on CRAN's Windows builders.
+      "onnxruntime<=1.20.1; sys_platform == 'win32'"
+    ),
+    # ONNX Runtime 1.20.1 has no Python 3.14 wheels.
     python_version = "<3.14"
   )
 

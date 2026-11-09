@@ -33,6 +33,11 @@ You can install the development version from GitHub with:
 pak::pak("tidyverse/ragnar")
 ```
 
+On native Windows ARM64, ragnar disables MarkItDown document conversion and
+DuckDB stores. Chunking remains available; Python features currently also
+encounter [reticulate's architecture check](https://github.com/rstudio/reticulate/issues/1934).
+Use x86_64 R on Windows for the complete workflow.
+
 ## Key Steps
 
 ### 1. Document Processing
