@@ -77,10 +77,9 @@ easiest way to prepare \code{chunks} for \code{version = 2} is with
 \code{read_as_markdown()} and \code{markdown_chunk()}.
 
 Older v2 stores can be opened read-only without changing the store.
-Opening one with \code{read_only = FALSE} adds the missing freshness columns
-to its schema on disk. Existing documents have unknown freshness and are
-reprocessed when their sources are next ingested; later runs can skip
-unchanged sources.
+Opening one with \code{read_only = FALSE} upgrades its schema on disk. Existing
+documents have unknown freshness and are reprocessed when their sources are
+next ingested; later runs can skip unchanged sources.
 
 \strong{Version 1 – flat chunks}
 
