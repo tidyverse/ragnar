@@ -2,11 +2,6 @@
 
 ## Breaking changes
 
--   Version 2 stores now record modification times and content hashes for each
-    document. Connecting to a v2 store created by an earlier version of ragnar
-    errors. Recreate the store with `ragnar_store_create()`; stores are not
-    migrated automatically (#200, #201).
-
 -   Retrieval now rejects metadata columns named `metric_name` or `metric_value`
     (ignoring case) and asks for different column names.
 
@@ -16,7 +11,11 @@
 ## New features
 
 -   `ragnar_store_ingest()` now uses modification times or a hash of the
-    prepared Markdown to skip unchanged sources (#200).
+    prepared Markdown to skip unchanged sources (#200). Older v2 stores open
+    unchanged in read-only mode (the default) and their schema is upgraded on
+    disk when connected with `read_only = FALSE`. Existing documents have
+    unknown freshness and are reprocessed when their sources are next ingested;
+    later runs can skip unchanged sources (#218).
 
 -   `ragnar_store_sync()` removes documents outside a supplied set of origins
     (#201).
