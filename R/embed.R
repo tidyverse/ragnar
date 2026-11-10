@@ -35,7 +35,7 @@ NULL
 embed_ollama <- function(
   x,
   base_url = "http://localhost:11434",
-  model = "embeddinggemma-2:latest",
+  model = "embeddinggemma-2:270m-q8_0-text",
   batch_size = 10L
 ) {
   if (missing(x) || is.null(x)) {

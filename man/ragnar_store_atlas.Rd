@@ -34,7 +34,7 @@ and \code{nanoarrow} (>= 0.8.0) to transfer data from the DuckDB store to Python
 \examples{
 \dontrun{
 # Start Ollama, then run this in a terminal:
-# ollama pull embeddinggemma-2
+# ollama pull embeddinggemma-2:270m-q8_0-text
 
 # Create an in-memory store using local embeddings
 store <- ragnar_store_create(

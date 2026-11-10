@@ -7,9 +7,11 @@
     documented as deprecated since ragnar 0.2.0. Use `read_as_markdown()` and
     `markdown_chunk()` instead.
 
--   `embed_ollama()` now defaults to `model = "embeddinggemma-2:latest"`.
-    Existing stores keep the embedding model they were created with. Run
-    `ollama pull embeddinggemma-2` before creating new stores with the default.
+-   `embed_ollama()` now defaults to
+    `model = "embeddinggemma-2:270m-q8_0-text"`. Existing stores keep the
+    embedding model they were created with. Run
+    `ollama pull embeddinggemma-2:270m-q8_0-text` before creating new stores
+    with the default.
 
 -   Retrieval now rejects metadata columns named `metric_name` or `metric_value`
     (ignoring case) and asks for different column names.

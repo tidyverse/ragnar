@@ -688,7 +688,7 @@ ragnar_store_inspect <- function(store, ...) {
 #' @examples
 #' \dontrun{
 #' # Start Ollama, then run this in a terminal:
-#' # ollama pull embeddinggemma-2
+#' # ollama pull embeddinggemma-2:270m-q8_0-text
 #'
 #' # Create an in-memory store using local embeddings
 #' store <- ragnar_store_create(
