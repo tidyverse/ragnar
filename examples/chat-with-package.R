@@ -36,7 +36,7 @@ ask_ellmer_docs <- function(question) {
     interpretation when appropriate.
     )--"
   )
-  chat <- ellmer::chat_openai(system_prompt, model = "gpt-4o")
+  chat <- ellmer::chat_openai(system_prompt)
 
   ragnar_register_tool_retrieve(
     chat,
