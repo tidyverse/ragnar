@@ -91,8 +91,7 @@ test_that("ragnar_find_links() requests only missing sitemap dates", {
     res$set_header("Last-Modified", "Wed, 21 Oct 2015 07:28:00 GMT")
     res$send("<p>Page</p>")
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
 
   ragnar_find_links(
     site$url("/sitemap.xml"),
@@ -166,8 +165,7 @@ test_that("ragnar_find_links() retains sitemap dates when crawled pages omit hea
     }
     res$send("<p>Page</p>")
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
 
   result <- ragnar_find_links(
     site$url("/sitemap.xml"),
@@ -221,8 +219,7 @@ test_that("GET timestamps take precedence regardless of sitemap crawl order", {
         }
         res$send("<p>Page</p>")
       })
-      site <- webfakes::new_app_process(app)
-      withr::defer(site$stop())
+      site <- local_app_process(app)
 
       result <- ragnar_find_links(site$url(), depth = 1, progress = FALSE)
       urls <- site$url(c("/page", "/no-header", "/unvisited"))
@@ -275,8 +272,7 @@ test_that("sitemap dates follow redirects regardless of crawl order", {
         }
         res$send("<p>Page without a response timestamp</p>")
       })
-      site <- webfakes::new_app_process(app)
-      withr::defer(site$stop())
+      site <- local_app_process(app)
 
       for (get_timestamps in c(FALSE, TRUE)) {
         rows <- ragnar_find_links(
