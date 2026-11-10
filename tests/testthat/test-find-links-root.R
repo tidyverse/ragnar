@@ -82,8 +82,7 @@ test_that("ragnar_find_links() deduplicates roots with absolute self-links", {
       '<a href="topic.html">Topic</a>'
     ))
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
 
   for (path in c("/", "/manual/")) {
     for (children_only in c(FALSE, TRUE)) {
@@ -112,8 +111,7 @@ test_that("an absolute root self-link is ingested as one document", {
       '<a href="', url, '">Self</a>'
     ))
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
   links <- ragnar_find_links(site$url(), include_root = TRUE)
   expect_equal(links, site$url(), ignore_attr = TRUE)
 
@@ -140,8 +138,7 @@ test_that("recursive back-links ingest the root only once", {
     url <- paste0("http://", req$get_header("host"), "/")
     res$send(paste0('<h1>Child</h1><a href="', url, '">Root</a>'))
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
   urls <- site$url(c("/", "/child.html"))
 
   for (depth in 1:2) {
@@ -186,8 +183,7 @@ test_that("known redirected root aliases are ingested only once", {
       '<a href="', alias, '">Alias</a>'
     ))
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
 
   targets <- c("/manual" = "/manual/", "/redirect.html" = "/js-manual/")
   for (alias in names(targets)) {
@@ -251,8 +247,7 @@ test_that("ragnar_find_links() treats an empty HTTP path as the site root", {
       '<a href="', url, '/">Root with slash</a>'
     ))
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
 
   for (url in c(sub("/$", "", site$url()), site$url())) {
     for (depth in 0:1) {

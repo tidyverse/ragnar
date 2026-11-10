@@ -16,6 +16,9 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 unlink("r4ds.ragnar.duckdb")
+# Choose the DuckDB storage location explicitly so the rendered output omits
+# DuckDB's storage-location notice.
+options(duckdb.home = "~/.duckdb")
 ```
 
 # ragnar <a href="https://ragnar.tidyverse.org"><img src="man/figures/logo.png" align="right" height="138" alt="ragnar website" /></a>
@@ -147,6 +150,12 @@ Here's an example of using ragnar to create a knowledge store from the
 *R for Data Science (2e)* book:
 
 ```{r, code = readLines("examples/example-create-store.R")}
+```
+
+```{r, include = FALSE}
+# The retrieval example models a new session. Release the writable DuckDB
+# instance so it can reconnect read-only.
+DBI::dbDisconnect(store@con, shutdown = TRUE)
 ```
 
 Once the store is set up, you can then retrieve the most relevant text

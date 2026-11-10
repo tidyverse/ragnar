@@ -57,8 +57,7 @@ test_that("duplicate sitemap locations retain their first known date", {
     res$set_header("Last-Modified", "Wed, 21 Oct 2015 07:28:00 GMT")
     res$send("<p>Page</p>")
   })
-  site <- webfakes::new_app_process(app)
-  withr::defer(site$stop())
+  site <- local_app_process(app)
 
   expected <- tibble(
     source = site$url(c("/", "/invalid", "/known", "/same", "/unknown")),

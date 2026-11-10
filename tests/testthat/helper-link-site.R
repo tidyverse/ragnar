@@ -27,7 +27,6 @@ local_link_site <- function(
     }
     res$send(locals$pages[[req$path]])
   })
-  server <- webfakes::new_app_process(app)
-  withr::defer(server$stop(), envir = .local_envir)
+  server <- local_app_process(app, .local_envir = .local_envir)
   server
 }
