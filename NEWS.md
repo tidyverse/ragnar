@@ -1,4 +1,4 @@
-# ragnar (development version)
+# ragnar 0.4.0
 
 ## Breaking changes
 
