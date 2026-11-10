@@ -13,7 +13,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/tidyverse/ragnar/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/tidyverse/ragnar/blob/v0.4.0/DESCRIPTION)
 
 Kalinowski T, Falbel D (2026). *ragnar: Retrieval-Augmented Generation
 (RAG) Workflows*. R package version 0.4.0,
