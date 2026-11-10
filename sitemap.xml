@@ -32,11 +32,13 @@
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_retrieve_vss.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_retrieve_vss_and_bm25.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_atlas.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_audit.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_build_index.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_create.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_ingest.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_insert.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_inspect.html</loc></url>
+<url><loc>https://ragnar.tidyverse.org/reference/ragnar_store_sync.html</loc></url>
 <url><loc>https://ragnar.tidyverse.org/reference/read_as_markdown.html</loc></url>
 </urlset>
 

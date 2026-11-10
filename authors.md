@@ -13,16 +13,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/tidyverse/ragnar/blob/v0.3.1/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/tidyverse/ragnar/blob/main/DESCRIPTION)
 
 Kalinowski T, Falbel D (2026). *ragnar: Retrieval-Augmented Generation
-(RAG) Workflows*. R package version 0.3.1,
+(RAG) Workflows*. R package version 0.4.0,
 <https://ragnar.tidyverse.org/>.
 
     @Manual{,
       title = {ragnar: Retrieval-Augmented Generation (RAG) Workflows},
       author = {Tomasz Kalinowski and Daniel Falbel},
       year = {2026},
-      note = {R package version 0.3.1},
+      note = {R package version 0.4.0},
       url = {https://ragnar.tidyverse.org/},
     }

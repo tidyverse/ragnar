@@ -108,6 +108,11 @@ with
 and
 [`markdown_chunk()`](https://ragnar.tidyverse.org/reference/markdown_chunk.md).
 
+Older v2 stores can be opened read-only without changing the store.
+Opening one with `read_only = FALSE` upgrades its schema on disk.
+Existing documents have unknown freshness and are reprocessed when their
+sources are next ingested; later runs can skip unchanged sources.
+
 **Version 1 – flat chunks**
 
 With `version = 1`, ragnar keeps all chunks in a single table. This lets
@@ -120,9 +125,25 @@ directly (e.g., with `glue()`). Additionally, if you intend to call
 it is your responsibility to provide
 `rlang::hash(original_full_document)` with each chunk. The easiest way
 to prepare `chunks` for `version = 1` is with
-[`ragnar_read()`](https://ragnar.tidyverse.org/reference/ragnar_read.md)
+[`read_as_markdown()`](https://ragnar.tidyverse.org/reference/read_as_markdown.md)
 and
-[`ragnar_chunk()`](https://ragnar.tidyverse.org/reference/ragnar_chunk.md).
+[`markdown_chunk()`](https://ragnar.tidyverse.org/reference/markdown_chunk.md).
+
+### Memory use
+
+Store connections disable DuckDB's insertion-order preservation to
+reduce memory use. Use an explicit `ORDER BY` when querying the
+connection directly if row order matters.
+
+DuckDB sets a default `memory_limit` based on available system memory.
+For deployments with a smaller process memory budget, lower this limit
+after creating or connecting to a store, for example:
+
+    DBI::dbExecute(store@con, "SET memory_limit = '4GB'")
+
+Choose a limit that leaves room for R and other allocations. This
+setting limits DuckDB's buffer manager, not total process memory; HNSW
+indexes and some other allocations are outside this limit.
 
 ## Examples
 
@@ -133,7 +154,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpSnRJUI/duckdb
+#> ℹ /tmp/Rtmpvwek7I/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -150,7 +171,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpSnRJUI/duckdb
+#> ℹ /tmp/Rtmpvwek7I/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -168,7 +189,7 @@ store <- ragnar_store_create(
   version = 1
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpSnRJUI/duckdb
+#> ℹ /tmp/Rtmpvwek7I/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -183,7 +204,7 @@ store <- ragnar_store_create(
   embed = NULL
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpSnRJUI/duckdb
+#> ℹ /tmp/Rtmpvwek7I/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.

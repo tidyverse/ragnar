@@ -1,7 +1,7 @@
 # View chunks with the store inspector
 
-Visualize chunks read by
-[`ragnar_read()`](https://ragnar.tidyverse.org/reference/ragnar_read.md)
+Visualize chunks produced by
+[`markdown_chunk()`](https://ragnar.tidyverse.org/reference/markdown_chunk.md)
 for quick inspection. Helpful for inspecting the results of chunking and
 reading while iterating on the ingestion pipeline.
 

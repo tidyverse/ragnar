@@ -5,6 +5,14 @@ multiple processes using [mirai](https://mirai.r-lib.org). Each worker
 calls `prepare` on a single path and returns the resulting chunks (and
 any warnings) to the main process, which then writes them to the store.
 
+Worker errors signal a `ragnar_ingest_worker_error` warning with a
+`path` field identifying the failed input. Ingestion continues with the
+remaining paths.
+
+Unchanged modification times skip document preparation. When a
+modification time is unavailable or changes, `prepare()` runs and a hash
+of the prepared Markdown avoids embedding and storing unchanged content.
+
 ## Usage
 
 ``` r
@@ -36,10 +44,12 @@ ragnar_store_ingest(
 
 - n_workers:
 
-  Number of worker processes to use. Defaults to the smaller of
-  `length(paths)` and
+  Number of worker processes to use. The default is
+  `max(2L, min(n_cores, n_paths %/% 4L, 8L))`, where `n_paths` is the
+  number of unique paths requiring ingestion and `n_cores` is the count
+  returned by
   [`parallel::detectCores()`](https://rdrr.io/r/parallel/detectCores.html)
-  (with a minimum of 1).
+  (or 4 if unavailable).
 
 - progress:
 
@@ -53,4 +63,18 @@ ragnar_store_ingest(
 
 ## Value
 
-`store`, invisibly.
+`store`, invisibly, with an `ingest_summary` attribute: a tibble with
+one row per input path, in input order, and columns:
+
+- `path` (character): the input file path or URL.
+
+- `status` (character): `"ok"` (processed successfully),
+  `"skipped_unchanged"` (origin in the store and confirmed unchanged),
+  or `"error"` (worker failed).
+
+- `n_chunks` (integer): the number of chunks stored for the document's
+  origin after ingestion, or `0L` for worker failures.
+
+- `message` (character): the worker error message, or `NA` otherwise.
+
+Duplicate input paths share an outcome and are processed once.

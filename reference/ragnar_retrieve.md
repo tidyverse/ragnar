@@ -41,6 +41,12 @@ ragnar_retrieve(store, text, top_k = 3L, ..., deoverlap = TRUE)
 A `tibble` of retrieved chunks. Each row represents a chunk and always
 contains a `text` column.
 
+## Details
+
+Store metadata must not use `metric_name` or `metric_value`, ignoring
+case. Retrieval fails with an error if these names conflict. Create a
+store with different names for those metadata columns.
+
 ## Note
 
 The results are not re-ranked after identifying the unique values.

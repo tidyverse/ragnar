@@ -26,6 +26,12 @@ You can install the development version from GitHub with:
 pak::pak("tidyverse/ragnar")
 ```
 
+On native Windows ARM64, ragnar disables MarkItDown document conversion
+and DuckDB stores. Chunking remains available; Python features currently
+also encounter [reticulate’s architecture
+check](https://github.com/rstudio/reticulate/issues/1934). Use x86_64 R
+on Windows for the complete workflow.
+
 ## Key Steps
 
 ### 1. Document Processing
@@ -213,9 +219,9 @@ text <- "How can I subset a dataframe with a logical vector?"
 #> # A tibble: 3 × 9
 #>   origin         doc_id chunk_id start   end cosine_distance bm25  context text 
 #>   <chr>           <int> <list>   <int> <int> <list>          <lis> <chr>   <chr>
-#> 1 https://r4ds.…      2 <int>     3237  4779 <dbl [1]>       <dbl> "# 27 … "```…
-#> 2 https://r4ds.…     19 <int>     1622  4205 <dbl [2]>       <dbl> "# 12 … "```…
-#> 3 https://r4ds.…     19 <int>    19388 21644 <dbl [2]>       <dbl> "# 12 … "Tha…
+#> 1 https://r4ds.…      2 <int>     2545  4779 <dbl [2]>       <dbl> "# 27 … "###…
+#> 2 https://r4ds.…     19 <int>     1634  4217 <dbl [2]>       <dbl> "# 12 … "```…
+#> 3 https://r4ds.…     19 <int>    19400 20813 <dbl [1]>       <dbl> "# 12 … "Tha…
 ```
 
 ``` r
@@ -246,63 +252,60 @@ chat <- ellmer::chat_openai(
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
-#> ◯ [tool call] search_store_001(text = c("R subset data frame using [ ,
-#> subset(), dplyr filter select", ...)
+#> ◯ [tool call] search_store_001(text = c("R subset data frame rows columns using
+#> base R bracket indexing subset() dplyr filter select", ...)
 #> ● #> [
 #>   #> {
 #>   #> "origin": "https://r4ds.hadley.nz/base-R.html",
 #>   #> "doc_id": 2,
-#>   #> "chunk_id": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+#>   #> "chunk_id": [26, 27, 28, 29, 30, 31, 32, 33, 34],
 #>   #> …
 ```
 
 ``` R
-#> ### Base R (works for `data.frame` and tibbles)
-#> 
-#> **Source (quoted/paraphrased):** *R for Data Science* explains that `[` 
-#> “extract[s] sub-components from vectors and data frames” and that for data 
-#> frames the key form is `df[rows, cols]`, with `df[rows, ]` selecting rows and 
-#> `df[, cols]` selecting columns; it also shows examples like `df[df$x > 1, ]` 
-#> for conditional row filtering, and notes `drop = FALSE` to keep a 1-column 
-#> result as a data frame.  
-#> Source: https://r4ds.hadley.nz/base-R.html
+#> ### Base R (`[`) (my words)
+#> Use `df[rows, cols]` where `rows` and `cols` can be integer positions, logical 
+#> vectors, or column names.
 #> 
 #> ```r
-#> # rows by position
-#> df[1:5, ]
+#> # rows by position; cols by position
+#> df[1:5, 2:4]
 #> 
-#> # columns by name
-#> df[, c("x", "y")]
-#> 
-#> # rows by condition (keep rows where x > 1)
+#> # rows by condition (logical); all columns
 #> df[df$x > 1, ]
 #> 
-#> # single column:
-#> df[,"x"]              # may return a vector for data.frame
-#> df[,"x", drop = FALSE]# always keep as data frame
+#> # specific columns by name; all rows
+#> df[, c("x", "y")]
+#> 
+#> # single column (returns a vector for data.frame)
+#> df[, "x"]
+#> 
+#> # force a 1-column data.frame instead of a vector
+#> df[, "x", drop = FALSE]
 #> ```
 #> 
-#> To pull a single column:
-#> ```r
-#> df$x        # or df[["x"]]
-#> ```
+#> **Source (quoted/paraphrased):** R4DS explains that the key pattern is 
+#> selecting “rows and columns independently with `df[rows, cols]`”, and that 
+#> `df[rows, ]` / `df[, cols]` use an empty index to keep the other dimension; it 
+#> also notes `drop = FALSE` to avoid a single column becoming a vector in a base 
+#> `data.frame`.  
+#> https://r4ds.hadley.nz/base-R.html
 #> 
-#> ### `subset()` (base R convenience)
-#> 
-#> **Source (quoted/paraphrased):** *R for Data Science* notes base R also has 
-#> `subset()` combining row filtering + column selection, e.g. `df |> subset(x > 
-#> 1, c(y, z))`.  
-#> Source: https://r4ds.hadley.nz/base-R.html
+#> ### Base R helper: `subset()` (my words)
+#> Handy for quick interactive use (but many prefer `[` in scripts/functions for 
+#> clarity):
 #> 
 #> ```r
 #> subset(df, x > 1, c(y, z))
 #> ```
 #> 
-#> ### dplyr (tidyverse)
+#> **Source (quoted/paraphrased):** R4DS notes base R provides `subset()` 
+#> combining row filtering + column selection (similar idea to `filter()` + 
+#> `select()`).  
+#> https://r4ds.hadley.nz/base-R.html
 #> 
-#> **Source (quoted/paraphrased):** *R for Data Science* describes `filter()` for 
-#> keeping rows based on conditions and `select()` for choosing columns.  
-#> Source: https://r4ds.hadley.nz/data-transform.html
+#> ### dplyr (`filter()`, `select()`) (my words)
+#> Often the most readable:
 #> 
 #> ```r
 #> library(dplyr)
@@ -312,9 +315,7 @@ chat$chat("How can I subset a dataframe?")
 #> df |> filter(x > 1) |> select(y, z)
 #> ```
 #> 
-#> Additional links:
-#> - Base `[` help: https://rdrr.io/r/base/Extract.html
-#> - Base `subset()` help: https://rdrr.io/r/base/subset.html
-#> - dplyr `filter()`: https://dplyr.tidyverse.org/reference/filter.html
-#> - dplyr `select()`: https://dplyr.tidyverse.org/reference/select.html
+#> **Source (quoted/paraphrased):** R4DS shows `select()` “allows you to rapidly 
+#> zoom in on a useful subset” of columns (by name, ranges, exclusions, etc.).  
+#> https://r4ds.hadley.nz/data-transform.html
 ```

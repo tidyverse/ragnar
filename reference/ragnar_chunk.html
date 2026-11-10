@@ -20,7 +20,7 @@ manual string interpolation from extracted headings."><meta property="og:image" 
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@ manual string interpolation from extracted headings."><meta property="og:image" 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Chunk text</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/v0.3.1/R/legacy.R" class="external-link"><code>R/legacy.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyverse/ragnar/blob/main/R/legacy.R" class="external-link"><code>R/legacy.R</code></a></small>
       <div class="d-none name"><code>ragnar_chunk.Rd</code></div>
     </div>
 
@@ -152,6 +152,8 @@ match the requested <code>chunk_size</code> and <code>chunk_overlap</code></p></
 <span class="r-in"><span><span class="va">text</span> <span class="op">&lt;-</span> <span class="st">"This is a long piece of text. It has multiple sentences.</span></span></span>
 <span class="r-in"><span><span class="st">         We want to split it into chunks. Here's another sentence."</span></span></span>
 <span class="r-in"><span><span class="fu">ragnar_chunk</span><span class="op">(</span><span class="va">text</span>, max_size <span class="op">=</span> <span class="fl">40</span><span class="op">)</span> <span class="co"># splits at sentences</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`ragnar_chunk()` was deprecated in ragnar 0.2.0.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `markdown_chunk()` instead.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "This is a long piece of text."   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2] "It has multiple sentences."      </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [3] "We want to split it into chunks."</span>
@@ -214,6 +216,8 @@ match the requested <code>chunk_size</code> and <code>chunk_overlap</code></p></
 <span class="r-in"><span><span class="co"># Chunking pre-segmented text</span></span></span>
 <span class="r-in"><span><span class="va">segments</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"First segment. "</span>, <span class="st">"Second segment. "</span>, <span class="st">"Third segment. "</span>, <span class="st">"Fourth segment. "</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">ragnar_chunk_segments</span><span class="op">(</span><span class="va">segments</span>, max_size <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`ragnar_chunk_segments()` was deprecated in ragnar 0.2.0.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `markdown_chunk()` instead.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "First segment."  "Second segment." "Third segment." </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [4] "Fourth segment."</span>
 <span class="r-in"><span><span class="fu">ragnar_chunk_segments</span><span class="op">(</span><span class="va">segments</span>, max_size <span class="op">=</span> <span class="fl">40</span><span class="op">)</span></span></span>
