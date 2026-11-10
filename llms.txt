@@ -242,82 +242,43 @@ system_prompt <- stringr::str_squish(
 )
 chat <- ellmer::chat_openai(
   system_prompt,
-  model = "gpt-5.2",
   api_args = list(
     reasoning = list(effort = "low"),
     text = list(verbosity = "low")
   )
 )
+#> Using model = "gpt-6.1-terra".
 
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
-#> ◯ [tool call] search_store_001(text = c("R subset data frame rows columns using
-#> base R bracket indexing subset() dplyr filter select", ...)
+#> ◯ [tool call] search_store_001(text = c("How to subset rows and columns of a
+#> dataframe in R using brackets and subset", ...)
 #> ● #> [
 #>   #> {
 #>   #> "origin": "https://r4ds.hadley.nz/base-R.html",
 #>   #> "doc_id": 2,
-#>   #> "chunk_id": [26, 27, 28, 29, 30, 31, 32, 33, 34],
+#>   #> "chunk_id": [27, 28, 29, 30, 31, 32, 33, 34],
 #>   #> …
 ```
 
 ``` R
-#> ### Base R (`[`) (my words)
-#> Use `df[rows, cols]` where `rows` and `cols` can be integer positions, logical 
-#> vectors, or column names.
+#> In base R, use `df[rows, columns]`. As [R for Data 
+#> Science](https://r4ds.hadley.nz/base-R.html#sec-subset-many) explains, leaving 
+#> either side empty keeps all rows or columns.
 #> 
 #> ```r
-#> # rows by position; cols by position
-#> df[1:5, 2:4]
-#> 
-#> # rows by condition (logical); all columns
-#> df[df$x > 1, ]
-#> 
-#> # specific columns by name; all rows
-#> df[, c("x", "y")]
-#> 
-#> # single column (returns a vector for data.frame)
-#> df[, "x"]
-#> 
-#> # force a 1-column data.frame instead of a vector
-#> df[, "x", drop = FALSE]
+#> df[1:3, ]                          # First three rows
+#> df[, c("name", "age")]             # Selected columns
+#> df[!is.na(df$age) & df$age > 18, ] # Rows matching a condition
+#> df[1:3, "name", drop = FALSE]      # Keep result as a data frame
 #> ```
 #> 
-#> **Source (quoted/paraphrased):** R4DS explains that the key pattern is 
-#> selecting “rows and columns independently with `df[rows, cols]`”, and that 
-#> `df[rows, ]` / `df[, cols]` use an empty index to keep the other dimension; it 
-#> also notes `drop = FALSE` to avoid a single column becoming a vector in a base 
-#> `data.frame`.  
-#> https://r4ds.hadley.nz/base-R.html
-#> 
-#> ### Base R helper: `subset()` (my words)
-#> Handy for quick interactive use (but many prefer `[` in scripts/functions for 
-#> clarity):
+#> You can also combine row and column selection:
 #> 
 #> ```r
-#> subset(df, x > 1, c(y, z))
+#> subset(df, age > 18, select = c(name, age))
 #> ```
-#> 
-#> **Source (quoted/paraphrased):** R4DS notes base R provides `subset()` 
-#> combining row filtering + column selection (similar idea to `filter()` + 
-#> `select()`).  
-#> https://r4ds.hadley.nz/base-R.html
-#> 
-#> ### dplyr (`filter()`, `select()`) (my words)
-#> Often the most readable:
-#> 
-#> ```r
-#> library(dplyr)
-#> 
-#> df |> filter(x > 1)
-#> df |> select(x, y)
-#> df |> filter(x > 1) |> select(y, z)
-#> ```
-#> 
-#> **Source (quoted/paraphrased):** R4DS shows `select()` “allows you to rapidly 
-#> zoom in on a useful subset” of columns (by name, ranges, exclusions, etc.).  
-#> https://r4ds.hadley.nz/data-transform.html
 ```
 
 # Package index

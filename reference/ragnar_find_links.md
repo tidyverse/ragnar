@@ -153,7 +153,7 @@ ragnar_find_links("https://ellmer.tidyverse.org/")
 #> 3  <NA>               
 #> 4  <NA>               
 #> 5  <NA>               
-#> 6  2026-11-09 19:02:26
+#> 6  2026-11-09 19:02:02
 #> 7  <NA>               
 #> 8  <NA>               
 #> 9  <NA>               
@@ -179,7 +179,7 @@ ragnar_find_links("https://ellmer.tidyverse.org/", include_root = TRUE)
 #> 3  <NA>               
 #> 4  <NA>               
 #> 5  <NA>               
-#> 6  2026-11-09 19:02:26
+#> 6  2026-11-09 19:02:02
 #> 7  <NA>               
 #> 8  <NA>               
 #> 9  <NA>               
@@ -201,16 +201,12 @@ links <- ragnar_find_links(
   get_timestamps = TRUE,
   metadata = TRUE
 )
-#> ⠙ Finding links: 12 | On queue: 44 | Current depth: 1 | [2s]
-#> ⠹ Finding links: 30 | On queue: 26 | Current depth: 1 | [5s]
-#> ⠸ Finding links: 45 | On queue: 11 | Current depth: 1 | [8s]
-#> ⠼ Finding links: 57 | On queue: 0 | Current depth: 1 | [10s]
-#> [working] (1175 + 0) -> 10 -> 64 | ■■■                                …
-#> [working] (868 + 0) -> 10 -> 371 | ■■■■■■■■■■                        3…
-#> [working] (500 + 0) -> 10 -> 739 | ■■■■■■■■■■■■■■■■■■■               5…
-#> [working] (146 + 0) -> 10 -> 1093 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■       …
+#> ⠙ Finding links: 32 | On queue: 24 | Current depth: 1 | [2s]
+#> ⠹ Finding links: 45 | On queue: 11 | Current depth: 1 | [3s]
+#> ⠸ Finding links: 57 | On queue: 0 | Current depth: 1 | [4s]
+#> [working] (537 + 0) -> 8 -> 704 | ■■■■■■■■■■■■■■■■■■                56%
 #> [working] (0 + 0) -> 0 -> 1249 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100%
-#> ⠼ Finding links: 57 | On queue: 0 | Current depth: 1 | [10s]
+#> ⠸ Finding links: 57 | On queue: 0 | Current depth: 1 | [4s]
 links$last_modified
 #>    [1] "2026-11-10 15:04:41 UTC" "2026-11-10 14:54:57 UTC"
 #>    [3] "2026-11-10 14:54:57 UTC" "2026-11-10 13:40:58 UTC"

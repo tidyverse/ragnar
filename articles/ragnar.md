@@ -306,7 +306,7 @@ First, set up the system prompt:
 
 ``` r
 
-client <- chat_openai(model = "gpt-4.1")
+client <- chat_openai()
 client$set_system_prompt(glue::trim(
   "
   You are an expert in Quarto documentation. You are concise.
