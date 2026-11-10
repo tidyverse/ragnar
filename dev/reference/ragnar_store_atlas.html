@@ -10,7 +10,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ragnar</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,14 +93,14 @@ and <code>nanoarrow</code> (&gt;= 0.8.0) to transfer data from the DuckDB store 
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Start Ollama, then run this in a terminal:</span></span></span>
-<span class="r-in"><span><span class="co"># ollama pull embeddinggemma:300m-qat-q4_0</span></span></span>
+<span class="r-in"><span><span class="co"># ollama pull embeddinggemma-2:270m-q8_0-text</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create an in-memory store using local embeddings</span></span></span>
 <span class="r-in"><span><span class="va">store</span> <span class="op">&lt;-</span> <span class="fu"><a href="ragnar_store_create.html">ragnar_store_create</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  embed <span class="op">=</span> <span class="fu"><a href="embed_ollama.html">embed_ollama</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"embeddinggemma:300m-qat-q4_0"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  embed <span class="op">=</span> <span class="fu"><a href="embed_ollama.html">embed_ollama</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> duckdb keeps downloaded extensions and secrets in a temporary directory:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">ℹ</span> /tmp/RtmpwNBdHW/duckdb</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">ℹ</span> /tmp/RtmpQJrG5p/duckdb</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> This is removed when the R session ends.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Extensions are re-downloaded each session.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Secrets are lost.</span>

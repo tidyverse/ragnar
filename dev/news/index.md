@@ -2,6 +2,10 @@
 
 ## ragnar (development version)
 
+## ragnar 0.4.0
+
+### Breaking changes
+
 - [`ragnar_read()`](https://ragnar.tidyverse.org/dev/reference/ragnar_read.md),
   [`ragnar_chunk()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md),
   [`ragnar_segment()`](https://ragnar.tidyverse.org/dev/reference/ragnar_chunk.md),
@@ -14,42 +18,33 @@
   [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
   instead.
 
-- Windows Python environments now require ONNX Runtime 1.20.1 or
-  earlier, avoiding native import failures on CRAN’s Windows builders.
+- [`embed_ollama()`](https://ragnar.tidyverse.org/dev/reference/embed_ollama.md)
+  now defaults to `model = "embeddinggemma-2:270m-q8_0-text"`. Existing
+  stores keep the embedding model they were created with. Run
+  `ollama pull embeddinggemma-2:270m-q8_0-text` before creating new
+  stores with the default.
 
-- On native Windows ARM64, MarkItDown conversion and DuckDB stores now
-  report that they are unsupported before initializing these
-  dependencies. Other features remain enabled.
+- Retrieval now rejects metadata columns named `metric_name` or
+  `metric_value` (ignoring case) and asks for different column names.
 
-- Installation warms the Python dependency cache in a separate process.
-  Native import failures remain visible in the installation log but no
-  longer abort package installation.
+- ragnar now requires DuckDB \>= 1.5.0, whose row-ID fetching keeps
+  indexed VSS retrieval bounded to the selected matches.
 
-- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
-  now prints document origins literally in progress messages.
-
-- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
-  reads modification dates and datetimes from sitemaps, avoiding
-  timestamp requests for URLs with a known date. Invalid sitemap
-  locations are reported in the `problems` attribute. Crawl and
-  validation problems use the documented `link` and `problem` columns
-  ([@andrie](https://github.com/andrie),
-  [\#212](https://github.com/tidyverse/ragnar/issues/212)).
-
-- `ragnar_find_links(metadata = TRUE)` returns a tibble with `source`
-  and `last_modified` columns, so timestamps stay with their links
-  through joins and row-binding. The default remains a character vector
-  ([\#212](https://github.com/tidyverse/ragnar/issues/212)).
+### New features
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
-  skips unchanged files with subsecond modification times consistently
-  with DuckDB 2.0.
+  now uses modification times or a hash of the prepared Markdown to skip
+  unchanged sources
+  ([\#200](https://github.com/tidyverse/ragnar/issues/200)). Older v2
+  stores open unchanged in read-only mode (the default) and their schema
+  is upgraded on disk when connected with `read_only = FALSE`. Existing
+  documents have unknown freshness and are reprocessed when their
+  sources are next ingested; later runs can skip unchanged sources
+  ([\#218](https://github.com/tidyverse/ragnar/issues/218)).
 
-- [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
-  no longer misplaces heading boundaries when the input contains
-  combining characters (NFD-normalized text)
-  ([@taekop](https://github.com/taekop),
-  [\#158](https://github.com/tidyverse/ragnar/issues/158)).
+- [`ragnar_store_sync()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_sync.md)
+  removes documents outside a supplied set of origins
+  ([\#201](https://github.com/tidyverse/ragnar/issues/201)).
 
 - [`ragnar_store_audit()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_audit.md)
   reports expected, ingested, and missing origins, stored chunk counts,
@@ -59,22 +54,42 @@
   [\#210](https://github.com/tidyverse/ragnar/issues/210)).
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
-  now skips unchanged sources using modification times or a hash of the
-  prepared Markdown.
-  [`ragnar_store_sync()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_sync.md)
-  removes documents outside a supplied set of origins. Older v2 stores
-  open unchanged in read-only mode and are upgraded on disk when opened
-  for writing. Existing documents are reprocessed when their sources are
-  next ingested; later runs can skip unchanged sources
-  ([\#200](https://github.com/tidyverse/ragnar/issues/200),
-  [\#201](https://github.com/tidyverse/ragnar/issues/201)).
-
-- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
-  now returns an `ingest_summary` attribute reporting each input path’s
-  status, stored chunk count, and worker error message. Index requests
-  are honored when all paths already exist
+  now returns an `ingest_summary` attribute reporting the status, stored
+  chunk count, and worker error message for each input path. It honors
+  index requests when all paths already exist
   ([\#202](https://github.com/tidyverse/ragnar/issues/202),
   [\#208](https://github.com/tidyverse/ragnar/issues/208)).
+
+- `ragnar_find_links(metadata = TRUE)` returns a tibble with `source`
+  and `last_modified` columns, so timestamps stay with their links when
+  joining or binding rows. The default remains a character vector
+  ([\#212](https://github.com/tidyverse/ragnar/issues/212)).
+
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  reads modification dates and datetimes from sitemaps, avoiding extra
+  timestamp requests for URLs with a known date. Invalid sitemap
+  locations are reported in the `problems` attribute. Crawl and
+  validation problems have the documented `link` and `problem` columns
+  ([@andrie](https://github.com/andrie),
+  [\#212](https://github.com/tidyverse/ragnar/issues/212)).
+
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  can now include the starting page with `include_root = TRUE`
+  ([\#199](https://github.com/tidyverse/ragnar/issues/199)).
+
+- [`ragnar_retrieve_vss()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_vss.md)
+  filters can now reference `metric_value`, `metric_name`, and, for
+  version 2 stores, `origin` and `text`. Filtered searches spanning the
+  initial 5,000 candidates now respect `top_k`.
+
+### Minor improvements and fixes
+
+- [`ragnar_retrieve_vss()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_vss.md)
+  now fetches embeddings and document text for output after ranking and
+  filtering candidates, reducing intermediate memory use. Store
+  connections disable insertion-order preservation, and the store
+  documentation explains how to set a deployment-specific DuckDB memory
+  limit ([\#188](https://github.com/tidyverse/ragnar/issues/188)).
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
   now reports worker failures as `ragnar_ingest_worker_error` warnings
@@ -83,45 +98,48 @@
   ([\#205](https://github.com/tidyverse/ragnar/issues/205)).
 
 - [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
-  now limits its default worker count by the detected core count, with a
-  minimum of two workers. If core detection is unavailable, four cores
-  are assumed ([\#206](https://github.com/tidyverse/ragnar/issues/206)).
+  now limits its default worker count based on the detected core count,
+  with a minimum of two workers. If core detection is unavailable, four
+  cores are assumed
+  ([\#206](https://github.com/tidyverse/ragnar/issues/206)).
 
-- ragnar now requires DuckDB \>= 1.5.0, whose row-ID fetching keeps
-  indexed VSS retrieval bounded to the selected matches.
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  skips unchanged files with subsecond modification times consistently
+  with DuckDB 2.0.
 
-- [`ragnar_retrieve_vss()`](https://ragnar.tidyverse.org/dev/reference/ragnar_retrieve_vss.md)
-  now fetches embeddings and document text after selecting the final
-  matches, reducing intermediate memory use. Store connections disable
-  insertion-order preservation, and the store documentation explains how
-  to set a deployment-specific DuckDB memory limit
-  ([\#188](https://github.com/tidyverse/ragnar/issues/188)).
+- [`ragnar_store_ingest()`](https://ragnar.tidyverse.org/dev/reference/ragnar_store_ingest.md)
+  now prints document origins literally in progress messages.
 
-- VSS filters can now reference `metric_value`, `metric_name`, and, for
-  version 2 stores, `origin` and `text`. Filtered searches spanning the
-  initial 5,000 candidates now respect `top_k`.
+- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
+  now returns an empty character vector by default when no links are
+  found or all links are filtered out, instead of erroring.
 
-- Retrieval now rejects metadata named `metric_name` or `metric_value`,
-  ignoring case, with an error asking for different metadata column
-  names.
+- [`markdown_chunk()`](https://ragnar.tidyverse.org/dev/reference/markdown_chunk.md)
+  no longer misplaces heading boundaries when the input contains
+  combining characters (NFD-normalized text)
+  ([@taekop](https://github.com/taekop),
+  [\#158](https://github.com/tidyverse/ragnar/issues/158)).
 
-- Fixed an error when creating an embedding function by omitting `x` or
-  passing `x = NULL`. Helpers such as
+- Embedding helpers such as
   [`embed_bedrock()`](https://ragnar.tidyverse.org/dev/reference/embed_bedrock.md),
   [`embed_azure_openai()`](https://ragnar.tidyverse.org/dev/reference/embed_azure_openai.md),
   and
   [`embed_google_vertex()`](https://ragnar.tidyverse.org/dev/reference/embed_google_vertex.md)
-  now correctly return a function that preserves the supplied
-  configuration arguments
+  now return a function that preserves the supplied configuration
+  arguments when `x` is omitted or `NULL`, instead of erroring
   ([\#187](https://github.com/tidyverse/ragnar/issues/187)).
 
-- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
-  can now include the starting page with `include_root = TRUE`
-  ([\#199](https://github.com/tidyverse/ragnar/issues/199)).
+- Windows Python environments now require ONNX Runtime 1.20.1 or
+  earlier, avoiding native import failures on CRAN’s Windows builders.
 
-- [`ragnar_find_links()`](https://ragnar.tidyverse.org/dev/reference/ragnar_find_links.md)
-  now returns an empty character vector instead of erroring when no
-  links are found or all links are filtered out.
+- Installation attempts to warm the Python dependency cache in a
+  separate process, except on native Windows ARM64. Native import
+  failures during warm-up remain visible in the installation log but no
+  longer abort package installation.
+
+- On native Windows ARM64, MarkItDown conversion and DuckDB stores now
+  report that they are unsupported before initializing them. Other
+  features remain enabled.
 
 ## ragnar 0.3.1
 

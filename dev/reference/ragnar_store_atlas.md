@@ -49,14 +49,14 @@ store to Python.
 ``` r
 # \dontrun{
 # Start Ollama, then run this in a terminal:
-# ollama pull embeddinggemma:300m-qat-q4_0
+# ollama pull embeddinggemma-2:270m-q8_0-text
 
 # Create an in-memory store using local embeddings
 store <- ragnar_store_create(
-  embed = embed_ollama(model = "embeddinggemma:300m-qat-q4_0")
+  embed = embed_ollama()
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpwNBdHW/duckdb
+#> ℹ /tmp/RtmpQJrG5p/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.

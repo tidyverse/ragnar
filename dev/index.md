@@ -219,9 +219,9 @@ text <- "How can I subset a dataframe with a logical vector?"
 #> # A tibble: 3 × 9
 #>   origin         doc_id chunk_id start   end cosine_distance bm25  context text 
 #>   <chr>           <int> <list>   <int> <int> <list>          <lis> <chr>   <chr>
-#> 1 https://r4ds.…      2 <int>     3237  4779 <dbl [1]>       <dbl> "# 27 … "```…
-#> 2 https://r4ds.…     19 <int>     1622  4205 <dbl [2]>       <dbl> "# 12 … "```…
-#> 3 https://r4ds.…     19 <int>    19388 21644 <dbl [2]>       <dbl> "# 12 … "Tha…
+#> 1 https://r4ds.…      2 <int>     2545  4779 <dbl [2]>       <dbl> "# 27 … "###…
+#> 2 https://r4ds.…     19 <int>     1634  4217 <dbl [2]>       <dbl> "# 12 … "```…
+#> 3 https://r4ds.…     19 <int>    19400 20813 <dbl [1]>       <dbl> "# 12 … "Tha…
 ```
 
 ``` r
@@ -242,85 +242,41 @@ system_prompt <- stringr::str_squish(
 )
 chat <- ellmer::chat_openai(
   system_prompt,
-  model = "gpt-5.2",
   api_args = list(
     reasoning = list(effort = "low"),
     text = list(verbosity = "low")
   )
 )
+#> Using model = "gpt-6.1-terra".
 
 ragnar_register_tool_retrieve(chat, store, top_k = 10)
 
 chat$chat("How can I subset a dataframe?")
-#> ◯ [tool call] search_store_001(text = c("R subset data frame using [ ,
-#> subset(), dplyr filter select", ...)
+#> ◯ [tool call] search_store_001(text = c("How to subset rows and columns of a
+#> dataframe in R using brackets and subset", ...)
 #> ● #> [
 #>   #> {
 #>   #> "origin": "https://r4ds.hadley.nz/base-R.html",
 #>   #> "doc_id": 2,
-#>   #> "chunk_id": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+#>   #> "chunk_id": [27, 28, 29, 30, 31, 32, 33, 34],
 #>   #> …
 ```
 
 ``` R
-#> ### Base R (works for `data.frame` and tibbles)
-#> 
-#> **Source (quoted/paraphrased):** *R for Data Science* explains that `[` 
-#> “extract[s] sub-components from vectors and data frames” and that for data 
-#> frames the key form is `df[rows, cols]`, with `df[rows, ]` selecting rows and 
-#> `df[, cols]` selecting columns; it also shows examples like `df[df$x > 1, ]` 
-#> for conditional row filtering, and notes `drop = FALSE` to keep a 1-column 
-#> result as a data frame.  
-#> Source: https://r4ds.hadley.nz/base-R.html
+#> In base R, use `df[rows, columns]`. As [R for Data 
+#> Science](https://r4ds.hadley.nz/base-R.html#sec-subset-many) explains, leaving 
+#> either side empty keeps all rows or columns.
 #> 
 #> ```r
-#> # rows by position
-#> df[1:5, ]
-#> 
-#> # columns by name
-#> df[, c("x", "y")]
-#> 
-#> # rows by condition (keep rows where x > 1)
-#> df[df$x > 1, ]
-#> 
-#> # single column:
-#> df[,"x"]              # may return a vector for data.frame
-#> df[,"x", drop = FALSE]# always keep as data frame
+#> df[1:3, ]                          # First three rows
+#> df[, c("name", "age")]             # Selected columns
+#> df[!is.na(df$age) & df$age > 18, ] # Rows matching a condition
+#> df[1:3, "name", drop = FALSE]      # Keep result as a data frame
 #> ```
 #> 
-#> To pull a single column:
-#> ```r
-#> df$x        # or df[["x"]]
-#> ```
-#> 
-#> ### `subset()` (base R convenience)
-#> 
-#> **Source (quoted/paraphrased):** *R for Data Science* notes base R also has 
-#> `subset()` combining row filtering + column selection, e.g. `df |> subset(x > 
-#> 1, c(y, z))`.  
-#> Source: https://r4ds.hadley.nz/base-R.html
+#> You can also combine row and column selection:
 #> 
 #> ```r
-#> subset(df, x > 1, c(y, z))
+#> subset(df, age > 18, select = c(name, age))
 #> ```
-#> 
-#> ### dplyr (tidyverse)
-#> 
-#> **Source (quoted/paraphrased):** *R for Data Science* describes `filter()` for 
-#> keeping rows based on conditions and `select()` for choosing columns.  
-#> Source: https://r4ds.hadley.nz/data-transform.html
-#> 
-#> ```r
-#> library(dplyr)
-#> 
-#> df |> filter(x > 1)
-#> df |> select(x, y)
-#> df |> filter(x > 1) |> select(y, z)
-#> ```
-#> 
-#> Additional links:
-#> - Base `[` help: https://rdrr.io/r/base/Extract.html
-#> - Base `subset()` help: https://rdrr.io/r/base/subset.html
-#> - dplyr `filter()`: https://dplyr.tidyverse.org/reference/filter.html
-#> - dplyr `select()`: https://dplyr.tidyverse.org/reference/select.html
 ```
