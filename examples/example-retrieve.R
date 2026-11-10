@@ -26,7 +26,6 @@ system_prompt <- stringr::str_squish(
 )
 chat <- ellmer::chat_openai(
   system_prompt,
-  model = "gpt-5.2",
   api_args = list(
     reasoning = list(effort = "low"),
     text = list(verbosity = "low")
