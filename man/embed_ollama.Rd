@@ -9,7 +9,7 @@
 embed_ollama(
   x,
   base_url = "http://localhost:11434",
-  model = "embeddinggemma:300m",
+  model = "embeddinggemma-2:latest",
   batch_size = 10L
 )
 

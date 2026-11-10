@@ -9,7 +9,7 @@ unlink(store_location)
 
 store <- ragnar_store_create(
   store_location,
-  embed = \(x) ragnar::embed_ollama(x, model = "all-minilm")
+  embed = \(x) ragnar::embed_ollama(x)
 )
 
 for (page in pages) {
