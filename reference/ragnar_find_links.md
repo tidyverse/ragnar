@@ -201,12 +201,12 @@ links <- ragnar_find_links(
   get_timestamps = TRUE,
   metadata = TRUE
 )
-#> ⠙ Finding links: 32 | On queue: 24 | Current depth: 1 | [2s]
-#> ⠹ Finding links: 45 | On queue: 11 | Current depth: 1 | [3s]
-#> ⠸ Finding links: 57 | On queue: 0 | Current depth: 1 | [4s]
-#> [working] (537 + 0) -> 8 -> 704 | ■■■■■■■■■■■■■■■■■■                56%
+#> ⠙ Finding links: 38 | On queue: 18 | Current depth: 1 | [2s]
+#> ⠹ Finding links: 45 | On queue: 11 | Current depth: 1 | [2s]
+#> ⠸ Finding links: 57 | On queue: 0 | Current depth: 1 | [3s]
+#> [working] (401 + 0) -> 10 -> 838 | ■■■■■■■■■■■■■■■■■■■■■             6…
 #> [working] (0 + 0) -> 0 -> 1249 | ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100%
-#> ⠸ Finding links: 57 | On queue: 0 | Current depth: 1 | [4s]
+#> ⠸ Finding links: 57 | On queue: 0 | Current depth: 1 | [3s]
 links$last_modified
 #>    [1] "2026-11-10 15:04:41 UTC" "2026-11-10 14:54:57 UTC"
 #>    [3] "2026-11-10 14:54:57 UTC" "2026-11-10 13:40:58 UTC"

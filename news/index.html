@@ -47,6 +47,7 @@
 <div class="section level3">
 <h3 id="breaking-changes-0-4-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-4-0"></a></h3>
 <ul><li><p><code><a href="../reference/ragnar_read.html">ragnar_read()</a></code>, <code><a href="../reference/ragnar_chunk.html">ragnar_chunk()</a></code>, <code><a href="../reference/ragnar_chunk.html">ragnar_segment()</a></code>, and <code><a href="../reference/ragnar_chunk.html">ragnar_chunk_segments()</a></code> now emit deprecation warnings. They have been documented as deprecated since ragnar 0.2.0. Use <code><a href="../reference/read_as_markdown.html">read_as_markdown()</a></code> and <code><a href="../reference/markdown_chunk.html">markdown_chunk()</a></code> instead.</p></li>
+<li><p><code><a href="../reference/embed_ollama.html">embed_ollama()</a></code> now defaults to <code>model = "embeddinggemma-2:270m-q8_0-text"</code>. Existing stores keep the embedding model they were created with. Run <code>ollama pull embeddinggemma-2:270m-q8_0-text</code> before creating new stores with the default.</p></li>
 <li><p>Retrieval now rejects metadata columns named <code>metric_name</code> or <code>metric_value</code> (ignoring case) and asks for different column names.</p></li>
 <li><p>ragnar now requires DuckDB &gt;= 1.5.0, whose row-ID fetching keeps indexed VSS retrieval bounded to the selected matches.</p></li>
 </ul></div>
