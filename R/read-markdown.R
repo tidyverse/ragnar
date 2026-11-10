@@ -302,7 +302,7 @@ cli_markitdown <- function(args, ...) {
 
 #' View chunks with the store inspector
 #'
-#' Visualize chunks read by [ragnar_read()] for quick inspection.
+#' Visualize chunks produced by [markdown_chunk()] for quick inspection.
 #' Helpful for inspecting the results of chunking and reading while iterating
 #' on the ingestion pipeline.
 #'

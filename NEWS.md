@@ -2,6 +2,11 @@
 
 ## Breaking changes
 
+-   `ragnar_read()`, `ragnar_chunk()`, `ragnar_segment()`, and
+    `ragnar_chunk_segments()` now emit deprecation warnings. They have been
+    documented as deprecated since ragnar 0.2.0. Use `read_as_markdown()` and
+    `markdown_chunk()` instead.
+
 -   Retrieval now rejects metadata columns named `metric_name` or `metric_value`
     (ignoring case) and asks for different column names.
 

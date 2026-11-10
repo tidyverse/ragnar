@@ -91,7 +91,7 @@ can be augmented by modifying the chunk text directly (e.g., with \code{glue()})
 Additionally, if you intend to call \code{ragnar_store_update()}, it is your
 responsibility to provide \code{rlang::hash(original_full_document)} with each
 chunk. The easiest way to prepare \code{chunks} for \code{version = 1} is with
-\code{ragnar_read()} and \code{ragnar_chunk()}.
+\code{read_as_markdown()} and \code{markdown_chunk()}.
 }
 
 \subsection{Memory use}{

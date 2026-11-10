@@ -100,6 +100,7 @@
 #'   # inspect
 #'   _[9:10] |> cat(sep = "\n~~~~~~~~~~~\n")
 ragnar_read <- function(x, ..., split_by_tags = NULL, frame_by_tags = NULL) {
+  lifecycle::deprecate_warn("0.2.0", "ragnar_read()", "read_as_markdown()")
   text <- read_as_markdown(x, ...)
   hash <- rlang::hash(text)
 
@@ -261,6 +262,7 @@ ragnar_chunk <- function(
   trim = TRUE,
   simplify = TRUE
 ) {
+  lifecycle::deprecate_warn("0.2.0", "ragnar_chunk()", "markdown_chunk()")
   if (is.data.frame(x)) {
     check_character(x[["text"]])
     x[["text"]] <- str_chunk(
@@ -295,6 +297,7 @@ ragnar_segment <- function(
   trim = FALSE,
   simplify = TRUE
 ) {
+  lifecycle::deprecate_warn("0.2.0", "ragnar_segment()", "markdown_chunk()")
   if (is.data.frame(x)) {
     check_character(x[["text"]])
     x[["text"]] <- ragnar_segment(
@@ -341,6 +344,11 @@ ragnar_chunk_segments <- function(
   simplify = TRUE,
   trim = TRUE
 ) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "ragnar_chunk_segments()",
+    "markdown_chunk()"
+  )
   sep <- ""
   if (is.data.frame(x)) {
     stopifnot(is.list(x[["text"]]), all(map_chr(x[["text"]]), is.character))
