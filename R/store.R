@@ -688,11 +688,11 @@ ragnar_store_inspect <- function(store, ...) {
 #' @examples
 #' \dontrun{
 #' # Start Ollama, then run this in a terminal:
-#' # ollama pull embeddinggemma:300m-qat-q4_0
+#' # ollama pull embeddinggemma-2:270m-q8_0-text
 #'
 #' # Create an in-memory store using local embeddings
 #' store <- ragnar_store_create(
-#'   embed = embed_ollama(model = "embeddinggemma:300m-qat-q4_0")
+#'   embed = embed_ollama()
 #' )
 #'
 #' # Read and embed a chapter from R for Data Science

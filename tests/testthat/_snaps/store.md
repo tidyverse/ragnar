@@ -53,6 +53,6 @@
       store@embed
     Output
       function (x) 
-      ragnar::embed_ollama(x = x, model = "embeddinggemma:300m")
+      ragnar::embed_ollama(x = x, model = "embeddinggemma-2:270m-q8_0-text")
       <environment: base>
 
