@@ -134,7 +134,10 @@ ragnar_store_create <- function(
   version = 2
 ) {
   if (is_windows_arm64()) {
-    stop("DuckDB stores are not currently supported on Windows ARM64.", call. = FALSE)
+    stop(
+      "DuckDB stores are not currently supported on Windows ARM64.",
+      call. = FALSE
+    )
   }
   check_number_whole(version)
   create <- switch(
@@ -252,7 +255,10 @@ ragnar_store_connect <- function(
   read_only = TRUE
 ) {
   if (is_windows_arm64()) {
-    stop("DuckDB stores are not currently supported on Windows ARM64.", call. = FALSE)
+    stop(
+      "DuckDB stores are not currently supported on Windows ARM64.",
+      call. = FALSE
+    )
   }
   check_dots_empty()
 
@@ -376,7 +382,7 @@ ragnar_store_update <- function(store, chunks) {
 ragnar_store_sync <- function(
   store,
   keep,
-  dry_run       = FALSE,
+  dry_run = FALSE,
   rebuild_index = TRUE
 ) {
   stopifnot(S7::S7_inherits(store, DuckDBRagnarStore))
@@ -502,9 +508,12 @@ ragnar_store_audit <- function(store, expected, group_by = NULL) {
       )
     }
     if (
-      group_by %in% c("expected", "ingested", "missing", "chunks", "missing_urls")
+      group_by %in%
+        c("expected", "ingested", "missing", "chunks", "missing_urls")
     ) {
-      cli::cli_abort("{.arg group_by} must differ from the summary column names.")
+      cli::cli_abort(
+        "{.arg group_by} must differ from the summary column names."
+      )
     }
   }
   origins <- tibble::tibble(.origin = as.character(expected$source))
@@ -600,35 +609,30 @@ DuckDBRagnarStore := new_class(
   )
 )
 
-local({
-  method(print, DuckDBRagnarStore) <- function(x, ...) {
-    embed <- deparse1(x@embed)
-    embed <- sub("function ?\\(", "\\\\(", embed)
-    embed <- sub(") +", ") ", embed)
+method(print, DuckDBRagnarStore) <- function(x, ...) {
+  embed <- deparse1(x@embed)
+  embed <- sub("function ?\\(", "\\\\(", embed)
+  embed <- sub(") +", ") ", embed)
 
-    # TODO: restore @schema:
-    cat(glue(
-      '
-    <ragnar::DuckDBRagnarStore>
-     @ location: {x@location}
-     @ embed   : {embed}
-     @ name    : {x@name}
-     @ title   : {x@title %||% "NULL"}
-     @ con     : <DBI::DBIConnection>
-     @ version : {x@version}
-
+  # TODO: restore @schema:
+  cat(glue(
     '
-    ))
-  }
-})
+  <ragnar::DuckDBRagnarStore>
+   @ location: {x@location}
+   @ embed   : {embed}
+   @ name    : {x@name}
+   @ title   : {x@title %||% "NULL"}
+   @ con     : <DBI::DBIConnection>
+   @ version : {x@version}
 
-#' @importFrom dplyr tbl sql arrange collect
-local({
-  method(tbl, ragnar:::DuckDBRagnarStore) <-
-    function(src, from = "chunks", ...) {
-      tbl(src@con, from)
-    }
-})
+  '
+  ))
+}
+
+method(tbl, DuckDBRagnarStore) <-
+  function(src, from = "chunks", ...) {
+    tbl(src@con, from)
+  }
 
 
 #' Launch the Ragnar Store Inspector

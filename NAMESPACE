@@ -44,8 +44,8 @@ export(ragnar_store_inspect)
 export(ragnar_store_sync)
 export(ragnar_store_update)
 export(read_as_markdown)
-import(S7, except = ":=")
-import(rlang)
+import(S7)
+import(rlang, except = ":=")
 importFrom(DBI,
   dbAppendTable,
   dbConnect,

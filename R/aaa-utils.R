@@ -13,7 +13,8 @@
 #'   xml_url url_absolute xml_contents xml_find_first
 #' @importFrom dplyr tibble as_tibble bind_rows coalesce distinct filter join_by left_join mutate
 #'   na_if rename rename_with select slice_max slice_min starts_with collect
-#'   summarize row_number anti_join lag any_of all_of across lag desc
+#'   summarize row_number anti_join lag any_of all_of across lag desc tbl sql
+#'   arrange
 #' @importFrom tidyr unchop unnest
 #' @importFrom vctrs data_frame vec_split vec_rbind vec_cbind vec_locate_matches
 #'   vec_fill_missing vec_unique vec_slice vec_c list_unchop new_data_frame
@@ -27,8 +28,8 @@
 #' @importFrom methods is
 #' @importFrom utils head
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
-#' @import rlang
-#' @rawNamespace import(S7, except = ":=")
+#' @import rlang, except = ":="
+#' @import S7
 #' @useDynLib ragnar, .registration = TRUE
 NULL
 
@@ -195,20 +196,6 @@ as_bare_df <- function(x) {
   )
 }
 
-`:=` <- function(name, value) {
-  name <- substitute(name)
-  if (!is.symbol(name)) {
-    stop("left hand side must be a symbol")
-  }
-  value <- substitute(value)
-  if (!is.call(value)) {
-    stop("right hand side must be a call")
-  }
-
-  value <- as.call(c(as.list(value), list(name = as.character(name))))
-  eval(call("<-", name, value), parent.frame())
-}
-
 local_duckdb_register <- function(
   con,
   name,
@@ -305,7 +292,9 @@ can_load_duckdb_extensions <- local({
   # be loaded in a separate process and proceed if that's possible.
   can <- NULL
   function() {
-    if (is_windows_arm64()) return(FALSE)
+    if (is_windows_arm64()) {
+      return(FALSE)
+    }
     if (is.null(can)) {
       can <<- 0L ==
         system2(

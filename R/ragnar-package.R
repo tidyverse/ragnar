@@ -11,7 +11,7 @@ ragnartools.markitdown <- NULL
     RETICULATE_PYTHON = "managed",
     ORT_DISABLE_TELEMETRY = "1"
   )
-  S7::methods_register()
+  S7::S7_on_load()
   if (is_windows_arm64()) {
     return(invisible(NULL))
   }
@@ -32,6 +32,11 @@ ragnartools.markitdown <- NULL
     system.file("python", package = "ragnar"),
     delay_load = TRUE
   )
+}
+
+
+.onUnload <- function(libpath) {
+  S7::S7_on_unload()
 }
 
 
