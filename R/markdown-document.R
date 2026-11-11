@@ -59,12 +59,10 @@ markdown_normalize <- function(md, canonical = FALSE) {
   md
 }
 
-local({
-  method(convert, list(class_character, MarkdownDocument)) <-
-    function(from, to, ...) {
-      MarkdownDocument(from, ...)
-    }
-})
+method(convert, list(class_character, MarkdownDocument)) <-
+  function(from, to, ...) {
+    MarkdownDocument(from, ...)
+  }
 
 
 #' Markdown documents chunks
@@ -142,12 +140,10 @@ MarkdownDocumentChunks := new_class(
   )
 }
 
-local({
-  method(vec_proxy, MarkdownDocumentChunks) <- function(x, ...) {
-    # drop S7 class, properties, convert to simple data.frame
-    out <- x
-    attributes(out) <- NULL
-    names(out) <- names(x)
-    new_data_frame(out)
-  }
-})
+method(vec_proxy, MarkdownDocumentChunks) <- function(x, ...) {
+  # drop S7 class, properties, convert to simple data.frame
+  out <- x
+  attributes(out) <- NULL
+  names(out) <- names(x)
+  new_data_frame(out)
+}
