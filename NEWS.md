@@ -1,5 +1,7 @@
 # ragnar (development version)
 
+-   ragnar now requires S7 >= 1.0.0.
+
 # ragnar 0.4.0
 
 ## Breaking changes
