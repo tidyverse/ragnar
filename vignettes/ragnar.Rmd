@@ -264,7 +264,7 @@ once if needed. Register `ragnar_retrieve()` as a tool with
 client <- ellmer::chat_openai()
 ragnar_register_tool_retrieve(
   client, store, top_k = 10,
-  description = "the quarto website"
+  store_description = "the quarto website"
 )
 ```
 
@@ -317,6 +317,7 @@ rag_retrieve_quarto_excerpts <- local({
   function(text) {
     # Search, excluding previously seen chunks
     chunks <- ragnar::ragnar_retrieve(
+      store,
       text,
       top_k = 10,
       filter = !.data$chunk_id %in% retrieved_chunk_ids
@@ -325,9 +326,8 @@ rag_retrieve_quarto_excerpts <- local({
     # Update seen chunks
     retrieved_chunk_ids <<- unique(unlist(c(retrieved_chunk_ids, chunks$chunk_id)))
 
-    # Return the chunks dataframe directly;
-    # ellmer will format this to json as a row-oriented list of objects.
-    chunks
+    # Return the chunks as JSON, with one object per row
+    jsonlite::toJSON(chunks, pretty = TRUE, auto_unbox = TRUE, na = "null")
   }
 })
 ```
@@ -344,7 +344,7 @@ Register the custom tool:
 ``` r
 client$register_tool(ellmer::tool(
   rag_retrieve_quarto_excerpts,
-  glue::trim(
+  description = glue::trim(
     "
     Use this tool to retrieve the most relevant excerpts from the Quarto
     knowledge store for a given text input. This function:
@@ -352,7 +352,9 @@ client$register_tool(ellmer::tool(
     - never returns the same excerpt twice in the same session
     "
   ),
-  text = ellmer::type_string()
+  arguments = list(
+    text = ellmer::type_string()
+  )
 ))
 ```
 
