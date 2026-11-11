@@ -27,8 +27,8 @@
 #' @importFrom methods is
 #' @importFrom utils head
 # ' @importFrom rlang names2 # stand alone type checks need to import all of rlang?!?! :\
-#' @import rlang
-#' @rawNamespace import(S7, except = ":=")
+#' @import rlang, except = ":="
+#' @import S7
 #' @useDynLib ragnar, .registration = TRUE
 NULL
 
@@ -195,20 +195,6 @@ as_bare_df <- function(x) {
   )
 }
 
-`:=` <- function(name, value) {
-  name <- substitute(name)
-  if (!is.symbol(name)) {
-    stop("left hand side must be a symbol")
-  }
-  value <- substitute(value)
-  if (!is.call(value)) {
-    stop("right hand side must be a call")
-  }
-
-  value <- as.call(c(as.list(value), list(name = as.character(name))))
-  eval(call("<-", name, value), parent.frame())
-}
-
 local_duckdb_register <- function(
   con,
   name,
@@ -305,7 +291,9 @@ can_load_duckdb_extensions <- local({
   # be loaded in a separate process and proceed if that's possible.
   can <- NULL
   function() {
-    if (is_windows_arm64()) return(FALSE)
+    if (is_windows_arm64()) {
+      return(FALSE)
+    }
     if (is.null(can)) {
       can <<- 0L ==
         system2(
